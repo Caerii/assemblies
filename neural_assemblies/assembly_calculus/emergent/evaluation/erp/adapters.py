@@ -88,10 +88,12 @@ def phrase_stability_rounds_for_depth(probe_depth: ProbeDepth) -> int:
 def _self_recurrent_energy(brain, area: str) -> Measured:
     """Normalized self-recurrent PRE-k-WTA energy of the assembly in *area*.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-pre-kwta-observation
+
     The assembly projects back into its own area; the summed drive over
-    candidate neurons before winner selection, divided by area size, measures
-    how strongly the assembly reinforces itself. A well-integrated assembly
-    scores high, a weakly-bound one low.
+    candidate neurons before winner selection, divided by the exact number of
+    candidates in that sum, measures how strongly the assembly reinforces
+    itself. A well-integrated assembly scores high, a weakly-bound one low.
 
     The area is deliberately NOT fixed: the sparse engine short-circuits a
     projection into a FIXED target and returns before inputs are summed (see
@@ -103,7 +105,7 @@ def _self_recurrent_energy(brain, area: str) -> Measured:
     stops weights changing; it does not stop the area GROWING, and growth
     reshapes the connectome just as surely. See `probe_util.probe_context`.
 
-    THE DIVISOR IS WRONG AND IT SETS THE WHOLE SCALE (#104). ``area.w`` is the
+    THE OLD DIVISOR WAS WRONG AND SET THE WHOLE SCALE (#104). ``area.w`` is the
     MATERIALISED COUNT -- how many neurons lazy instantiation has got around to
     creating -- which is an implementation detail with no counterpart in the
     calculus, where an area has a fixed ``n``. Measured over arms that vary how
@@ -115,8 +117,8 @@ def _self_recurrent_energy(brain, area: str) -> Measured:
     also the mechanism behind the saturation, since ``1 - drive/w`` is pushed
     toward 1.0 as ``w`` grows.
 
-    The same divisor is in ``binding.input_drive``, which this function calls,
-    so it is one choice on two paths.
+    The same bad divisor formerly appeared independently in
+    ``binding.input_drive``. Both paths now use the shared typed observation.
 
     AND REPLACING IT DOES NOT FIX ANYTHING -- MEASURED, hypothesis refuted
     (research/experiments/erp_denominator_invariance.log). Six statistics off
@@ -178,14 +180,17 @@ def _self_recurrent_energy(brain, area: str) -> Measured:
         brain.record_activation = True
         try:
             brain.project({}, {area: [area]})
-            totals = getattr(brain, "last_pre_kwta_totals", {}) or {}
-            counts = getattr(brain, "last_pre_kwta_counts", {}) or {}
-            _record_pool_ratio(brain, area, counts.get(area))
-            w = max(int(brain.areas[area].w), 1)
-            return Measured.of(float(totals.get(area, 0.0)) / w)
+            observation = brain.pre_kwta_observation(area)
+            if observation is None:
+                return Measured.undefined(
+                    f"backend recorded no pre-k-WTA observation for {area}",
+                    area=area,
+                )
+            _record_pool_ratio(brain, area, observation.candidate_count)
+            return Measured.of(observation.mean)
         except (RuntimeError, IndexError, ValueError) as exc:
             return Measured.undefined(
-                f"projection into {area} failed: {type(exc).__name__}",
+                f"projection into {area} failed: {type(exc).__name__}: {exc}",
                 area=area,
             )
         finally:
@@ -310,18 +315,19 @@ def afferent_energy(brain, area: str) -> Measured:
         brain.record_activation = True
         try:
             brain.project({}, {src: [area] for src in sources})
-            totals = getattr(brain, "last_pre_kwta_totals", {}) or {}
-            counts = getattr(brain, "last_pre_kwta_counts", {}) or {}
-            _record_pool_ratio(brain, area, counts.get(area))
-            # Divided by the candidates ACTUALLY SUMMED, not by `area.w` --
-            # the shipped divisor is the materialised count, which is a
-            # lazy-instantiation artifact (#104).
-            n = max(int(counts.get(area, 0)), 1)
-            return Measured.of(float(totals.get(area, 0.0)) / n)
+            observation = brain.pre_kwta_observation(area)
+            if observation is None:
+                return Measured.undefined(
+                    f"backend recorded no pre-k-WTA observation for {area}",
+                    legacy=0.0,
+                    area=area,
+                )
+            _record_pool_ratio(brain, area, observation.candidate_count)
+            return Measured.of(observation.mean)
         except (RuntimeError, IndexError, ValueError) as exc:
             return Measured.undefined(
                 f"afferent projection into {area} failed: "
-                f"{type(exc).__name__}", legacy=0.0, area=area)
+                f"{type(exc).__name__}: {exc}", legacy=0.0, area=area)
         finally:
             brain.record_activation = prev_rec
 

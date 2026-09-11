@@ -1437,6 +1437,26 @@ cumulative recruitment. Clearing activity changes only `active`. Controls verify
 all three after sparse training and inhibition, the dense `None` case, and an
 unknown area. The `.w` alias is not part of this interface.
 
+<a id="contract-pre-kwta-observation"></a>
+
+## Pre-k-WTA observation
+
+A global pre-k-WTA sum is inseparable from the number of candidates over which
+it was accumulated. `Brain.pre_kwta_observation(area)` therefore returns one
+immutable `PreKwtaObservation(total, candidate_count)` with `mean` derived from
+that exact pair. It returns `None` only when neither component was recorded,
+rejects a one-sided record, and rejects zero, negative or nonfinite components.
+Unknown areas raise. Changing current activity, cumulative recruitment or lazy
+materialization after recording cannot change the observation's mean.
+
+Every maintained normalized-energy consumer reads this value. A backend that
+does not produce a pre-k-WTA observation may use the explicitly documented
+winner-energy fallback where one exists; it may not substitute area size,
+winner count or one as a divisor. ERP adapters turn a missing or invalid
+observation into `Measured.undefined`, preserving the reason. Controls construct
+a valid observation, each malformed half-record and an area whose ambiguous
+`.w` changes without changing the recorded candidate count.
+
 
 <a id="contract-initial-recruitment"></a>
 

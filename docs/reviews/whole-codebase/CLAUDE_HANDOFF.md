@@ -2254,3 +2254,17 @@ before `__init__` runs. The registry contract checks the declaration against
 explicit parameters or a deliberate option receiver. The combined semantic gate
 is 187 passed; the topology migration gate is 3 passed with the two intended
 sampled-recurrence audit warnings.
+
+I then unified the other half of the same measurement ambiguity. A pre-k-WTA
+sum and the number of candidates it covers are now one public immutable
+`PreKwtaObservation`; its mean cannot be computed from `Area.w`, winner count or
+a guessed one. Brain rejects half-records and malformed domains. Both maintained
+ERP energy paths and `binding.input_drive` consume this value, removing their two
+`.w` divisors. Exact-engine counterexamples force `Area.w != candidate_count` and
+would fail the old implementations.
+
+The direct gate is 12 passed, the binding/live-probe/specification gate is 46
+passed, and the broader ERP and wobbly compatibility gate is 64 passed. This fixes
+the scale implementation; it does not resurrect the historically void P600 claims
+or solve the documented starved-pool problem. Those remain scientific instrument
+constraints enforced by `Measured.undefined` and ERP readiness gates.

@@ -249,6 +249,8 @@ def input_drive(
 ) -> Dict[str, float]:
     """Total synaptic drive the cue delivers to each candidate area.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-pre-kwta-observation
+
     `metric` selects what "drive" means:
 
     * ``"pre_kwta"`` (default) -- global energy over every candidate neuron
@@ -261,8 +263,9 @@ def input_drive(
     ranking purely on size. Any cross-area comparison must divide out the
     candidate count.
 
-    ``w`` IS THE WRONG STAND-IN FOR THAT COUNT, and it decides the scale of
-    every number this function returns (#104). The intent above is right --
+    ``w`` WAS THE WRONG STAND-IN FOR THAT COUNT, and it decided the scale of
+    every number this function returned (#104). This implementation reads the
+    engine-reported observation pair. The intent above is right --
     make areas commensurable -- but ``w`` is the MATERIALISED count, an
     artifact of lazy instantiation with no counterpart in the calculus, where
     an area has a fixed ``n``. Measured across arms that vary how much of an
@@ -324,10 +327,17 @@ def input_drive(
                 if not scores:  # engine did not record; fall back
                     scores = dict(getattr(brain, "last_activation_scores", {}) or {})
                 else:
-                    scores = {
-                        a: v / max(int(brain.areas[a].w), 1)
-                        for a, v in scores.items() if a in brain.areas
-                    }
+                    normalized = {}
+                    for area in scores:
+                        if area not in brain.areas:
+                            continue
+                        observation = brain.pre_kwta_observation(area)
+                        if observation is None:
+                            raise RuntimeError(
+                                f"pre-k-WTA total for {area!r} has no candidate count"
+                            )
+                        normalized[area] = observation.mean
+                    scores = normalized
             else:
                 scores = dict(getattr(brain, "last_activation_scores", {}) or {})
         finally:

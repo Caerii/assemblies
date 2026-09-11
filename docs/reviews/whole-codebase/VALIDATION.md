@@ -3897,3 +3897,24 @@ Validation: 187 count, ratchet, specification, engine-ladder and model-boundary
 tests pass. Three compiled-topology migration tests pass; their two deliberate
 sampled-engine fixtures emit the required audit warning. Ruff and whitespace
 checks pass on the changed sources.
+
+## Pre-k-WTA totals carry their observation domain (2026-09-11)
+
+`PreKwtaObservation(total, candidate_count)` now makes the normalization domain
+part of the recorded value and derives its mean. `Brain.pre_kwta_observation`
+returns `None` only when neither component exists, rejects one-sided records,
+unknown areas, nonfinite totals and nonpositive or nonintegral counts. The type is
+public through both package surfaces.
+
+`binding.input_drive`, self-recurrent ERP energy and afferent ERP energy now use
+that one boundary. The two maintained `.w` denominator reads are removed from the
+ratchet. Constructed exact-engine controls make `Area.w` differ from a 100-neuron
+candidate domain and require both readouts to equal the typed observation mean;
+changing `.w` after recording leaves the mean unchanged. Missing observations
+become a documented fallback in `input_drive` or `Measured.undefined` in ERP code,
+never division by one.
+
+Validation: 12 direct observation controls pass; 46 binding, live-probe, ratchet,
+lazy-export and specification tests pass; 64 broader ERP protocol, readiness,
+quantity, harness and wobbly-parser tests pass. The latter retain eight expected
+sampled-recurrence audit warnings. Ruff and whitespace checks pass.

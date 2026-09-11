@@ -25,6 +25,7 @@ Based on:
 _LAZY_EXPORTS = {
     name: ".core" for name in (
         "Brain", "Area", "Stimulus", "Connectome", "PopulationCounts",
+        "PreKwtaObservation",
         "ComputeEngine", "ProjectionResult", "create_engine", "list_engines",
         "SampledRecurrencePolicy",
         "AlignerSemantics", "AlignmentStore", "AlignmentTrainingSchedule",
@@ -126,6 +127,7 @@ if TYPE_CHECKING:  # pragma: no cover
     from .constants import DEFAULT_BETA, DEFAULT_P
     from .core import (
         Area, Brain, ComputeEngine, Connectome, PopulationCounts,
+        PreKwtaObservation,
         ProjectionResult, Stimulus,
         AlignerSemantics, AlignmentInferenceSchedule, AlignmentStore,
         AlignmentTrainingSchedule, ArithmeticMode, CandidateDomain,
@@ -180,6 +182,7 @@ __author__ = "Superintelligent Group"
 __all__ = [
     # Core classes
     'Brain', 'Area', 'Stimulus', 'Connectome', 'PopulationCounts',
+    'PreKwtaObservation',
     'HomeostasisConfig',
     'SampledRecurrencePolicy',
     'AlignerSemantics', 'AlignmentStore', 'AlignmentTrainingSchedule',

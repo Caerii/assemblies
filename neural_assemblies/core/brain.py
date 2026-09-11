@@ -40,7 +40,7 @@ from .registration import validate_round_count, validate_input_noise, validate_p
 from ._homeostasis import HomeostasisConfig, check_area_homeostasis, validate_lri_parameters
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 from .semantics import ModelSemantics, SampledRecurrencePolicy
-from .activity import PopulationCounts
+from .activity import PopulationCounts, PreKwtaObservation
 
 from .area import Area
 from .stimulus import Stimulus
@@ -577,6 +577,29 @@ class Brain:
             active=area.active_count,
             ever_fired=int(owner.get_num_ever_fired(area_name)),
             materialized=(None if materialized is None else int(materialized)),
+        )
+
+    def pre_kwta_observation(
+        self, area_name: str
+    ) -> PreKwtaObservation | None:
+        """Return the last pre-selection total and its actual candidate count.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-pre-kwta-observation
+        """
+        if area_name not in self.areas:
+            raise KeyError(f"unknown area {area_name!r}")
+        has_total = area_name in self.last_pre_kwta_totals
+        has_count = area_name in self.last_pre_kwta_counts
+        if not has_total and not has_count:
+            return None
+        if has_total != has_count:
+            raise RuntimeError(
+                f"incomplete pre-k-WTA observation for {area_name!r}: "
+                f"total={has_total}, candidate_count={has_count}"
+            )
+        return PreKwtaObservation(
+            total=self.last_pre_kwta_totals[area_name],
+            candidate_count=self.last_pre_kwta_counts[area_name],
         )
 
     def _preserve_mixed_connectomes(self) -> None:
