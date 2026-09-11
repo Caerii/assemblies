@@ -4406,3 +4406,9 @@ record. If an optional engine module cannot load, its known engine names now
 retain the underlying `ImportError`, so the existing unavailable-engine error
 surface can explain the missing dependency or broken module. Engine availability
 regressions (3 tests) and Ruff pass.
+
+## Parity manifest immutability (2026-09-11)
+
+`neural_assemblies.parity.runner.write_manifest` now opens evidence manifests
+exclusively and raises `FileExistsError` on reuse. A regression test verifies
+both the serialized protocol identity and the no-overwrite guarantee.

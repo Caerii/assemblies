@@ -238,4 +238,7 @@ def run_claim(claim_id: str, **kwargs: Any) -> ProtocolResult:
 def write_manifest(result: ProtocolResult, path: str | Path) -> None:
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
-    path.write_text(json.dumps(result.to_manifest(), indent=2) + "\n", encoding="utf-8")
+    # A parity manifest is evidence, so replacing an existing file would erase
+    # the provenance of an earlier run.  Callers must choose a new path/tag.
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(json.dumps(result.to_manifest(), indent=2) + "\n")
