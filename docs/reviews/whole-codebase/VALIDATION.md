@@ -2769,3 +2769,29 @@ full-package failures, optional CuPy path, formal backend proof gaps and unmigra
 research protocols remain open. Next semantic target is the historical merge harness:
 winner replacement does not erase learned fibers, and max parent overlap cannot
 certify both-parent representation.
+
+
+## Historical merge trial controls (2026-09-10)
+
+Captured six source4650438 trials before edits: composition and recovery across
+seeds1/2/3,n60,k6,p.2,beta.1,w_max20,establishment3/merge3. Recovery retains its
+original20 rounds per source. Refactored only shared source establishment, pinned
+numpy_sparse with numpy_explicit area ownership, and extracted the historical
+average/max overlap report. The two C-training histories remain distinct. All
+projection calls, winner sequences, final weight hashes and returned values match.
+
+Constructed controls demonstrate that disjoint C replacements do not change either
+positive-round driven readout; A->C potentiation persists through the composition
+trial's B-only phase; joint training and recovery evaluation continue changing
+weights. A candidate identical to one disjoint parent obtains maximum score1 and
+average.5, while a balanced candidate also averages.5 but has lower maximum. Thus
+neither old scalar certifies both-parent retention. Kept legacy values and individual
+overlaps; corrected their description without inventing a new adopted metric.
+
+The production file is32 lines shorter. Removed the obsolete allowance for two
+automatic engine selections; added the11 controls to CPU contract CI. This preserves
+fixture dynamics, not source-less historical evidence or a general merge theorem.
+The outer harness still needs explicit configurations/seeds/raw observations,
+strict tagged execution and versioned reporting before its evidence is adoptable.
+
+Final validation:45 passed in54.27s across merge trials, legacy aggregate, specification links and both ratchets. Ruff and diff checks pass. No new GPU or full-package gate is claimed after this CPU trial refactor.

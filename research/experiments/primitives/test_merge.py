@@ -1,51 +1,19 @@
-"""
-Merge Primitive: Assembly Composition via Co-Projection
+"""Historical merge: sequential trained overlaps and learning-on driven recovery.
 
-Tests whether two independently established assemblies can be merged into
-a single composite representation that retains information about both parents.
+Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-merge-trials
 
-Protocol:
-    Merge via co-stimulation:
-    project({"sa": ["A"], "sb": ["B"]}, {"A": ["C"], "B": ["C"]})
-    This fires stimuli for A and B simultaneously, and projects both into
-    area C, where they merge.
+The composition trial trains A->C, then B->C, then joint A/B->C on one brain.
+Replacing C winners does not clear learned weights or affect subsequent drive:
+C has no outgoing fiber. Earlier training therefore persists into the joint phase.
+The reported merge_quality is the average parent overlap; composition_score is
+its maximum. Neither certifies that both parents are represented. Keep the
+individual overlaps visible, particularly when one parent dominates.
 
-1. Establish assemblies in A and B via stim+self training (30 rounds each).
-2. A-only: project A->C via project({"sa": ["A"]}, {"A": ["C"]}). Record C_A.
-3. Reset C (random winners). B-only: project B->C. Record C_B.
-4. Reset C. Merge: co-stimulate A and B, project both to C. Record C_AB.
-5. Measure: overlap(C_AB, C_A), overlap(C_AB, C_B), overlap(C_A, C_B).
-   merge_quality = mean(overlap_AB_A, overlap_AB_B).
-   composition_score = max(overlap_AB_A, overlap_AB_B).
-
-All phases use the same brain instance. C is reset (random winners) between
-phases to prevent carryover.
-
-Hypotheses:
-
-H1: Composition -- The merged assembly C_AB overlaps significantly with
-    both parents C_A and C_B (>= 0.45). C_A and C_B overlap at chance.
-    Null: merge_quality equals chance k/n.
-
-H2: Quality vs training rounds -- Merge quality increases with the number
-    of co-stimulation rounds, saturating around 10-30.
-    Null: quality is independent of training duration.
-
-H3: Partial recovery -- After merge training, activating ONLY A's stimulus
-    and projecting A->C recovers C_AB (the full merged assembly).
-    Null: recovery equals chance k/n.
-
-H4: Quality vs network size -- Merge quality at k=sqrt(n) across sizes.
-    Null: quality equals chance.
-
-Statistical methodology:
-- N_SEEDS=10 independent random seeds per condition.
-- One-sample t-test against null k/n.
-- Cohen's d effect sizes. Mean +/- SEM.
-
-References:
-- Papadimitriou et al., PNAS 117(25):14464-14472, 2020
-- Dabagia et al., "Coin-Flipping in the Brain", 2024 (weight saturation)
+The separate recovery trial skips the isolated-parent C training. After joint
+training, it reads from A for 20 rounds and then B for 20 rounds, while learning
+continues. This is not isolated frozen partial-cue completion. The historical
+outer harness and its scientific hypotheses still require migration; these
+observables alone do not establish an adopted merge result.
 """
 
 import sys
@@ -56,7 +24,7 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Any
+from typing import Dict, Any
 from research.experiments.base import (
     ExperimentBase,
     ExperimentResult,
@@ -86,15 +54,9 @@ class MergeConfig:
 # -- Core trial runners -------------------------------------------------------
 
 
-def run_merge_trial(
-    cfg: MergeConfig, seed: int,
-) -> Dict[str, float]:
-    """
-    Establish A and B, project each to C separately, then merge.
-    Returns overlaps between C_AB, C_A, C_B.
-    """
-    rng = np.random.default_rng(seed + 88888)
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+# Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-merge-trials
+def _establish_sources(cfg, seed):
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
 
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
@@ -110,12 +72,25 @@ def run_merge_trial(
     for _ in range(cfg.establish_rounds):
         b.project({"sb": ["B"]}, {"B": ["B"]})
 
+    return b
+
+
+def run_merge_trial(
+    cfg: MergeConfig, seed: int,
+) -> Dict[str, float]:
+    """
+    Establish A and B, project each to C separately, then merge.
+    Returns overlaps between C_AB, C_A, C_B.
+    """
+    rng = np.random.default_rng(seed + 88888)
+    b = _establish_sources(cfg, seed)
+
     # Phase 2: A-only -> C
     for _ in range(cfg.merge_rounds):
         b.project({"sa": ["A"]}, {"A": ["C"]})
     c_a = np.array(b.areas["C"].winners, dtype=np.uint32)
 
-    # Reset C
+    # Replace C winners; learned fibers persist
     b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
 
     # Phase 3: B-only -> C
@@ -123,7 +98,7 @@ def run_merge_trial(
         b.project({"sb": ["B"]}, {"B": ["C"]})
     c_b = np.array(b.areas["C"].winners, dtype=np.uint32)
 
-    # Reset C
+    # Replace C winners; learned fibers persist
     b.areas["C"].winners = rng.choice(cfg.n, cfg.k, replace=False).tolist()
 
     # Phase 4: Merge (co-stimulation)
@@ -131,6 +106,11 @@ def run_merge_trial(
         b.project({"sa": ["A"], "sb": ["B"]}, {"A": ["C"], "B": ["C"]})
     c_ab = np.array(b.areas["C"].winners, dtype=np.uint32)
 
+    return _merge_overlaps(c_ab, c_a, c_b)
+
+
+def _merge_overlaps(c_ab, c_a, c_b):
+    """Historical average/max overlaps; neither certifies both-parent retention."""
     # Measure overlaps
     overlap_ab_a = measure_overlap(c_ab, c_a)
     overlap_ab_b = measure_overlap(c_ab, c_b)
@@ -150,20 +130,8 @@ def run_merge_trial(
 def run_recovery_trial(
     cfg: MergeConfig, seed: int,
 ) -> Dict[str, float]:
-    """After merge training, test recovery from A-only and B-only."""
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
-
-    b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_area("B", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_area("C", cfg.n, cfg.k, cfg.beta, explicit=True)
-    b.add_stimulus("sa", cfg.k)
-    b.add_stimulus("sb", cfg.k)
-
-    # Establish A, B
-    for _ in range(cfg.establish_rounds):
-        b.project({"sa": ["A"]}, {"A": ["A"]})
-    for _ in range(cfg.establish_rounds):
-        b.project({"sb": ["B"]}, {"B": ["B"]})
+    """Sequential A-only then B-only readout after joint training; both learn."""
+    b = _establish_sources(cfg, seed)
 
     # Merge training (co-stimulation)
     for _ in range(cfg.merge_rounds):

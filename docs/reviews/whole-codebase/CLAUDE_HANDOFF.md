@@ -1489,3 +1489,15 @@ example. Dedicated fused/CUDA parity:122 passed,no skips,11 warnings in43.30s on
 RTX3080 with the existing VS2022 build environment. No engine/dependency changes.
 This does not supersede open full-package failures or prove general backend parity.
 See VALIDATION.md#integrated-migration-checkpoint-2026-09-10.
+
+
+## Historical merge trial controls (2026-09-10)
+
+Six captured merge/recovery trials remain exact after shared setup extraction and
+engine pinning. New controls show that C resets do not clear training or affect
+positive-round drive, evaluation learns, and the maximum-overlap score can be perfect
+while one parent is absent. Production file32 lines shorter; removed two unpinned
+engine allowances. Outer harness migration remains open. See
+VALIDATION.md#historical-merge-trial-controls-2026-09-10.
+
+Final merge/aggregate/specification/ratchet validation:45 passed; Ruff and diff checks pass.

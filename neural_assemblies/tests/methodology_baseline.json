@@ -185,7 +185,6 @@
     "research/experiments/primitives/test_forward_prediction.py": 1,
     "research/experiments/primitives/test_incremental_erp.py": 1,
     "research/experiments/primitives/test_inhibition.py": 4,
-    "research/experiments/primitives/test_merge.py": 2,
     "research/experiments/primitives/test_merge_association.py": 3,
     "research/experiments/primitives/test_prediction_n400.py": 1,
     "research/experiments/primitives/test_role_self_organization.py": 1,
