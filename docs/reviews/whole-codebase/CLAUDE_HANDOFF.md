@@ -2227,3 +2227,10 @@ Tracing sweep configurations now transport engine plus sampled-recurrence policy
 and emit both in each row. Defaults continue to warn, acknowledged teaching
 fixtures are quiet, and unknown policy names fail before projection. This removes
 warning noise without weakening the sampled-engine misuse guard.
+
+State prediction's three `.w` reads are also removed. Bootstrap source selection,
+syntactic seeding and the final source list all require current winners, so they
+now read `Area.active_count`. A constructed state reverses `.w` and activity and
+would choose the wrong core on the old implementation. The trained-parser suite
+still passes. `EmergentParser` now transports `sampled_recurrence_policy` to its
+Brain, making deliberate acknowledgement configurable instead of impossible.

@@ -67,6 +67,8 @@ class StatePredictionMixin:
     def _bootstrap_state_paths(self) -> None:
         """Materialize the state -> PREDICTION connectomes once, plasticity off.
 
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-state-path-active-sources
+
         In sparse mode a projection can only strengthen synapses that exist.
         ``_bootstrap_prediction_connectivity`` materializes phon -> PREDICTION
         and CONTEXT -> PREDICTION only, so without this the core, syntactic and
@@ -112,17 +114,17 @@ class StatePredictionMixin:
             # deferred init needs a non-empty source, so seed them from a core.
             seed_core = next(
                 (a for a in CORE_AREAS
-                 if a in brain.areas and brain.areas[a].w > 0),
+                 if a in brain.areas and brain.areas[a].active_count > 0),
                 None,
             )
             if seed_core is not None:
                 for syn in (SUBJ, OBJ):
-                    if syn in brain.areas and brain.areas[syn].w == 0:
+                    if syn in brain.areas and brain.areas[syn].active_count == 0:
                         brain.project({}, {seed_core: [syn]})
 
             sources = [
                 a for a in (*CORE_AREAS, SUBJ, OBJ, MOOD)
-                if a in brain.areas and brain.areas[a].w > 0
+                if a in brain.areas and brain.areas[a].active_count > 0
             ]
             for area in sources:
                 # Co-fire the stimulus so the projection carries drive; see the

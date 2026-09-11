@@ -17,20 +17,85 @@ Co-firing a stimulus into the target breaks the deadlock (the pattern
 These tests pin the observable consequences so the path cannot silently rot
 again.
 """
+from contextlib import contextmanager
+from types import SimpleNamespace
+
 import pytest
 
 from neural_assemblies.assembly_calculus.emergent.parser import EmergentParser
 from neural_assemblies.assembly_calculus.emergent.curriculum.data import (
     create_training_sentences,
 )
-from neural_assemblies.assembly_calculus.emergent.core.areas import PREDICTION
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
+    CORE_AREAS, OBJ, PREDICTION, SUBJ,
+)
+from neural_assemblies.assembly_calculus.emergent.parser_mixins.state_prediction import (
+    StatePredictionMixin,
+)
 
-pytestmark = pytest.mark.slow  # full parser training (~1 min)
+
+class _RecordingBrain:
+    def __init__(self):
+        self.areas = {
+            CORE_AREAS[0]: SimpleNamespace(active_count=0, w=10),
+            CORE_AREAS[1]: SimpleNamespace(active_count=1, w=0),
+            SUBJ: SimpleNamespace(active_count=0, w=10),
+            OBJ: SimpleNamespace(active_count=0, w=10),
+            PREDICTION: SimpleNamespace(active_count=1, w=1),
+        }
+        self.calls = []
+
+    @contextmanager
+    def frozen(self):
+        yield self
+
+    def project(self, stimuli, fibers):
+        self.calls.append((stimuli, fibers))
+        for targets in fibers.values():
+            for target in targets:
+                if target in (SUBJ, OBJ):
+                    self.areas[target].active_count = 1
+
+    def inhibit_areas(self, _areas):
+        pass
+
+
+def test_state_bootstrap_uses_active_sources_not_ambiguous_w():
+    parser = StatePredictionMixin()
+    parser.brain = _RecordingBrain()
+    parser.stim_map = {"word": "phon"}
+    parser._state_pred_bootstrapped = False
+
+    parser._bootstrap_state_paths()
+
+    seeded = [fibers for stimuli, fibers in parser.brain.calls if not stimuli]
+    assert seeded == [
+        {CORE_AREAS[1]: [SUBJ]},
+        {CORE_AREAS[1]: [OBJ]},
+    ]
+    prediction_sources = {
+        next(iter(fibers))
+        for stimuli, fibers in parser.brain.calls
+        if stimuli
+    }
+    assert prediction_sources == {CORE_AREAS[1], SUBJ, OBJ}
+    assert CORE_AREAS[0] not in prediction_sources
+
+
+def test_parser_rejects_unknown_sampled_recurrence_policy():
+    with pytest.raises(ValueError, match="sampled_recurrence_policy"):
+        EmergentParser(
+            n=100, k=10, engine="numpy_sparse",
+            sampled_recurrence_policy="silence-it",
+        )
 
 
 @pytest.fixture(scope="module")
 def state_parser():
-    parser = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42, rounds=10)
+    parser = EmergentParser(
+        n=1000, k=50, p=0.05, beta=0.1, seed=42, rounds=10,
+        sampled_recurrence_policy="acknowledged",
+    )
     sentences = create_training_sentences()
     parser.train(sentences)
     parser.train_next_token_state(sentences)
@@ -45,6 +110,7 @@ def _conn_nnz(parser, src):
     return int((np.asarray(conn.weights) != 0).sum())
 
 
+@pytest.mark.slow
 class TestStatePathMaterializes:
     """The bug: these connectomes were all shape (0,0), nnz=0, forever."""
 
@@ -55,6 +121,7 @@ class TestStatePathMaterializes:
             "has regressed (see module docstring)")
 
 
+@pytest.mark.slow
 class TestStateRetrieval:
     def test_predictions_are_nonzero(self, state_parser):
         # Was exactly 0.0 for every word, for every prefix.

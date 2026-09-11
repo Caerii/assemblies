@@ -113,6 +113,7 @@ class CoreParserMixin(
                  bridge_rounds: Optional[int] = None,
                  fast_training: Optional[bool] = None,
                  norm_init: Optional[bool] = None,
+                 sampled_recurrence_policy: str = "warn",
                  vocabulary: Optional[Dict[str, GroundingContext]] = None,
                  synaptic_scaling=False,
                  synaptic_scaling_deferred: bool = False,
@@ -150,6 +151,8 @@ class CoreParserMixin(
         brain_kwargs = dict(
             p=p, save_winners=True, seed=seed,
             engine=resolved_engine, n_hint=n,
+            # Specification: neural_assemblies/ir/VERIFICATION.md#contract-sampled-recurrence
+            sampled_recurrence_policy=sampled_recurrence_policy,
         )
         # Forward norm_init only when explicitly set so the Brain default (True)
         # is preserved otherwise. norm_init=False opts into the un-normalized

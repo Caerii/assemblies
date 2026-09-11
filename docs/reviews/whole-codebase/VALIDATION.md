@@ -3855,3 +3855,19 @@ from immutable configuration through Brain construction into every output row.
 The default still warns; deliberate fixtures acknowledge it explicitly, and an
 unknown policy fails before projection. The warning-free focused gate passes
 19 tests under `-W error`; the ratchet and specification gate passes 17 tests.
+
+## State prediction distinguishes active sources from historical population (2026-09-11)
+
+`_bootstrap_state_paths` used `.w > 0` to choose a core source, decide whether
+SUBJ/OBJ needed seeding, and assemble prediction sources. All three decisions
+require current winners because an inactive materialized population supplies no
+area drive. They now use `Area.active_count` and the `.w` ratchet baseline is
+lower by three.
+
+The constructed control reverses ambiguous `w` and actual activity: an inactive
+core has positive `w`, the active core has zero `w`, and empty syntactic areas
+also have positive `w`. Only the active core seeds SUBJ/OBJ and reaches
+PREDICTION. The full trained-parser state suite remains green. `EmergentParser`
+now exposes `sampled_recurrence_policy`, forwards it into Brain construction,
+and rejects unknown values; the deliberate sampled fixture is warning-free under
+`-W error`. Two fast controls and eight slow behavioral controls pass.

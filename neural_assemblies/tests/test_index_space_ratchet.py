@@ -225,7 +225,6 @@ W_BASELINE = {
     # the original repository's Python 2 test script, archived 2026-09-09
     "legacy/scripts/simulations/test_brain_core.py": 4,
     "legacy/scripts/simulations/turing_sim.py": 3,
-    "neural_assemblies/assembly_calculus/emergent/parser_mixins/state_prediction.py": 3,
     "neural_assemblies/assembly_calculus/emergent/parser_mixins/unsupervised.py": 3,
     "neural_assemblies/simulation/turing_simulations.py": 3,
     "research/experiments/_substrate.py": 3,

@@ -1395,6 +1395,22 @@ state. This is a cache routing repair, not a change to fusion or neural selectio
 It does not provide general cache invalidation after training or in-place mutation
 of stored grounding, and it does not introduce cue variants into the word-only key.
 
+<a id="contract-state-path-active-sources"></a>
+
+## Bounded-state bootstrap source activity
+
+State-to-prediction bootstrap may project only areas with current winners. Source
+eligibility therefore reads `Area.active_count`; cumulative recruitment or a
+backend materialization extent does not establish an active drive. Empty SUBJ and
+OBJ areas are seeded from the first active core before their fibers are initialized.
+The source list is recomputed after seeding. An inactive but historically recruited
+core must not displace an active core or become a prediction source.
+
+The constructed control gives an inactive core positive ambiguous `w`, gives the
+next active core zero `w`, and gives empty syntactic areas positive `w`. The active
+core must seed both syntactic areas and the inactive core must never project. This
+fails the former `.w > 0` implementation in both source-selection phases.
+
 
 <a id="contract-initial-recruitment"></a>
 
