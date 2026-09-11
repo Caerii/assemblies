@@ -1,6 +1,8 @@
 """PREREG_refraction_memory.md, Amendment 3: the anti-merging claim gated on
 the NUMPY engine, whose k-WTA has no selector defect.
 
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics
+
 Mirrors `seq_capacity_scaling.py`'s protocol on `numpy_sparse`, one brain at
 a time: area n = 2000, k = 60, p = 0.5, beta = 0.1, w_max = 20, norm_init,
 no scaling, MATERIALIZED; each item trained by its own stimulus alongside
@@ -14,8 +16,6 @@ every stored assembly. Distinctness by exact duplicates. Bars N1-N3.
 """
 from __future__ import annotations
 
-import argparse
-import json
 import os
 import random
 import sys
@@ -28,9 +28,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from neural_assemblies.core.brain import Brain                              # noqa: E402
-from neural_assemblies.diagnostics import ensemble_from_values              # noqa: E402
+from neural_assemblies.core.semantics import describe_brain_model            # noqa: E402
+from research.runner import experiment_parser, run_experiment               # noqa: E402
 from _substrate import ceiling_from_curve                                   # noqa: E402
-from _results import results_path  # noqa: E402
 
 N, K, P, T, BETA, W_MAX, STRENGTH = 2000, 60, 0.5, 8, 0.10, 20.0, 0.05
 #: THE STIMULUS MODEL. The engine's stimulus into a materialized area is
@@ -107,7 +107,6 @@ def measure(b, eng, stored, rng, masked):
             i, j = rng.choice(M, 2, replace=False)
             pw.append(len(sets_[i] & sets_[j]) / K)
     pw_x = (float(np.mean(pw)) / (K / N)) if pw else 0.0
-    ever = eng._areas[AREA]
     fill = float(len(set().union(*sets_))) / N
     return dict(rank1=half_cue_rank1(b, eng, stored, rng, masked),
                 pairwise_x=pw_x, distinct=distinct, fill=fill)
@@ -137,34 +136,57 @@ def run_brain(seed, refracted, masked):
     return out
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--brains", type=int, default=5)
+def main(argv=None):
+    ap = experiment_parser(
+        __doc__.splitlines()[0], engines=("numpy_sparse",),
+        default_seeds=(42, 43, 44, 45, 46),
+    )
     ap.add_argument("--arm", choices=("ref", "ctl", "both"), default="both")
-    ap.add_argument("--smoke", action="store_true")
-    args = ap.parse_args()
+    args = ap.parse_args(argv)
     global MS
     if args.smoke:
         MS = (4, 8)
         print("SMOKE: API only; numbers VOID")
-    seeds = list(range(42, 42 + args.brains))
-    results = {}
-    for arm in (("ref", "ctl") if args.arm == "both" else (args.arm,)):
-        print(f"=== numpy {arm.upper()}  n={N} k={K} p={P} stimulus {STIM_PARTS}x{K // STIM_PARTS} T={T} beta={BETA} "
-              f"{'strength ' + str(STRENGTH) + ' masked' if arm == 'ref' else ''}")
-        per = {s: run_brain(s, arm == "ref", masked=True) for s in seeds}
-        stars = []
-        for s in seeds:
-            curve = {M: per[s][M]["rank1"] for M in MS}
-            c = ceiling_from_curve(list(curve.items()), THRESHOLD)
-            stars.append(c)
-        results[arm] = {"per_seed": {str(s): {str(M): v for M, v in per[s].items()} for s in seeds},
-                        "ceilings": [str(c) for c in stars]}
-        print(f"    ceilings: {stars}")
-    path = results_path("memory", "refraction_memory_numpy_results.json")
-    with open(path, "w") as fh:
-        json.dump(results, fh, indent=2, default=str)
-    print(f"wrote {path}")
+    def measure(record):
+        results = {}
+        for arm in (("ref", "ctl") if args.arm == "both" else (args.arm,)):
+            seeds = record["seeds"]
+            print(f"=== numpy {arm.upper()}  n={N} k={K} p={P} stimulus {STIM_PARTS}x{K // STIM_PARTS} T={T} beta={BETA} "
+                  f"{'strength ' + str(STRENGTH) + ' masked' if arm == 'ref' else ''}")
+            per = {s: run_brain(s, arm == "ref", masked=True) for s in seeds}
+            ceilings = []
+            for s in seeds:
+                curve = {M: per[s][M]["rank1"] for M in MS}
+                ceilings.append(str(ceiling_from_curve(list(curve.items()), THRESHOLD)))
+            results[arm] = {
+                "per_seed": {str(s): {str(M): v for M, v in per[s].items()} for s in seeds},
+                "ceilings": ceilings,
+            }
+            print(f"    ceilings: {ceilings}")
+        return results
+
+    return run_experiment(
+        script=__file__,
+        protocol="memory.refraction-memory-numpy",
+        protocol_version="1",
+        registration="research/notes/memory/PREREG_refraction_memory.md",
+        engine=args.engine,
+        seeds=args.seeds,
+        tag=args.tag,
+        parameters={
+            "n": N, "k": K, "p": P, "rounds": T, "beta": BETA,
+            "weight_ceiling": W_MAX, "strength": STRENGTH,
+            "stimulus_parts": STIM_PARTS, "recall_sample": RECALL_SAMPLE,
+            "pair_sample": PAIR_SAMPLE, "threshold": THRESHOLD,
+            "arm": args.arm,
+        },
+        measure=measure,
+        smoke=args.smoke,
+        model_semantics=describe_brain_model(
+            args.engine, p=P, seed=0, w_max=W_MAX, norm_init=True,
+            recurrent_projection=True, synaptic_scaling=False,
+        ),
+    )
 
 
 if __name__ == "__main__":
