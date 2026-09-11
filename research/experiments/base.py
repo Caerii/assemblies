@@ -33,6 +33,16 @@ def reported_null_test(values, null):
     return result
 
 
+def summarize_paired(values1, values2, *, seed_ids):
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#paired-study-reporting"""
+    from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
+    left = ensemble_from_values(values1, keys=seed_ids)
+    right = ensemble_from_values(values2, keys=seed_ids)
+    values = list(paired_delta(left, right).values)
+    return {"values": values, "summary": summarize(values),
+            "test": reported_null_test(values, 0.)}
+
+
 def effect_text(test):
     return f"undefined ({test['degenerate']})" if test['d'] is None else f"{test['d']:.1f}"
 

@@ -86,3 +86,16 @@ Compared with the version-2 smoke, elapsed rounds and H1 persistence are unchang
 all other raw cells match exactly. No source trajectories changed. Record/archive
 validate and the output remains VOID. No stopping statuses were written back into
 the older artifact; this status information comes from the new measured run.
+
+
+## Version 4 paired-reporting migration (before execution, 2026-09-10)
+
+Keep version 3 schedules and observations. Replace the H2 legacy paired-test fallback
+with the shared keyed-difference report and add its descriptive interval. Constant
+differences now have undefined t/p/d and an explicit reason, rather than p=1.
+Before execution, commit this amendment and implementation. Run the same smoke grid
+and seeds1/2/3 under a new tag; compare all raw_data and all metrics except the two
+H2 paired-report fields exactly to the committed version 3 smoke. Independently
+recompute those two fields from the retained H2 per-seed vectors. Validate the source
+archive. Status remains VOID; no old artifact is rewritten or scientific hypothesis
+adopted. Association's existing smoke must replay exactly through the shared helper.

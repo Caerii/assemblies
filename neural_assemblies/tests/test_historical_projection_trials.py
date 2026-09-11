@@ -192,6 +192,8 @@ def test_constant_response_and_undefined_null_are_serializable(monkeypatch, tmp_
     assert result.metrics["scaling_fit"]["degenerate"] == "constant_response"
     assert result.metrics["scaling_fit"]["r_squared"] is None
     assert result.metrics["convergence_vs_size"][0]["test_vs_null"]["p"] is None
+    assert result.metrics["training_mode_comparison"]["paired_test"]["p"] is None
+    assert result.metrics["training_mode_comparison"]["paired_difference"]["mean"] == 0.
     encode_document(result.to_dict())
 
 

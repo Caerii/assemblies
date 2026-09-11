@@ -32,7 +32,7 @@ from research.experiments.base import (
     measure_overlap,
     chance_overlap,
     summarize,
-    reported_null_test,
+    reported_null_test, summarize_paired,
 )
 
 from neural_assemblies.core.brain import Brain
@@ -194,14 +194,15 @@ class AssociationExperiment(ExperimentBase):
         for seed in seeds:
             bidirectional.append(run_association_trial(cfg, seed, True, rng=rng)["recovery"])
             unidirectional.append(run_association_trial(cfg, seed, False, rng=rng)["recovery"])
-        differences = [left - right for left, right in zip(bidirectional, unidirectional)]
+        comparison = summarize_paired(bidirectional, unidirectional, seed_ids=seeds)
+        differences = comparison["values"]
         raw.update(bidirectional=bidirectional, unidirectional=unidirectional, paired_difference=differences)
         null = chance_overlap(cfg.k, cfg.n)
         metrics["directionality"] = {
             "bidirectional": {"recovery": summarize(bidirectional), "test_vs_null": reported_null_test(bidirectional, null)},
             "unidirectional": {"recovery": summarize(unidirectional), "test_vs_null": reported_null_test(unidirectional, null)},
-            "paired_difference": summarize(differences),
-            "paired_test": reported_null_test(differences, 0.),
+            "paired_difference": comparison["summary"],
+            "paired_test": comparison["test"],
         }
         identities = [run_identity_trial(cfg, seed) for seed in seeds]
         metrics["identity_preservation"] = {}

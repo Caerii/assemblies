@@ -17,7 +17,7 @@ def parameters(smoke=False):
                 round_values=[1, 3] if smoke else [1, 5, 10, 20, 30, 50])
 
 
-STUDY = HistoricalStudy("memory.historical-projection", "3", REGISTRATION, Path(__file__),
+STUDY = HistoricalStudy("memory.historical-projection", "4", REGISTRATION, Path(__file__),
                         ProjectionExperiment, parameters, 'learning-on persistence and A-driven regeneration; not frozen completion')
 experiment = STUDY.measure
 

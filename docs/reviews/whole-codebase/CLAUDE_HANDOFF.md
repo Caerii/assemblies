@@ -1466,3 +1466,11 @@ fixtures stay exact. See VALIDATION.md#configurable-association-harness-2026-09-
 Association smoke acceptance now passes: recorded source174f5f8, exact direct/runner
 metrics/raw_data/parameters/success, valid archive and all seed vectors retained.
 89 targeted checks pass. Scientific status remains VOID; old evidence is untouched.
+
+
+## Shared paired reporting (2026-09-10)
+
+Projection and association share the canonical keyed paired-difference report.
+Projection becomes version 4 because its old constant-difference p=1 output changes;
+association must remain exact. Other legacy paired_ttest callers remain open.
+111 focused checks pass. See VALIDATION.md#shared-paired-reporting-2026-09-10.

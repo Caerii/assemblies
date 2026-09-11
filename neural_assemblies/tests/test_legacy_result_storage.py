@@ -122,3 +122,32 @@ def test_missing_execution_status_cannot_default_to_success(tmp_path, document):
     path.write_text(json.dumps(document))
     with pytest.raises(ValueError, match='explicitly contain'):
         base.ExperimentResult.load(path)
+
+
+@pytest.mark.parametrize('left,right,reason', [([1.,1.,1.],[0.,0.,0.],'zero_variance'), ([1.,1.,1.],[1.,1.,1.],'at_null')])
+def test_paired_report_keeps_constant_effect_but_not_fake_test(left, right, reason):
+    report = base.summarize_paired(left, right, seed_ids=[9,2,7])
+    assert report['values'] == [a-b for a,b in zip(left,right)]
+    assert report['summary']['mean'] == left[0]-right[0]
+    assert report['test']['degenerate'] == reason
+    assert report['test']['t'] is report['test']['p'] is report['test']['d'] is None
+    assert report['test']['significant'] is False
+    json.dumps(report, allow_nan=False)
+
+
+@pytest.mark.parametrize('left,right,seeds', [
+    ([1,2,3],[1,2],[1,2,3]), ([1,2],[1,2],[1,2]),
+    ([1,2,3],[1,2,3],[1,1,2]), ([1,2,3],[1,float('nan'),3],[1,2,3]),
+])
+def test_invalid_pairing_is_not_truncated_or_dropped(left, right, seeds):
+    with pytest.raises(ValueError):
+        base.summarize_paired(left,right,seed_ids=seeds)
+
+
+def test_nonconstant_paired_report_matches_independent_scipy_test():
+    from scipy.stats import ttest_rel
+    left, right = [.25,.75,1.], [.125,.25,.5]
+    report = base.summarize_paired(left,right,seed_ids=[9,2,7])
+    expected = ttest_rel(left,right)
+    assert report['test']['t'] == pytest.approx(expected.statistic)
+    assert report['test']['p'] == pytest.approx(expected.pvalue)

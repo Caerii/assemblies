@@ -1148,3 +1148,22 @@ p=1 or significance claim. Preserve marginal summaries; no multiplicity correcti
 equivalence claim or scientific adoption is implied. Record statistical version,
 all resolved grids/schedules and actual engine ownership. The shared adapter owns
 exclusive tagged execution, archived inputs and VOID/UNADOPTED status.
+
+
+<a id="paired-study-reporting"></a>
+### Paired study reporting (2026-09-10)
+
+For migrated historical protocols, construct both ensembles with the same explicit
+ordered seed IDs and use the canonical paired_delta operation. Refuse mismatched
+lengths, duplicate keys, fewer than three seeds and nonfinite observations. The
+caller must supply values in that shared seed order; this function does not infer
+alignment from unlabelled values. Return the differences, their Student-t summary,
+and the one-sample test against zero through reported_null_test. Constant differences
+retain their descriptive interval but have undefined t/p/d, an explicit reason and
+significant=false. No equivalence or population certainty follows from these values.
+
+Association reporting already has this meaning and must remain exact after adopting
+the helper. Projection's old paired_ttest fallback reports p=1 for all constant
+differences. Version 4 corrects that reporting and adds the paired-difference summary;
+all numerical trials and unrelated summaries remain unchanged. The legacy generic
+paired_ttest still has other callers; do not silently claim those were migrated.

@@ -2712,3 +2712,23 @@ Its metrics/raw_data/parameters/success exactly match direct execution using rec
 inputs, and its source archive validates. Nine raw vectors retain seeds1/2/3: eight
 measurement groups plus their derived directionality difference. Status is VOID.
 No GPU rerun, full historical replication or whole-package green claim is made.
+
+
+## Shared paired reporting (2026-09-10)
+
+Projection still used legacy paired_ttest, whose constant-difference fallback
+reported p=1 even for a constant nonzero effect. Added summarize_paired over the
+canonical keyed ensembles and paired_delta. It retains difference values, their
+Student-t summary, and explicit undefined t/p/d for constant differences. Both
+association and projection now use this one reporting boundary. It validates lengths,
+seed keys, minimum count and finite values but cannot infer pairing from unlabelled
+values; callers must supply both vectors in the shared seed order.
+
+Projection protocol version 4 intentionally changes H2 paired reporting; numerical
+trials remain untouched. Association's reporting meaning is unchanged. The old generic
+paired_ttest has other unmigrated callers, so this is not a repository-wide fix for
+all historical reports. 111 legacy-storage/projection/association checks pass, including
+constant-effect failures, invalid pairing and an independent SciPy comparison.
+A version 4 smoke and version 3 evidence comparison are registered before execution.
+
+The strengthened projection suite passes all 45 checks; the adapter/specification/register/two-ratchet gate passes 48 in 84.21s. Ruff and diff checks pass.

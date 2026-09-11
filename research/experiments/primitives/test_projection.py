@@ -69,7 +69,7 @@ from research.experiments.base import (
     measure_overlap,
     chance_overlap,
     summarize,
-    paired_ttest,
+    summarize_paired,
 )
 
 from neural_assemblies.core.brain import Brain
@@ -347,6 +347,7 @@ class ProjectionExperiment(ExperimentBase):
             stim_self_vals.append(run_training_mode_trial(cfg_h2, s, "stim_self"))
             stim_only_vals.append(run_training_mode_trial(cfg_h2, s, "stim_only"))
 
+        comparison = summarize_paired(stim_self_vals, stim_only_vals, seed_ids=seeds)
         raw_data["cells"].append(dict(arm="h2", n=n, k=k,
                                        values=dict(stim_self=stim_self_vals, stim_only=stim_only_vals)))
         metrics["training_mode_comparison"] = {
@@ -358,7 +359,8 @@ class ProjectionExperiment(ExperimentBase):
                 "persistence": summarize(stim_only_vals),
                 "test_vs_null": reported_null_test(stim_only_vals, null_h2),
             },
-            "paired_test": paired_ttest(stim_self_vals, stim_only_vals),
+            "paired_difference": comparison["summary"],
+            "paired_test": comparison["test"],
         }
 
         self.log(f"  Stim+self: {summarize(stim_self_vals)['mean']:.3f}")
