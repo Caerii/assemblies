@@ -1525,3 +1525,15 @@ missing source activity before projection. `read_binding` reuses the same
 schedule inside `brain.read_only()` and therefore cannot create the binding it
 measures. Binding strength and pathway drive are separate readouts and must not
 be conflated.
+
+<a id="contract-convergence"></a>
+
+## Convergence learning schedule
+
+`ConvergencePlan` is the shared immutable schedule for the two maintained
+learning helpers. It owns the epoch budget, per-epoch projection rounds, the
+minimum consecutive-history window, the overlap threshold, and whether the
+pattern-driven variant includes recurrence. Both helpers return the final
+snapshot, epochs used, and the last observed persistence; exhausting the budget
+is not reported as convergence. The plan is validated before the first epoch,
+so malformed schedules cannot partially mutate a brain.

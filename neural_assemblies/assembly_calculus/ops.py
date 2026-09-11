@@ -56,7 +56,7 @@ citation cannot quietly become a dead string.
 """
 
 from contextlib import contextmanager
-from numbers import Integral, Real
+from numbers import Integral
 
 import numpy as np
 
@@ -66,7 +66,7 @@ from .contracts import (
     ORDERED_RECALL_CONTRACT,
     SEPARATION_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
-    CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
+    CompletionPlan, ConvergencePlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan, BindingPlan,
     SEQUENCE_MEMORIZE_CONTRACT,
     implements,
@@ -272,6 +272,8 @@ def learn_assembly_from_pattern(
 ) -> tuple[Assembly, int, float]:
     """Converge a dst assembly from a fixed src pattern (E8).
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-convergence
+
     Wraps winner injection + ``project`` until consecutive snapshots
     overlap ≥ *tau*.  Used for explicit LOW→HIGH MNIST encoding.
 
@@ -309,17 +311,9 @@ def learn_assembly_from_pattern(
         raise ValueError("pattern must contain finite numeric values")
     if not np.any(pattern > 0):
         raise ValueError("pattern must activate at least one source neuron")
-    for label, value in (("max_epochs", max_epochs), ("project_rounds", project_rounds),
-                         ("stability_window", stability_window)):
-        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
-            raise ValueError(f"{label} must be a positive integer")
-    if stability_window < 2:
-        raise ValueError("stability_window must be at least two")
-    if (isinstance(tau, bool) or not isinstance(tau, Real)
-            or not np.isfinite(float(tau)) or not 0.0 <= float(tau) <= 1.0):
-        raise ValueError("tau must be a finite real number in [0, 1]")
-    if type(recurrent) is not bool:
-        raise ValueError("recurrent must be an explicit boolean")
+    plan = ConvergencePlan(max_epochs, project_rounds, stability_window, tau, recurrent)
+    max_epochs, project_rounds = plan.max_epochs, plan.project_rounds
+    stability_window, tau, recurrent = plan.stability_window, plan.threshold, plan.recurrent
 
     drive = external_drive or {}
     history: list[Assembly] = []
@@ -795,6 +789,8 @@ def learn_assembly(
 ):
     """Online assembly learning for one stimulus (Dabagia et al. COLT 2022).
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-convergence
+
     Repeatedly projects ``stimulus → target`` until consecutive assemblies
     stabilize above ``convergence`` overlap.
 
@@ -815,17 +811,9 @@ def learn_assembly(
     Returns:
         (assembly, epochs_used, final_persistence) tuple.
     """
-    for label, value in (("max_epochs", max_epochs),
-                         ("project_rounds", project_rounds),
-                         ("stability_window", stability_window)):
-        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
-            raise ValueError(f"{label} must be a positive integer")
-    if stability_window < 2:
-        raise ValueError("stability_window must be at least two")
-    if (isinstance(convergence, bool) or not isinstance(convergence, Real)
-            or not np.isfinite(float(convergence))
-            or not 0.0 <= float(convergence) <= 1.0):
-        raise ValueError("convergence must be a finite real number in [0, 1]")
+    plan = ConvergencePlan(max_epochs, project_rounds, stability_window, convergence, True)
+    max_epochs, project_rounds = plan.max_epochs, plan.project_rounds
+    stability_window, convergence = plan.stability_window, plan.threshold
 
     history = []
     for epoch in range(1, max_epochs + 1):

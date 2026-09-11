@@ -422,6 +422,34 @@ class BindingPlan:
                 raise KeyError(f"bind {label} is unknown: {area!r}")
 
 
+@dataclass(frozen=True)
+class ConvergencePlan:
+    """Immutable stopping schedule shared by convergent learning helpers."""
+
+    max_epochs: int = 12
+    project_rounds: int = 6
+    stability_window: int = 2
+    threshold: float = 0.90
+    recurrent: bool = True
+
+    def __post_init__(self) -> None:
+        for label, value in (("max_epochs", self.max_epochs), ("project_rounds", self.project_rounds),
+                             ("stability_window", self.stability_window)):
+            if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+                raise ValueError(f"{label} must be a positive integer")
+        if self.stability_window < 2:
+            raise ValueError("stability_window must be at least two")
+        if (isinstance(self.threshold, bool) or not isinstance(self.threshold, Real)
+                or not math.isfinite(float(self.threshold))
+                or not 0.0 <= float(self.threshold) <= 1.0):
+            raise ValueError("convergence threshold must be a finite real number in [0, 1]")
+        _explicit_bool("recurrent", self.recurrent)
+        object.__setattr__(self, "max_epochs", int(self.max_epochs))
+        object.__setattr__(self, "project_rounds", int(self.project_rounds))
+        object.__setattr__(self, "stability_window", int(self.stability_window))
+        object.__setattr__(self, "threshold", float(self.threshold))
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 

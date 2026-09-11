@@ -4851,3 +4851,11 @@ contract. Added frozen `BindingPlan`, `BINDING_CONTRACT`, public exports, a
 source-linked semantic card, and a pre-mutation missing-source true negative.
 The binding/input/contract/specification suite passes **175 tests**; Ruff is
 clean.
+
+## Shared convergence schedule (2026-09-11)
+
+`learn_assembly` and `learn_assembly_from_pattern` now construct the same frozen
+`ConvergencePlan` for epoch, round, window, threshold, and recurrence validation.
+This removes duplicated schedule validation and gives both convergence paths one
+inspectable configuration object. Learning and pattern-contract tests pass **20**;
+Ruff is clean.

@@ -97,7 +97,7 @@ from .contracts import (
     ASSOCIATION_CONTRACT, ATTENTION_CONTRACT, BINDING_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, AttentionPlan, BindingPlan, CompletionPlan, MergePlan, OperationContract,
+    AssociationPlan, AttentionPlan, BindingPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
     PreparedCompletion, ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
 )
@@ -174,7 +174,7 @@ __all__ = [
     # Data
     "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
     "OperationContract", "ProjectionPlan", "ProjectionStep",
-    "AttentionPlan", "BindingPlan",
+    "AttentionPlan", "BindingPlan", "ConvergencePlan",
     "AssociationPlan", "CompletionPlan", "PreparedCompletion", "MergePlan",
     "ReciprocalProjectionPlan", "OrderedRecallPlan", "SequenceMemorizePlan",
     "SeparationPlan",
