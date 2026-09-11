@@ -2587,3 +2587,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 `OrderedRecallPlan` is now a frozen contract object in the shared calculus contract layer, and `ordered_recall` constructs and preflights it before execution. This makes the sequence readout schedule inspectable and composable while preserving the public function signature. Contract and sequence tests pass (173 tests).
 
 `ordered_recall_trace` now shares `OrderedRecallPlan` with the executable recall path, including its novelty threshold and topology preflight. Traced and untraced sequence semantics are unified; focused trace and sequence tests pass (36 tests).
+
+`project_trace` now uses `ProjectionPlan` for its schedule and topology preflight, eliminating drift between traced and executable projection. Focused trace tests pass (18 tests).

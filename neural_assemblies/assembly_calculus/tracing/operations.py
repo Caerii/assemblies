@@ -5,7 +5,9 @@ from __future__ import annotations
 from collections.abc import Sequence
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, chance_overlap, overlap
-from neural_assemblies.assembly_calculus.contracts import CompletionPlan, OrderedRecallPlan
+from neural_assemblies.assembly_calculus.contracts import (
+    CompletionPlan, OrderedRecallPlan, ProjectionPlan,
+)
 from neural_assemblies.assembly_calculus.ops import _snap
 
 from .models import AssemblyTrace, PatternCompletionDiagnostic, TraceStep
@@ -18,19 +20,18 @@ def snapshot_area(brain, area: str) -> Assembly:
 
 def project_trace(brain, stimulus: str, target: str, rounds: int = 10) -> AssemblyTrace:
     """Project a stimulus and record the target assembly after each round."""
-    if rounds <= 0:
-        raise ValueError("rounds must be positive")
+    plan = ProjectionPlan(stimulus, target, rounds, recurrent=True)
+    if plan.stimulus not in brain.stimuli:
+        raise IndexError(f"Not in brain.stimuli: {plan.stimulus}")
+    if plan.target not in brain.areas:
+        raise IndexError(f"Not in brain.areas: {plan.target}")
 
     steps: list[TraceStep] = []
     previous: Assembly | None = None
 
-    for round_index in range(1, rounds + 1):
-        if round_index == 1:
-            brain.project({stimulus: [target]}, {})
-            drive = "stimulus"
-        else:
-            brain.project({stimulus: [target]}, {target: [target]})
-            drive = "stimulus + recurrence"
+    for round_index, step in enumerate(plan.steps, start=1):
+        brain.project(step.stimuli_dict(), step.fibers_dict())
+        drive = "stimulus" if round_index == 1 else "stimulus + recurrence"
         previous = _append_step(
             steps,
             brain=brain,
