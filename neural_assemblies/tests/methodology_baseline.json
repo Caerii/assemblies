@@ -202,7 +202,6 @@
     "research/experiments/stability/test_loop_switching.py": 1,
     "research/experiments/stability/test_phase_diagram.py": 1,
     "research/experiments/stability/test_recurrent_loops.py": 1,
-    "research/experiments/stability/test_scaling_laws.py": 1,
     "research/experiments/test_parallel_seeds_main.py": 1,
     "research/experiments/two_phase_read.py": 1,
     "research/experiments/universality_composition.py": 1,

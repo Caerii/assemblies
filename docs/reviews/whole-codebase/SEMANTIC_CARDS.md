@@ -960,3 +960,29 @@ convergence-time scaling regression when any seed is censored; do not drop faile
 seeds or substitute the time limit as an observed convergence event. Constant
 uncensored responses retain the prior explicit undefined-fit representation.
 This is a stopping observation during learning, not proof of asymptotic stability.
+
+
+<a id="shared-convergence-phase"></a>
+### Shared learning-on convergence phase (2026-09-10)
+
+Scaling first projects stimulus-only once; projection does not. Both then repeatedly
+project stimulus plus the area's self-fiber, testing the most recent consecutive
+strict-overlap comparisons. Evaluations remain learning-on self-only projections.
+Share only this identical phase and its stopping record; callers own initialization
+and evaluation. Use stable-ID Assembly snapshots, retaining only the previous one
+and a comparison streak. A failed comparison resets the streak. Window W requires
+W+1 snapshots; the initial activation outside the phase is not a comparison sample.
+
+The phase returns the last trained snapshot and explicit elapsed/converged/nullable
+event-time fields. It mutates brain activity and weights by the supplied projection
+schedule; it is not read-only. It retains no complete winner history. Default
+schedules/weights must match projection's 15 and scaling's six pre-change fixtures.
+
+The old scaling fitter classifies asymptotic complexity from the coefficient of a
+linear log10(n) fit: slope<.5 became O(1), slope<2 O(log n), slope<5 O(log^2 n),
+otherwise polynomial. These are not valid inferences: multiplying log(n) by any
+positive constant changes that coefficient without changing its asymptotic class.
+Remove these labels. A shared fit is explicitly descriptive linear-in-log10(n),
+with no fit for censored observations and undefined inferential statistics for a
+constant response. Do not silently drop seeds. Legacy scaling's outer grid/raw-data/
+CLI migration is separate from this phase correction.

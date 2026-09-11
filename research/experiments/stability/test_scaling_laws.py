@@ -2,7 +2,7 @@
 Scaling Laws for Assembly Formation and Attractor Persistence
 
 Characterizes how convergence time and attractor persistence scale with
-network size n, at fixed sparsity k = sqrt(n).
+network size n, with assembly size k = floor(sqrt(n)); k/n is not fixed.
 
 Protocol:
 1. Establish: project({"s": ["A"]}, {}) -- initial stimulus activation.
@@ -19,8 +19,9 @@ Hypotheses:
 H1/H2: Convergence time and persistence vs network size at k=sqrt(n).
     Null: persistence equals chance k/n.
 
-H3: Scaling law fit -- convergence time scales as O(log n).
-    Null: no relationship (slope=0).
+H3: Descriptive regression of observed convergence time against log10(n).
+    Descriptive fit only; a fitted coefficient does not establish an
+    asymptotic complexity class. Censored observations prevent this fit.
 
 Statistical methodology:
 - N_SEEDS=10 independent seeds per condition.
@@ -41,8 +42,7 @@ sys.path.insert(0, str(project_root))
 
 import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Any
-from scipy import stats
+from typing import Dict, Any
 
 from research.experiments.base import (
     ExperimentBase,
@@ -50,10 +50,12 @@ from research.experiments.base import (
     measure_overlap,
     chance_overlap,
     summarize,
-    ttest_vs_null,
+    reported_null_test, effect_text,
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
+from research.experiments._convergence import run_convergence_phase, convergence_scaling_fit
 
 N_SEEDS = 10
 
@@ -80,42 +82,19 @@ def run_scaling_trial(
     Train stim+self with convergence detection, then test autonomous persistence.
     Returns convergence time and persistence.
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
     # Phase 1: initial stimulus activation
     b.project({"s": ["A"]}, {})
 
-    # Phase 2: train stim+self with convergence detection
-    winner_history = []
-    converged_at = cfg.max_train_rounds
-
-    for r in range(cfg.max_train_rounds):
-        b.project({"s": ["A"]}, {"A": ["A"]})
-        winners = np.array(b.areas["A"].winners, dtype=np.uint32)
-        winner_history.append(winners.copy())
-
-        if len(winner_history) >= 4:
-            overlaps = [
-                measure_overlap(winner_history[-i - 1], winner_history[-i - 2])
-                for i in range(3)
-            ]
-            if all(o > 0.98 for o in overlaps):
-                converged_at = r + 1
-                break
-
-    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
-
-    # Phase 3: autonomous persistence test
+    # This phase deliberately excludes the initial activation above.
+    observed = run_convergence_phase(b, stimulus="s", area="A", max_rounds=cfg.max_train_rounds)
     for _ in range(cfg.test_rounds):
         b.project({}, {"A": ["A"]})
-
-    persistence = measure_overlap(
-        trained, np.array(b.areas["A"].winners, dtype=np.uint32)
-    )
-
-    return {"convergence_time": float(converged_at), "persistence": persistence}
+    persistence = measure_overlap(observed.assembly.neuron_ids, Assembly.from_area(b, "A").neuron_ids)
+    return {**observed.record(), "persistence": persistence}
 
 
 # -- Main experiment -----------------------------------------------------------
@@ -153,6 +132,7 @@ class ScalingLawsExperiment(ExperimentBase):
         self.log("=" * 60)
 
         metrics: Dict[str, Any] = {}
+        raw_data = {"seeds": [self.seed + s for s in seeds], "cells": []}
 
         # ================================================================
         # H1/H2: Convergence + Persistence vs Network Size (k=sqrt(n))
@@ -167,11 +147,15 @@ class ScalingLawsExperiment(ExperimentBase):
             cfg = ScalingConfig(n=n_val, k=k_val, p=p, beta=beta, w_max=w_max)
 
             conv_times = []
+            training_counts = []
+            converged_flags = []
             persist_vals = []
 
             for s in seeds:
                 trial = run_scaling_trial(cfg, seed=self.seed + s)
                 conv_times.append(trial["convergence_time"])
+                training_counts.append(trial["training_rounds"])
+                converged_flags.append(trial["converged"])
                 persist_vals.append(trial["persistence"])
 
             row = {
@@ -180,17 +164,21 @@ class ScalingLawsExperiment(ExperimentBase):
                 "k_over_n": k_val / n_val,
                 "log10_n": float(np.log10(n_val)),
                 "null_overlap": null,
-                "convergence_time": summarize(conv_times),
+                "training_rounds": summarize(training_counts),
+                "convergence_fraction": summarize([float(flag) for flag in converged_flags]),
                 "persistence": summarize(persist_vals),
-                "test_vs_null": ttest_vs_null(persist_vals, null),
+                "test_vs_null": reported_null_test(persist_vals, null),
             }
             scaling_results.append(row)
+            raw_data["cells"].append(dict(n=n_val, k=k_val, values=dict(
+                convergence_time=conv_times, training_rounds=training_counts,
+                converged=converged_flags, persistence=persist_vals)))
 
             self.log(
                 f"  n={n_val:4d}, k={k_val:2d}: "
-                f"T={row['convergence_time']['mean']:.1f}+/-{row['convergence_time']['sem']:.1f}  "
+                f"T={row['training_rounds']['mean']:.1f}+/-{row['training_rounds']['sem']:.1f}  "
                 f"persist={row['persistence']['mean']:.3f}+/-{row['persistence']['sem']:.3f}  "
-                f"d={row['test_vs_null']['d']:.1f}"
+                f"d={effect_text(row['test_vs_null'])}"
             )
 
         metrics["scaling_results"] = scaling_results
@@ -200,31 +188,9 @@ class ScalingLawsExperiment(ExperimentBase):
         # ================================================================
         self.log("\nH3: Scaling Law Fit")
 
-        log_n = np.array([r["log10_n"] for r in scaling_results])
-        mean_t = np.array([r["convergence_time"]["mean"] for r in scaling_results])
-        slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, mean_t)
-
-        if abs(slope) < 0.5:
-            scaling_type = "O(1) - constant"
-        elif slope < 2:
-            scaling_type = "O(log n) - logarithmic"
-        elif slope < 5:
-            scaling_type = "O(log^2 n) - polylogarithmic"
-        else:
-            scaling_type = "O(n^alpha) - polynomial"
-
-        metrics["scaling_fit"] = {
-            "slope": float(slope),
-            "intercept": float(intercept),
-            "r_squared": float(r_value ** 2),
-            "p_value": float(p_value),
-            "std_err": float(std_err),
-            "scaling_type": scaling_type,
-            "equation": f"T = {slope:.2f} * log10(n) + {intercept:.2f}",
-        }
-
-        self.log(f"  Fit: {metrics['scaling_fit']['equation']}  R²={r_value**2:.3f}")
-        self.log(f"  Scaling type: {scaling_type}")
+        metrics["scaling_fit"] = convergence_scaling_fit(
+            n_values, [cell["values"]["convergence_time"] for cell in raw_data["cells"]])
+        self.log(f"  Descriptive fit: {metrics['scaling_fit']['equation']}")
 
         duration = self._stop_timer()
         self.log(f"\nDuration: {duration:.1f}s")
@@ -238,10 +204,12 @@ class ScalingLawsExperiment(ExperimentBase):
                 "base_beta": beta,
                 "base_wmax": w_max,
                 "max_train_rounds": 100,
-                "test_rounds": 20,
+                "test_rounds": 20, "convergence_window": 3, "convergence_threshold": .98,
+                "initial_stimulus_rounds": 1, "evaluation_learning": True,
+                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
             },
             metrics=metrics,
-            raw_data={},
+            raw_data=raw_data,
             duration_seconds=duration,
         )
 

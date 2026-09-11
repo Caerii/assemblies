@@ -69,3 +69,11 @@ convergence. A timeout has `converged=false` and `convergence_time=null`; any ti
 H1 brain makes the ordinary scaling fit unavailable. `training_rounds` includes
 capped work and is summarized separately. Version-2 scalar records cannot resolve
 that stopping distinction without new trajectory evidence.
+
+
+The legacy scaling study now shares the convergence stopping phase with projection,
+while retaining its extra initial stimulus-only activation. It records timeouts and
+raw seeds and refuses a convergence fit when any observation is censored. Its former
+coefficient-based complexity labels have been removed: the fitted slope does not
+establish an asymptotic class. Its assembly size is floor(sqrt(n)), so k/n varies.
+The grid and shared-runner migration remain pending.

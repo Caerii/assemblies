@@ -61,7 +61,7 @@ BASELINE = {
     "research/experiments/applications/test_language_syntax.py": 5,
     "neural_assemblies/simulation/advanced_simulations.py": 4,
     "research/experiments/primitives/test_bidirectional_association.py": 4,
-    "research/experiments/primitives/test_projection.py": 4,
+    "research/experiments/primitives/test_projection.py": 3,
     "research/experiments/primitives/diagnose_erp_dynamics.py": 3,
     "research/experiments/primitives/test_association.py": 3,
     "research/experiments/primitives/test_inhibition.py": 3,

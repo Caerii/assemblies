@@ -52,8 +52,6 @@ References:
 """
 
 import sys
-import math
-from numbers import Real
 from pathlib import Path
 
 project_root = Path(__file__).parent.parent.parent.parent
@@ -62,7 +60,6 @@ sys.path.insert(0, str(project_root))
 import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Any
-from scipy import stats
 
 from research.experiment_config import resolve_seed_ids
 from research.experiments.base import (
@@ -76,6 +73,8 @@ from research.experiments.base import (
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
+from research.experiments._convergence import run_convergence_phase, convergence_scaling_fit, validate_convergence_rule
 from neural_assemblies.core.registration import validate_area_registration, validate_round_count
 
 N_SEEDS = 10
@@ -97,13 +96,7 @@ class ProjConfig:
 
     def __post_init__(self):
         """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#projection-convergence-stopping"""
-        validate_round_count(self.max_train_rounds)
-        validate_round_count(self.convergence_window)
-        if (isinstance(self.convergence_threshold, bool) or
-                not isinstance(self.convergence_threshold, Real) or
-                not math.isfinite(self.convergence_threshold) or
-                not 0 <= self.convergence_threshold <= 1):
-            raise ValueError("convergence threshold must be finite and in [0, 1]")
+        validate_convergence_rule(self.max_train_rounds, self.convergence_window, self.convergence_threshold)
 
 
 # -- Core trial runners -------------------------------------------------------
@@ -119,35 +112,12 @@ def run_convergence_trial(
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
-    winner_history = []
-    converged = False
-    training_rounds = 0
-
-    for r in range(cfg.max_train_rounds):
-        b.project({"s": ["A"]}, {"A": ["A"]})
-        winners = np.array(b.areas["A"].winners, dtype=np.uint32)
-        winner_history.append(winners.copy())
-        training_rounds = r + 1
-
-        if len(winner_history) >= cfg.convergence_window + 1:
-            overlaps = [
-                measure_overlap(winner_history[-i - 1], winner_history[-i - 2])
-                for i in range(cfg.convergence_window)
-            ]
-            if all(o > cfg.convergence_threshold for o in overlaps):
-                converged = True
-                break
-
-    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
-
-    # Autonomous persistence
+    observed = run_convergence_phase(b, stimulus="s", area="A", max_rounds=cfg.max_train_rounds,
+                                     window=cfg.convergence_window, threshold=cfg.convergence_threshold)
     for _ in range(cfg.test_rounds):
         b.project({}, {"A": ["A"]})
-
-    persistence = measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
-
-    return {"training_rounds": training_rounds, "converged": converged,
-            "convergence_time": training_rounds if converged else None, "persistence": persistence}
+    persistence = measure_overlap(observed.assembly.neuron_ids, Assembly.from_area(b, "A").neuron_ids)
+    return {**observed.record(), "persistence": persistence}
 
 
 def run_training_mode_trial(
@@ -358,26 +328,8 @@ class ProjectionExperiment(ExperimentBase):
         metrics["convergence_vs_size"] = h1_results
 
         # Scaling fit
-        log_n = np.array([np.log10(r["n"]) for r in h1_results])
-        mean_t = np.array([r["training_rounds"]["mean"] for r in h1_results])
-        if not all(flag for cell in raw_data["cells"] for flag in cell["values"]["converged"]):
-            metrics["scaling_fit"] = {
-                "slope": None, "intercept": None, "r_squared": None, "p_value": None,
-                "degenerate": "censored_observations", "equation": None,
-            }
-        elif np.ptp(mean_t) == 0:
-            metrics["scaling_fit"] = {
-                "slope": 0., "intercept": float(mean_t[0]), "r_squared": None,
-                "p_value": None, "degenerate": "constant_response",
-                "equation": f"T = {float(mean_t[0]):.2f}",
-            }
-        else:
-            slope, intercept, r_value, p_value, std_err = stats.linregress(log_n, mean_t)
-            metrics["scaling_fit"] = {
-                "slope": float(slope), "intercept": float(intercept),
-                "r_squared": float(r_value ** 2), "p_value": float(p_value),
-                "equation": f"T = {slope:.2f} * log10(n) + {intercept:.2f}",
-            }
+        metrics["scaling_fit"] = convergence_scaling_fit(
+            list(h1_sizes), [cell["values"]["convergence_time"] for cell in raw_data["cells"]])
         self.log(f"  Scaling fit: {metrics['scaling_fit']['equation']}")
 
         # ================================================================

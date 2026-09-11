@@ -201,7 +201,7 @@ def test_final_round_convergence_is_distinct_from_timeout(monkeypatch, final_win
 
     class ScriptedBrain:
         def __init__(self, **kwargs):
-            self.areas = {"A": SimpleNamespace(winners=np.array([], dtype=int))}
+            self.areas = {"A": SimpleNamespace(winners=np.array([], dtype=int), explicit=True)}
             self.rounds = 0
 
         def add_area(self, *args, **kwargs):
@@ -244,7 +244,8 @@ def test_censored_seed_is_retained_and_blocks_scaling_fit(monkeypatch, tmp_path)
     monkeypatch.setattr(study, "run_training_mode_trial", lambda cfg, seed, mode: seed / 10)
     monkeypatch.setattr(study, "run_crossarea_trial", lambda cfg, seed: seed / 10)
     monkeypatch.setattr(study, "run_weight_dynamics_trial", lambda *args: {"weight_ratio": 2., "persistence": .5})
-    monkeypatch.setattr(study.stats, "linregress", lambda *args: pytest.fail("fit treated timeout as convergence"))
+    from research.experiments import _convergence
+    monkeypatch.setattr(_convergence.stats, "linregress", lambda *args: pytest.fail("fit treated timeout as convergence"))
     result = study.ProjectionExperiment(results_dir=tmp_path, verbose=False).run(seed_ids=[1, 2, 3], **parameters(True))
     for cell in result.raw_data["cells"][:2]:
         assert cell["values"]["convergence_time"] == [8, None, 8]

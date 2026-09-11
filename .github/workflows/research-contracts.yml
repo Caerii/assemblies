@@ -50,6 +50,7 @@ jobs:
           neural_assemblies/tests/test_probe_state_contract.py
           neural_assemblies/tests/test_historical_noise_trials.py
           neural_assemblies/tests/test_historical_projection_trials.py
+          neural_assemblies/tests/test_historical_scaling_trials.py
           neural_assemblies/tests/test_noise_robustness.py
           neural_assemblies/tests/test_seeded_observation.py
           neural_assemblies/tests/test_context_noise_protocol.py

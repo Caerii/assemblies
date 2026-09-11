@@ -2390,3 +2390,40 @@ All six H1 trials in the new run time out at eight rounds. They now retain false
 converged flags and null event times; the fit is censored_observations with no
 coefficients. This software smoke is VOID, not a scientific convergence study.
 No backend code changed; no GPU or whole-package rerun was required or claimed.
+
+
+## Shared convergence phase and scaling correction (2026-09-10)
+
+Captured six source-0b9909c scaling development trials before edits (three seeds,
+limits4/8, n60,k6,p.2,beta.1,evaluation3). New replay retains the initial stimulus-only
+activation, every projection/winner trace and final weight hash. Scaling now records
+elapsed rounds, convergence status and nullable event time; its outer result retains
+raw observations and seed identities for every size. Censored cells block fitting.
+
+Both studies call one learning-on convergence phase with stable-ID Assembly
+snapshots. Callers still own initialization and evaluation. The streak update is
+S_t = S_(t-1)+1 when the latest overlap passes, otherwise zero: S_t>=W is equivalent
+to W consecutive passing comparisons. This replaces full winner-history retention
+with previous/current snapshots and one comparison per adjacent pair. A constructed
+interruption test verifies streak reset and seven comparisons over eight snapshots.
+No wall-time speedup or GPU-performance claim is inferred from this structural bound.
+
+A shared descriptive fit preserves projection v3's complete archived smoke output.
+Scaling's coefficient-based O(1)/O(log n)/O(log^2 n)/polynomial labels were removed;
+three exact log-linear fixtures with coefficients1/10/100 demonstrate why changing
+the coefficient cannot choose an asymptotic class. This is not a new scaling law.
+
+Initial projection tests had 42 passes and three fixture failures: the scripted
+area lacked explicit=True for canonical snapshots, and a test patched the old local
+SciPy import rather than the shared fitter. Corrected fixtures; 56 combined replay/
+measurement tests passed in 2.87s. Ruff passes. Specification/ratchet checks then had
+17 passes and two stale allowances: scaling's unpinned engine1->0 and projection's
+raw compact-index comparisons4->3. Both allowances were lowered; none were raised.
+
+Scaling's outer grid/configuration/tagged-runner migration remains open. No adopted
+scientific result or older artifact was rewritten. No backend code changed.
+
+After lowering the allowances, 67 projection/scaling/replay/two-ratchet checks
+passed in 72.22s. The specification checks passed in the previous run. No full
+package or GPU rerun was required or claimed for this research-phase refactor.
+Also corrected the scaling description: k=floor(sqrt(n)) does not hold k/n fixed.

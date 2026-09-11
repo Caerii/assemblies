@@ -1339,3 +1339,13 @@ scalar cannot be called a convergence time. The new recorded statuses block the
 fit. Direct/v3 outputs match exactly; v2 elapsed work and all other raw measurements
 are unchanged. Sixty-four focused/specification/ratchet checks pass. Artifact and
 validation details are in the linked validation section.
+
+
+## Shared convergence phase (2026-09-10)
+
+Projection and scaling now share stopping and descriptive fitting while preserving
+scaling's extra initial stimulus activation. Six new scaling and fifteen projection
+replays preserve trajectories/weights; projection's complete v3 smoke also matches.
+Scaling retains censored seed records and no longer infers complexity classes from
+fit coefficients. The phase uses canonical snapshots and a constant-history streak.
+Remaining scaling grid/runner migration is separate. See VALIDATION.md#shared-convergence-phase-and-scaling-correction-2026-09-10.
