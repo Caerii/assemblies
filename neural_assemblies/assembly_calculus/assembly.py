@@ -27,6 +27,7 @@ and it documents why.
 
 import numpy as np
 from dataclasses import dataclass
+from numbers import Integral
 from typing import overload
 
 from ..core.index_spaces import NeuronIds, SameSpace, validated_indices
@@ -190,7 +191,8 @@ def chance_overlap(k: int, n: int) -> float:
     If A and B are independent uniform random k-subsets of {0, ..., n-1},
     then E[|A ∩ B|] / k = k / n  (hypergeometric mean / k).
     """
-    if isinstance(k, bool) or isinstance(n, bool) or not isinstance(k, int) or not isinstance(n, int):
+    if (isinstance(k, bool) or isinstance(n, bool)
+            or not isinstance(k, Integral) or not isinstance(n, Integral)):
         raise ValueError("k and n must be integers")
     if n <= 0 or k < 0 or k > n:
         raise ValueError("chance overlap requires 0 <= k <= n with n > 0")

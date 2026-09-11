@@ -4504,3 +4504,9 @@ The calculus `chance_overlap(k, n)` helper now validates the hypergeometric
 regime (`n > 0`, `0 <= k <= n`, integer parameters) before division. Five
 focused tests cover valid, boundary, and boolean-invalid inputs; Ruff and
 whitespace checks pass.
+
+## NumPy scalar compatibility for chance overlap (2026-09-11)
+
+The chance-overlap domain guard now accepts `numbers.Integral` values, including
+NumPy integer scalars, while continuing to reject booleans. Six focused tests
+pass and the entire maintained package remains Ruff-clean.

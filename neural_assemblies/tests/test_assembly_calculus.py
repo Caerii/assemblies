@@ -115,6 +115,9 @@ class TestAssembly:
         with pytest.raises(ValueError, match="integers"):
             chance_overlap(True, 10)
 
+    def test_chance_overlap_accepts_numpy_integer_scalars(self):
+        assert chance_overlap(np.int64(10), np.int64(100)) == pytest.approx(0.1)
+
 
 # ---------------------------------------------------------------------------
 # Projection tests
