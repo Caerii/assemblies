@@ -41,3 +41,11 @@ def test_population_cursor_rejects_non_boolean_protocol_switches(kwargs):
     brain.add_area("A", 20, 2, 0.1)
     with pytest.raises(TypeError, match="must be boolean"):
         brain.reset_area_population_cursor("A", **kwargs)
+
+
+def test_population_cursor_rejects_inconsistent_mapping_count_mode():
+    brain = Brain(engine="numpy_sparse", norm_init=False)
+    brain.add_area("A", 20, 2, 0.1)
+    with pytest.raises(ValueError, match="identity mappings"):
+        brain.reset_area_population_cursor("A", preserve_mapping=False,
+                                           reset_count=False)

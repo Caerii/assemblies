@@ -4304,3 +4304,10 @@ The population facade now rejects non-boolean `preserve_mapping` and
 `reset_count` switches before resolving or mutating backend state.
 
 Validation: 5 population-owner tests passed, including invalid-switch controls.
+
+The population API also rejects the inconsistent combination
+`preserve_mapping=False, reset_count=False`; no valid protocol can clear stable
+identity mappings while retaining the materialized count.
+
+Validation: 7 population/bridge tests passed, including the inconsistent-mode
+negative control.

@@ -1341,6 +1341,11 @@ class Brain:
             raise KeyError(f"unknown area {area_name!r}") from None
         if type(preserve_mapping) is not bool or type(reset_count) is not bool:
             raise TypeError("preserve_mapping and reset_count must be boolean")
+        if not preserve_mapping and not reset_count:
+            raise ValueError(
+                "reset_count=False requires preserve_mapping=True; clearing "
+                "identity mappings while retaining the population is inconsistent"
+            )
         owner = self._engine_for(area)
         if reset_count:
             area.w = 0

@@ -2510,3 +2510,7 @@ green after deduplication.
 
 The facade now rejects non-boolean semantic switches before mutation. Five
 population-owner tests pass, including invalid-switch controls.
+
+It also rejects clearing identity mappings while retaining the materialized
+count, an inconsistent state that no protocol uses. Seven population/bridge
+tests pass.
