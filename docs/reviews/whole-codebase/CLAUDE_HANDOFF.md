@@ -1997,3 +1997,11 @@ expected xfails and 10 subtests in 21m55s. Its 303
 warnings expose a follow-up DX problem: many legacy tests deliberately use sampled
 recurrence without setting the acknowledgement policy, so the intended safety
 warning becomes noisy in the broad lane.
+
+The next small checkpoint closes a distinction the schema alone could not: the
+context-noise and per-fiber-plasticity measurements now consume the recorded
+`default` model profile in each actual `Brain` constructor. A constructed sparse
+profile against the explicit measurement rejects before topology. The focused
+gate is 33 passed and Ruff is clean. Historical producer factories still need
+the same construction-time requirement; their payload-level router/area-engine
+record is informative but later than the desired admission boundary.

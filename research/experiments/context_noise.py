@@ -56,6 +56,7 @@ def judge(cells, bars):
 
 def experiment(record):
     config, seeds = record['parameters'], record['seeds']
+    required_model = record['execution_semantics']['profiles']['default']
     cells = []
     for cell in config['cells']:
         values = dict(config['protocol'], noise_std=cell['noise'], coupling_beta=cell['coupling_beta'])
@@ -63,7 +64,11 @@ def experiment(record):
         protocol = ContextChoiceProtocol(**values)
         rows = []
         for seed in seeds:
-            model = ContextAttractorChoice(Brain(p=config['p'], seed=seed, engine=record['engine']), protocol=protocol)
+            brain = Brain(
+                p=config['p'], seed=seed, engine=record['engine'],
+                model_semantics=required_model,
+            )
+            model = ContextAttractorChoice(brain, protocol=protocol)
             observations = []
             for read_seed in config['read_seeds']:
                 for target, context in enumerate(protocol.contexts):

@@ -52,10 +52,14 @@ def _geometric_mean(values: np.ndarray) -> float:
     return float(np.exp(logs.sum() / logs.size))
 
 
-def run_seed(seed: int, config: dict) -> tuple[dict, dict]:
+def run_seed(seed: int, config: dict, *, engine: str,
+             model_semantics: dict) -> tuple[dict, dict]:
     """Specification: research/notes/memory/PREREG_per_fiber_plasticity.md"""
-    brain = Brain(p=config["p"], seed=seed, engine="numpy_explicit",
-                  norm_init=False, w_max=config["w_max"])
+    brain = Brain(
+        p=config["p"], seed=seed, engine=engine,
+        norm_init=False, w_max=config["w_max"],
+        model_semantics=model_semantics,
+    )
     for name in [*config["sources"], *config["targets"]]:
         brain.add_area(name, config["n"], config["k"], config["default_beta"])
 
@@ -160,9 +164,13 @@ def judge(rows: list[dict], config: dict) -> dict[str, bool]:
 
 def experiment(record: dict) -> ExperimentOutput:
     config, seeds = record["parameters"], record["seeds"]
+    required_model = record["execution_semantics"]["profiles"]["default"]
     rows, raw_rows = [], []
     for seed in seeds:
-        row, raw = run_seed(seed, config)
+        row, raw = run_seed(
+            seed, config, engine=record["engine"],
+            model_semantics=required_model,
+        )
         rows.append(row)
         raw_rows.append(raw)
         print(seed, row["cells"]["forward"]["ratio"], flush=True)

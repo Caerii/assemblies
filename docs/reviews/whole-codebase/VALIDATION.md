@@ -3582,6 +3582,23 @@ compatibility; the warning volume is a separate signal-to-noise defect to fix by
 making deliberate sampled tests explicit, while retaining warnings for accidental
 use.
 
+## Brain-backed measurements consume their recorded model (2026-09-11)
+
+The context-noise and per-fiber-plasticity measurements now pass the schema-7
+`default` profile back into every measured `Brain` constructor. Previously the
+runner validated a temporary engine before reserving the tag, while the actual
+measurement independently reconstructed a Brain from selected parameters. A
+future default or caller drift could therefore survive provenance validation.
+The per-fiber negative control supplies a sparse profile to the explicit engine
+and confirms rejection before areas or measurements exist. The focused model and
+protocol gate is 33 passed; Ruff is clean.
+
+The historical adapter still invokes producer factories whose internal Brain
+construction is outside this admission path. Those producers record their router
+and area engine in their payload, but that is observation after construction;
+moving their construction behind the same required profile is the remaining
+mixed/historical boundary.
+
 This boundary records and rejects semantic drift; it is not yet a numerical
 refinement proof for CUDA, and mixed Brain-router/per-area execution still needs
 a profile graph. The unification's next early-error boundary is to derive actual
