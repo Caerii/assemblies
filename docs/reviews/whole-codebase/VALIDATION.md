@@ -4455,3 +4455,11 @@ The stage reflection orchestrator no longer swallows all holdout-decomposition
 exceptions. It catches only expected data/model errors and emits a warning that
 labels the holdout bootstrap metric unavailable, matching the stability snapshot
 contract. Ruff and bytecode compilation pass.
+
+## Acquisition compatibility gate (2026-09-11)
+
+After making holdout failures explicit, the acquisition and research-runner
+suite passes **115 tests** with one expected sampled-recurrence warning. A
+focused Pyright scan still reports older structural typing issues in the
+loosely typed stage-result/decomposition dictionaries; these are tracked as a
+separate type-safety refactor and do not affect the runtime gate.
