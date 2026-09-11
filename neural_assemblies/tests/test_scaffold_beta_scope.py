@@ -29,3 +29,11 @@ def test_scaffold_beta_boosts_restore_after_projection_failure():
         )
     assert brain.areas["MAIN"].beta == pytest.approx(0.1)
     assert brain.areas["AUX"].beta == pytest.approx(0.2)
+
+
+def test_scaffold_step_rejects_unknown_stimulus_before_projection():
+    brain = Brain(p=0.05, seed=79, engine="numpy_sparse")
+    brain.add_area("MAIN", 100, 10, 0.1)
+    brain.add_area("AUX", 100, 10, 0.2)
+    with pytest.raises(KeyError, match="stimulus"):
+        _train_scaffold_step(brain, "TYPO", "MAIN", "AUX")

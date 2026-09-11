@@ -4707,3 +4707,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 ## Exception-safe scaffold plasticity (2026-09-11)
 
 `_train_scaffold_step` now restores both main and auxiliary recurrent beta values in a `finally` block. A failure during the five-step coupled Phase B cannot contaminate later scaffold experiments. Scaffold beta, scaffold input, and sequence tests pass **24 tests**.
+
+## Scaffold primitive admission (2026-09-11)
+
+`_train_scaffold_step`, the primitive used by `ScaffoldNetwork.train`, now validates stimulus, both areas, round count, Phase-B ratio, and beta boost itself. Single-item training can no longer bypass the bulk wrapper’s contract. Scaffold and sequence tests pass **25 tests**.
