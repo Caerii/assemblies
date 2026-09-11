@@ -3090,3 +3090,13 @@ exactly. At rounds=20 the seeded values over seeds 42..46 are 0.0000, 0.7625,
 claim is therefore a strict expected failure rather than a non-strict marker.
 Using `upstream/master` at 81e4297 as the live reference, the reproducibility
 test passes and the scientific bar fails as expected in 16.98 seconds.
+
+## Active-path fidelity contract (2026-09-11)
+
+A non-strict performance test expected exact winner sampling from a zero-drive
+`CONTEXT -> CONTEXT` projection. The engine correctly exits before either
+fidelity policy reaches its selector, so the test's precondition was impossible
+and its own reason pointed to the valid replacement. The dead test is removed;
+`test_compiled_role_reduces_sampling` now states that it requires an active
+pathway and passes on that pathway in 1.88 seconds. Removing the obsolete block
+also exposed and removed three unused imports. Ruff and diff checks pass.

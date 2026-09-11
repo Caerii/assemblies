@@ -2,8 +2,6 @@
 
 import time
 
-import pytest
-
 from neural_assemblies.assembly_calculus.emergent import (
     EmergentParser,
     build_vocabulary_preset,
@@ -314,10 +312,6 @@ class TestTrainingPerf:
         assert len(idx.bridge_vocab) > 0
 
     def test_context_ring_reduces_expand_during_bridges(self):
-        from neural_assemblies.assembly_calculus.emergent.core.corpus_index import (
-            compile_corpus,
-        )
-
         sents = create_training_sentences()
 
         def count_expands(parser) -> int:
@@ -354,10 +348,6 @@ class TestTrainingPerf:
         assert ringed._context_ring_capacity_cols > 0
 
     def test_prediction_ring_reduces_expand_during_bridges(self):
-        from neural_assemblies.assembly_calculus.emergent.core.corpus_index import (
-            compile_corpus,
-        )
-
         sents = create_training_sentences()
 
         def count_expands(parser, disable_pred_ring=False) -> int:
@@ -530,7 +520,12 @@ class TestTrainingPerf:
             )
 
     def test_compiled_role_reduces_sampling(self):
-        """Compiled topology on role areas skips winner sampling."""
+        """Compiled topology on active role pathways skips winner sampling.
+
+        The pathway must carry nonzero drive. A zero-drive projection exits
+        before either fidelity policy reaches the selector and therefore cannot
+        distinguish exact from compiled execution.
+        """
         from neural_assemblies.assembly_calculus.emergent.core.corpus_index import (
             compile_corpus,
         )
@@ -646,56 +641,6 @@ class TestTrainingPerf:
         parser = EmergentParser(n=N, k=K, seed=42, rounds=ROUNDS)
         parser.brain.projection_fidelity = "fuzzy"
         assert parser.brain.projection_fidelity == "compiled"
-
-    @pytest.mark.xfail(
-        strict=False,
-        reason=(
-            "Pre-existing degenerate scenario, independent of norm_init (fails "
-            "on both substrates). The exact CONTEXT->CONTEXT self-projection "
-            "delivers ZERO recurrent drive here (the frozen context ring's "
-            "self-connectome carries no signal after a single direct advance), "
-            "so project_into early-returns via the 'zero signal -> preserve "
-            "current assembly' guard BEFORE reaching the sampler -- making the "
-            "exact_samples > 0 precondition invalid. The property this meant to "
-            "check (compiled fidelity skips winner sampling) is covered by "
-            "test_compiled_role_reduces_sampling, which passes on the "
-            "norm_init=False substrate where compiled training is active."
-        ),
-    )
-    def test_projection_fidelity_compiled_reduces_sampling(self):
-        from neural_assemblies.assembly_calculus.emergent.core.areas import CONTEXT
-
-        parser = EmergentParser(n=N, k=K, seed=51, rounds=ROUNDS)
-        parser.train_lexicon(skip_known=False)
-        words = ["the", "dog", "chases", "the", "cat"]
-        parser._init_context_ring(len(words), words)
-        parser._advance_context_direct(words[0])
-        engine = parser.brain._engine
-        st = engine._areas[CONTEXT]
-        st._freeze_connectome_growth = True
-        st._plasticity_only_mode = False
-        assert st.w >= parser.k
-
-        sim = engine._sparse_sim
-        sample_n = {"n": 0}
-        orig = sim.sample_new_winner_inputs
-
-        def counting(*args, **kwargs):
-            sample_n["n"] += 1
-            return orig(*args, **kwargs)
-
-        sim.sample_new_winner_inputs = counting
-        parser.brain.projection_fidelity = "exact"
-        parser.brain.project({}, {CONTEXT: [CONTEXT]})
-        exact_samples = sample_n["n"]
-
-        sample_n["n"] = 0
-        parser.brain.projection_fidelity = "compiled"
-        parser.brain.project({}, {CONTEXT: [CONTEXT]})
-        compiled_samples = sample_n["n"]
-
-        assert exact_samples > 0
-        assert compiled_samples == 0
 
     def test_lexicon_and_phon_context_advance_are_nondegenerate(self):
         """Both context-advance methods produce non-degenerate predictions.

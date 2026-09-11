@@ -1643,3 +1643,8 @@ NumPy's global RNG used by SciPy. Same-seed executions match exactly. The seeded
 rounds=20 ensemble over seeds42..46 remains bimodal (0,.7625,.325,.8125,0;
 0.3800 +/- 0.4909), so the near-chance claim is now a stable strict expected
 failure. Verified against upstream/master 81e4297: one pass, one expected failure.
+
+The non-strict compiled-fidelity test was an impossible zero-drive probe: both
+policies exit before winner selection. It is removed in favor of the existing
+active role-pathway sampling contract, which passes in1.88s and now documents
+its live-drive precondition. Three newly exposed unused imports were removed.
