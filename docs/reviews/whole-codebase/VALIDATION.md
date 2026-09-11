@@ -4719,3 +4719,7 @@ The scaffolded sequence wrapper and its single-step training primitive now share
 ## Binding schedule admission (2026-09-11)
 
 The public `ops.bind` path now validates source/target existence, `project_rounds`, `tail_rounds`, and `fix_source` before snapshot replay or target mutation. Previously `max(0, tail_rounds)` silently converted invalid schedules into a different operation, and `project_rounds` could be ignored when a current snapshot was supplied. Six contract tests cover the true negatives; operation-contract and orthogonality suites pass **152 tests**.
+
+## Measurement observation completeness (2026-09-11)
+
+`input_drive` no longer converts an omitted engine score into a fabricated `0.0`. It now requires every requested target area to appear in the post-projection observation and raises a diagnostic error when instrumentation is incomplete; reported zero remains valid. A true-negative monkeypatch test covers the failure, and metric/observation/orthogonality tests pass **20 tests**.

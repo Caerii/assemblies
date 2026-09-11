@@ -30,3 +30,22 @@ def test_input_drive_rejects_sources_without_live_activity():
     brain.add_area("DST", 100, 10, 0.1)
     with pytest.raises(ValueError, match="active source"):
         input_drive(brain, sources=["SRC"], target_areas=["DST"])
+
+
+def test_input_drive_rejects_missing_engine_observation_instead_of_fabricating_zero(
+    monkeypatch,
+):
+    brain = Brain(p=0.05, seed=13, engine="numpy_exact")
+    brain.add_stimulus("S", 10)
+    brain.add_area("SRC", 100, 10, 0.1)
+    brain.add_area("DST", 100, 10, 0.1)
+    brain.project({"S": ["SRC"]}, {})
+
+    def drop_observation(*args, **kwargs):
+        brain.last_activation_scores.clear()
+        brain.last_pre_kwta_totals.clear()
+        brain.last_pre_kwta_counts.clear()
+
+    monkeypatch.setattr(brain, "project", drop_observation)
+    with pytest.raises(RuntimeError, match="omitted target area"):
+        input_drive(brain, sources=["SRC"], target_areas=["DST"])

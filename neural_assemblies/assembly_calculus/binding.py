@@ -369,7 +369,13 @@ def input_drive(
                 brain.areas[area].unfix_assembly()
             brain.record_activation = prev_rec
 
-    return {a: float(scores.get(a, 0.0)) for a in targets}
+    missing = [area for area in targets if area not in scores]
+    if missing:
+        raise RuntimeError(
+            "input_drive engine observation omitted target area(s): "
+            f"{missing!r}"
+        )
+    return {area: float(scores[area]) for area in targets}
 
 
 def bind_strength(
