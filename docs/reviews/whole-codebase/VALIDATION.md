@@ -4510,3 +4510,9 @@ whitespace checks pass.
 The chance-overlap domain guard now accepts `numbers.Integral` values, including
 NumPy integer scalars, while continuing to reject booleans. Six focused tests
 pass and the entire maintained package remains Ruff-clean.
+
+## Simulation overlap option typing (2026-09-11)
+
+`get_overlaps` now requires `percentage` to be an actual boolean; truthy values
+such as `1` or `"yes"` no longer silently change the metric's normalization.
+The simulation utility contract suite passes **10 tests** with Ruff clean.
