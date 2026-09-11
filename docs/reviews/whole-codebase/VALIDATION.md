@@ -2814,3 +2814,10 @@ and protocol composition, not proof that the historical merge performs compositi
 misuse, raw retention and undefined statistics. Outer default trial order remains.
 
 Pre-run validation:84 passed in52.21s across merge/shared-adapter/aggregate/specification/two-ratchet checks; Ruff and diff checks pass.
+
+
+The five-cell smoke executed at sourceb8984cd. Direct execution exactly matches
+metrics/raw_data/parameters/success; archive validation passes. Seeds1/2/3 and all
+parent vectors persist under research/results/runs/memory.historical-merge/
+historical-merge-smoke-20260910. Status remains VOID; no new scientific merge claim,
+GPU rerun or full-package green claim is made by this migration.

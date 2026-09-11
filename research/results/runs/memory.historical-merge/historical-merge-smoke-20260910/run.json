@@ -1,0 +1,48 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "b8984cd2da35e723e9f872fe34ee01b27f8fbab4",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "beta": 0.1,
+    "establish_rounds": 3,
+    "h4_sizes": [
+      60
+    ],
+    "k": 6,
+    "merge_rounds": 3,
+    "n": 60,
+    "p": 0.2,
+    "round_values": [
+      1,
+      3
+    ],
+    "test_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-merge",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_historical_merge_migration.md",
+  "registration_sha256": "657765d999072dc8f2e30477dafcb91c6289894174a38404ba97dffdae2de6b8",
+  "schema_version": 4,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_merge.py",
+  "script_sha256": "9db81fddc3f5243a94e99ddf1971171e0ecbb15be00d4a3312d0d122f25b1cda",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "a40c2b36ae59e7715479844326342e9a5635984521c5afc3cda512c83f7eca7f"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "439be248cfa830319a051b17b23098b8ca10af6ee9c77d64264334458f709be7",
+  "started_utc": "2026-09-11T02:18:48.438762+00:00",
+  "tag": "historical-merge-smoke-20260910"
+}

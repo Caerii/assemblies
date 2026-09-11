@@ -20,3 +20,13 @@ misuse controls, then execute a tagged smoke. Compare its metrics/raw_data/param
 success exactly with direct execution of recorded inputs, excluding timestamps and
 duration. Validate the archive and link the result here. This does not reproduce
 source-less old evidence, infer biological composition, or adopt old hypotheses.
+
+
+## Migration result (2026-09-10)
+
+Implementation and registration committed at b8984cd before the
+[smoke run](../../results/runs/memory.historical-merge/historical-merge-smoke-20260910/results.json).
+Five cells retain seeds1/2/3 and all overlap vectors. Metrics/raw_data/parameters/
+success match direct execution exactly using recorded inputs; archive validation
+passes. This is VOID software migration evidence, not adoption of a composition
+claim. The six prior trial fixtures also remain exact at their original schedules.

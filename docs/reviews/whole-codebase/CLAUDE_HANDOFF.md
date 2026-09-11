@@ -1510,3 +1510,9 @@ name mean/max parent overlap directly and retain every parent vector/seed; old
 misleading report keys are absent. Six trial fixtures stay exact.29 focused tests
 pass; smoke acceptance registered before execution. See
 VALIDATION.md#configurable-merge-harness-2026-09-10.
+
+
+Merge smoke acceptance passes: five cells, seeds1/2/3, sourceb8984cd, exact direct
+metrics/raw_data/parameters/success and valid archive.84 targeted tests pass; status
+VOID. This finishes the historical merge harness migration, not a scientific
+validation of general composition or the broader library unification.
