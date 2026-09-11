@@ -4530,3 +4530,11 @@ turn invalid inputs into plausible ratios. The E2 overlap suite passes **11
 `Assembly`, and rejects snapshots from another area. This makes the stated
 single-area sequence invariant executable. The sequence suite passes **18 tests**
 and Ruff is clean.
+
+## Consolidated semantic regression (2026-09-11)
+
+The synchronized environment passes the consolidated boundary suite: **50
+tests passed** across engine discovery, ERP cache/bootstrap visibility,
+simulation overlap domains, E2 overlap, sequence invariants, and immutable
+parity manifests. The nine sampled-engine warnings are intentional audit
+signals from sequence tests; no warning was suppressed.

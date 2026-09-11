@@ -2533,3 +2533,5 @@ population into `Area.w`. The ERP SENTENCES seed-42 case remains a registered
 scientific inversion on the sampled engine (`p600_auc=0.000`); no assertion was
 weakened. A fixed-connectome replay or explicit amendment is required before
 that result can be treated as evidence.
+
+The follow-up consolidated regression is green: 50 tests passed across engine availability, ERP cache/bootstrap contracts, simulation and E2 overlap domains, sequence invariants, and parity manifest immutability. Nine sampled-engine warnings remain deliberate audit signals in sequence tests.
