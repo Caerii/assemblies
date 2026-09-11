@@ -486,6 +486,49 @@ class OrderedRecallPlan:
 
 
 @dataclass(frozen=True)
+class SequenceMemorizePlan:
+    """Validated ordered-stimulus training schedule."""
+
+    stimuli: tuple[str, ...]
+    target: str
+    rounds_per_step: int = 10
+    repetitions: int = 1
+    phase_b_ratio: float | None = None
+    beta_boost: float | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.stimuli, tuple) or not self.stimuli:
+            raise ValueError("stimuli must be a nonempty ordered tuple")
+        if any(not isinstance(name, str) or not name for name in self.stimuli):
+            raise ValueError("stimuli must contain nonempty names")
+        _require_name("target", self.target)
+        for label, value in (("rounds_per_step", self.rounds_per_step),
+                             ("repetitions", self.repetitions)):
+            object.__setattr__(self, label, _positive_rounds(value))
+        if self.phase_b_ratio is not None:
+            if (isinstance(self.phase_b_ratio, bool)
+                    or not isinstance(self.phase_b_ratio, Real)
+                    or not math.isfinite(float(self.phase_b_ratio))
+                    or not 0.0 <= float(self.phase_b_ratio) <= 1.0):
+                raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
+            object.__setattr__(self, "phase_b_ratio", float(self.phase_b_ratio))
+        if self.beta_boost is not None:
+            if (isinstance(self.beta_boost, bool)
+                    or not isinstance(self.beta_boost, Real)
+                    or not math.isfinite(float(self.beta_boost))
+                    or float(self.beta_boost) < 0.0):
+                raise ValueError("beta_boost must be a finite nonnegative real number")
+            object.__setattr__(self, "beta_boost", float(self.beta_boost))
+
+    def preflight(self, brain) -> None:
+        if self.target not in brain.areas:
+            raise KeyError(f"sequence_memorize target area is unknown: {self.target!r}")
+        unknown = [name for name in self.stimuli if name not in brain.stimuli]
+        if unknown:
+            raise KeyError(f"sequence_memorize stimulus name(s) are unknown: {unknown!r}")
+
+
+@dataclass(frozen=True)
 class OperationContract:
     """Reviewable scientific surface attached to an executable operation."""
 
@@ -724,6 +767,29 @@ ORDERED_RECALL_CONTRACT = OperationContract(
 )
 
 
+SEQUENCE_MEMORIZE_CONTRACT = OperationContract(
+    operation_id="sequence-memorize-v1",
+    specification=(
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transition-machine"
+    ),
+    plan_type=SequenceMemorizePlan,
+    inputs=("brain", "stimuli", "target", "rounds_per_step", "repetitions", "phase_b_ratio", "beta_boost"),
+    reads=("ordered stimuli", "target winners", "recurrent weights", "plasticity state"),
+    mutates=("target winners", "transition weights", "engine history", "temporary beta state"),
+    regime=("registered nonempty stimulus sequence", "explicit phase schedule", "backend model regime"),
+    observed_outcome=("ordered neuron-ID assembly snapshots", "resolved training schedule"),
+    failure_conditions=("scalar or empty stimuli", "unknown topology", "invalid schedule", "backend projection rejection"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_sequence_memorize_contract.py::"
+        "test_sequence_memorize_rejects_scalar_stimulus_input",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_sequence_memorize_contract.py::"
+        "test_sequence_memorize_rejects_scalar_stimulus_input",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -731,6 +797,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "merge": MERGE_CONTRACT,
     "pattern_completion": COMPLETION_CONTRACT,
     "ordered_recall": ORDERED_RECALL_CONTRACT,
+    "sequence_memorize": SEQUENCE_MEMORIZE_CONTRACT,
 })
 
 

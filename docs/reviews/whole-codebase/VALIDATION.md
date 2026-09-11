@@ -4771,3 +4771,7 @@ The organ-substrate, scaling-merger-forensics, and substrate-ceiling studies now
 ## Ordered recall contract registration (2026-09-11)
 
 Sequence recall is now a first-class `ORDERED_RECALL_CONTRACT` attached to `ordered_recall` and included in `OPERATION_CONTRACTS`. It reuses the frozen `OrderedRecallPlan`, names LRI and termination semantics, and links an executable no-LRI true negative. The operation-contract suite passes **150 tests**; Ruff is clean.
+
+## Sequence memorization contract registration (2026-09-11)
+
+Sequence training now has a frozen `SequenceMemorizePlan` that owns ordered input, topology, repetition, phase-ratio, and beta validation. `sequence_memorize` constructs and preflights that plan, and `SEQUENCE_MEMORIZE_CONTRACT` registers the operation alongside projection, merge, completion, and ordered recall. Contract and sequence-input tests pass **161 tests**; Ruff is clean.

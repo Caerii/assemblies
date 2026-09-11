@@ -15,11 +15,12 @@ from neural_assemblies.assembly_calculus.contracts import (
     ORDERED_RECALL_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
     AssociationPlan, CompletionPlan, MergePlan, OrderedRecallPlan,
-    PreparedCompletion,
+    PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SequenceMemorizePlan,
     ProjectionPlan, ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import (
     associate, merge, ordered_recall, pattern_complete, project,
+    sequence_memorize,
     reciprocal_project,
 )
 from neural_assemblies.assembly_calculus.tracing import snapshot_area
@@ -346,6 +347,10 @@ def test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode(
     (
         "ordered_recall", ordered_recall,
         ORDERED_RECALL_CONTRACT, OrderedRecallPlan,
+    ),
+    (
+        "sequence_memorize", sequence_memorize,
+        SEQUENCE_MEMORIZE_CONTRACT, SequenceMemorizePlan,
     ),
 ])
 def test_public_operation_carries_the_registered_contract(

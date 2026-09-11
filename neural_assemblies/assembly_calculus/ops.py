@@ -66,7 +66,8 @@ from .contracts import (
     ORDERED_RECALL_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
     CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
-    OrderedRecallPlan,
+    OrderedRecallPlan, SequenceMemorizePlan,
+    SEQUENCE_MEMORIZE_CONTRACT,
     implements,
 )
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
@@ -890,6 +891,7 @@ def _reset_recurrent(brain, area_name):
 from .sequence import Sequence
 
 
+@implements(SEQUENCE_MEMORIZE_CONTRACT)
 def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
                       repetitions=1, phase_b_ratio=None,
                       beta_boost=None) -> Sequence:
@@ -942,31 +944,17 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
         raise TypeError(
             "stimuli must be an ordered collection of stimulus names"
         ) from exc
-    if not stimuli:
-        raise ValueError("sequence_memorize requires a nonempty stimulus sequence")
-    if target not in brain.areas:
-        raise KeyError(f"sequence_memorize target area is unknown: {target!r}")
-    unknown = [name for name in stimuli if name not in brain.stimuli]
-    if unknown:
-        raise KeyError(f"sequence_memorize stimulus name(s) are unknown: {unknown!r}")
-    for label, value in (("rounds_per_step", rounds_per_step),
-                         ("repetitions", repetitions)):
-        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
-            raise ValueError(f"{label} must be a positive integer")
-    if phase_b_ratio is not None and (
-        isinstance(phase_b_ratio, bool)
-        or not isinstance(phase_b_ratio, Real)
-        or not np.isfinite(float(phase_b_ratio))
-        or not 0.0 <= float(phase_b_ratio) <= 1.0
-    ):
-        raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
-    if beta_boost is not None and (
-        isinstance(beta_boost, bool)
-        or not isinstance(beta_boost, Real)
-        or not np.isfinite(float(beta_boost))
-        or float(beta_boost) < 0.0
-    ):
-        raise ValueError("beta_boost must be a finite nonnegative real number")
+    plan = SequenceMemorizePlan(
+        tuple(stimuli), target, rounds_per_step, repetitions,
+        phase_b_ratio, beta_boost,
+    )
+    plan.preflight(brain)
+    stimuli = list(plan.stimuli)
+    target = plan.target
+    rounds_per_step = plan.rounds_per_step
+    repetitions = plan.repetitions
+    phase_b_ratio = plan.phase_b_ratio
+    beta_boost = plan.beta_boost
 
     assemblies = []
 
