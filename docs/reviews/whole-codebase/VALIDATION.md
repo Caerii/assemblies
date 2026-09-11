@@ -4827,3 +4827,11 @@ The scaled next-token regression's five-seed confidence interval now uses
 local normal-quantile calculation. The test remains an intentional strict
 xfail for the known architectural limitation, while its measurement semantics
 now match the maintained statistical contract; Ruff passes for the touched test.
+
+## Direct result-writer ratchet (2026-09-11)
+
+Added `test_result_writer_ratchet.py` and a generated baseline of the 52
+historical direct `json.dump` sites under `research/experiments`. New sites or
+increases fail the maintained test gate with an actionable migration message;
+existing sites remain explicit debt until migrated or dispositioned. The ratchet
+passes and Ruff is clean.
