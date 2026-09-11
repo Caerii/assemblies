@@ -1508,14 +1508,16 @@ changes small enough that the former floating tolerance accepted them.
 Comparison version 2 receipts also record the comparator source SHA-256, alongside
 both artifact hashes. Earlier unversioned receipts retain their historical scope.
 
-The `capacity-paired` comparator projects a version-3 run into its explicitly keyed
+The version-4 `capacity-paired` comparator projects a version-3 run into its explicitly keyed
 control and refracted cells, then compares each against its own historical artifact
 using one independently supplied seed order. Treatment must cover exactly its
 historical checkpoint grid. Control may contain later checkpoints, but every legacy
 checkpoint must be present; this permits one paired run to use the treatment's
 larger grid without discarding control observations. Both aggregate ceilings are
-still compared when every reference seed is present. The receipt binds both
-reference hashes. A missing condition, reference, cell key or per-seed value fails.
+still compared when every reference seed is present. The receipt names and binds
+the candidate and both references, the explicit seed order, and the comparator's
+Git blob. The evidence graph recomputes every tracked receipt. A missing condition,
+reference, cell key or per-seed value fails.
 
 
 <a id="contract-capacity-execution"></a>
@@ -1952,6 +1954,9 @@ vector, treatment and control scalar vectors, a directional relation and a finit
 nonnegative minimum effect. All three vectors are nonempty and equal-length.
 Values are paired only in the explicit sample order; duplicate identities,
 container-valued observations and nonfinite numbers reject the register.
+Paths use RFC 6901 escaping for object-key tokens and `*` only as an explicit
+list expansion, allowing keyed result cells without confusing `/` in an identity
+for a path separator.
 
 For all-greater, every treatment-control difference clears the minimum. For
 all-less, every control-treatment difference clears it. For all-different, every

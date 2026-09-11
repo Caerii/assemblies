@@ -281,6 +281,13 @@ def validate_active_evidence_graph(root: Path = ROOT) -> list[str]:
             continue
         if (registration, name) not in edges:
             errors.append(f'{name}: recorded registration {registration} does not link this result')
+    comparisons = subprocess.check_output(
+        ['git', 'ls-files', 'research/results/comparisons/*.json'],
+        cwd=root, text=True).splitlines()
+    from research.compare_migration import validate_receipt
+    for name in comparisons:
+        errors.extend(f'{name}: {error}' for error in
+                      validate_receipt(root / name, root=root))
     return errors
 
 

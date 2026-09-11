@@ -9,9 +9,16 @@ import hashlib
 import json
 import math
 from pathlib import Path
+import subprocess
 
 from research.evidence import validate_artifact
-from research.json_documents import load_document as _load_json, unique_pairs as _unique_pairs
+from research.json_documents import (
+    load_document as _load_json,
+    unique_pairs as _unique_pairs,
+    write_new_document,
+)
+
+ROOT = Path(__file__).resolve().parents[1]
 
 
 def _equal(actual, expected):
@@ -144,6 +151,81 @@ def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=
             "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict"}
 
 
+def _repo_relative(path: Path, root: Path = ROOT) -> str:
+    resolved = path.resolve()
+    try:
+        return resolved.relative_to(root.resolve()).as_posix()
+    except ValueError as exc:
+        raise ValueError(f"comparison input must be inside the repository: {path}") from exc
+
+
+def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
+    """Recompute and authenticate a version-4 migration comparison receipt."""
+    try:
+        receipt = _load_json(path)
+    except (OSError, ValueError) as exc:
+        return [f"cannot read comparison receipt: {exc}"]
+    required = {
+        "comparison_version", "kind", "candidate", "reference",
+        "treatment_reference", "reference_seeds", "numerical_match",
+        "comparisons", "errors", "scope", "comparator_source",
+        "comparator_sha256", "candidate_sha256", "reference_sha256",
+        "treatment_reference_sha256",
+    }
+    if not isinstance(receipt, dict) or set(receipt) != required:
+        return ["comparison receipt has an incomplete or unknown schema"]
+    errors = []
+    if (receipt["comparison_version"] != 4
+            or receipt["kind"] != "capacity-paired"
+            or receipt["numerical_match"] is not True
+            or receipt["errors"] != []
+            or type(receipt["comparisons"]) is not int
+            or receipt["comparisons"] < 1):
+        errors.append("comparison receipt does not record a successful version-4 comparison")
+    paths = {}
+    for field in ("candidate", "reference", "treatment_reference"):
+        name = receipt[field]
+        target = (root / name).resolve() if isinstance(name, str) else root.parent
+        if (not isinstance(name, str) or not target.is_relative_to(root.resolve())
+                or not target.is_file()):
+            errors.append(f"comparison receipt has unsafe or missing {field}")
+        else:
+            paths[field] = target
+            digest = hashlib.sha256(target.read_bytes()).hexdigest()
+            if digest != receipt[f"{field}_sha256"]:
+                errors.append(f"comparison receipt {field} digest differs")
+    source = receipt["comparator_source"]
+    if (not isinstance(source, dict)
+            or set(source) != {"inventory", "git_commit", "source_sha256"}):
+        errors.append("comparison receipt has invalid comparator source identity")
+    else:
+        try:
+            blob = subprocess.check_output(
+                ["git", "show", f"{source['git_commit']}:research/compare_migration.py"],
+                cwd=root,
+            )
+            if hashlib.sha256(blob).hexdigest() != receipt["comparator_sha256"]:
+                errors.append("comparison receipt comparator digest differs from its commit")
+        except (OSError, subprocess.CalledProcessError):
+            errors.append("comparison receipt comparator commit is unavailable")
+    if "candidate" in paths:
+        errors.extend(f"candidate: {error}" for error in
+                      validate_artifact(paths["candidate"], root=root))
+    if not errors and len(paths) == 3:
+        try:
+            recomputed = compare(
+                _load_json(paths["candidate"]), _load_json(paths["reference"]),
+                receipt["kind"], receipt["reference_seeds"],
+                treatment_baseline=_load_json(paths["treatment_reference"]),
+            )
+            for field in ("numerical_match", "comparisons", "errors", "scope"):
+                if recomputed[field] != receipt[field]:
+                    errors.append(f"comparison receipt recomputation differs at {field}")
+        except (KeyError, TypeError, ValueError) as exc:
+            errors.append(f"comparison receipt cannot be recomputed: {exc}")
+    return errors
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired"))
@@ -151,6 +233,8 @@ def main():
     parser.add_argument("reference", type=Path)
     parser.add_argument("--reference-seeds", nargs="+", type=int)
     parser.add_argument("--treatment-reference", type=Path)
+    parser.add_argument("--output", type=Path,
+                        help="exclusive JSON receipt path; existing files are refused")
     args = parser.parse_args()
     errors = validate_artifact(args.candidate)
     if errors:
@@ -167,7 +251,14 @@ def main():
         print(json.dumps({"numerical_match": False, "errors": [str(exc)]}, indent=2))
         return 1
     from research.runner import SOURCE_INVENTORY, _source_identity
-    result["comparison_version"] = 3
+    result["comparison_version"] = 4
+    result["kind"] = args.kind
+    result["candidate"] = _repo_relative(args.candidate)
+    result["reference"] = _repo_relative(args.reference)
+    result["treatment_reference"] = (
+        _repo_relative(args.treatment_reference)
+        if args.treatment_reference is not None else None)
+    result["reference_seeds"] = args.reference_seeds
     result["comparator_source"] = {"inventory": SOURCE_INVENTORY, **_source_identity()}
     result["comparator_sha256"] = hashlib.sha256(Path(__file__).read_bytes()).hexdigest()
     result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
@@ -175,7 +266,13 @@ def main():
     if args.treatment_reference is not None:
         result["treatment_reference_sha256"] = hashlib.sha256(
             args.treatment_reference.read_bytes()).hexdigest()
-    print(json.dumps(result, indent=2))
+    if args.treatment_reference is None:
+        result["treatment_reference_sha256"] = None
+    if args.output is None:
+        print(json.dumps(result, indent=2))
+    else:
+        write_new_document(args.output, result)
+        print(f"wrote {args.output}")
     return 0 if result["numerical_match"] else 1
 
 
