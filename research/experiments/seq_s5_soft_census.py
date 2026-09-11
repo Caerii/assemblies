@@ -13,7 +13,6 @@ path visits a soft pair.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -31,7 +30,7 @@ sys.path.insert(0, _HERE)
 from seq_s5_word_problem import (  # noqa: E402
     GROUP_NAMES, SEEDS, build, run_tiered,
 )
-from _results import results_path  # noqa: E402
+from _results import write_result  # noqa: E402
 
 LONGEST = 500
 
@@ -118,7 +117,7 @@ def main():
     print(f"\n    {'group':7s} {'seed':>4s} {'first_bad':>9s} {'dev':>5s} "
           f"{'pred_dev':>8s} {'V2':>3s} {'soft':>5s} {'hard':>5s} "
           f"{'min_ov':>7s}")
-    out, v1_alive, v1_soft, v2 = [], True, True, True
+    out, v1_soft, v2 = [], True, True
     for g in GROUP_NAMES:
         for s in seeds:
             v = r[(g, s, "trained")]
@@ -142,9 +141,7 @@ def main():
     print(f"  {'PASS' if v2 else 'FAIL'}  V2 first_dev == first true-path "
           f"visit to a bad pair, every seed")
 
-    path = results_path("sequence", "seq_s5_soft_census_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    path = write_result("sequence", "seq_s5_soft_census_results.json", out)
     print(f"\nwrote {path}")
 
 

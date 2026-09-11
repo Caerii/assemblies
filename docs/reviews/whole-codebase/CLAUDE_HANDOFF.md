@@ -2627,3 +2627,5 @@ Migrated the S5 arc clip and drift diagnostics to `write_result`, removing direc
 Migrated the tagged `seq_tm_high_order` and `seq_s5_soft_census_hashed` studies to the shared result writer. Tagged filenames remain configurable, but writes now use exclusive canonical JSON. Both scripts compile and pass Ruff.
 
 Migrated the S5 word-problem and state-refraction result helpers to the shared exclusive writer. Their payloads remain unchanged and their scripts compile and pass Ruff.
+
+Migrated S5 soft census and A3 transducer result helpers to the shared exclusive writer, preserving payloads and existing read behavior. Removed an unused census variable found during validation. Both scripts compile and pass Ruff.

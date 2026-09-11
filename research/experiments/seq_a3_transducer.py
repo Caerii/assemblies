@@ -336,10 +336,8 @@ def main():
 
 
 def _write(out, tag=""):
-    from _results import results_path
-    path = results_path("sequence", f"seq_a3_transducer_results{tag}.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    from _results import write_result
+    path = write_result("sequence", f"seq_a3_transducer_results{tag}.json", out)
     print(f"\nwrote {path}")
 
 
