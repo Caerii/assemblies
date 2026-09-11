@@ -103,6 +103,12 @@ class TestFuzzyReadout(unittest.TestCase):
         result = fuzzy_readout(asm, {}, threshold=0.5)
         self.assertIsNone(result)
 
+    def test_invalid_threshold_is_rejected(self):
+        asm = Assembly("A", np.array([1, 2], dtype=np.uint32))
+        for threshold in (-0.01, 1.01, float("nan"), float("inf")):
+            with self.assertRaisesRegex(ValueError, "readout threshold"):
+                fuzzy_readout(asm, {}, threshold=threshold)
+
 
 if __name__ == '__main__':
     unittest.main()

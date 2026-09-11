@@ -2249,6 +2249,16 @@ integer, unique indices. Duplicate entries would otherwise be collapsed by the
 set-based metric and could turn malformed activity into a plausible overlap.
 
 
+<a id="contract-readout-threshold"></a>
+### Readout threshold
+
+`fuzzy_readout` treats its threshold as a decoder criterion and requires a
+finite probability in `[0, 1]`. Invalid thresholds reject before lexicon lookup,
+including for an empty lexicon. `None` remains the valid outcome for an empty
+lexicon or a best overlap below the criterion; it is a decoder uncertainty, not
+a claim that the neural operation failed.
+
+
 <a id="contract-batched-next-token"></a>
 ### Batched next-token inference
 

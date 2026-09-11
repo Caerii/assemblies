@@ -31,6 +31,8 @@ Reference:
     arXiv:2306.15364.
 """
 
+import math
+from numbers import Real
 from typing import Dict, List, Optional, Tuple
 
 from .assembly import Assembly, overlap
@@ -45,6 +47,8 @@ def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
                   threshold: float = 0.7) -> Optional[str]:
     """Return the best-matching word above *threshold*, or None.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-readout-threshold
+
     An assembly that doesn't match any known word above the threshold
     indicates an improper parse (no valid symbolic interpretation).
 
@@ -57,6 +61,14 @@ def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
         The word with highest overlap if it exceeds *threshold*,
         otherwise None (improper parse).
     """
+    if (
+        isinstance(threshold, bool)
+        or not isinstance(threshold, Real)
+        or not math.isfinite(float(threshold))
+        or not 0.0 <= float(threshold) <= 1.0
+    ):
+        raise ValueError("readout threshold must be a finite real number in [0, 1]")
+    threshold = float(threshold)
     if not lexicon:
         return None
 

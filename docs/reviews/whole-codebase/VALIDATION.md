@@ -4133,3 +4133,13 @@ rejecting malformed observations before measurement.
 Validation: 65 overlap, index-space, assembly-calculus, noise and
 specification-link tests pass, with the expected sampled-recurrence warnings.
 Ruff and whitespace checks pass.
+
+## Readout thresholds are validated before decoding (2026-09-11)
+
+`fuzzy_readout` documented a probability threshold but accepted nonfinite,
+negative and over-one values. It now validates the finite `[0, 1]` criterion
+before even checking the lexicon. `None` remains reserved for a valid decoder
+that has no qualifying label.
+
+Validation: 15 readout and specification-link tests pass. Ruff and whitespace
+checks pass.

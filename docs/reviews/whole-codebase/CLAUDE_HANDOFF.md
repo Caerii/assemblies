@@ -2409,3 +2409,8 @@ I also closed the adjacent malformed-observation path. Duplicate or floating
 winner arrays were accepted by `overlap` and collapsed by its set arithmetic;
 `Assembly` construction and raw overlap operands now require unique integer
 vectors. The focused gate is 65 passed, including noise and index-space tests.
+
+The decoder boundary had the same shape: `fuzzy_readout` accepted invalid
+thresholds and could silently turn them into an always-match or never-match
+criterion. It now rejects nonfinite and out-of-range thresholds before lookup;
+15 readout and specification-link tests pass.
