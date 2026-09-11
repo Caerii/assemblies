@@ -2932,3 +2932,22 @@ The previous pooled values remain void. The g0 native readout has no latent sign
 at the gap2 prediction site for an alternative readout to recover. The register,
 onboarding and research map now state this; longer-gap decay, natural language,
 alternative readouts and arbitrary noise remain unmeasured.
+
+## Compressed raw-evidence contract (2026-09-10)
+
+Runner schema5 introduces `ExperimentOutput`: compact indexed observations plus
+deterministic gzip JSON attachments. Each manifest binds compressed and decoded
+sizes and SHA-256 digests. Validation requires the exact completed-directory file
+inventory, strict duplicate-free finite JSON after decompression, and both digest
+layers. Missing, extra, renamed, malformed and modified attachments fail. Unsafe
+names and nonfinite values fail before any sidecar is written. Schemas1..4 remain
+readable. The code links directly to research/README.md#raw-evidence-attachments,
+and the specification-link ratchet now includes the shared research runner.
+
+111 runner/source/temporal/specification/methodology checks pass; Ruff and diff
+checks pass. A real CUDA temporal smoke from commit213a907 validates with schema5.
+Reconstructing its normalized corpora and arms is exactly equal to the earlier
+schema4 smoke, including every raw frame and summary. Inline results fell from
+452,602 bytes to22,752; its raw attachment is22,371 bytes (358,800 decoded), about
+a90% combined reduction. The scientific output remains VOID. Existing schema4
+artifacts are preserved rather than rewritten; future high-volume runs use schema5.

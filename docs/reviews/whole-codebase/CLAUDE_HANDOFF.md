@@ -1570,3 +1570,14 @@ g0 has no representation at the second distractor immediately before agreement.
 Register/onboarding/research notes now use the corrected mechanism while preserving
 the historical pooled values as void. Next scientific task is registered gaps3..6
 decay, then clip-window retention/new-learning and matched sequence baselines.
+
+## Compressed raw-evidence contract (2026-09-10)
+
+Schema5 at213a907 separates indexed results from deterministic gzip raw JSON. Both
+compressed/decoded sizes and hashes are mandatory; exact file inventory and strict
+decoded JSON are validated.111 focused checks pass. A real CUDA migration smoke is
+exactly equal to the prior schema4 smoke after reconstruction and reduces observation
+storage from452,602 bytes to22,752 results +22,371 attachment. It remains VOID.
+Existing artifacts were not rewritten. Use `ExperimentOutput` for future large raw
+studies and `load_json_attachment` for validated reads. The schema5 smoke artifact
+is committed with this checkpoint; no dev/master merge occurs.
