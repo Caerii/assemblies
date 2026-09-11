@@ -1031,3 +1031,15 @@ using canonical Assembly snapshots. Replay must preserve the six source-f0a0de8
 trial schedules, winners, weight hashes and persistence values. H3 currently fixes
 k=100; validate n>=100 before any grid work instead of failing midway through it.
 Full grid/schedule/runner migration remains a separate next step.
+
+
+### Phase configuration resolution (2026-09-10)
+
+The phase study now exposes ordered sparsities, betas, connection probabilities,
+H3 k/beta, initial stimulus rounds, training/evaluation rounds and threshold.
+Resolve all trial configs before timing or computation. Fractional sparsities map
+to floor(sparsity*n); reject zero/invalid k and duplicate resolved k values so distinct
+labels cannot disguise duplicate model cells. Record requested and actual sparsity,
+resolved assembly sizes, full schedules and explicit seed identities. Defaults
+preserve the corrected historical grid; n<100 is valid when H3 k and all grid sizes
+are explicitly made compatible. Raw observations remain learning-on persistence.

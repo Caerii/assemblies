@@ -73,3 +73,51 @@ def test_invalid_phase_grid_fails_before_timer(kwargs):
     experiment.seed = 42
     with pytest.raises(ValueError):
         experiment.run(**kwargs)
+
+
+def test_resolved_grid_and_schedules_are_consumed_in_order(monkeypatch, tmp_path):
+    calls = []
+    def trial(cfg, seed):
+        calls.append((cfg, seed))
+        return seed / 10
+    monkeypatch.setattr(study, "run_phase_trial", trial)
+    result = study.PhaseDiagramExperiment(seed=999, results_dir=tmp_path, verbose=False).run(
+        n=60, seed_ids=[9, 2, 7], sparsities=[.21, .1], betas=[.2, 0.],
+        p_values=[.3, .1], p_effect_k=5, p_effect_beta=.3,
+        train_rounds=3, test_rounds=4, initial_stimulus_rounds=2, persistence_threshold=.8)
+    assert [seed for _, seed in calls] == [9, 2, 7]*6
+    assert [(cfg.k, cfg.beta) for cfg, _ in calls[::3]] == [(12,.2),(12,0.),(6,.2),(6,0.),(5,.3),(5,.3)]
+    for cfg, _ in calls:
+        assert (cfg.train_rounds, cfg.test_rounds, cfg.initial_stimulus_rounds) == (3,4,2)
+    assert result.parameters["resolved_assembly_sizes"] == [12,6]
+    assert result.parameters["seed_ids"] == [9,2,7]
+    assert result.metrics["sparsity_beta_grid"][0]["actual_sparsity"] == .2
+    assert result.raw_data["cells"][0]["values"] == [.9,.2,.7]
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"sparsities": [.101,.109]}, {"sparsities": [0.]}, {"betas": [True]},
+    {"p_values": [float("nan")]}, {"p_values": [1.1]}, {"p_values": []},
+    {"test_rounds": 0}, {"initial_stimulus_rounds": 0},
+    {"persistence_threshold": 2}, {"seed_ids": [1,1,2]},
+])
+def test_bad_grid_fails_before_timer(kwargs):
+    experiment = object.__new__(study.PhaseDiagramExperiment)
+    experiment.seed = 42
+    # n100 makes .101 and .109 both resolve to k10.
+    with pytest.raises(ValueError):
+        experiment.run(n=100, **kwargs)
+
+
+def test_phase_cli_requires_tag_and_records_smoke(monkeypatch, capsys):
+    from research.experiments import historical_phase as adapter
+    calls = []
+    monkeypatch.setattr(adapter, "run_experiment", lambda **kwargs: calls.append(kwargs) or "saved")
+    with pytest.raises(SystemExit) as error:
+        study.main([])
+    assert error.value.code == 2
+    assert "--tag" in capsys.readouterr().err
+    study.main(["--quick", "--seeds", "9", "2", "7", "--tag", "fixture"])
+    assert calls[0]["smoke"] is True
+    assert calls[0]["seeds"] == [9,2,7]
+    assert calls[0]["parameters"] == adapter.parameters(True)

@@ -54,8 +54,8 @@ from research.experiments.base import (
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly
-from neural_assemblies.core.registration import validate_area_registration
-from research.experiment_config import resolve_seed_ids
+from neural_assemblies.core.registration import validate_area_registration, validate_round_count
+from research.experiment_config import resolve_seed_ids, resolve_real_grid
 
 N_SEEDS = 10
 
@@ -70,6 +70,15 @@ class PhaseConfig:
     w_max: float
     train_rounds: int = 30
     test_rounds: int = 20
+    initial_stimulus_rounds: int = 1
+
+    def __post_init__(self):
+        validate_area_registration("A", self.n, self.k)
+        for count in (self.train_rounds, self.test_rounds, self.initial_stimulus_rounds):
+            validate_round_count(count)
+        resolve_real_grid([self.p], name="connection probability", maximum=1.)
+        resolve_real_grid([self.beta], name="plasticity")
+        resolve_real_grid([self.w_max], name="weight clip")
 
 
 # -- Core trial runner ---------------------------------------------------------
@@ -87,7 +96,8 @@ def run_phase_trial(
     b.add_stimulus("s", cfg.k)
 
     # Phase 1: initial stimulus activation
-    b.project({"s": ["A"]}, {})
+    for _ in range(cfg.initial_stimulus_rounds):
+        b.project({"s": ["A"]}, {})
 
     # Phase 2: stim+self training
     for _ in range(cfg.train_rounds):
@@ -144,14 +154,28 @@ class PhaseDiagramExperiment(ExperimentBase):
         p: float = 0.05,
         w_max: float = 20.0,
         n_seeds: int | None = None,
+        *, seed_ids=None, sparsities=(.01, .02, .05, .10, .15, .20, .30),
+        betas=(.01, .02, .05, .10, .20), p_values=(.01, .02, .05, .10, .20),
+        p_effect_k=100, p_effect_beta=.10, train_rounds=30, test_rounds=20,
+        initial_stimulus_rounds=1, persistence_threshold=.95,
     ) -> ExperimentResult:
-        seeds = resolve_seed_ids(n_seeds, base_seed=self.seed, default_count=N_SEEDS)
+        seeds = resolve_seed_ids(n_seeds, seed_ids, base_seed=self.seed, default_count=N_SEEDS)
         n_seeds = len(seeds)
-        n, _ = validate_area_registration("H3", n, 100)
+        n, p_effect_k = validate_area_registration("H3", n, p_effect_k)
+        sparsities = resolve_real_grid(sparsities, name="sparsities", maximum=1.)
+        betas = resolve_real_grid(betas, name="betas")
+        p_values = resolve_real_grid(p_values, name="connection probabilities", maximum=1.)
+        persistence_threshold = resolve_real_grid([persistence_threshold], name="persistence threshold", maximum=1.)[0]
+        schedule = dict(train_rounds=validate_round_count(train_rounds), test_rounds=validate_round_count(test_rounds),
+                        initial_stimulus_rounds=validate_round_count(initial_stimulus_rounds))
+        sizes = [int(sparsity*n) for sparsity in sparsities]
+        if len(set(sizes)) != len(sizes):
+            raise ValueError("sparsities collide after conversion to integer assembly sizes")
+        grid = [(sparsity, PhaseConfig(n, k, p, beta, w_max, **schedule))
+                for sparsity, k in zip(sparsities, sizes) for beta in betas]
+        p_configs = [PhaseConfig(n, p_effect_k, probability, p_effect_beta, w_max, **schedule)
+                     for probability in p_values]
         self._start_timer()
-
-        sparsities = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
-        betas = [0.01, 0.02, 0.05, 0.10, 0.20]
 
         self.log("=" * 60)
         self.log("Phase Diagram Experiment")
@@ -171,36 +195,32 @@ class PhaseDiagramExperiment(ExperimentBase):
 
         grid_results = []
 
-        for sparsity in sparsities:
-            k_val = int(sparsity * n)
+        for sparsity, cfg in grid:
+            k_val, beta = cfg.k, cfg.beta
             null = chance_overlap(k_val, n)
+            persist_vals = []
+            for s in seeds:
+                persist_vals.append(run_phase_trial(cfg, seed=s))
 
-            for beta in betas:
-                cfg = PhaseConfig(n=n, k=k_val, p=p, beta=beta, w_max=w_max)
+            row = {
+                "sparsity": sparsity, "actual_sparsity": k_val/n,
+                "k": k_val,
+                "beta": beta,
+                "null_overlap": null,
+                "persistence": summarize(persist_vals),
+                "test_vs_null": reported_null_test(persist_vals, null),
+            }
+            row["interval_status"] = persistence_interval_status(row["persistence"], persistence_threshold)
+            grid_results.append(row)
+            raw_data["cells"].append(dict(arm="sparsity_beta", n=n, k=k_val,
+                                           sparsity=sparsity, beta=beta, p=p, values=persist_vals))
 
-                persist_vals = []
-                for s in seeds:
-                    persist_vals.append(run_phase_trial(cfg, seed=s))
-
-                row = {
-                    "sparsity": sparsity,
-                    "k": k_val,
-                    "beta": beta,
-                    "null_overlap": null,
-                    "persistence": summarize(persist_vals),
-                    "test_vs_null": reported_null_test(persist_vals, null),
-                }
-                row["interval_status"] = persistence_interval_status(row["persistence"])
-                grid_results.append(row)
-                raw_data["cells"].append(dict(arm="sparsity_beta", n=n, k=k_val,
-                                               sparsity=sparsity, beta=beta, p=p, values=persist_vals))
-
-                stable = row["interval_status"]
-                self.log(
-                    f"  k/n={sparsity:.2f} beta={beta:.2f}: "
-                    f"{row['persistence']['mean']:.3f}+/-{row['persistence']['sem']:.3f} "
-                    f"{stable}"
-                )
+            stable = row["interval_status"]
+            self.log(
+                f"  k/n={sparsity:.2f} beta={beta:.2f}: "
+                f"{row['persistence']['mean']:.3f}+/-{row['persistence']['sem']:.3f} "
+                f"{stable}"
+            )
 
         metrics["sparsity_beta_grid"] = grid_results
 
@@ -215,14 +235,13 @@ class PhaseDiagramExperiment(ExperimentBase):
         # ================================================================
         # H3: Connection Probability Effect
         # ================================================================
-        self.log(f"\nH3: Connection Probability Effect (n={n}, k=100, beta=0.10)")
+        self.log(f"\nH3: Connection Probability Effect (n={n}, k={p_effect_k}, beta={p_effect_beta})")
 
-        p_values = [0.01, 0.02, 0.05, 0.10, 0.20]
-        null_h3 = chance_overlap(100, n)
+        null_h3 = chance_overlap(p_effect_k, n)
         h3_results = []
 
-        for p_val in p_values:
-            cfg = PhaseConfig(n=n, k=100, p=p_val, beta=0.10, w_max=w_max)
+        for cfg in p_configs:
+            p_val = cfg.p
 
             persist_vals = []
             for s in seeds:
@@ -234,7 +253,7 @@ class PhaseDiagramExperiment(ExperimentBase):
                 "test_vs_null": reported_null_test(persist_vals, null_h3),
             }
             h3_results.append(row)
-            raw_data["cells"].append(dict(arm="p_effect", n=n, k=100, beta=.10, p=p_val, values=persist_vals))
+            raw_data["cells"].append(dict(arm="p_effect", n=n, k=p_effect_k, beta=p_effect_beta, p=p_val, values=persist_vals))
 
             self.log(
                 f"  p={p_val:.2f}: "
@@ -254,10 +273,12 @@ class PhaseDiagramExperiment(ExperimentBase):
                 "base_n": n,
                 "base_p": p,
                 "base_wmax": w_max,
-                "train_rounds": 30,
-                "test_rounds": 20, "persistence_threshold": .95,
+                **schedule, "persistence_threshold": persistence_threshold,
+                "sparsities": sparsities, "resolved_assembly_sizes": sizes, "betas": betas,
+                "p_values": p_values, "p_effect_k": p_effect_k, "p_effect_beta": p_effect_beta,
+                "seed_ids": seeds,
                 "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
-                "evaluation_learning": True, "initial_stimulus_rounds": 1,
+                "evaluation_learning": True,
             },
             metrics=metrics,
             raw_data=raw_data,
@@ -265,24 +286,9 @@ class PhaseDiagramExperiment(ExperimentBase):
         )
 
 
-def main():
-    import argparse
-
-    parser = argparse.ArgumentParser(description="Phase Diagram Experiment")
-    parser.add_argument("--quick", action="store_true", help="Quick run (fewer seeds)")
-
-    args = parser.parse_args()
-
-    exp = PhaseDiagramExperiment(verbose=True)
-
-    if args.quick:
-        result = exp.run(n_seeds=5)
-        exp.save_result(result, "_quick")
-    else:
-        result = exp.run()
-        exp.save_result(result)
-
-    print(f"\nTotal time: {result.duration_seconds:.1f}s")
+def main(argv=None):
+    from research.experiments.historical_phase import main as run
+    return run(argv)
 
 
 if __name__ == "__main__":

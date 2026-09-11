@@ -1383,3 +1383,11 @@ nominal interval status, all raw seed values, and explicit absence of a sampled
 crossing. Six replay fixtures preserve dynamics; 26 focused/aggregate tests pass.
 Evaluation still learns, and full runner/configuration migration remains open.
 See VALIDATION.md#historical-phase-grid-interpretation-2026-09-10.
+
+
+## Phase runner preparation (2026-09-10)
+
+Phase grids, H3 k/beta, schedules, threshold and seed IDs are explicit and validated
+before compute; duplicate realized assembly sizes fail. Its tagged shared-runner
+adapter and migration registration are ready, with smoke still VOID and full
+UNADOPTED. See VALIDATION.md#configurable-phase-grid-migration-2026-09-10.

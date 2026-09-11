@@ -2519,3 +2519,19 @@ were removed; no baseline was raised. The H3 log now uses the actual n parameter
 The final two-ratchet rerun passed 11 tests in 41.59s. Source-link tests had
 passed in the preceding run. No whole-package or new GPU run is claimed for this
 measurement correction; all six historical trial replays remain exact.
+
+
+## Configurable phase-grid migration (2026-09-10)
+
+The phase study now resolves ordered grids and explicit seeds before computation,
+including H3 k/beta and all initialization/training/evaluation counts. Duplicate
+realized k values fail instead of representing the same model cell under different
+sparsity labels. Requested and actual sparsity are recorded. All configs validate
+before the timer. Defaults preserve the corrected protocol; small n requires an
+explicit compatible H3 k/grid. Shared finite-real grid resolution normalizes values
+and rejects invalid/duplicate entries. The old CLI forwards to historical-phase,
+requires --tag and labels --quick VOID; full output remains UNADOPTED.
+
+Combined historical-study tests passed 150 in 3.59s; six phase replay fixtures remain
+exact. Ruff passes. The source-linked migration registration precedes the planned
+six-cell smoke; no tagged phase smoke has run at this pre-run checkpoint.
