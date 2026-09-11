@@ -4173,3 +4173,6 @@ dispatch.
 
 Validation: 27 reset-owner, readout, parser/FSM/PFA and specification-link tests
 pass. Ruff and whitespace checks pass.
+
+The reset migration also covers the remaining PFA and readout call sites, so
+the calculus no longer reaches into a primary engine for this operation.

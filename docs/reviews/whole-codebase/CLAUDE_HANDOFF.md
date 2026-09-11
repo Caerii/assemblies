@@ -2428,6 +2428,9 @@ to the actual owner of the named area, and direct primary-engine reset calls in
 calculus, parser, FSM and PFA code were replaced. The focused owner-routing
 gate is 27 passed, including an explicit-area negative/positive control.
 
+The migration also removed the remaining direct resets in PFA and readout, so
+the owner facade is now the single public route for this mutation.
+
 `build_lexicon` had a transaction and ownership gap: it could mutate earlier
 words before discovering an invalid mapping, and it reset through the primary
 engine even when the target area was explicit. It now preflights all inputs and
