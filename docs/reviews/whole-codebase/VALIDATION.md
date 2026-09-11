@@ -4490,3 +4490,10 @@ The interactive semantic-description path no longer swallows generation failures
 at the public boundary. Expected model/input errors now emit a warning that
 identifies the surface-word fallback; normal descriptions remain unchanged.
 The ERP protocol/session suite passes 19 tests and Ruff is clean.
+
+## Engine-name admission contract (2026-09-11)
+
+`engine_type` now rejects empty, non-string, and boolean names before touching
+module loading. This gives callers one deterministic validation error instead of
+an incidental registry/import failure. Engine availability tests now cover seven
+cases and pass with Ruff clean.

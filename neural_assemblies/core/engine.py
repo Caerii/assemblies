@@ -644,6 +644,8 @@ def engine_type(engine_name: str) -> type[ComputeEngine]:
 
     Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-admission
     """
+    if not isinstance(engine_name, str) or not engine_name:
+        raise ValueError("engine_name must be a non-empty string")
     # Import ONLY the requested engine's module. `_ensure_engines_loaded` pulls
     # in every backend, and `cuda_engine` imports torch at module scope -- so
     # asking for "numpy_sparse" was paying for torch. Profiled on a research

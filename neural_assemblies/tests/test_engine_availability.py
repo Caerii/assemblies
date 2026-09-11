@@ -5,7 +5,7 @@ import importlib
 import pytest
 
 from neural_assemblies.core import engine as engine_module
-from neural_assemblies.core.engine import EngineUnavailableError, create_engine
+from neural_assemblies.core.engine import EngineUnavailableError, create_engine, engine_type
 
 
 def test_known_engine_import_failure_preserves_the_cause(monkeypatch):
@@ -53,3 +53,9 @@ def test_provider_that_forgets_registration_fails_at_admission(monkeypatch):
     ) as caught:
         create_engine(name)
     assert caught.value.__cause__ is None
+
+
+@pytest.mark.parametrize("value", ["", None, 7, True])
+def test_engine_name_must_be_a_nonempty_string(value):
+    with pytest.raises(ValueError, match="non-empty string"):
+        engine_type(value)
