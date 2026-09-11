@@ -290,6 +290,33 @@ def learn_assembly_from_pattern(
     max_epochs`` means it did NOT converge, and the returned persistence is
     the last observed agreement rather than a success value.  Check it.
     """
+    if src_area not in brain.areas:
+        raise KeyError(f"learn_assembly_from_pattern source area is unknown: {src_area!r}")
+    if dst_area not in brain.areas:
+        raise KeyError(f"learn_assembly_from_pattern target area is unknown: {dst_area!r}")
+    if isinstance(pattern, (str, bytes)):
+        raise TypeError("pattern must be a one-dimensional numeric array")
+    pattern = np.asarray(pattern)
+    if pattern.ndim != 1 or pattern.shape[0] != brain.areas[src_area].n:
+        raise ValueError(
+            f"pattern must have shape ({brain.areas[src_area].n},), got {pattern.shape}"
+        )
+    if not np.issubdtype(pattern.dtype, np.number) or not np.all(np.isfinite(pattern)):
+        raise ValueError("pattern must contain finite numeric values")
+    if not np.any(pattern > 0):
+        raise ValueError("pattern must activate at least one source neuron")
+    for label, value in (("max_epochs", max_epochs), ("project_rounds", project_rounds),
+                         ("stability_window", stability_window)):
+        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+            raise ValueError(f"{label} must be a positive integer")
+    if stability_window < 2:
+        raise ValueError("stability_window must be at least two")
+    if (isinstance(tau, bool) or not isinstance(tau, Real)
+            or not np.isfinite(float(tau)) or not 0.0 <= float(tau) <= 1.0):
+        raise ValueError("tau must be a finite real number in [0, 1]")
+    if type(recurrent) is not bool:
+        raise ValueError("recurrent must be an explicit boolean")
+
     drive = external_drive or {}
     history: list[Assembly] = []
     src_winners = np.flatnonzero(pattern > 0).astype(np.uint32)

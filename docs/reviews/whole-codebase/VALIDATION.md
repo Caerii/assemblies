@@ -4639,3 +4639,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Sequence memorization schedule admission (2026-09-11)
 
 `sequence_memorize` now snapshots and validates the full stimulus sequence, target, rounds, repetitions, Phase-B ratio, and beta boost before changing the connectome. Missing later stimuli can no longer leave an earlier item trained. Sequence, trace, and contract regressions pass **38 tests**.
+
+## Explicit-pattern learning admission (2026-09-11)
+
+`learn_assembly_from_pattern` now validates source/target areas, exact pattern shape, finite numeric contents, nonempty activation, convergence budgets, `tau`, and the explicit recurrence flag before mutation. Invalid pattern inputs can no longer partially reset or train the destination. Focused pattern-learning and E2 tests pass **20 tests**.

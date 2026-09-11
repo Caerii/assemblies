@@ -2573,3 +2573,5 @@ The lower-level binding helper now validates resolved area names and requires an
 `ordered_recall` now validates the complete protocol before mutation and exposes its novelty cutoff as `novelty_threshold`. Unknown inputs and invalid schedules fail before refractory state is cleared; focused sequence tests pass (25 tests).
 
 `sequence_memorize` now preflights the complete sequence and schedule before mutation. It rejects empty/unknown stimuli, invalid budgets, out-of-range phase ratios, and invalid beta boosts; focused sequence and trace tests pass (38 tests).
+
+`learn_assembly_from_pattern` now preflights its source pattern and convergence protocol before touching either area. Shape, finiteness, activation, budget, threshold, and recurrence errors are explicit; focused pattern-learning and E2 tests pass (20 tests).
