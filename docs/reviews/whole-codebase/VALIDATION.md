@@ -4538,3 +4538,11 @@ tests passed** across engine discovery, ERP cache/bootstrap visibility,
 simulation overlap domains, E2 overlap, sequence invariants, and immutable
 parity manifests. The nine sampled-engine warnings are intentional audit
 signals from sequence tests; no warning was suppressed.
+
+## Operation true-negative contracts (2026-09-11)
+
+Each first-class calculus operation now declares a separate executable
+`true_negative_controls` surface. Contract validation requires it to be
+non-empty, and the control-resolution test confirms every referenced test
+function exists. The operation contract and semantic-card suites pass **169
+tests** with Ruff clean.

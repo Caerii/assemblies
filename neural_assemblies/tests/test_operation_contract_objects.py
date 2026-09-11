@@ -346,6 +346,7 @@ def test_public_operation_carries_the_registered_contract(
         contract.observed_outcome,
         contract.failure_conditions,
         contract.constructed_controls,
+        contract.true_negative_controls,
     ):
         assert surface
 
@@ -353,6 +354,15 @@ def test_public_operation_carries_the_registered_contract(
 def test_constructed_control_node_resolves():
     for contract in OPERATION_CONTRACTS.values():
         for node in contract.constructed_controls:
+            path, function = node.split("::")
+            source = Path(path).read_text(encoding="utf-8")
+            assert f"def {function}(" in source
+
+
+def test_every_operation_contract_names_a_true_negative_control():
+    for contract in OPERATION_CONTRACTS.values():
+        assert contract.true_negative_controls
+        for node in contract.true_negative_controls:
             path, function = node.split("::")
             source = Path(path).read_text(encoding="utf-8")
             assert f"def {function}(" in source
@@ -489,6 +499,7 @@ def test_static_completion_calls_name_seed_and_observation_policy():
 @pytest.mark.parametrize("surface", [
     "inputs", "reads", "mutates", "regime", "observed_outcome",
     "failure_conditions", "constructed_controls",
+    "true_negative_controls",
 ])
 def test_contract_rejects_an_empty_scientific_surface(surface):
     with pytest.raises(ValueError, match="invalid surfaces"):

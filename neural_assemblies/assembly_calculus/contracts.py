@@ -460,6 +460,7 @@ class OperationContract:
     observed_outcome: tuple[str, ...]
     failure_conditions: tuple[str, ...]
     constructed_controls: tuple[str, ...]
+    true_negative_controls: tuple[str, ...]
 
     def __post_init__(self) -> None:
         if not isinstance(self.operation_id, str) or not self.operation_id:
@@ -477,6 +478,7 @@ class OperationContract:
             "observed outcome": self.observed_outcome,
             "failure conditions": self.failure_conditions,
             "constructed controls": self.constructed_controls,
+            "true-negative controls": self.true_negative_controls,
         }
         invalid = []
         for name, values in surfaces.items():
@@ -512,6 +514,10 @@ PROJECTION_CONTRACT = OperationContract(
         "neural_assemblies/tests/test_operation_semantic_cards.py::"
         "test_p3_operation_owns_recurrence_schedule",
     ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_topology_rejects_before_the_first_mutation",
+    ),
 )
 
 
@@ -536,6 +542,10 @@ RECIPROCAL_PROJECTION_CONTRACT = OperationContract(
     constructed_controls=(
         "neural_assemblies/tests/test_pnas_roundtrip_contract.py::"
         "test_roundtrip_responds_to_learning_disabled_control",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_reciprocal_preflight_rejects_before_the_first_mutation",
     ),
 )
 
@@ -565,6 +575,10 @@ ASSOCIATION_CONTRACT = OperationContract(
     constructed_controls=(
         "neural_assemblies/tests/test_ac_conformance.py::"
         "test_association_grows_with_coactivation",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_association_preflight_rejects_before_the_first_mutation",
     ),
 )
 
@@ -600,6 +614,10 @@ MERGE_CONTRACT = OperationContract(
         "neural_assemblies/tests/test_ac_conformance.py::"
         "test_merge_creates_two_way_connectivity_with_bounded_support",
     ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode",
+    ),
 )
 
 
@@ -630,6 +648,10 @@ COMPLETION_CONTRACT = OperationContract(
     constructed_controls=(
         "neural_assemblies/tests/test_public_model_boundaries.py::"
         "test_teaching_example_has_a_working_learning_disabled_control",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_completion_prepare_rejects_before_mutation",
     ),
 )
 
