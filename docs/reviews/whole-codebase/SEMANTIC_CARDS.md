@@ -1007,3 +1007,27 @@ string "False" may never become a convergence event by truthiness. Normalize val
 integer counts for serialization. Exhaustive tests compare the streak implementation
 to the window definition for every eight-comparison Boolean history and windows1..4;
 this is bounded equivalence evidence, not an unbounded formal proof.
+
+
+<a id="historical-phase-measurement"></a>
+### Historical phase-grid measurement (2026-09-10)
+
+The phase trial applies one stimulus-only initialization, 30 stimulus+self rounds,
+then 20 self-only evaluation rounds. All phases learn. It compares the trained
+snapshot to final activity; it does not prove a frozen fixed point or an asymptotic
+phase transition. The actual explicit area owner is numpy_explicit.
+
+The old grid printed stable when mean persistence>=.95 and selected the first such
+beta per sparsity as a phase_boundary, omitting sparsities without a crossing.
+A sample mean above .95 can have an interval spanning .95. Replace that label with
+above_threshold when the nominal interval's lower bound>=threshold, below_threshold
+when its upper bound<threshold, otherwise unresolved. Preserve all raw seeds and
+all grid rows. Report only the lowest sampled beta with above_threshold status;
+retain null when none qualifies. This descriptive selection is not a simultaneous
+confidence statement, monotonicity proof or identified physical phase boundary.
+
+Capture the threshold, learning status and engines. Pin the primary engine while
+using canonical Assembly snapshots. Replay must preserve the six source-f0a0de8
+trial schedules, winners, weight hashes and persistence values. H3 currently fixes
+k=100; validate n>=100 before any grid work instead of failing midway through it.
+Full grid/schedule/runner migration remains a separate next step.

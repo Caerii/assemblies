@@ -1,9 +1,8 @@
 """
 Phase Diagram of Assembly Attractor Formation
 
-Maps the boundary in (k/n, beta) parameter space where assemblies transition
-from drifting activations to stable fixed-point attractors under autonomous
-recurrence.
+Maps finite persistence during learning-on autonomous recurrence over (k/n, beta).
+The grid does not establish frozen fixed points or a physical phase transition.
 
 Protocol:
 1. Establish: project({"s": ["A"]}, {}) -- initial stimulus activation.
@@ -11,7 +10,8 @@ Protocol:
 3. Test: project({}, {"A": ["A"]}) x 20 rounds -- autonomous recurrence.
 4. Measure: persistence = overlap(trained, current) after 20 autonomous rounds.
 
-Stability criterion: persistence >= 0.95 = stable [S], otherwise drifting [D].
+Descriptive criterion: nominal interval wholly above/below .95, or unresolved.
+The lowest sampled above-threshold beta is not a certified phase boundary.
 
 Hypotheses:
 
@@ -41,19 +41,21 @@ from pathlib import Path
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
-import numpy as np
 from dataclasses import dataclass
-from typing import Dict, List, Any
+from typing import Dict, Any
 from research.experiments.base import (
     ExperimentBase,
     ExperimentResult,
     measure_overlap,
     chance_overlap,
     summarize,
-    ttest_vs_null,
+    reported_null_test, effect_text,
 )
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
+from neural_assemblies.core.registration import validate_area_registration
+from research.experiment_config import resolve_seed_ids
 
 N_SEEDS = 10
 
@@ -80,7 +82,7 @@ def run_phase_trial(
     Train stim+self, then test autonomous persistence.
     Returns persistence (overlap between trained and final assembly).
     """
-    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max)
+    b = Brain(p=cfg.p, seed=seed, w_max=cfg.w_max, engine="numpy_sparse")
     b.add_area("A", cfg.n, cfg.k, cfg.beta, explicit=True)
     b.add_stimulus("s", cfg.k)
 
@@ -91,13 +93,34 @@ def run_phase_trial(
     for _ in range(cfg.train_rounds):
         b.project({"s": ["A"]}, {"A": ["A"]})
 
-    trained = np.array(b.areas["A"].winners, dtype=np.uint32)
+    trained = Assembly.from_area(b, "A")
 
     # Phase 3: autonomous persistence test
     for _ in range(cfg.test_rounds):
         b.project({}, {"A": ["A"]})
 
-    return measure_overlap(trained, np.array(b.areas["A"].winners, dtype=np.uint32))
+    return measure_overlap(trained.neuron_ids, Assembly.from_area(b, "A").neuron_ids)
+
+
+def persistence_interval_status(summary, threshold=.95):
+    """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-phase-measurement"""
+    if summary["ci95_lo"] >= threshold:
+        return "above_threshold"
+    if summary["ci95_hi"] < threshold:
+        return "below_threshold"
+    return "unresolved"
+
+
+def sampled_threshold_crossings(rows):
+    """Descriptive sampled crossings, including unobserved crossings; not phase boundaries."""
+    result = {}
+    for row in rows:
+        key = str(row["sparsity"])
+        result.setdefault(key, {"beta": None, "status": "not_observed"})
+        previous = result[key]["beta"]
+        if row["interval_status"] == "above_threshold" and (previous is None or row["beta"] < previous):
+            result[key] = {"beta": row["beta"], "status": "observed_in_sampled_grid"}
+    return result
 
 
 # -- Main experiment -----------------------------------------------------------
@@ -120,10 +143,12 @@ class PhaseDiagramExperiment(ExperimentBase):
         n: int = 1000,
         p: float = 0.05,
         w_max: float = 20.0,
-        n_seeds: int = N_SEEDS,
+        n_seeds: int | None = None,
     ) -> ExperimentResult:
+        seeds = resolve_seed_ids(n_seeds, base_seed=self.seed, default_count=N_SEEDS)
+        n_seeds = len(seeds)
+        n, _ = validate_area_registration("H3", n, 100)
         self._start_timer()
-        seeds = list(range(n_seeds))
 
         sparsities = [0.01, 0.02, 0.05, 0.10, 0.15, 0.20, 0.30]
         betas = [0.01, 0.02, 0.05, 0.10, 0.20]
@@ -137,6 +162,7 @@ class PhaseDiagramExperiment(ExperimentBase):
         self.log("=" * 60)
 
         metrics: Dict[str, Any] = {}
+        raw_data = {"seeds": seeds, "cells": []}
 
         # ================================================================
         # H1/H2: Sparsity x Beta Phase Grid
@@ -154,7 +180,7 @@ class PhaseDiagramExperiment(ExperimentBase):
 
                 persist_vals = []
                 for s in seeds:
-                    persist_vals.append(run_phase_trial(cfg, seed=self.seed + s))
+                    persist_vals.append(run_phase_trial(cfg, seed=s))
 
                 row = {
                     "sparsity": sparsity,
@@ -162,11 +188,14 @@ class PhaseDiagramExperiment(ExperimentBase):
                     "beta": beta,
                     "null_overlap": null,
                     "persistence": summarize(persist_vals),
-                    "test_vs_null": ttest_vs_null(persist_vals, null),
+                    "test_vs_null": reported_null_test(persist_vals, null),
                 }
+                row["interval_status"] = persistence_interval_status(row["persistence"])
                 grid_results.append(row)
+                raw_data["cells"].append(dict(arm="sparsity_beta", n=n, k=k_val,
+                                               sparsity=sparsity, beta=beta, p=p, values=persist_vals))
 
-                stable = "[S]" if row["persistence"]["mean"] >= 0.95 else "[D]"
+                stable = row["interval_status"]
                 self.log(
                     f"  k/n={sparsity:.2f} beta={beta:.2f}: "
                     f"{row['persistence']['mean']:.3f}+/-{row['persistence']['sem']:.3f} "
@@ -176,29 +205,17 @@ class PhaseDiagramExperiment(ExperimentBase):
         metrics["sparsity_beta_grid"] = grid_results
 
         # ================================================================
-        # Phase boundary: min beta for stability at each sparsity
+        # Descriptive sampled crossings, including absence at each sparsity
         # ================================================================
-        phase_boundary = {}
-        for sparsity in sparsities:
-            entries = [r for r in grid_results if r["sparsity"] == sparsity]
-            for entry in entries:
-                if entry["persistence"]["mean"] >= 0.95:
-                    phase_boundary[str(sparsity)] = {
-                        "beta": entry["beta"],
-                        "persistence": entry["persistence"]["mean"],
-                    }
-                    break
-
-        metrics["phase_boundary"] = phase_boundary
-
-        self.log("\nPhase boundary (min beta for stability >= 0.95):")
-        for s_str, info in phase_boundary.items():
-            self.log(f"  k/n={s_str}: beta={info['beta']:.2f} (persist={info['persistence']:.3f})")
+        metrics["sampled_threshold_crossings"] = sampled_threshold_crossings(grid_results)
+        self.log("Descriptive sampled threshold crossings (not a phase boundary):")
+        for sparsity, crossing in metrics["sampled_threshold_crossings"].items():
+            self.log(f"  k/n={sparsity}: {crossing}")
 
         # ================================================================
         # H3: Connection Probability Effect
         # ================================================================
-        self.log("\nH3: Connection Probability Effect (n=1000, k=100, beta=0.10)")
+        self.log(f"\nH3: Connection Probability Effect (n={n}, k=100, beta=0.10)")
 
         p_values = [0.01, 0.02, 0.05, 0.10, 0.20]
         null_h3 = chance_overlap(100, n)
@@ -209,19 +226,20 @@ class PhaseDiagramExperiment(ExperimentBase):
 
             persist_vals = []
             for s in seeds:
-                persist_vals.append(run_phase_trial(cfg, seed=self.seed + s))
+                persist_vals.append(run_phase_trial(cfg, seed=s))
 
             row = {
                 "p": p_val,
                 "persistence": summarize(persist_vals),
-                "test_vs_null": ttest_vs_null(persist_vals, null_h3),
+                "test_vs_null": reported_null_test(persist_vals, null_h3),
             }
             h3_results.append(row)
+            raw_data["cells"].append(dict(arm="p_effect", n=n, k=100, beta=.10, p=p_val, values=persist_vals))
 
             self.log(
                 f"  p={p_val:.2f}: "
                 f"{row['persistence']['mean']:.3f}+/-{row['persistence']['sem']:.3f}  "
-                f"d={row['test_vs_null']['d']:.1f}"
+                f"d={effect_text(row['test_vs_null'])}"
             )
 
         metrics["p_effect"] = h3_results
@@ -237,10 +255,12 @@ class PhaseDiagramExperiment(ExperimentBase):
                 "base_p": p,
                 "base_wmax": w_max,
                 "train_rounds": 30,
-                "test_rounds": 20,
+                "test_rounds": 20, "persistence_threshold": .95,
+                "primary_engine": "numpy_sparse", "area_engine": "numpy_explicit",
+                "evaluation_learning": True, "initial_stimulus_rounds": 1,
             },
             metrics=metrics,
-            raw_data={},
+            raw_data=raw_data,
             duration_seconds=duration,
         )
 

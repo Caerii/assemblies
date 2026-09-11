@@ -76,7 +76,6 @@ BASELINE = {
     "neural_assemblies/simulation/pattern_completion.py": 1,
     "neural_assemblies/tests/test_ac_conformance.py": 1,
     "research/experiments/distinctiveness/test_competition_mechanisms.py": 1,
-    "research/experiments/stability/test_phase_diagram.py": 1,
     # COMPACT-VS-COMPACT ON PURPOSE, and the strictest available check.
     # `test_no_op_call_leaves_results_bit_identical` asserts that calling
     # `add_connectivity` with the density already in force changes NOTHING, by

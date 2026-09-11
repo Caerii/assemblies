@@ -1374,3 +1374,12 @@ records reject ambiguous truthy statuses and invalid elapsed counts. Bounded
 exhaustive checks cover 1024 history/window combinations; both archived projection
 and scaling smoke outputs remain exact. Eighty-eight focused tests pass. See
 VALIDATION.md#convergence-record-boundaries-and-bounded-equivalence-2026-09-10.
+
+
+## Phase-grid reporting correction (2026-09-10)
+
+The phase study no longer calls a mean-based crossing a phase boundary. It records
+nominal interval status, all raw seed values, and explicit absence of a sampled
+crossing. Six replay fixtures preserve dynamics; 26 focused/aggregate tests pass.
+Evaluation still learns, and full runner/configuration migration remains open.
+See VALIDATION.md#historical-phase-grid-interpretation-2026-09-10.

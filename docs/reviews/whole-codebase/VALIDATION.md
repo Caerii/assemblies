@@ -2487,3 +2487,35 @@ Ruff passes. No backend code changed.
 Specification links and both ratchets passed 19 tests in 75.93s. Diff checks
 also pass. No whole-package or new GPU verification is claimed for these
 validation-only changes; archived numerical replay remains exact.
+
+
+## Historical phase-grid interpretation (2026-09-10)
+
+The source-f0a0de8 phase study labeled a mean>=.95 stable and selected its first
+passing beta as a phase_boundary, dropping sparsities without a crossing. Evaluation
+continues learning, so this did not establish frozen fixed points or a physical
+phase transition. The new labels distinguish nominal intervals above/below the
+threshold from unresolved cells. A [.1,.2,.3] control is below; [1,1,.9] has mean
+above .95 but is unresolved. Lowest sampled above-threshold beta is descriptive;
+all absent crossings remain explicit nulls. No simultaneous confidence or
+monotonicity statement is claimed.
+
+Six development fixtures captured before edits at n60,k6,p.2,betas0/.1,seeds1/2/3,
+training3/evaluation3 preserve all project calls, winners, final weights and values.
+The primary engine is now pinned; canonical Assembly snapshots replace raw compact
+comparisons. All 40 outer cells retain seed identities and raw values. The fixed
+H3 k=100 requirement and minimum-three-seed condition are checked before the timer.
+Undefined null statistics use the shared explicit record adapter.
+
+Phase/replay/aggregate controls passed 26 tests in 4.00s. Ruff and diff checks pass.
+The new tests are in contract CI. Full phase grid/schedule/runner migration remains
+open, and no historical artifacts or registered scientific claims were rewritten.
+No backend code changed; this is a measurement/reporting correction.
+
+Specification/ratchet run: 17 passed and two stale-allowance failures in 62.90s.
+The resolved phase engine allowance1->0 and raw-index comparison allowance1->0
+were removed; no baseline was raised. The H3 log now uses the actual n parameter.
+
+The final two-ratchet rerun passed 11 tests in 41.59s. Source-link tests had
+passed in the preceding run. No whole-package or new GPU run is claimed for this
+measurement correction; all six historical trial replays remain exact.

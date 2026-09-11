@@ -79,3 +79,10 @@ coefficient-based complexity labels have been removed: the fitted slope does not
 establish an asymptotic class. Its assembly size is floor(sqrt(n)), so k/n varies.
 New runs use the configurable shared-runner entry above; old artifacts retain
 their original provenance limitations.
+
+
+The legacy phase-diagram study now reports marginal interval classifications and
+descriptive sampled threshold crossings, including absent crossings. Its old
+mean-based "stable" labels did not establish a phase boundary. Evaluation continues
+learning; all cells now retain raw seed observations. Its fixed H3 k=100 currently
+requires n>=100 for a complete outer run. Grid/schedule/runner migration remains open.
