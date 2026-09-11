@@ -159,6 +159,41 @@ that produced the results above ran on distributions, and why four of its
 six registered predictions could fail and be replaced by a mechanism
 within the hour.
 
+### Operational performance
+
+Performance is reported as a distribution across independent seeds. The
+benchmark is a diagnostic of the selected implementation and machine; it is
+not a scientific result and should not be compared across engines without
+recording the engine, dimensions, rounds, and hardware.
+
+| Goal | Command | Output |
+|------|---------|--------|
+| Profile maintained operations | `uv run python -m neural_assemblies.benchmarks.profile_operations` | End-to-end and phase timings for sparse and explicit NumPy at its fixed diagnostic sizes |
+| Sweep projection throughput | `uv run python -m neural_assemblies.benchmarks.throughput --engine numpy_sparse --sizes 1000 2000 5000 --k 100 --rounds 10 --seeds 42 43 44 --output throughput.json` | Per-seed seconds and min/median/p90/max rounds per second in a new JSON file |
+| Run GPU scale studies | `uv run python -m research.runner a1-horizon --tag UNIQUE` | Hashed-substrate run record, source archive, and observations; requires the CUDA developer environment |
+
+Plot a saved sweep without re-running it:
+
+```python
+import json
+import matplotlib.pyplot as plt
+
+with open("throughput.json", encoding="utf-8") as stream:
+    run = json.load(stream)
+cells = run["cells"]
+plt.plot([c["n"] for c in cells],
+         [c["rounds_per_second"]["median"] for c in cells], "o-")
+plt.xscale("log")
+plt.xlabel("population size n")
+plt.ylabel("median projection rounds / second")
+plt.title(f"{run['engine']} projection throughput ({len(run['seeds'])} seeds)")
+plt.show()
+```
+
+The checked-in throughput figure above is a historical measurement with its
+own engine and hardware provenance. Generate a fresh JSON sweep when making
+performance claims; never infer GPU speed from a CPU smoke run.
+
 ### The neural coin
 
 A recurrent area holding two assemblies, seeded at random, settles into one
