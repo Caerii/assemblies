@@ -446,6 +446,36 @@ class BindingReadPlan:
 
 
 @dataclass(frozen=True)
+class InputDrivePlan:
+    """Immutable multi-target drive observation schedule."""
+
+    sources: tuple[str, ...]
+    target_areas: tuple[str, ...]
+    metric: str = "pre_kwta"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("input drive requires at least one source area")
+        if not isinstance(self.target_areas, tuple) or not self.target_areas:
+            raise ValueError("input drive requires at least one target area")
+        for label, values in (("sources", self.sources), ("target_areas", self.target_areas)):
+            if any(not isinstance(name, str) or not name for name in values):
+                raise ValueError(f"input drive {label} must contain nonempty names")
+            if len(set(values)) != len(values):
+                raise ValueError(f"input drive {label} must be distinct")
+        if self.metric not in {"pre_kwta", "winners"}:
+            raise ValueError("input drive metric must be 'pre_kwta' or 'winners'")
+
+    def preflight(self, brain) -> None:
+        unknown_sources = [name for name in self.sources if name not in brain.areas]
+        unknown_targets = [name for name in self.target_areas if name not in brain.areas]
+        if unknown_sources:
+            raise KeyError(f"input_drive source area(s) are unknown: {unknown_sources!r}")
+        if unknown_targets:
+            raise KeyError(f"input_drive target area(s) are unknown: {unknown_targets!r}")
+
+
+@dataclass(frozen=True)
 class SourceBindingPlan:
     """Immutable schedule for multi-source teacher-driven binding."""
 
@@ -1171,6 +1201,27 @@ BINDING_READ_CONTRACT = OperationContract(
 )
 
 
+INPUT_DRIVE_CONTRACT = OperationContract(
+    operation_id="input-drive-v1",
+    specification="neural_assemblies/ir/VERIFICATION.md#contract-pre-kwta-observation",
+    plan_type=InputDrivePlan,
+    inputs=("brain", "sources", "target_areas", "source_assemblies", "metric"),
+    reads=("source winners", "source-to-target weights", "pre-k-WTA or winner drive"),
+    mutates=("nothing persistent; activity is restored by probe scope",),
+    regime=("nonempty distinct source and target lists", "one shared projection", "explicit drive metric"),
+    observed_outcome=("per-target comparable drive scores",),
+    failure_conditions=("unknown areas", "empty or duplicate topology", "invalid metric", "no active source"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_input_drive_rejects_unknown_areas_instead_of_returning_empty_mapping",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_input_drive_rejects_unknown_areas_instead_of_returning_empty_mapping",
+    ),
+)
+
+
 SOURCE_BINDING_CONTRACT = OperationContract(
     operation_id="source-binding-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-source-binding",
@@ -1265,6 +1316,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "attention": ATTENTION_CONTRACT,
     "bind": BINDING_CONTRACT,
     "read_binding": BINDING_READ_CONTRACT,
+    "input_drive": INPUT_DRIVE_CONTRACT,
     "source_binding": SOURCE_BINDING_CONTRACT,
     "binding_recall": BINDING_RECALL_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,

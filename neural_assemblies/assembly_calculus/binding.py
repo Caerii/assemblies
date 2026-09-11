@@ -46,8 +46,10 @@ from .assembly import Assembly, overlap
 from .ops import activate_assembly, _snap
 from .contracts import (
     BINDING_RECALL_CONTRACT,
+    INPUT_DRIVE_CONTRACT,
     SOURCE_BINDING_CONTRACT,
     BindingRecallPlan,
+    InputDrivePlan,
     SourceBindingPlan,
     implements,
 )
@@ -260,6 +262,7 @@ def recall(
                 brain.areas[area].unfix_assembly()
 
 
+@implements(INPUT_DRIVE_CONTRACT)
 def input_drive(
     brain,
     *,
@@ -322,18 +325,11 @@ def input_drive(
     and any registered mutual inhibition resolves between them exactly as it
     would during normal operation.
     """
-    if metric not in {"pre_kwta", "winners"}:
-        raise ValueError("input_drive metric must be 'pre_kwta' or 'winners'")
-    sources = list(sources)
-    targets = list(target_areas)
-    unknown_sources = [a for a in sources if a not in brain.areas]
-    unknown_targets = [a for a in targets if a not in brain.areas]
-    if unknown_sources:
-        raise KeyError(f"input_drive source area(s) are unknown: {unknown_sources!r}")
-    if unknown_targets:
-        raise KeyError(f"input_drive target area(s) are unknown: {unknown_targets!r}")
-    if not sources or not targets:
-        raise ValueError("input_drive requires at least one source and target area")
+    plan = InputDrivePlan(tuple(sources), tuple(target_areas), metric)
+    plan.preflight(brain)
+    sources = list(plan.sources)
+    targets = list(plan.target_areas)
+    metric = plan.metric
 
     _activate_all(brain, source_assemblies)
     live = [a for a in sources if len(brain.areas[a].winners) > 0]

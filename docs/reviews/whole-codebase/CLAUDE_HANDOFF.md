@@ -2673,3 +2673,5 @@ The parser-facing binding pair is now explicit in the IR-facing contract graph: 
 Generic consolidation is now distinct from consolidate_pair in the contract graph. ConsolidationProtocolPlan describes ordered mixed replay steps and destructive preparation options, while ConsolidationPlan remains the two-snapshot pair operation. The generic consolidate function is decorator-linked and validates the protocol before replay.
 
 The binding surface now distinguishes write and read protocols in the IR-facing registry: BINDING_CONTRACT for ops.bind and BINDING_READ_CONTRACT for ops.read_binding, in addition to the parser-facing multi-source binding pair. This makes read-only guarantees inspectable and prevents a readout schedule from being mistaken for a learning schedule.
+
+Input-drive measurement is now a named contract rather than an incidental helper. INPUT_DRIVE_CONTRACT fixes the topology, metric definition, shared projection, and read-only scope, making the quantity used by ERP calibration inspectable and composable with the other operation protocols.

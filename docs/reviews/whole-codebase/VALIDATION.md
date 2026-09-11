@@ -4926,3 +4926,7 @@ After the consolidation and binding contract changes, the full non-slow package 
 ## Single-source binding read contract (2026-09-11)
 
 Added BindingReadPlan and BINDING_READ_CONTRACT for ops.read_binding. The read-only counterpart to ops.bind now validates source/target topology and tail schedule before entering Brain.read_only, and its mutation/readout semantics are linked from the source docstring and semantic card. Registry, export, binding-deficit, and lazy-import tests pass (175 tests); Ruff is clean.
+
+## Input-drive observation contract (2026-09-11)
+
+Added InputDrivePlan and INPUT_DRIVE_CONTRACT for the ERP/area-comparison diagnostic. It validates source and candidate topology and the explicit metric choice before the shared probe projection, and records that the readout restores persistent state. Semantic card, source link, registry, exports, and true-negative controls are present. Focused binding/metric/contract tests pass (179 tests); Ruff is clean.

@@ -14,7 +14,7 @@ from neural_assemblies.assembly_calculus.contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, BindingReadPlan, CompletionPlan, ConsolidationPlan, MergePlan, OrderedRecallPlan,
+    AssociationPlan, BindingReadPlan, CompletionPlan, ConsolidationPlan, InputDrivePlan, MergePlan, OrderedRecallPlan,
     PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     SequenceMemorizePlan, SeparationPlan,
     ProjectionPlan, ReciprocalProjectionPlan,
@@ -64,6 +64,13 @@ def test_binding_read_plan_rejects_self_area_and_invalid_tail():
         BindingReadPlan("A", "A")
     with pytest.raises(ValueError, match="nonnegative integer"):
         BindingReadPlan("A", "B", tail_rounds=-1)
+
+
+def test_input_drive_plan_rejects_empty_lists_and_unknown_metric():
+    with pytest.raises(ValueError, match="source area"):
+        InputDrivePlan((), ("A",))
+    with pytest.raises(ValueError, match="metric"):
+        InputDrivePlan(("A",), ("B",), metric="mean")
 
 
 @pytest.mark.parametrize("stimuli", [(), ("",), ("s", 1)])
@@ -412,7 +419,7 @@ def test_registry_and_public_callable_cannot_drift():
     """Every registry key must name a callable carrying that exact contract."""
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
-    from neural_assemblies.assembly_calculus.binding import bind as source_bind, recall
+    from neural_assemblies.assembly_calculus.binding import bind as source_bind, input_drive, recall
     from neural_assemblies.assembly_calculus.consolidation import consolidate
 
     names = {
@@ -425,6 +432,7 @@ def test_registry_and_public_callable_cannot_drift():
         operation = (attend if name == "attention" else
                      source_bind if name == "source_binding" else
                      recall if name == "binding_recall" else
+                     input_drive if name == "input_drive" else
                      consolidate if name == "consolidate" else getattr(
             operations, names.get(name, name),
         ))

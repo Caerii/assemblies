@@ -1573,3 +1573,9 @@ empty direction schedule fail before replay.
 ## Single-source binding readout
 
 `ops.read_binding` is the read-only counterpart to `ops.bind`. It validates a distinct source/target pair, replays the same feed-forward plus recurrent-tail schedule, and executes it under `Brain.read_only()` so plasticity, recruitment, RNG state, and persistent activity are restored. It returns a stable target Assembly snapshot; a readout cannot create the binding it measures.
+
+<a id="contract-input-drive"></a>
+
+## Input-drive observation
+
+`binding.input_drive` compares a shared cue against multiple target areas in one projection. Its immutable plan fixes the source and target topology and selects either normalized pre-k-WTA energy or winner-only drive. The operation runs under the probe scope, restores persistent state, and returns comparable per-target scores. It is a readout, not a binding or learning operation; an inactive source is an invalid measurement domain.
