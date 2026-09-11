@@ -4819,3 +4819,11 @@ maintained research surface. It validates shared-runner artifacts, registration
 and source-archive edges, comparison receipts, and source-to-specification links
 in one invocation; the broader `audit` command remains an explicitly non-blocking
 legacy/reference inventory. The gate passes with `valid_maintained_graph: true`.
+
+## Next-token test uses canonical intervals (2026-09-11)
+
+The scaled next-token regression's five-seed confidence interval now uses
+`diagnostics.ensemble_from_values` with explicit seed identities, removing a
+local normal-quantile calculation. The test remains an intentional strict
+xfail for the known architectural limitation, while its measurement semantics
+now match the maintained statistical contract; Ruff passes for the touched test.

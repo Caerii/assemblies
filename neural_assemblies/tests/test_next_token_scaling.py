@@ -21,6 +21,7 @@ from collections import defaultdict
 import pytest
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.diagnostics import ensemble_from_values
 from neural_assemblies.assembly_calculus.next_token import (
     build_next_token_model, train_on_corpus,
     predict_next_token, score_corpus,
@@ -299,9 +300,9 @@ class TestNextTokenScaling:
             finally:
                 SEED = prev
 
-        mean = sum(mrrs) / len(mrrs)
-        sd = (sum((m - mean) ** 2 for m in mrrs) / (len(mrrs) - 1)) ** 0.5
-        ci = 1.96 * sd / len(mrrs) ** 0.5
+        summary = ensemble_from_values(mrrs, label="next-token MRR",
+                                       keys=(42, 43, 44, 45, 46))
+        mean, ci = summary.mean, summary.ci
         print(f"  MRR mean={mean:.4f} +/- {ci:.4f} over {len(mrrs)} seeds, "
               f"chance={chance_mrr:.4f}")
 
