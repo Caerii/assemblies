@@ -37,10 +37,16 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
     if type(k) is not int or k <= 0 or type(rounds) is not int or rounds <= 0:
         raise ValueError("k and rounds must be positive integers")
     cells = []
+    resolved_model = None
     for n in sizes:
         rows = []
         for seed in seeds:
             brain = Brain(p=0.05, seed=seed, engine=engine, save_winners=True)
+            current_model = brain.model_semantics.to_dict()
+            if resolved_model is None:
+                resolved_model = current_model
+            elif current_model != resolved_model:
+                raise RuntimeError("benchmark cells resolved different model semantics")
             brain.add_stimulus("stimulus", k)
             brain.add_area("target", n, k, beta=0.1)
             started = time.perf_counter()
@@ -58,6 +64,7 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
         "benchmark": "projection-throughput-v1",
         "status": "diagnostic",
         "engine": engine,
+        "model_semantics": resolved_model,
         "seeds": seeds,
         "cells": cells,
         "runtime": {"python": platform.python_version(), "platform": platform.platform(),

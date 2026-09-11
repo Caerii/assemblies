@@ -12,6 +12,7 @@ def test_throughput_reports_per_seed_quantiles():
                        seeds=[1, 2, 3])
     cell = result["cells"][0]
     assert result["status"] == "diagnostic"
+    assert result["model_semantics"]["connectome"] == "fixed-hash-regenerated"
     assert len(cell["per_seed"]) == 3
     assert set(cell["rounds_per_second"]) == {"min", "median", "p90", "max"}
 
