@@ -56,7 +56,7 @@ citation cannot quietly become a dead string.
 """
 
 from contextlib import contextmanager
-from numbers import Integral
+from numbers import Integral, Real
 
 import numpy as np
 
@@ -769,6 +769,18 @@ def learn_assembly(
     Returns:
         (assembly, epochs_used, final_persistence) tuple.
     """
+    for label, value in (("max_epochs", max_epochs),
+                         ("project_rounds", project_rounds),
+                         ("stability_window", stability_window)):
+        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+            raise ValueError(f"{label} must be a positive integer")
+    if stability_window < 2:
+        raise ValueError("stability_window must be at least two")
+    if (isinstance(convergence, bool) or not isinstance(convergence, Real)
+            or not np.isfinite(float(convergence))
+            or not 0.0 <= float(convergence) <= 1.0):
+        raise ValueError("convergence must be a finite real number in [0, 1]")
+
     history = []
     for epoch in range(1, max_epochs + 1):
         asm = project(brain, stimulus, target, rounds=project_rounds)

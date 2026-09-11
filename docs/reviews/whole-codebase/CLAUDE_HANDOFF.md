@@ -2565,3 +2565,5 @@ Binding diagnostics now preserve area-name semantics: `recall` and `input_drive`
 The lower-level binding helper now validates resolved area names and requires an explicit positive integer round count. Misspelled areas and ambiguous schedules fail before execution; focused binding regressions pass (14 tests).
 
 `separate` now preflights its complete two-arm schedule before any mutation. Unknown stimuli/target, identical stimuli, and invalid rounds fail at admission; the existing assembly-calculus behavior remains green (29 tests).
+
+`learn_assembly` now admits only meaningful convergence schedules: positive integer budgets, a window of at least two observations, and a finite threshold in [0,1]. Invalid schedules fail before mutation; focused learning and calculus tests pass (38 tests).

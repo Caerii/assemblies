@@ -4623,3 +4623,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Transactional separation preflight (2026-09-11)
 
 `separate` now validates both stimuli, the target area, stimulus distinctness, and the positive integer schedule before projecting either arm. A malformed second arm can no longer leave the brain partially trained. The separation and assembly-calculus suites pass **29 tests**; sampled-engine warnings remain visible.
+
+## Learning-loop schedule admission (2026-09-11)
+
+`learn_assembly` now validates epoch counts, projection rounds, convergence-window size, and finite convergence thresholds before entering the mutation loop. A one-sample window can no longer be mistaken for convergence, and malformed values cannot fail after partial training. Learning and assembly-calculus regressions pass **38 tests**.
