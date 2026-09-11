@@ -1075,3 +1075,20 @@ all resolved parameters and seeds, VOID/UNADOPTED output and scope text exactly.
 CLI tests retain an injectable runner boundary; registrations remain study-specific.
 This is execution composition, not a merger of scientific protocols or backend
 semantics. Replaying all four archived smokes must preserve their observations.
+
+
+Historical adapters accept `--parameters` with a repository-relative UTF-8 JSON
+object. Override only keys in the selected smoke/full parameter factory; replace
+whole values (including grids), never mutate the defaults. Execution identities
+(seed IDs, tag, engine, mode) remain CLI controls and cannot be overridden by this
+file. The canonical JSON reader rejects duplicate keys and lossy nonfinite,
+overflowing or underflowing numbers. Domain validation remains in each producer
+before trial computation; parsing does not certify a scientific configuration.
+
+Bind the exact bytes parsed to the runner's captured input inventory using
+`expected_input_digests`. A mismatch fails before reservation or producer execution.
+Record every resolved parameter and archive the original file. This detects a
+changed file between CLI resolution and capture; it does not promise detection of
+all concurrent mutate-and-restore races. Historical outputs remain VOID in smoke
+and UNADOPTED in study mode. An override does not inherit scientific registration
+of a different grid, nor silently replace the migration's registered default cell.

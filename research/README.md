@@ -230,3 +230,23 @@ value and its reason. The historical noise study uses null plus its existing
 `degenerate` reason and `significant: false`. Loading rejects duplicate keys and
 nonfinite numeric encodings. These safeguards do not add the missing run provenance
 of an unmigrated experiment or turn its completion into scientific adoption.
+
+
+## Historical experiment parameter files
+
+The historical noise, projection, scaling and phase adapters share `--parameters`.
+Use a repository-relative UTF-8 JSON object containing only the protocol settings
+you want to replace. Unspecified settings come from the selected smoke/full defaults;
+arrays replace entire grids. For example, to change phase evaluation to one round:
+
+```bash
+python -m research.runner historical-phase --smoke --seeds 1 2 3 --tag phase-one-round-UNIQUE --parameters research/experiments/configs/phase_one_round.json
+```
+
+The file is archived alongside the fully resolved parameters. The runner checks
+`expected_input_digests` against the entire captured input inventory before creating
+a run, so the bytes parsed by the adapter must be the bytes captured. Unknown keys
+and attempts to set seeds, tag or engine in the file fail; use their CLI flags.
+Invalid domain values fail in the producer before trials. Smoke remains VOID and
+full historical runs UNADOPTED. Customizing a grid does not preregister it: write
+its hypotheses and bars before collecting scientific evidence.

@@ -2625,3 +2625,24 @@ capacity runner, specification links, theory citations, methodology and index-sp
 ratchets. Ruff on all four changed Python files and git diff --check pass. No GPU
 kernel, numerical protocol or adopted scientific result changed; no GPU rerun or
 whole-package green claim is made for this checkpoint.
+
+
+## Historical CLI parameter files (2026-09-10)
+
+The shared historical adapter now accepts repository-relative JSON overrides for
+keys exposed by its parameter factory. Defaults are copied, arrays replaced in
+full, and execution identity remains in CLI flags. Parsing uses the existing
+loss-aware JSON boundary. Exact parsed bytes are bound to the runner's complete
+input inventory before reservation through expected_input_digests; schema 4 archives
+the file alongside all resolved values. Mismatched bytes or inventory fail before
+computation. Domain validation still belongs to producers before trial execution.
+
+93 shared-adapter/runner tests pass, including malformed/duplicate JSON, invalid
+numbers, unknown/reserved keys, missing/outside files, unchanged defaults, exact
+byte binding, changed snapshot refusal, and the full CLI-to-archive path. The four
+historical scientific protocols remain distinct; override runs remain VOID or
+UNADOPTED. CLI configuration does not preregister arbitrary scientific settings.
+A one-evaluation-round phase smoke and direct equivalence check are registered
+before execution in PREREG_historical_phase_migration.md.
+
+The four historical trial suites, legacy JSON storage, specification links and both ratchets pass: 200 tests in 57.36s. CLI help exposes --parameters; Ruff and diff checks pass.

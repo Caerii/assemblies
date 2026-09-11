@@ -25,10 +25,14 @@ def _finite_float(text):
     return value
 
 
-def load_document(path):
+def decode_document(text):
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-evidence-json"""
-    return json.loads(path.read_text(encoding="utf-8"), object_pairs_hook=unique_pairs,
+    return json.loads(text, object_pairs_hook=unique_pairs,
                       parse_constant=_reject_constant, parse_float=_finite_float)
+
+
+def load_document(path):
+    return decode_document(path.read_text(encoding="utf-8"))
 
 
 def encode_document(value):

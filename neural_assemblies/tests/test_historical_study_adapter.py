@@ -55,3 +55,48 @@ def test_cli_uses_specified_protocol_source_registration_and_seed_defaults():
     assert sent["protocol"] == "memory.fixture" and sent["protocol_version"] == "1"
     assert sent["seeds"] == [5,6,7] and sent["parameters"] == {"size": 3}
     assert sent["smoke"] is True and sent["measure"] == spec.measure
+
+
+@pytest.mark.parametrize('document', [
+    '[]', '{"size": 2, "size": 3}', '{"seed_ids": [1, 2, 3]}',
+    '{"engine": "numpy_sparse"}', '{"tag": "replacement"}', '{"n_seeds": 3}',
+    '{"typo": 7}', '{"size": NaN}', '{"size": 1e999}', '{"size": 1e-999}',
+])
+def test_parameter_file_errors_stop_before_writer(tmp_path, monkeypatch, document):
+    from research.experiments import _historical
+    monkeypatch.setattr(_historical, 'ROOT', tmp_path)
+    (tmp_path / 'parameters.json').write_text(document)
+    with pytest.raises(SystemExit) as exc:
+        specification(None).main(['--tag', 'fixture', '--parameters', 'parameters.json'],
+                                 writer=lambda **kwargs: pytest.fail('invalid file reached writer'))
+    assert exc.value.code == 2
+
+
+@pytest.mark.parametrize('smoke', [False, True])
+def test_parameter_file_replaces_only_named_defaults_and_binds_exact_bytes(tmp_path, monkeypatch, smoke):
+    import hashlib
+    from research.experiments import _historical
+    monkeypatch.setattr(_historical, 'ROOT', tmp_path)
+    data = b'{"size": 7}\r\n'
+    (tmp_path / 'parameters.json').write_bytes(data)
+    defaults = {'size': 3 if smoke else 10, 'rounds': 5}
+    spec = replace(specification(None), parameters=lambda mode: defaults)
+    calls = []
+    spec.main(['--tag', 'fixture', '--parameters', './parameters.json'] + (['--smoke'] if smoke else []),
+              writer=lambda **kwargs: calls.append(kwargs))
+    sent = calls[0]
+    assert sent['parameters'] == {'size': 7, 'rounds': 5}
+    assert defaults == {'size': 3 if smoke else 10, 'rounds': 5}
+    assert sent['input_artifacts'] == ('parameters.json',)
+    assert sent['expected_input_digests'] == {'parameters.json': hashlib.sha256(data).hexdigest()}
+    assert sent['smoke'] is smoke
+
+
+@pytest.mark.parametrize('name', ['missing.json', '../outside.json'])
+def test_parameter_file_must_exist_in_repository(tmp_path, monkeypatch, name):
+    from research.experiments import _historical
+    monkeypatch.setattr(_historical, 'ROOT', tmp_path)
+    (tmp_path.parent / 'outside.json').write_text('{}')
+    with pytest.raises(SystemExit):
+        specification(None).main(['--tag', 'fixture', '--parameters', name],
+                                 writer=lambda **kwargs: pytest.fail('invalid path reached writer'))

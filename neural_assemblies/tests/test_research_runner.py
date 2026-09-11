@@ -478,3 +478,53 @@ def test_input_mutation_keeps_original_bytes_and_records_failure(source_repo):
     assert not (directory / 'results.json').exists()
     with ZipFile(directory / 'source.zip') as archive:
         assert archive.read('inputs/parameters.json') == b'{"size": 60}'
+
+
+@pytest.mark.parametrize('change', ['bytes', 'inventory'])
+def test_configuration_snapshot_mismatch_fails_before_reservation(source_repo, change):
+    import hashlib
+    data = b'{"size": 60}'
+    (source_repo / 'parameters.json').write_bytes(data)
+    (source_repo / 'registration.md').write_text('fixture protocol')
+    expected = {'parameters.json': hashlib.sha256(data).hexdigest()}
+    if change == 'bytes':
+        (source_repo / 'parameters.json').write_bytes(b'{"size": 80}')
+    else:
+        expected['unlisted.json'] = 'a' * 64
+    with pytest.raises(ValueError, match='configuration snapshot'):
+        runner.run_experiment(
+            script='study.py', registration='registration.md', protocol='fixture',
+            protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='changed',
+            parameters={'size': 60}, input_artifacts=('parameters.json',),
+            expected_input_digests=expected,
+            measure=lambda record: pytest.fail('mismatched snapshot reached measurement'))
+    assert not (source_repo / 'research/results/runs').exists()
+
+
+def test_parameter_cli_runs_with_archived_overrides(source_repo, monkeypatch):
+    from zipfile import ZipFile
+    from research.experiments import _historical
+    from research.experiments.base import ExperimentResult
+    from research.evidence import validate_artifact
+    monkeypatch.setattr(_historical, 'ROOT', source_repo)
+    (source_repo / 'registration.md').write_text('fixture protocol')
+    data = b'{"size": 7}\r\n'
+    (source_repo / 'parameters.json').write_bytes(data)
+    class Producer:
+        def __init__(self, **kwargs):
+            pass
+        def run(self, **kwargs):
+            assert kwargs == {'size': 7, 'rounds': 5, 'seed_ids': [9, 2, 7]}
+            return ExperimentResult('fixture', success=True, parameters=kwargs)
+    spec = _historical.HistoricalStudy(
+        'fixture', '1', 'registration.md', Path('study.py'), Producer,
+        lambda smoke: {'size': 3, 'rounds': 5}, 'fixture scope')
+    spec.main(['--tag', 'override', '--smoke', '--seeds', '9', '2', '7',
+               '--parameters', 'parameters.json'])
+    path = source_repo / 'research/results/runs/fixture/override/results.json'
+    assert validate_artifact(path, root=source_repo) == []
+    payload = json.loads(path.read_text())
+    assert payload['run']['parameters'] == {'size': 7, 'rounds': 5}
+    assert payload['observations']['verdict'] == 'VOID'
+    with ZipFile(path.parent / 'source.zip') as archive:
+        assert archive.read('inputs/parameters.json') == data

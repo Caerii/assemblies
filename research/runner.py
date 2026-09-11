@@ -86,13 +86,17 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    parameters: Mapping, measure: Callable[[dict], Mapping],
                    smoke: bool = False, minimum_study_seeds: int = 3,
                    output_root: Path | None = None,
-                   input_artifacts: tuple[str, ...] = ()) -> Path:
+                   input_artifacts: tuple[str, ...] = (),
+                   expected_input_digests: Mapping[str, str] | None = None) -> Path:
     """Execute one resolved protocol; return its immutable results file.
 
     `measure(record)` receives a JSON snapshot of the resolved inputs. It must
     return JSON observations, including its own explicit scientific verdict.
     Completion alone never means an adoption bar was satisfied. Reserve before
     invoking it, and preserve failure records rather than reusing the tag.
+    Optional expected_input_digests binds prior parsing to the complete captured
+    input inventory, using canonical repository-relative names (research/README.md
+    #historical-experiment-parameter-files). Mismatch fails before reservation.
     """
     for name, value in [('tag', tag), ('protocol', protocol), ('protocol_version', protocol_version)]:
         if not isinstance(value, str) or not _NAME.fullmatch(value):
@@ -117,6 +121,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
             raise ValueError(f'duplicate input artifact: {name}')
         input_bytes[name] = resolved.read_bytes()
     inputs = {name: hashlib.sha256(data).hexdigest() for name, data in input_bytes.items()}
+    if expected_input_digests is not None and inputs != dict(expected_input_digests):
+        raise ValueError('input artifacts differ from the configuration snapshot')
     record = dict(schema_version=4, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),

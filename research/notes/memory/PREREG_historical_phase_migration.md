@@ -41,3 +41,14 @@ metrics, raw_data, parameters and success under canonical JSON comparison, exclu
 timestamps/duration. Record and source archive validate. Both requested sparsities
 have explicit not_observed crossings with null beta. Status remains VOID; no phase
 boundary, fixed point, or new scientific adoption is inferred.
+
+
+## Parameter-file migration extension (before execution, 2026-09-10)
+
+Exercise the shared CLI with configs/phase_one_round.json: override test_rounds=1
+on the existing smoke defaults, with seeds1/2/3. All other resolved settings and
+six cells stay as specified above. This is a software equivalence check, VOID,
+not a new persistence hypothesis. Before running, commit the adapter, file and this
+extension. Compare metrics/raw_data/parameters/success exactly against direct
+execution of the recorded inputs, ignoring timestamps/duration only; validate the
+source archive and exact input-file bytes. Do not rewrite the original smoke.

@@ -1425,3 +1425,12 @@ without retroactive recovery claims. Six existing study artifacts validate uncha
 See VALIDATION.md#recoverable-declared-run-inputs-2026-09-10. CLI overrides remain open.
 
 139 targeted checks pass, including both ratchets and register/specification gates; Ruff and diff checks pass. No new numerical or GPU claims.
+
+
+## Historical CLI parameter files (2026-09-10)
+
+All four historical adapters expose --parameters through their shared implementation.
+Overrides retain exact file bytes and all resolved values; stale parse/capture hashes
+fail before reservation. 93 adapter/runner checks pass. Domain checks remain in the
+producers and customized runs remain VOID/UNADOPTED. Registered a phase smoke for
+CLI/direct equivalence before running it. See VALIDATION.md#historical-cli-parameter-files-2026-09-10.
