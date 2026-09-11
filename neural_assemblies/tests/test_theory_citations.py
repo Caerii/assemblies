@@ -8,7 +8,9 @@ an extension rather than as an established fact.
 
 from __future__ import annotations
 
+import json
 import os
+import tempfile
 import unittest
 
 from neural_assemblies import theory
@@ -92,6 +94,83 @@ class TestTheoryCitations(unittest.TestCase):
             self.assertTrue(any("dangling evidence path" in error for error in errors))
         finally:
             theory._RESULTS = original
+
+    def test_retained_sensitivity_accepts_a_moving_control(self):
+        original = theory._RESULTS
+        try:
+            with tempfile.TemporaryDirectory() as root:
+                artifact = os.path.join(root, "results.json")
+                with open(artifact, "w", encoding="utf-8") as handle:
+                    json.dump({"seeds": [1, 2, 3],
+                               "treatment": [0.7, 0.8, 0.9],
+                               "control": [0.1, 0.2, 0.3]}, handle)
+                theory._RESULTS = [theory.Result(
+                    id="MOVING-PROBE", status=theory.Status.MEASURED,
+                    claim="fixture", source="fixture", evidence=("fixture",),
+                    engine="fixture",
+                    evidence_refs=(theory.EvidenceRef("results.json", "artifact"),),
+                    sensitivity_checks=(theory.SensitivityCheck(
+                        artifact="results.json", sample_path="seeds",
+                        treatment_path="treatment",
+                        control_path="control", relation="all-greater",
+                        minimum_effect=0.5, mechanism="constructed control"),))]
+                self.assertEqual(theory.evidence_reference_errors(root), [])
+        finally:
+            theory._RESULTS = original
+
+    def test_retained_sensitivity_rejects_a_dead_probe(self):
+        original = theory._RESULTS
+        try:
+            with tempfile.TemporaryDirectory() as root:
+                artifact = os.path.join(root, "results.json")
+                with open(artifact, "w", encoding="utf-8") as handle:
+                    json.dump({"seeds": [1, 2, 3],
+                               "treatment": [1.0, 1.0, 1.0],
+                               "control": [1.0, 1.0, 1.0]}, handle)
+                theory._RESULTS = [theory.Result(
+                    id="DEAD-PROBE", status=theory.Status.MEASURED,
+                    claim="fixture", source="fixture", evidence=("fixture",),
+                    engine="fixture",
+                    evidence_refs=(theory.EvidenceRef("results.json", "artifact"),),
+                    sensitivity_checks=(theory.SensitivityCheck(
+                        artifact="results.json", sample_path="seeds",
+                        treatment_path="treatment",
+                        control_path="control", relation="all-different",
+                        minimum_effect=0.01, mechanism="constructed null"),))]
+                errors = theory.evidence_reference_errors(root)
+                self.assertTrue(any("minimum retained effect is 0" in error
+                                    for error in errors), errors)
+        finally:
+            theory._RESULTS = original
+
+    def test_retained_sensitivity_rejects_duplicate_sample_identity(self):
+        original = theory._RESULTS
+        try:
+            with tempfile.TemporaryDirectory() as root:
+                artifact = os.path.join(root, "results.json")
+                with open(artifact, "w", encoding="utf-8") as handle:
+                    json.dump({"seeds": [1, 1, 2], "treatment": [3, 4, 5],
+                               "control": [0, 0, 0]}, handle)
+                theory._RESULTS = [theory.Result(
+                    id="DUPLICATE-SEED", status=theory.Status.MEASURED,
+                    claim="fixture", source="fixture", evidence=("fixture",),
+                    engine="fixture",
+                    evidence_refs=(theory.EvidenceRef("results.json", "artifact"),),
+                    sensitivity_checks=(theory.SensitivityCheck(
+                        artifact="results.json", sample_path="seeds",
+                        treatment_path="treatment", control_path="control",
+                        relation="all-greater", minimum_effect=1,
+                        mechanism="constructed control"),))]
+                errors = theory.evidence_reference_errors(root)
+                self.assertTrue(any("sample identities are empty or duplicated"
+                                    in error for error in errors), errors)
+        finally:
+            theory._RESULTS = original
+
+    def test_real_measured_sensitivity_checks_remain_active(self):
+        checked = {result.id for result in theory.RESULTS.values()
+                   if result.sensitivity_checks}
+        self.assertEqual(checked, {"RATE-HETEROGENEITY", "SEQ-TEMPORAL-CARRY"})
 
 
 if __name__ == "__main__":

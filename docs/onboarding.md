@@ -54,9 +54,10 @@ evidence. Then follow the reading order below.
   `ensemble_from_values` refuses fewer than three.
 - **Failed bars are committed** with their numbers. Four of six predictions
   registered in one week failed, and each failure named the mechanism.
-- **A perfect score falsifies the measurement** until a sweep shows the
-  number can move. Sealed areas, dead fibers and frozen winners all read
-  1.000.
+- **A perfect score requires a sensitivity check before interpretation.**
+  Compare the mechanism-enabled treatment with a constructed control and retain
+  both per-seed vectors. Sealed areas, dead fibers and frozen winners can all
+  read 1.000.
 - **Name the engine.** The numpy engine draws connectomes lazily unless an
   area is materialized; the hashed substrate is exact. A number's engine
   is part of the number.
@@ -86,6 +87,12 @@ evidence. Then follow the reading order below.
   names its role (artifact, registration, producer, analysis, or log) and must
   resolve. Missing immutable evidence is an explicit `provenance_gap`, never an
   implied file hidden inside prose.
+- **Measured claims expose mechanism sensitivity.** A `SensitivityCheck` names
+  unique sample identities plus raw treatment and control vectors in an
+  immutable JSON artifact and a frozen minimum effect. Register validation
+  fails when pairing becomes ambiguous or the comparison stops moving.
+  Legacy claims without such an artifact carry a specific `sensitivity_gap`;
+  migrate the experiment and replace the gap rather than deleting it in prose.
 
 ## Open problems worth a collaborator's week
 
@@ -116,9 +123,11 @@ Each of these has data in hand and a registration to extend.
    and a small recurrent network at matched step counts on the chain
    corpus, plus gaps 4 to 6 for the carry's decay law, decide whether the
    temporal memory is worth a paper or a paragraph.
-5. **Engine provenance in the register.** Only four of the fifteen
-   MEASURED entries name their engine. Add an `engine` field to `Result`
-   and fill it from each registration.
+5. **Close the register's sensitivity gaps.** All fifteen MEASURED entries name
+   their engine. Two currently have machine-checked treatment/control vectors;
+   thirteen expose the exact missing null evidence. Migrate each producing
+   experiment to an immutable run record and replace its `sensitivity_gap` with
+   a retained comparison that a known dead configuration fails.
 
 ## Process constraints that have cost us results
 

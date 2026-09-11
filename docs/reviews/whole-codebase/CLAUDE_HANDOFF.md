@@ -2140,3 +2140,31 @@ code, protocol, observation and controls.
 The combined CPU gate is 158 passed; Ruff, whitespace and schema-8 artifact
 validation are clean. The previously run aligner CUDA conformance gate remains 8
 passed, and this rung replay itself executed on scheduled CUDA.
+
+## Register sensitivity is executable (2026-09-11)
+
+`Result` now carries either retained `SensitivityCheck` values or an explicit
+`sensitivity_gap` for every MEASURED entry. The validator reads the raw vectors
+from immutable JSON, pairs them by an explicit unique sample vector, requires
+finite equal lengths and enforces a frozen minimum effect. This is deliberately stronger than
+checking a self-reported pass Boolean and narrower than claiming the contrast
+proves the scientific interpretation.
+
+Two existing immutable artifacts support honest checks today. The temporal
+position study keeps twenty g=1 distractor contrasts above its state-blind
+control by the preregistered 0.05 bar. The per-fiber study keeps twenty forward/equal ratio
+differences at least 9.0. All thirteen remaining measured claims expose named
+gaps in the rendered register. Replace those gaps only by migrating a producer
+and retaining a constructed negative that the instrument actually fails.
+
+The tests include a moving positive and a fake-perfect dead probe whose identical
+treatment/control vectors must be rejected. `evidence_reference_errors` now
+checks both graph integrity and retained sensitivity; it still does not adjudicate
+whether a causal or theoretical claim follows from the observed contrast.
+
+Validation: 14 focused theory tests and 194 combined runner/evidence/methodology/
+specification tests pass. The full non-slow package run has 3432 passed, 139
+skipped, 143 deselected, 7 expected failures and 10 passing subtests. Its two
+reported failures were the CUDA temporal-observation cases launched without `cl`;
+the documented `scripts/cuda-dev.cmd` rerun passes both (2 passed, 32 deselected).
+Ruff and whitespace checks are clean.

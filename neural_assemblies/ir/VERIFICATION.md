@@ -1908,3 +1908,24 @@ metric schemas or convert legacy completion into scientific adoption.
 Persisted legacy result documents must explicitly contain success; loading a missing
 status may not inherit the constructor default True. Non-object documents also
 raise at this boundary. Historical missing statuses are not inferred or rewritten.
+
+
+<a id="contract-result-sensitivity"></a>
+### Registered result sensitivity
+
+A MEASURED Result carries exactly one of retained sensitivity checks or a specific
+sensitivity gap. Each check names a repository-relative JSON artifact already
+present as a typed artifact evidence edge, an explicit unique sample-identity
+vector, treatment and control scalar vectors, a directional relation and a finite
+nonnegative minimum effect. All three vectors are nonempty and equal-length.
+Values are paired only in the explicit sample order; duplicate identities,
+container-valued observations and nonfinite numbers reject the register.
+
+For all-greater, every treatment-control difference clears the minimum. For
+all-less, every control-treatment difference clears it. For all-different, every
+absolute difference clears it. A single failing sample invalidates the check;
+averaging cannot hide a dead seed. Unsafe, missing or malformed artifacts and JSON
+paths also fail validation. A sensitivity gap keeps a legacy claim visible but does
+not satisfy the evidence. A retained contrast establishes instrument movement under
+the named control; scientific interpretation still depends on the registration,
+protocol, regime and result caveats.

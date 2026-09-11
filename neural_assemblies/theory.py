@@ -32,6 +32,8 @@ to rank the claims.
 
 from __future__ import annotations
 
+import json
+import math
 import os
 import re
 from dataclasses import dataclass, field
@@ -69,6 +71,26 @@ class EvidenceRef:
 
 
 @dataclass(frozen=True)
+class SensitivityCheck:
+    """A retained treatment/control comparison that must still move.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-result-sensitivity
+
+    Paths use ``/`` between object keys and ``*`` to expand a JSON list. The
+    resulting vectors are compared pairwise, so a missing seed, reordered arm,
+    or dead probe is a register-validation failure rather than prose debt.
+    """
+
+    artifact: str
+    sample_path: str
+    treatment_path: str
+    control_path: str
+    relation: str
+    minimum_effect: float
+    mechanism: str
+
+
+@dataclass(frozen=True)
 class Result:
     """One citable claim, with the conditions under which it holds."""
 
@@ -80,6 +102,8 @@ class Result:
     evidence: Sequence[str] = field(default_factory=tuple)
     evidence_refs: Sequence[EvidenceRef] = field(default_factory=tuple)
     provenance_gap: str = ""
+    sensitivity_checks: Sequence[SensitivityCheck] = field(default_factory=tuple)
+    sensitivity_gap: str = ""
     implemented_by: Sequence[str] = field(default_factory=tuple)
     caveat: str = ""
     engine: str = ""  # measurement substrate; empty for non-empirical entries
@@ -97,6 +121,12 @@ class Result:
             bits.append("    evidence files: " + "; ".join(ref.path for ref in self.evidence_refs))
         if self.provenance_gap:
             bits.append("    PROVENANCE GAP: " + self.provenance_gap)
+        if self.sensitivity_checks:
+            bits.append("    sensitivity: " + "; ".join(
+                f"{check.mechanism} ({check.artifact})"
+                for check in self.sensitivity_checks))
+        if self.sensitivity_gap:
+            bits.append("    SENSITIVITY GAP: " + self.sensitivity_gap)
         if self.implemented_by:
             bits.append("    used by: " + "; ".join(self.implemented_by))
         if self.caveat:
@@ -202,6 +232,8 @@ _RESULTS: List[Result] = [
         id="SEQ-REGIME-CLIFF",
         engine="numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance",
         status=Status.MEASURED,
+        sensitivity_gap="No retained immutable materialized/hashed sweep pairs "
+                        "the regime crossing with a mechanism-disabled null.",
         claim="Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it "
               "recovery is almost never exact and the machine fails; above it "
               "every seed runs correctly.",
@@ -227,6 +259,8 @@ _RESULTS: List[Result] = [
         id="SEQ-EXACT-RECOVERY",
         engine="mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats",
         status=Status.MEASURED,
+        sensitivity_gap="This composite entry spans several legacy protocols; "
+                        "no one retained runner artifact encodes its null.",
         claim="The state area is a DISCRETE attractor: k-WTA maps a whole "
               "neighbourhood onto exactly one stored assembly in one step. "
               "Recovery must be EXACT -- 69 of 70 neurons is a failure, not a "
@@ -312,6 +346,14 @@ _RESULTS: List[Result] = [
         id="SEQ-TEMPORAL-CARRY",
         engine="hashed transducer / temporal organ (20 brains per cell)",
         status=Status.MEASURED,
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.temporal-positions/temporal-positions-study-20260910/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/summaries/g1/D/values",
+            control_path="observations/summaries/blind_g1/D/values",
+            relation="all-greater", minimum_effect=0.05,
+            mechanism="state-dependent distractor carry versus state-blind g=1",
+        ),),
         claim="A transducer whose STATE is its previous arc (state_mode='copy') "
               "and whose PREDICTED arc neurons win (the lateral ARC -> ARC "
               "fiber's top-k above half its maximum get (1 + g) x drive, g = 1) "
@@ -391,6 +433,8 @@ _RESULTS: List[Result] = [
         id="ARC-CONJUNCT-EXPOSURE",
         engine="vendored reference/nemo_numpy (explicit NumPy matrices)",
         status=Status.MEASURED,
+        sensitivity_gap="The ablation is described in a legacy log but has no "
+                        "structured immutable null artifact.",
         claim="A conjunction area collapses onto whichever conjunct is exposed "
               "more often, unless an opposing force (refraction) is present.",
         source="This repository; the same law as the role-binding gain result.",
@@ -412,6 +456,8 @@ _RESULTS: List[Result] = [
         id="REFRACTION-PROPORTIONAL",
         engine="vendored reference/nemo_numpy (explicit NumPy matrices)",
         status=Status.MEASURED,
+        sensitivity_gap="Constant and proportional charging were retained only "
+                        "in a legacy log, not a machine-checkable null record.",
         claim="Refraction must charge in proportion to the winner's raw drive. "
               "A constant increment is not an equivalent parameterization: "
               "Hebbian growth multiplies drive while a constant grows linearly, "
@@ -431,6 +477,8 @@ _RESULTS: List[Result] = [
         id="REFRACTION-NEEDS-LOAD",
         engine="numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted",
         status=Status.MEASURED,
+        sensitivity_gap="Legacy load sweeps lack an immutable paired "
+                        "mechanism-disabled artifact.",
         claim="A refracted conjunction area has a CEILING in load M*k/n: "
               "above ~1.3 its conjunctions do not fit (10/10 correct at load "
               "1.26, 0/10 at 1.80). RE-SCOPED 2026-09-09 (PREREG_sampler_audit.md): "
@@ -469,6 +517,8 @@ _RESULTS: List[Result] = [
         id="REFRACTION-ANTI-MERGING",
         engine="hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol)",
         status=Status.MEASURED,
+        sensitivity_gap="Treatment and control grids exist, but their legacy "
+                        "files do not yet expose one retained paired null vector.",
         claim="A recurrent k-WTA area refracted at HALF beta and read with the "
               "refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 "
               "M* ~ 1600-2200 stored assemblies against 64-89 for the control, "
@@ -567,6 +617,8 @@ _RESULTS: List[Result] = [
         id="REFRACTION-CANCELS-CONVERGENCE",
         engine="hashed substrate (HashedArea with AreaFiber/StimulusFiber)",
         status=Status.MEASURED,
+        sensitivity_gap="The claimed mechanism has no identified immutable "
+                        "result artifact, so its null cannot yet be checked.",
         claim="[RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the "
               "churn above ~0.75 beta stands; the intermediate-strength rows "
               "were a selector artefact -- at 0.5 beta the recurrent assembly "
@@ -638,6 +690,8 @@ _RESULTS: List[Result] = [
         id="AC-CAP",
         engine="incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved",
         status=Status.MEASURED,
+        sensitivity_gap="The underlying capacity run is unidentified and has no "
+                        "retained mechanism-null comparison.",
         claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "
               "assemblies per area.",
         source="This repository (critical-load measurement).",
@@ -658,6 +712,14 @@ _RESULTS: List[Result] = [
         id="RATE-HETEROGENEITY",
         engine="numpy_explicit (materialized copied-fiber protocol)",
         status=Status.MEASURED,
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/mechanism.per-fiber-plasticity/per-fiber-plasticity-20260910/results.json",
+            sample_path="observations/rows/*/seed",
+            treatment_path="observations/rows/*/cells/forward/ratio",
+            control_path="observations/rows/*/cells/equal/ratio",
+            relation="all-greater", minimum_effect=9.0,
+            mechanism="per-fiber rate contrast versus equal-rate null",
+        ),),
         claim="Learning rate is settable PER FIBER: copied fibers with identical "
               "pre/post activity at beta 0.06 and 0.005 diverge 14.35-fold after "
               "50 updates without reaching the weight clip.",
@@ -704,6 +766,8 @@ _RESULTS: List[Result] = [
         id="SEQ-ORGAN-EMBEDS",
         engine="numpy_sparse (original organ-density experiment; sampled-arc provenance limitation)",
         status=Status.MEASURED,
+        sensitivity_gap="The materialized density rerun predates immutable run "
+                        "records and has no encoded disabled-organ null.",
         claim="A sequence organ runs at its own regime INSIDE a brain whose "
               "ambient density is far lower, given per-fiber p.",
         source="This repository.",
@@ -752,6 +816,8 @@ _RESULTS: List[Result] = [
         id="KWTA-TIE-FRAGILE",
         engine="torch/CUDA selector prototype; not a Brain-engine conformance claim",
         status=Status.MEASURED,
+        sensitivity_gap="The selector prototype retained no raw artifact for a "
+                        "tie-free negative comparison.",
         claim="The k-WTA bar is routinely TIED, so anything that perturbs the "
               "drive in its last bits -- a change of summation order, of "
               "arithmetic, or of tie-break policy -- can change WHICH neurons "
@@ -837,6 +903,8 @@ _RESULTS: List[Result] = [
         id="CAP-RATIO",
         engine="hashed AssemblyMemory / exact count-then-apply path",
         status=Status.MEASURED,
+        sensitivity_gap="The immutable replay covers one registered capacity "
+                        "cell and does not retain a mechanism-disabled null.",
         claim="The assembly-capacity ceiling M* is a function of n/k ALONE, "
               "not of n and k separately.",
         source="Held-out test registered in "
@@ -884,6 +952,8 @@ _RESULTS: List[Result] = [
         id="CAP-ANCHOR-RATIO",
         engine="hashed AssemblyMemory / capacity-scaling protocol",
         status=Status.MEASURED,
+        sensitivity_gap="Registered legacy outcomes are not yet packaged with "
+                        "an immutable anchor-disabled comparison.",
         claim="The capacity ceiling is set at FORMATION by the ratio of the "
               "stimulus anchor to the trained recurrent pull. Density p and "
               "gain beta enter through that ratio, so an excursion in either "
@@ -919,6 +989,8 @@ _RESULTS: List[Result] = [
         id="CAP-CLIFF",
         engine="hashed AssemblyMemory / exact count-then-apply path",
         status=Status.MEASURED,
+        sensitivity_gap="The retained replay brackets the cliff but does not "
+                        "encode a mechanism-disabled paired control.",
         claim="Capacity failure is a CLIFF, not a slope: past the ceiling the "
               "assemblies shatter rather than degrading gracefully.",
         source="research/experiments/seq_capacity_scaling.py, on the exact "
@@ -991,8 +1063,87 @@ def unresolved_citations(root: str) -> Dict[str, List[str]]:
     return missing
 
 
+def _json_values(document, path: str) -> list:
+    """Resolve a slash path with ``*`` list expansion into scalar values."""
+    nodes = [document]
+    for token in path.split('/'):
+        if not token:
+            raise ValueError("empty sensitivity path component")
+        expanded = []
+        for node in nodes:
+            if token == '*':
+                if not isinstance(node, list):
+                    raise ValueError("sensitivity wildcard requires a list")
+                expanded.extend(node)
+            elif isinstance(node, dict) and token in node:
+                expanded.append(node[token])
+            else:
+                raise ValueError(f"missing sensitivity path component {token!r}")
+        nodes = expanded
+    if nodes and all(isinstance(node, list) for node in nodes):
+        return [value for node in nodes for value in node]
+    if any(isinstance(node, (dict, list)) for node in nodes):
+        raise ValueError("sensitivity path must resolve only to scalar values")
+    return nodes
+
+
+def _sensitivity_errors(result: Result, check: SensitivityCheck, root: str) -> list[str]:
+    prefix = f"{result.id}: sensitivity {check.mechanism or '<unnamed>'}"
+    if not check.mechanism.strip():
+        return [f"{prefix} must name the mechanism under test"]
+    if not any(ref.role == "artifact" and ref.path == check.artifact
+               for ref in result.evidence_refs):
+        return [f"{prefix} artifact is not a typed artifact evidence edge"]
+    allowed = {"all-greater", "all-less", "all-different"}
+    if check.relation not in allowed:
+        return [f"{prefix} has unsupported relation {check.relation!r}"]
+    if (type(check.minimum_effect) not in (int, float)
+            or not math.isfinite(check.minimum_effect)
+            or check.minimum_effect < 0):
+        return [f"{prefix} has invalid minimum effect"]
+    normalized = os.path.normpath(check.artifact).replace("\\", "/")
+    target = os.path.abspath(os.path.join(root, check.artifact))
+    if (not check.artifact or normalized != check.artifact
+            or os.path.commonpath((root, target)) != root):
+        return [f"{prefix} has unsafe artifact path {check.artifact!r}"]
+    try:
+        with open(target, encoding="utf-8") as handle:
+            document = json.load(handle)
+        samples = _json_values(document, check.sample_path)
+        treatment = _json_values(document, check.treatment_path)
+        control = _json_values(document, check.control_path)
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        return [f"{prefix} cannot resolve retained values: {exc}"]
+    if (not samples or len(samples) != len(set(map(repr, samples)))):
+        return [f"{prefix} sample identities are empty or duplicated"]
+    if len(samples) != len(treatment) or len(treatment) != len(control):
+        return [f"{prefix} sample/treatment/control vectors have unequal lengths"]
+    if any(type(value) not in (int, float) or not math.isfinite(value)
+           for value in [*treatment, *control]):
+        return [f"{prefix} values must be finite numbers"]
+    if check.relation == "all-greater":
+        effects = [left - right for left, right in zip(treatment, control)]
+    elif check.relation == "all-less":
+        effects = [right - left for left, right in zip(treatment, control)]
+    else:
+        effects = [abs(left - right) for left, right in zip(treatment, control)]
+    if any(effect < check.minimum_effect for effect in effects):
+        return [
+            f"{prefix} does not move by {check.minimum_effect:g} under "
+            f"{check.relation}; minimum retained effect is {min(effects):g}",
+        ]
+    return []
+
+
 def evidence_reference_errors(root: str) -> List[str]:
-    """Validate the register's typed local evidence edges without judging results."""
+    """Validate local evidence edges and retained mechanism sensitivity.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-result-sensitivity
+
+    This checks whether the evidence still exists and whether each declared
+    treatment/control contrast still clears its frozen minimum effect. It does
+    not decide whether the scientific claim follows from that contrast.
+    """
     root = os.path.abspath(root)
     errors = []
     for result in _RESULTS:
@@ -1002,6 +1153,11 @@ def evidence_reference_errors(root: str) -> List[str]:
                 and not any(ref.role == "artifact" for ref in result.evidence_refs)
                 and not result.provenance_gap):
             errors.append(f"{result.id}: no result artifact and no provenance gap")
+        if (result.status == Status.MEASURED
+                and not result.sensitivity_checks and not result.sensitivity_gap):
+            errors.append(f"{result.id}: no retained sensitivity check or explicit gap")
+        if result.sensitivity_checks and result.sensitivity_gap:
+            errors.append(f"{result.id}: sensitivity check and gap are mutually exclusive")
         for ref in result.evidence_refs:
             normalized = os.path.normpath(ref.path).replace("\\", "/")
             target = os.path.abspath(os.path.join(root, ref.path))
@@ -1011,6 +1167,8 @@ def evidence_reference_errors(root: str) -> List[str]:
                 errors.append(f"{result.id}: dangling evidence path {ref.path}")
             if ref.role not in EVIDENCE_ROLES:
                 errors.append(f"{result.id}: unsupported evidence role {ref.role!r}")
+        for check in result.sensitivity_checks:
+            errors.extend(_sensitivity_errors(result, check, root))
     return errors
 
 
@@ -1077,6 +1235,20 @@ def render_markdown() -> str:
             out.append("")
         if r.provenance_gap:
             out.append(f"**Provenance gap.** {r.provenance_gap}")
+            out.append("")
+        if r.sensitivity_checks:
+            out.append("**Mechanism sensitivity.**")
+            for check in r.sensitivity_checks:
+                out.append(
+                    f"- {check.mechanism}: `{check.treatment_path}` "
+                    f"{check.relation} `{check.control_path}` by at least "
+                    f"{check.minimum_effect:g}, retained in "
+                    f"[{check.artifact}](../{check.artifact}) and paired by "
+                    f"`{check.sample_path}`."
+                )
+            out.append("")
+        if r.sensitivity_gap:
+            out.append(f"**Sensitivity gap.** {r.sensitivity_gap}")
             out.append("")
         if r.implemented_by:
             out.append("**Used by.** " + "; ".join(f"`{x}`" for x in r.implemented_by))

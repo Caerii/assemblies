@@ -3755,3 +3755,32 @@ and is linked from the registration and A3 semantic card.
 The combined word-capacity, ladder, runner, execution-semantics, evidence,
 specification and methodology gate is 158 passed. Ruff and whitespace checks
 are clean.
+
+## Retained mechanism sensitivity enters the register (2026-09-11)
+
+Every MEASURED result must now provide either a `SensitivityCheck` over raw
+treatment/control vectors in an immutable JSON artifact or a specific
+`sensitivity_gap`. Validation resolves slash paths with list expansion, requires
+unique sample identities, equal nonempty finite vectors and checks every paired
+effect against the frozen minimum. It therefore fails when pairing is ambiguous
+or a once-live instrument becomes a dead probe;
+it does not infer that the registered claim follows from movement alone.
+
+`SEQ-TEMPORAL-CARRY` checks all twenty state-dependent g=1 distractor contrasts
+against the state-blind g=1 control with the preregistered 0.05 minimum paired
+effect.
+`RATE-HETEROGENEITY` checks all twenty forward-rate ratios against the equal-rate
+null with a 9.0 minimum difference. The retained artifacts pass. The other
+thirteen MEASURED entries now show an explicit sensitivity gap in the generated
+register rather than silently borrowing confidence from legacy prose.
+
+A constructed three-seed moving probe passes and an otherwise identical
+treatment/null probe fails with minimum retained effect zero, and a duplicate
+sample-identity control also fails. The focused theory gate is 14 passed; the
+combined runner, evidence, methodology and specification gate is 194 passed.
+
+The full non-slow package run reached 3432 passed, 139 skipped, 143 deselected,
+7 expected failures and 10 passing subtests. Its only two failures were GPU tests
+started outside the Visual Studio developer environment; both pass when rerun
+through `scripts/cuda-dev.cmd` (2 passed, 32 deselected). Ruff and whitespace
+checks are clean.
