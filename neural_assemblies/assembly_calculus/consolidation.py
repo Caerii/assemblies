@@ -42,6 +42,7 @@ from typing import List, Sequence, Set, Tuple, Union
 
 from .assembly import Assembly
 from .ops import _fix, _snap, _unfix, activate_assembly, merge, project
+from .contracts import CONSOLIDATION_PROTOCOL_CONTRACT, ConsolidationProtocolPlan, implements
 
 # ---------------------------------------------------------------------------
 # Consolidation step types (declarative replay protocols)
@@ -278,6 +279,7 @@ def _prepare_step_areas(brain, step: ConsolidationStep) -> None:
             prepare_area_for_replay(brain, area)
 
 
+@implements(CONSOLIDATION_PROTOCOL_CONTRACT)
 def consolidate(
     brain,
     steps: Sequence[ConsolidationStep],
@@ -287,6 +289,8 @@ def consolidate(
     prepare_areas: bool = False,
 ) -> Set[PathwayEdge]:
     """Replay a consolidation protocol without resetting area connections.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation-protocol
 
     Args:
         brain: Brain instance with areas and stimuli configured.
@@ -319,8 +323,11 @@ def consolidate(
     Reference:
         IMPLICATIONS_AND_PREDICTIONS.md §2 — consolidation as cortical replay.
     """
-    if passes <= 0 or not steps:
-        return set()
+    plan = ConsolidationProtocolPlan(tuple(steps), passes, clear_activity, prepare_areas)
+    steps = plan.steps
+    passes = plan.passes
+    clear_activity = plan.clear_activity
+    prepare_areas = plan.prepare_areas
 
     strengthened: Set[PathwayEdge] = set()
     for _ in range(passes):

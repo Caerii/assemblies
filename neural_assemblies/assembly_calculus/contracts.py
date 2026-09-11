@@ -543,6 +543,25 @@ class ConsolidationPlan:
                 raise KeyError(f"consolidation area is unknown: {area!r}")
 
 
+@dataclass(frozen=True)
+class ConsolidationProtocolPlan:
+    """Immutable ordered replay protocol for generic consolidation."""
+
+    steps: tuple
+    passes: int = 1
+    clear_activity: bool = True
+    prepare_areas: bool = False
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.steps, tuple) or not self.steps:
+            raise ValueError("consolidation requires a nonempty step tuple")
+        if isinstance(self.passes, bool) or not isinstance(self.passes, Integral) or self.passes < 1:
+            raise ValueError("consolidation passes must be a positive integer")
+        _explicit_bool("clear_activity", self.clear_activity)
+        _explicit_bool("prepare_areas", self.prepare_areas)
+        object.__setattr__(self, "passes", int(self.passes))
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 
@@ -1169,6 +1188,27 @@ CONSOLIDATION_CONTRACT = OperationContract(
 )
 
 
+CONSOLIDATION_PROTOCOL_CONTRACT = OperationContract(
+    operation_id="consolidation-protocol-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation-protocol",
+    plan_type=ConsolidationProtocolPlan,
+    inputs=("brain", "ordered replay steps", "passes", "clear_activity", "prepare_areas"),
+    reads=("step source assemblies and stimuli", "existing area-to-area weights"),
+    mutates=("replayed weights", "area activity", "area index mappings when preparation is enabled"),
+    regime=("nonempty ordered protocol", "positive replay passes", "optional destructive area preparation"),
+    observed_outcome=("set of strengthened pathway edges",),
+    failure_conditions=("empty protocol", "invalid pass count or flags", "malformed replay step"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_consolidate_strengthens_pathway_without_reset",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_consolidate_rejects_empty_protocol_or_invalid_passes",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -1183,6 +1223,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "source_binding": SOURCE_BINDING_CONTRACT,
     "binding_recall": BINDING_RECALL_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,
+    "consolidate": CONSOLIDATION_PROTOCOL_CONTRACT,
     "learn_assembly": CONVERGENCE_CONTRACT,
     "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
 })

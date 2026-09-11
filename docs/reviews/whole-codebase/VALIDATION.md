@@ -4912,3 +4912,7 @@ Added BindingRecallPlan and BINDING_RECALL_CONTRACT for the parser-facing recall
 Strengthened SourceBindingPlan admission: target areas must be distinct from all source and teacher areas, preventing backend-dependent self-binding schedules. Added a true-negative test; focused binding/contract tests pass (166), Ruff clean.
 
 Removed an unreachable duplicate empty-input branch in binding.input_drive. Its validation and pre-k-WTA metric behavior remain covered; focused binding/metric tests pass (18), Ruff clean.
+
+## Generic consolidation contract (2026-09-11)
+
+The generic consolidate replay entry point now consumes ConsolidationProtocolPlan and is registered as CONSOLIDATION_PROTOCOL_CONTRACT. Empty protocols and nonpositive passes fail before mutation; clear_activity and prepare_areas must be explicit booleans. Its source docstring and semantic card are linked, and registry/decorator/source-link plus consolidation tests pass (168 tests); Ruff is clean.

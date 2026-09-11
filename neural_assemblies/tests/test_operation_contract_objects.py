@@ -406,6 +406,7 @@ def test_registry_and_public_callable_cannot_drift():
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
     from neural_assemblies.assembly_calculus.binding import bind as source_bind, recall
+    from neural_assemblies.assembly_calculus.consolidation import consolidate
 
     names = {
         "projection": "project",
@@ -416,7 +417,8 @@ def test_registry_and_public_callable_cannot_drift():
     for name, contract in OPERATION_CONTRACTS.items():
         operation = (attend if name == "attention" else
                      source_bind if name == "source_binding" else
-                     recall if name == "binding_recall" else getattr(
+                     recall if name == "binding_recall" else
+                     consolidate if name == "consolidate" else getattr(
             operations, names.get(name, name),
         ))
         assert callable(operation), name

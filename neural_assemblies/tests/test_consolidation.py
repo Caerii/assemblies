@@ -1,6 +1,7 @@
 """Tests for consolidation calculus and emergent pathway schedules."""
 
 import numpy as np
+import pytest
 
 from neural_assemblies.assembly_calculus import (
     PathwayReplay,
@@ -9,6 +10,7 @@ from neural_assemblies.assembly_calculus import (
     consolidate,
     project,
 )
+from neural_assemblies.assembly_calculus.contracts import ConsolidationProtocolPlan
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
     CONTEXT,
@@ -29,6 +31,13 @@ from neural_assemblies.core.brain import Brain
 
 N, K, ROUNDS = 10000, 100, 6
 P, SEED = 0.05, 42
+
+
+def test_consolidate_rejects_empty_protocol_or_invalid_passes():
+    with pytest.raises(ValueError, match="nonempty step"):
+        ConsolidationProtocolPlan(())
+    with pytest.raises(ValueError, match="positive integer"):
+        ConsolidationProtocolPlan((PathwayReplay("A", "B"),), passes=0)
 
 
 def _minimal_brain(seed=SEED):

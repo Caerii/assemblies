@@ -1561,3 +1561,9 @@ empty direction schedule fail before replay.
 ## Multi-source binding recall
 
 `assembly_calculus.binding.recall` is the readout paired with the multi-source teacher binding operation. It activates the named source snapshots, optionally clears the target, and re-drives the target inside `Brain.read_only()` with plasticity and recruitment disabled. It returns a target snapshot when a source is active and `None` for an inactive source. Unknown topology and malformed source lists fail before entering the readout scope.
+
+<a id="contract-consolidation-protocol"></a>
+
+## Generic consolidation protocol
+
+`consolidate` executes a nonempty ordered tuple of `PathwayReplay`, `MergeReplay`, or `MultiProjectReplay` steps for a positive number of passes without resetting area connections. It optionally clears activity and optionally performs the destructive area/index preparation used only for episodic-reset protocols. The plan returns strengthened pathway edges; malformed or empty schedules are rejected before replay.
