@@ -71,3 +71,18 @@ After committing this amendment, execute a version-3 smoke with the same seeds/g
 compare it exactly to direct version-3 output, and validate source/archive/VOID.
 No change to adopted scientific claims or reconstruction of version-2 stopping
 statuses from its scalar-only record is permitted.
+
+
+### Version 3 smoke result (2026-09-10)
+
+Committed amendment and implementation at 685bc77 before the
+[version-3 smoke](../../results/runs/memory.historical-projection/historical-projection-v3-smoke-20260910/results.json).
+Both H1 sizes had three timeouts at eight training rounds: every converged flag is
+false and convergence_time null. The ordinary scaling fit is explicitly unavailable
+(censored_observations). This is not convergence in eight rounds.
+
+Direct version-3 metrics/raw_data/parameters/success match the saved output exactly.
+Compared with the version-2 smoke, elapsed rounds and H1 persistence are unchanged;
+all other raw cells match exactly. No source trajectories changed. Record/archive
+validate and the output remains VOID. No stopping statuses were written back into
+the older artifact; this status information comes from the new measured run.

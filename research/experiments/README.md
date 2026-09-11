@@ -62,3 +62,10 @@ not autonomous completion of a corrupted B cue. See the source-linked
 [measurement card](../../docs/reviews/whole-codebase/SEMANTIC_CARDS.md#historical-projection-measurement)
 before interpreting this study. The corrected version now has the shared runner
 entry above; earlier source-less artifacts are not thereby reproduced.
+
+
+Historical projection protocol v3 distinguishes elapsed training from observed
+convergence. A timeout has `converged=false` and `convergence_time=null`; any timed-out
+H1 brain makes the ordinary scaling fit unavailable. `training_rounds` includes
+capped work and is summarized separately. Version-2 scalar records cannot resolve
+that stopping distinction without new trajectory evidence.

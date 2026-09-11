@@ -2377,3 +2377,16 @@ activation. It is deliberately not replaced with the projection schedule. Its
 reporting migration remains open. No backend or learning update rule changed.
 Version-3 registration amendment precedes the new smoke; no v3 smoke run yet at
 this pre-run checkpoint.
+
+
+Pre-run projection/replay/specification/two-ratchet checks: 64 passed in 48.27s;
+Ruff and diff checks passed. Committed 685bc77 before running version-3 smoke.
+Artifact: research/results/runs/memory.historical-projection/historical-projection-v3-smoke-20260910/.
+The record and source archive validate. Direct version-3 metrics, raw_data,
+parameters and success exactly match canonical saved values. Compared with the
+version-2 smoke, H1 elapsed rounds and persistence match, as do all other raw cells.
+
+All six H1 trials in the new run time out at eight rounds. They now retain false
+converged flags and null event times; the fit is censored_observations with no
+coefficients. This software smoke is VOID, not a scientific convergence study.
+No backend code changed; no GPU or whole-package rerun was required or claimed.

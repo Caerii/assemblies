@@ -1332,3 +1332,10 @@ status/time. Censored seeds block the ordinary scaling fit. Rule window/threshol
 are recorded configuration; default trajectories and final weights are preserved.
 The similar legacy scaling helper has a different initial activation schedule and
 still requires its own migration. See VALIDATION.md#projection-convergence-stopping-2026-09-10.
+
+
+The v3 smoke confirms all six H1 trials timed out at eight rounds, so the previous
+scalar cannot be called a convergence time. The new recorded statuses block the
+fit. Direct/v3 outputs match exactly; v2 elapsed work and all other raw measurements
+are unchanged. Sixty-four focused/specification/ratchet checks pass. Artifact and
+validation details are in the linked validation section.

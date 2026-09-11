@@ -1,0 +1,54 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "685bc77b8f0a83c70c2301161cfb25955f729652",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "beta": 0.1,
+    "convergence_threshold": 0.98,
+    "convergence_window": 3,
+    "h1_sizes": [
+      60,
+      80
+    ],
+    "h3_sizes": [
+      60
+    ],
+    "k": 6,
+    "max_train_rounds": 8,
+    "n": 60,
+    "p": 0.2,
+    "round_values": [
+      1,
+      3
+    ],
+    "test_rounds": 3,
+    "train_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-projection",
+  "protocol_version": "3",
+  "registration": "research/notes/memory/PREREG_historical_projection_migration.md",
+  "registration_sha256": "937cd88629f1747ee18e9258cb0294ce9589b482f4f25106d79383931d557c24",
+  "schema_version": 3,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_projection.py",
+  "script_sha256": "c768df3bb22cf3872d9951cdfb5c8b2ec9c21f0279ebc201b1c298bf59d4bb26",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "b5e55408f40e1b12bb19225a168a92a38978d7054f7a274458010d7101191575"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "a34765d8753ac0cb3f0eb2bc2191e1ffec468f23158492a8c765539d2ddfb4ac",
+  "started_utc": "2026-09-11T00:47:52.609230+00:00",
+  "tag": "historical-projection-v3-smoke-20260910"
+}
