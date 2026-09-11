@@ -1,17 +1,10 @@
 """
 Hebbian bridge parameter sweep for multi-step ordered recall.
 
-Problem: ordered_recall reliably recovers the first item from a cue, but
-multi-step recall (2nd, 3rd+ item) fails.  After LRI suppresses the current
-assembly, the next assembly's activation drops below the novel-assembly
-threshold (0.3 overlap with known), causing early termination.
-
-Root cause: Hebbian bridges between consecutive assemblies are too weak at
-default parameters (N=10000, K=100, P=0.05, BETA=0.1, 2 recurrence rounds
-out of 10).
-
-This test file systematically sweeps parameters and architectural alternatives
-to find regimes where ordered_recall reliably transitions through 3+ items.
+This file explores regimes where ordered recall transitions through several
+items and tests the behavior through recall. Consecutive assemblies can remain
+near chance overlap while directed transition weights carry the sequence, so raw
+assembly overlap is not a measure of bridge strength and is not used as a gate.
 
 Reference:
     Dabagia, Papadimitriou, Vempala.
@@ -26,7 +19,7 @@ import pytest
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
-    Assembly, Sequence, overlap, chance_overlap, ordered_recall,
+    Sequence, overlap, ordered_recall,
 )
 from neural_assemblies.assembly_calculus.ops import _snap
 
@@ -247,62 +240,6 @@ class TestBridgeStrengthDiagnostics:
             f"reps=1 -> {results[1]:.3f}, reps=10 -> {results[10]:.3f}"
         )
 
-    @pytest.mark.xfail(
-        strict=False,
-        reason=(
-            "Bridge strength measured as raw OVERLAP between consecutive "
-            "assemblies does not robustly exceed chance on this system. "
-            "Measured (norm_init default AND norm_init=False), the consecutive "
-            "overlap is near-chance and highly seed-dependent -- e.g. (5000,70) "
-            "swings 0.007-0.036 across seeds vs a 0.042 threshold -- because "
-            "consecutive assemblies are approximately INDEPENDENT. Sequences do "
-            "chain and recall correctly, but through learned transition WEIGHTS, "
-            "not shared neurons; that (the property that actually matters) is "
-            "validated by the recall-based tests in this file, all passing under "
-            "norm_init. The overlap proxy is kept as a documented diagnostic, "
-            "not a gate. norm_init further reduces the overlap by design (more "
-            "distinct assemblies), so it is not the cause."
-        ),
-    )
-    def test_bridge_strength_vs_n_k(self):
-        """Diagnostic: consecutive-assembly overlap vs (N, K). See xfail reason.
-
-        Tests (N, K) = (5000, 70), (10000, 100), (20000, 141), K ≈ sqrt(N).
-        """
-        configs = [
-            (5000, 70),
-            (10000, 100),
-            (20000, 141),
-        ]
-        results = {}
-
-        for n, k in configs:
-            b = _make_brain(n=n, k=k)
-            b.add_area("A", n, k, BETA)
-            stims = _setup_stimuli(b, n_items=3, k=k)
-
-            seq = _custom_memorize(
-                b, stims, "A", rounds_per_step=10,
-                phase_b_ratio=0.4, repetitions=3,
-            )
-
-            overlaps = []
-            for i in range(len(seq) - 1):
-                overlaps.append(overlap(seq[i], seq[i + 1]))
-            results[(n, k)] = np.mean(overlaps)
-            print(f"  N={n}, K={k}: mean_consec_overlap={results[(n, k)]:.3f}")
-
-        # All configs should produce above-chance bridges. Chance MUST be
-        # computed per-config: this sweep varies (n, k), but the previous code
-        # used the module-global chance_overlap(K, N) for every config, so the
-        # sparser large-N configs were held to the denser default's threshold
-        # (0.03) that their own chance (e.g. 0.007 at N=20000) can never reach.
-        for (n_cfg, k_cfg), val in results.items():
-            chance = chance_overlap(k_cfg, n_cfg)
-            assert val > chance * 3, (
-                f"Bridge at ({n_cfg}, {k_cfg}) should be above chance: "
-                f"{val:.3f} vs {chance:.3f}"
-            )
 
 
 # ======================================================================
@@ -554,7 +491,7 @@ class TestArchitecturalAlternatives:
 
         # Bridge area should recall at least the first item
         assert bridge_length >= 1, (
-            f"Bridge area pattern should recall at least 1 item"
+            "Bridge area pattern should recall at least 1 item"
         )
 
     def test_pre_memorization_reinforcement(self):
@@ -571,7 +508,7 @@ class TestArchitecturalAlternatives:
         stims = _setup_stimuli(b)
 
         # Initial memorization
-        seq = _custom_memorize(
+        _custom_memorize(
             b, stims, "A", rounds_per_step=10,
             phase_b_ratio=0.4, repetitions=3,
         )

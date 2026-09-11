@@ -3100,3 +3100,14 @@ and its own reason pointed to the valid replacement. The dead test is removed;
 `test_compiled_role_reduces_sampling` now states that it requires an active
 pathway and passes on that pathway in 1.88 seconds. Removing the obsolete block
 also exposed and removed three unused imports. Ruff and diff checks pass.
+
+## Sequence bridge proxy removal (2026-09-11)
+
+The sequence sweep labelled consecutive-assembly overlap as "bridge strength"
+even though the registered mechanism stores order in directed inter-assembly
+weights. Its non-strict N/k sweep therefore failed and passed on a quantity that
+need not move for recall to work. The proxy test is removed and the module now
+states that recall is the behavioral gate. The repetition and three-item recall
+controls pass (2 tests in 7.16 seconds); their sampled-engine warnings mean they
+remain API tests rather than scientific sequence evidence. Removing the obsolete
+proxy also exposed three small lint defects, now fixed.

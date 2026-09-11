@@ -1648,3 +1648,9 @@ The non-strict compiled-fidelity test was an impossible zero-drive probe: both
 policies exit before winner selection. It is removed in favor of the existing
 active role-pathway sampling contract, which passes in1.88s and now documents
 its live-drive precondition. Three newly exposed unused imports were removed.
+
+The non-strict N/k "bridge strength" sweep was also measuring raw overlap between
+consecutive assemblies, while sequence order lives in directed weights. That proxy
+is removed; the module now names recall as its behavioral gate. Repetition and
+three-item recall controls pass (2 tests,7.16s) with the expected sampled-engine
+warning, so they remain API checks rather than scientific evidence.
