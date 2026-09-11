@@ -15,7 +15,10 @@ from .operations import ordered_recall_trace, project_trace
 
 @dataclass(frozen=True)
 class ProjectionSweepConfig:
-    """One projection-stability parameter setting."""
+    """One projection-stability parameter setting.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-trace-sweeps
+    """
 
     n: int
     k: int
@@ -24,11 +27,15 @@ class ProjectionSweepConfig:
     seed: int = 42
     p: float = 0.05
     engine: str = "numpy_sparse"
+    sampled_recurrence_policy: str = "warn"
 
 
 @dataclass(frozen=True)
 class RecallSweepConfig:
-    """One sequence-recall parameter setting."""
+    """One sequence-recall parameter setting.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-trace-sweeps
+    """
 
     refractory_period: int
     inhibition_strength: float
@@ -42,6 +49,7 @@ class RecallSweepConfig:
     seed: int = 42
     p: float = 0.05
     engine: str = "numpy_sparse"
+    sampled_recurrence_policy: str = "warn"
     sequence: tuple[str, ...] = ("item_0", "item_1", "item_2", "item_3")
     match_threshold: float = 0.3
 
@@ -50,7 +58,10 @@ def projection_sweep(configs: Sequence[ProjectionSweepConfig]) -> list[dict[str,
     """Run independent projection traces and return compact diagnostic rows."""
     rows: list[dict[str, object]] = []
     for config in configs:
-        brain = Brain(p=config.p, save_winners=True, seed=config.seed, engine=config.engine)
+        brain = Brain(
+            p=config.p, save_winners=True, seed=config.seed, engine=config.engine,
+            sampled_recurrence_policy=config.sampled_recurrence_policy,
+        )
         brain.add_stimulus("stim", config.k)
         brain.add_area("A", config.n, config.k, config.beta)
         trace = project_trace(brain, "stim", "A", rounds=config.rounds)
@@ -63,6 +74,8 @@ def projection_sweep(configs: Sequence[ProjectionSweepConfig]) -> list[dict[str,
                 "beta": config.beta,
                 "rounds": config.rounds,
                 "seed": config.seed,
+                "engine": config.engine,
+                "sampled_recurrence_policy": config.sampled_recurrence_policy,
                 "chance_overlap": chance_overlap(config.k, config.n),
                 "final_overlap_prev": summary["final_overlap_prev"],
                 "stabilized_at": summary["stabilized_at"],
@@ -76,7 +89,10 @@ def lri_recall_sweep(configs: Sequence[RecallSweepConfig]) -> list[dict[str, obj
     """Run independent sequence-memory/LRI recalls and summarize trace quality."""
     rows: list[dict[str, object]] = []
     for config in configs:
-        brain = Brain(p=config.p, save_winners=True, seed=config.seed, engine=config.engine)
+        brain = Brain(
+            p=config.p, save_winners=True, seed=config.seed, engine=config.engine,
+            sampled_recurrence_policy=config.sampled_recurrence_policy,
+        )
         for stimulus in config.sequence:
             brain.add_stimulus(stimulus, config.k)
         brain.add_area("SEQ", config.n, config.k, config.beta)
@@ -122,6 +138,8 @@ def lri_recall_sweep(configs: Sequence[RecallSweepConfig]) -> list[dict[str, obj
                 "final_best_overlap": best_overlaps[-1],
                 "chance_overlap": chance_overlap(config.k, config.n),
                 "seed": config.seed,
+                "engine": config.engine,
+                "sampled_recurrence_policy": config.sampled_recurrence_policy,
             }
         )
     return rows

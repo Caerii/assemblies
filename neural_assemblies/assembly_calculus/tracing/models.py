@@ -10,7 +10,10 @@ from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 
 @dataclass(frozen=True)
 class TraceStep:
-    """One observed assembly state during a traced operation."""
+    """One observed assembly state during a traced operation.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-trace-counts
+    """
 
     round_index: int
     operation: str

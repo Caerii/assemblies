@@ -2214,3 +2214,16 @@ Source-to-spec validation now covers `research/experiments`, not only the packag
 and runner. Six preregistration/audit references were reclassified from the word
 `Specification`, and the real temporal observation contract gained its missing
 stable anchor. The combined gate is 167 passed and the run artifact validates.
+
+The next maintained `.w` consumer is gone. Pattern-completion trace round zero
+used the active-count alias as `num_ever_fired` and inherited a stale training
+`num_first_winners` despite performing only cue injection. Trace construction and
+`TraceStep` now link to `contract-trace-counts`; cumulative recruitment uses the
+named accessor and observation-only injection records zero new winners. The test
+constructs a population larger than its half cue, so the wrong implementation
+cannot pass by equality at k. The ratchet baseline is lower by one.
+
+Tracing sweep configurations now transport engine plus sampled-recurrence policy
+and emit both in each row. Defaults continue to warn, acknowledged teaching
+fixtures are quiet, and unknown policy names fail before projection. This removes
+warning noise without weakening the sampled-engine misuse guard.

@@ -3833,3 +3833,25 @@ anchor; labels and the stable observation-contract anchor are corrected.
 Validation: 167 register, graph, specification, migration, capacity, runner and
 methodology tests pass. The schema-7 run validates with an exact file inventory.
 Ruff passes on all changed Python sources.
+
+## Trace observations distinguish active, recruited and newly recruited counts (2026-09-11)
+
+The maintained tracing layer wrote `Area.w` into `TraceStep.num_ever_fired`.
+That alias is overwritten by direct winner assignment, which is exactly what the
+round-zero pattern-completion cue does. The trace could therefore label a half
+cue's active size as lifetime recruitment and carry the last training round's
+`num_first_winners` into a step where no projection occurred.
+
+The source-linked trace-count contract now requires `num_winners` from the
+snapshot, cumulative recruitment from `Area.get_num_ever_fired()`, and zero new
+winners for observation-only injection. A counterexample trains more than k
+neurons, injects a half cue and verifies all three distinct values. The ambiguous
+`.w` occurrence was removed from the ratchet baseline. Deliberate sampled-engine
+fixtures acknowledge that model choice, keeping warning-policy coverage in its
+dedicated tests rather than filling unrelated trace output.
+
+The teaching sweep records now carry `engine` and `sampled_recurrence_policy`
+from immutable configuration through Brain construction into every output row.
+The default still warns; deliberate fixtures acknowledge it explicitly, and an
+unknown policy fails before projection. The warning-free focused gate passes
+19 tests under `-W error`; the ratchet and specification gate passes 17 tests.

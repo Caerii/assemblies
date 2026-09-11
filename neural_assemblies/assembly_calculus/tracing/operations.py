@@ -284,6 +284,7 @@ def pattern_complete_trace(
             drive=f"partial cue keeps {plan.fraction:.2f}",
             sources=(area,),
             previous=previous,
+            num_first_winners=0,
         )
         partial = previous
 
@@ -389,7 +390,9 @@ def _append_step(
     drive: str,
     sources: Sequence[str],
     previous: Assembly | None,
+    num_first_winners: int | None = None,
 ) -> Assembly:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-trace-counts"""
     assembly = _snap(brain, target)
     area = brain.areas[target]
     step = TraceStep(
@@ -400,8 +403,9 @@ def _append_step(
         drive=drive,
         sources=tuple(sources),
         num_winners=len(assembly),
-        num_ever_fired=area.w,
-        num_first_winners=max(0, int(area.num_first_winners)),
+        num_ever_fired=area.get_num_ever_fired(),
+        num_first_winners=(max(0, int(area.num_first_winners))
+                           if num_first_winners is None else num_first_winners),
         overlap_with_previous=None if previous is None else overlap(previous, assembly),
     )
     steps.append(step)

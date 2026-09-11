@@ -26,7 +26,7 @@ from neural_assemblies.core.brain import Brain
 @pytest.fixture
 def trained():
     """A brain whose area has recruited strictly more than `k` neurons."""
-    b = Brain(p=0.05, seed=7)
+    b = Brain(p=0.05, seed=7, sampled_recurrence_policy="acknowledged")
     b.add_stimulus("S", 20)
     b.add_area("A", 1000, 20, 0.05)
     for _ in range(12):

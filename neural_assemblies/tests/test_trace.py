@@ -33,7 +33,10 @@ BETA = 0.08
 
 
 def _brain(seed: int = 42) -> Brain:
-    return Brain(p=0.05, save_winners=True, seed=seed, engine="numpy_sparse")
+    return Brain(
+        p=0.05, save_winners=True, seed=seed, engine="numpy_sparse",
+        sampled_recurrence_policy="acknowledged",
+    )
 
 
 def test_project_trace_records_round_metrics() -> None:
@@ -180,6 +183,7 @@ def test_pattern_complete_trace_reports_recovery() -> None:
     brain.add_stimulus("red", K)
     brain.add_area("COLOR", N, K, BETA)
     project(brain, "red", "COLOR", rounds=8)
+    ever_fired_before_cue = brain.areas["COLOR"].get_num_ever_fired()
 
     diagnostic = pattern_complete_trace(
         brain, "COLOR", fraction=0.5, rounds=4, seed=1,
@@ -191,6 +195,10 @@ def test_pattern_complete_trace_reports_recovery() -> None:
     assert len(diagnostic.partial) == K // 2
     assert diagnostic.trace.operation == "pattern_complete"
     assert diagnostic.trace[0].round_index == 0
+    assert diagnostic.trace[0].num_winners == K // 2
+    assert diagnostic.trace[0].num_ever_fired == ever_fired_before_cue
+    assert diagnostic.trace[0].num_ever_fired > diagnostic.trace[0].num_winners
+    assert diagnostic.trace[0].num_first_winners == 0
     assert 0.0 <= diagnostic.recovery_overlap <= 1.0
 
 
@@ -226,14 +234,22 @@ def test_ordered_recall_trace_records_lri_steps() -> None:
 def test_projection_sweep_returns_compact_rows() -> None:
     rows = projection_sweep(
         [
-            ProjectionSweepConfig(n=N, k=K, beta=BETA, rounds=4, seed=1),
-            ProjectionSweepConfig(n=N, k=K, beta=0.12, rounds=4, seed=1),
+            ProjectionSweepConfig(
+                n=N, k=K, beta=BETA, rounds=4, seed=1,
+                sampled_recurrence_policy="acknowledged",
+            ),
+            ProjectionSweepConfig(
+                n=N, k=K, beta=0.12, rounds=4, seed=1,
+                sampled_recurrence_policy="acknowledged",
+            ),
         ]
     )
 
     assert len(rows) == 2
     assert rows[0]["chance_overlap"] == K / N
     assert rows[0]["final_overlap_prev"] is not None
+    assert rows[0]["engine"] == "numpy_sparse"
+    assert rows[0]["sampled_recurrence_policy"] == "acknowledged"
 
 
 def test_lri_recall_sweep_returns_recall_rows() -> None:
@@ -247,6 +263,7 @@ def test_lri_recall_sweep_returns_recall_rows() -> None:
                 rounds_per_step=6,
                 repetitions=1,
                 sequence=("s0", "s1", "s2"),
+                sampled_recurrence_policy="acknowledged",
             )
         ]
     )
@@ -254,6 +271,17 @@ def test_lri_recall_sweep_returns_recall_rows() -> None:
     assert len(rows) == 1
     assert rows[0]["recall_steps"] >= 1
     assert rows[0]["ordered_matches"] >= 0
+    assert rows[0]["engine"] == "numpy_sparse"
+    assert rows[0]["sampled_recurrence_policy"] == "acknowledged"
+
+
+def test_projection_sweep_rejects_unknown_sampled_recurrence_policy() -> None:
+    config = ProjectionSweepConfig(
+        n=N, k=K, beta=BETA, rounds=2,
+        sampled_recurrence_policy="silence-it",
+    )
+    with pytest.raises(ValueError, match="sampled_recurrence_policy"):
+        projection_sweep([config])
 
 
 def test_trace_rounds_must_be_positive() -> None:

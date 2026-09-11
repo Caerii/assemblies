@@ -242,7 +242,6 @@ W_BASELINE = {
     "legacy/root_modules/recursive_parser.py": 1,
     "neural_assemblies/assembly_calculus/binding.py": 1,
     "neural_assemblies/assembly_calculus/emergent/evaluation/erp/adapters.py": 1,
-    "neural_assemblies/assembly_calculus/tracing/operations.py": 1,
     "neural_assemblies/language/debugger.py": 1,
     "neural_assemblies/language/parser.py": 1,
     "neural_assemblies/programs/colt_mnist_hierarchical_brain.py": 1,

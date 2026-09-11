@@ -1797,6 +1797,34 @@ readout instead of target lookup, and sensitivity to disabled transition teachin
 A perfect small untrained fixture is possible and must be retained when observed.
 The separate legacy SoftmaxContextCoin is retired; see contract-context-choice below.
 
+<a id="contract-trace-counts"></a>
+### Trace count identity
+
+A `TraceStep` keeps three different counts. `num_winners` is the size of the
+observed assembly now. `num_ever_fired` is the target area's cumulative recruited
+population and must come from `Area.get_num_ever_fired()`, never the ambiguous
+`Area.w` alias. `num_first_winners` is the engine projection's new-recruit count;
+an observation-only cue injection records zero because no projection occurred.
+Assigning a partial cue may change current winners but must not reduce cumulative
+recruitment or reuse a stale new-winner count from training.
+
+Control: `test_pattern_complete_trace_reports_recovery` trains a population larger
+than the retained half cue and verifies that round zero preserves the former
+cumulative count, reports the cue size separately, and reports zero new winners.
+
+<a id="contract-trace-sweeps"></a>
+### Trace sweep model identity
+
+Every tracing sweep configuration carries both its engine and sampled-recurrence
+policy into Brain construction and emits both fields with each observation row.
+The sampled NumPy default remains `warn`; callers making a deliberate sampled
+comparison must say `acknowledged`, while `forbid` stops recurrent work. Unknown
+policy names fail during Brain construction before areas, stimuli or observations
+exist. A row without the model choice that produced it is not a portable result.
+
+Controls exercise an acknowledged teaching sweep without warning, retain its
+engine and policy in output, and reject an unknown policy before projection.
+
 
 <a id="contract-seeded-observation"></a>
 ### Seeded read-only observation
