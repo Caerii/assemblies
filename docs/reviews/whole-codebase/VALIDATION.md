@@ -3230,3 +3230,16 @@ reduction of 130 lines. Most changes narrow import lists or remove dead locals;
 the broad package rerun remains the acceptance gate before this checkpoint is
 treated as stable. The research tree separately has 715 configured Ruff findings
 and is not represented as clean by this package repair.
+
+The first complete rerun at `991642e` caught one mechanical-cleanup regression:
+3,256 tests passed, but all ten CuPy-kernel tests failed because their local
+capability probe had become an empty `try` body that unconditionally set
+`HAS_CUPY = True`. CuPy is not importable in this environment, so those nodes
+should have skipped. This was test admission failure, not a CUDA-kernel result.
+
+The repair removes the duplicate probe. Public `core.backend.cupy_available()`
+now owns torch-first DLL ordering, CuPy import, a real device-allocation check,
+and cached availability; both automatic backend selection and the CUDA-kernel
+suite use it. The focused backend, CUDA-kernel and lazy-import gate reports
+24 passed and 10 correctly skipped in 12.98 seconds. Ruff, compilation and diff
+checks pass. A second complete run remains required from the repaired commit.

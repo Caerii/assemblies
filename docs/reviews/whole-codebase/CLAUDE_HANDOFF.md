@@ -1720,3 +1720,15 @@ Compilation, Ruff, diff checks and a focused cross-engine/sequence/prediction/IR
 gate pass (40 passed, 1 skipped). A complete non-slow rerun is still required
 before treating this broad cleanup as stable. Research remains a separate lint
 debt of 715 findings; no claim of whole-tree lint cleanliness is made.
+
+The complete rerun at `991642e` did its job: 3,256 passed, while one ten-test
+cluster failed before computation. Ruff had removed the import from a handwritten
+CuPy availability `try`, leaving its success flag unconditional in an environment
+without importable CuPy. The kernel code itself was never reached.
+
+Capability admission is now centralized as `core.backend.cupy_available()`.
+It preserves the required torch-first Windows DLL order, imports CuPy, performs
+a device allocation, and caches the result. Automatic backend selection and the
+kernel tests share that decision. The focused gate is 24 passed, 10 correctly
+skipped; Ruff, compilation and diff checks pass. The repaired exact commit still
+needs the complete non-slow gate before a clean audit receipt can be recorded.

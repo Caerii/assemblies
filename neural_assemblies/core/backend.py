@@ -44,7 +44,12 @@ def _torch_first():
         pass
 
 
-def _detect_cupy():
+def cupy_available():
+    """Return whether CuPy can allocate on a GPU in this process.
+
+    Importing CuPy is itself order-sensitive on Windows, so capability gates
+    must use this probe rather than duplicating a bare import.
+    """
     global _HAS_CUPY
     if _HAS_CUPY is None:
         try:
@@ -72,8 +77,8 @@ def set_backend(name="auto"):
         import cupy
         _xp = cupy
     elif name == "auto":
-        # _detect_cupy already ran _torch_first before importing CuPy.
-        _xp = __import__("cupy") if _detect_cupy() else np
+        # cupy_available already ran _torch_first before importing CuPy.
+        _xp = __import__("cupy") if cupy_available() else np
     else:
         raise ValueError(f"Unknown backend: {name!r}")
 

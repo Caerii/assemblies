@@ -7,12 +7,11 @@ All tests require a GPU with CuPy installed and are skipped otherwise.
 import numpy as np
 import pytest
 
-try:
-    HAS_CUPY = True
-except Exception:
-    HAS_CUPY = False
+from neural_assemblies.core.backend import cupy_available
 
-pytestmark = pytest.mark.skipif(not HAS_CUPY, reason="CuPy/GPU not available")
+pytestmark = pytest.mark.skipif(
+    not cupy_available(), reason="CuPy/GPU not available"
+)
 
 
 def _make_engine(n=10_000, k=50, p=0.05, beta=0.05, seed=42, w_max=20.0):
