@@ -4270,3 +4270,12 @@ global synaptic-scaling flushes remain deliberately primary-engine policy.
 
 Validation: 3 focused morphological feature/syntax tests passed; ruff and
 whitespace checks pass.
+
+The stimulus-preallocation linker had the same aliasing hazard: it checked the
+primary engine once, then attempted to prepare every named area there. It now
+resolves each area's owner and checks that owner's capability. An explicit-area
+negative control prevents sparse preparation from being applied to the wrong
+backend.
+
+Validation: 3 stimulus-preallocation admission tests passed; ruff and
+whitespace checks pass.

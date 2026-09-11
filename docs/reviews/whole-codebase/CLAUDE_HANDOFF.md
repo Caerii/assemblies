@@ -2481,6 +2481,10 @@ The evaluation pass fixed two more target-owner assumptions in morphological
 afferent-mass readout and candidate decoding. Three focused morphology tests
 pass; global scaling flushes remain intentionally primary-engine policy.
 
+The linker audit found preallocation was also checking the primary engine once
+for all targets. It now resolves each area's owner and capability; three
+preallocation admission tests pass.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;

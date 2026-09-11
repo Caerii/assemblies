@@ -25,3 +25,18 @@ def test_sparse_engine_preallocation_extends_the_live_vector():
     engine.preallocate_stim_targets("A", 10)
     assert len(conn.weights) == 10
     assert conn.weights.tolist() == [0.0] * 10
+
+
+def test_linker_resolves_owner_before_preallocation_for_explicit_area():
+    from neural_assemblies.assembly_calculus.emergent.training.compiler import (
+        link_preallocate_stim_targets,
+    )
+
+    brain = Brain(engine="numpy_sparse", norm_init=False)
+    brain.add_stimulus("s", 2)
+    brain.add_area("A", 20, 2, explicit=True)
+    brain.areas["A"].w = 2
+    parser = type("Parser", (), {"brain": brain})()
+    # The explicit owner lacks sparse preallocation; the primary engine must
+    # not be probed as a substitute for the area's actual owner.
+    link_preallocate_stim_targets(parser, ["A"])
