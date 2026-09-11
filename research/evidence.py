@@ -200,6 +200,33 @@ def audit_history(root: Path = ROOT) -> dict:
             'preregistrations_without_resolved_result_links': [name for name in preregs if name not in reports_results]}
 
 
+def validate_active_evidence_graph(root: Path = ROOT) -> list[str]:
+    """Require every tracked shared-runner result to validate and link from its registration.
+
+    This is the strict forward boundary. Legacy result files remain in the broader
+    audit inventory until they receive an explicit disposition.
+    """
+    root = root.resolve()
+    files = subprocess.check_output(
+        ['git', 'ls-files', 'research/results/runs/*/*/results.json'],
+        cwd=root, text=True).splitlines()
+    audit = audit_history(root)
+    edges = {(edge['from'], edge['to']) for edge in audit['resolved_edges']}
+    errors = []
+    for name in files:
+        path = root / name
+        artifact_errors = validate_artifact(path, root=root)
+        errors.extend(f'{name}: {error}' for error in artifact_errors)
+        try:
+            registration = load_document(path)['run']['registration']
+        except (OSError, ValueError, KeyError, TypeError) as exc:
+            errors.append(f'{name}: cannot resolve registration edge: {exc}')
+            continue
+        if (registration, name) not in edges:
+            errors.append(f'{name}: recorded registration {registration} does not link this result')
+    return errors
+
+
 def specification_links(root: Path = ROOT) -> tuple[list[dict], list[str]]:
     """Check source docstring links to explicit Markdown specification anchors.
 

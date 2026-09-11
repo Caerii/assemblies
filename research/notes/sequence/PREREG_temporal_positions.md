@@ -156,3 +156,10 @@ alternative readout, gaps beyond two, natural language, or resistance to arbitra
 noise.
 
 Evidence: [immutable registered result](../../results/runs/sequence.temporal-positions/temporal-positions-study-20260910/results.json).
+
+## Schema 5 storage validation (2026-09-10, after the result)
+
+The same reduced smoke protocol was rerun only to validate the new compressed raw
+attachment boundary. Reconstructing its corpus and arm records from the attachment
+is exactly equal to the earlier schema 4 smoke; it remains scientifically `VOID`.
+Evidence: [schema 5 CUDA smoke](../../results/runs/sequence.temporal-positions/temporal-positions-schema5-smoke-20260910/results.json).

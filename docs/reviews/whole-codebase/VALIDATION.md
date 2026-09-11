@@ -2951,3 +2951,20 @@ schema4 smoke, including every raw frame and summary. Inline results fell from
 452,602 bytes to22,752; its raw attachment is22,371 bytes (358,800 decoded), about
 a90% combined reduction. The scientific output remains VOID. Existing schema4
 artifacts are preserved rather than rewritten; future high-volume runs use schema5.
+
+## Active evidence-graph gate (2026-09-10)
+
+The broad literal inventory currently reports2,700 tracked files,2,887 resolved
+edges,741 unresolved prose references,367 candidate orphan result-like files and28
+preregistrations without resolved result links. Those counts include legacy trees,
+ambiguous basenames, run records and comparison receipts; they are debt inventory,
+not367 invalid scientific results.
+
+The strict forward boundary now walks every tracked shared-runner `results.json`.
+All19 current artifacts must pass full artifact/source/attachment validation and
+their exact recorded registration must contain a resolved link to that result.
+The schema5 smoke closed the only missing active edge. This gate runs in CPU CI.
+A constructed case proves that a structurally valid result without its registration
+edge fails, and that adding the exact edge clears it.85 active-graph/runner tests
+pass; the focused negative plus live graph pass in20.27s. Ruff and diff checks pass.
+Legacy disposition remains explicit open work; it cannot expand through this path.

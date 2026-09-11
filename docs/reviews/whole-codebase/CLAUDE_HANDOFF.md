@@ -1581,3 +1581,13 @@ storage from452,602 bytes to22,752 results +22,371 attachment. It remains VOID.
 Existing artifacts were not rewritten. Use `ExperimentOutput` for future large raw
 studies and `load_json_attachment` for validated reads. The schema5 smoke artifact
 is committed with this checkpoint; no dev/master merge occurs.
+
+## Active evidence-graph gate (2026-09-10)
+
+All19 tracked shared-runner results now validate and link from their recorded
+registration; the schema5 smoke was the sole missing edge and is now linked. CPU CI
+walks this active graph. A constructed valid-but-unlinked result fails until its exact
+registration link is added.85 runner/graph checks pass. The legacy audit still has
+367 candidate result orphans,28 preregs without resolved result links and741
+unresolved textual references; these are inventory categories requiring disposition,
+not a claim that every item is invalid. New runner evidence cannot add to that debt.

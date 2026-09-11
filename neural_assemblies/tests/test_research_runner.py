@@ -409,6 +409,24 @@ def test_source_archive_preserves_checkout_bytes_and_untracked_code(source_repo)
     assert validate_artifact(path, root=source_repo) == []
 
 
+def test_active_graph_rejects_valid_result_not_linked_from_registration(source_repo):
+    import subprocess
+    from research.evidence import validate_active_evidence_graph
+    registration = source_repo / 'registration.md'
+    registration.write_text('registered fixture')
+    runner.run_experiment(
+        script='study.py', registration='registration.md', protocol='fixture',
+        protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='linked',
+        parameters={}, measure=lambda _record: {'verdict': 'UNADOPTED'})
+    subprocess.run(['git', 'add', 'registration.md', 'research/results/runs'],
+                   cwd=source_repo, check=True)
+    errors = validate_active_evidence_graph(source_repo)
+    assert any('does not link this result' in error for error in errors)
+    registration.write_text(
+        '[result](research/results/runs/fixture/linked/results.json)')
+    assert validate_active_evidence_graph(source_repo) == []
+
+
 @pytest.mark.parametrize('damage', ['missing', 'bytes', 'source', 'registration', 'duplicate', 'escape'])
 def test_source_archive_damage_is_rejected_even_with_updated_container_digest(run, damage):
     import hashlib

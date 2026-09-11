@@ -36,6 +36,7 @@ jobs:
           neural_assemblies/tests/test_legacy_result_storage.py
           neural_assemblies/tests/test_legacy_aggregate_summary.py
           neural_assemblies/tests/test_research_runner.py
+          neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py
           neural_assemblies/tests/test_horizon_runner_contract.py
           neural_assemblies/tests/test_capacity_runner_contract.py
