@@ -15,7 +15,6 @@ failure mode is self-overlap 0.68 (reads as success) alongside rank-1 identity
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -140,7 +139,7 @@ def main():
           f"chance overlap={K/N:.4f}\n")
     res = run_cells(worker, cells, max_workers=min(len(cells), 14))
 
-    print(f"\n--- Part A: M-ceiling at T=8  (rank1 full / half, self-ov, pairwise)")
+    print("\n--- Part A: M-ceiling at T=8  (rank1 full / half, self-ov, pairwise)")
     print(f"    {'arm':5s} {'M':>4} {'rank1_full':>11} {'rank1_half':>11} "
           f"{'self_ov':>8} {'pairwise':>9}  flags")
     for a in ARMS:
@@ -153,7 +152,7 @@ def main():
             print(f"    {a:5s} {M:4d} {f:11.3f} {h:11.3f} {so:8.3f} "
                   f"{pw:9.4f}  {'SILENT x%d' % flags if flags else ''}")
 
-    print(f"\n--- Part B: T-window at M=16")
+    print("\n--- Part B: T-window at M=16")
     print(f"    {'arm':5s} {'T':>4} {'rank1_full':>11} {'rank1_half':>11}")
     for a in ARMS:
         for T in PART_B_T:
@@ -191,15 +190,16 @@ def main():
               "ratchet is not a normalization problem and the "
               "capacity/robustness trade is structural.")
 
-    path = os.path.join(_HERE, "seq_recurrent_ratchet_results.json")
-    with open(path, "w") as fh:
-        json.dump({"n": N, "k": K, "beta": BETA, "p": P, "seeds": SEEDS,
-                   "ceilings": ceil,
-                   "bars": {"RC1": bool(rc1), "RC2": bool(rc2),
-                            "RC3": bool(rc3), "RC4": bool(rc4),
-                            "RC5": bool(rc5)},
-                   "cells": {f"{a}/{M}/{T}/{s}": res[(a, M, T, s)]
-                             for (a, M, T, s) in cells}}, fh, indent=2)
+    from _results import write_result
+    path = write_result(
+        "sequence", "seq_recurrent_ratchet_results.json",
+        {"n": N, "k": K, "beta": BETA, "p": P, "seeds": SEEDS,
+         "ceilings": ceil,
+         "bars": {"RC1": bool(rc1), "RC2": bool(rc2),
+                  "RC3": bool(rc3), "RC4": bool(rc4), "RC5": bool(rc5)},
+         "cells": {f"{a}/{M}/{T}/{s}": res[(a, M, T, s)]
+                   for (a, M, T, s) in cells}},
+    )
     print(f"\nwrote {path}")
 
 

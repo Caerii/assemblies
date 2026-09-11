@@ -2631,3 +2631,5 @@ Migrated the S5 word-problem and state-refraction result helpers to the shared e
 Migrated S5 soft census and A3 transducer result helpers to the shared exclusive writer, preserving payloads and existing read behavior. Removed an unused census variable found during validation. Both scripts compile and pass Ruff.
 
 Migrated A1 step accuracy, A1 drift localization, and A2 word-order diagnostics to the shared exclusive result writer. Payloads remain unchanged. Ruff exposed and the migration removed seven pre-existing formatting/import issues.
+
+Migrated recurrent-ratchet and refraction-stability sequence studies to the shared result writer, preserving their payloads and bar logic. Removed three latent Ruff issues found in those files.

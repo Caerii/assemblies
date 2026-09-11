@@ -34,7 +34,6 @@ wrong claim.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -111,7 +110,7 @@ def main():
     from _parallel import run_cells
     cells = [(s, c, sc, sd) for (s, c) in CONFIGS
              for sc in SCALINGS for sd in SEEDS]
-    print(f"=== refraction stability/conjunctivity tradeoff ===")
+    print("=== refraction stability/conjunctivity tradeoff ===")
     print(f"    Z60 organ_p=0.5 T={T} w_max=None, seeds {SEEDS}\n")
     res = run_cells(worker, cells, max_workers=min(len(cells), 14))
 
@@ -204,16 +203,17 @@ def main():
         print(f"        strength={s} {'const' if c else 'geom':>5}: "
               f"OFF {txt}")
 
-    path = os.path.join(_HERE, "seq_refraction_stability_results.json")
-    with open(path, "w") as fh:
-        json.dump({"configs": [list(c) for c in CONFIGS], "seeds": SEEDS,
-                   "T": T, "summary": summary,
-                   "cells": {f"{s}/{c}/{sc}/{sd}": res[(s, c, sc, sd)]
-                             for (s, c) in CONFIGS for sc in SCALINGS
-                             for sd in SEEDS},
-                   "bars": {"R1": bool(r1), "R2": bool(r2),
-                            "R3": bool(r3), "R4": bool(r4),
-                            "R5": bool(r5)}}, fh, indent=2)
+    from _results import write_result
+    path = write_result(
+        "sequence", "seq_refraction_stability_results.json",
+        {"configs": [list(c) for c in CONFIGS], "seeds": SEEDS,
+         "T": T, "summary": summary,
+         "cells": {f"{s}/{c}/{sc}/{sd}": res[(s, c, sc, sd)]
+                   for (s, c) in CONFIGS for sc in SCALINGS
+                   for sd in SEEDS},
+         "bars": {"R1": bool(r1), "R2": bool(r2), "R3": bool(r3),
+                  "R4": bool(r4), "R5": bool(r5)}},
+    )
     print(f"\nwrote {path}")
 
 
