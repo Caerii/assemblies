@@ -20,3 +20,14 @@ smoke and compare saved metrics/raw_data/parameters/success exactly against dire
 execution of recorded inputs (excluding timestamps/duration). Validate the archive
 and link the result here. New raw values and paired statistics are intentional
 reporting changes, not a claim to preserve the historical misleading p=1 fallback.
+
+
+## Migration result (2026-09-10)
+
+Implementation and registration committed at 174f5f8 before the
+[smoke run](../../results/runs/memory.historical-association/historical-association-smoke-20260910/results.json).
+The recorded seeds1/2/3 and resolved parameters reproduce metrics, raw_data,
+parameters and success exactly through direct execution. Archive validation passes.
+Nine raw vectors retain the eight measurement groups and derived paired differences;
+they are not nine independent ensembles. This software check remains VOID and
+neither adopts the old hypotheses nor repairs source-less historical artifacts.

@@ -1461,3 +1461,8 @@ schedules and seed IDs are explicit; raw observations and paired differences per
 Zero association rounds is an explicit control. Replaced misleading constant-difference
 p=1 with undefined test fields and the actual paired-difference interval. Trial replay
 fixtures stay exact. See VALIDATION.md#configurable-association-harness-2026-09-10.
+
+
+Association smoke acceptance now passes: recorded source174f5f8, exact direct/runner
+metrics/raw_data/parameters/success, valid archive and all seed vectors retained.
+89 targeted checks pass. Scientific status remains VOID; old evidence is untouched.

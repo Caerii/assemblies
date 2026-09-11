@@ -1,0 +1,48 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "git_commit": "174f5f861702d69330522f5a4861b1a6dd3d0d47",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "assoc_rounds": 3,
+    "beta": 0.1,
+    "establish_rounds": 3,
+    "h1e_sizes": [
+      60
+    ],
+    "k": 6,
+    "n": 60,
+    "p": 0.2,
+    "round_values": [
+      1,
+      3
+    ],
+    "test_rounds": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.historical-association",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_historical_association_migration.md",
+  "registration_sha256": "387517378e2dc7629fb4f1592890fa2b50549092483a1145d8bba249173cff0f",
+  "schema_version": 4,
+  "scientific_status": "VOID",
+  "script": "research/experiments/historical_association.py",
+  "script_sha256": "db8817c8ee99d260ca6d94ecd6b33b481ad6c6a03593f566f6bc6d3ef99707ec",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "15a9a4086a73835b595ba125ae1bd3de3f5aab1b2f9aebeed0871597fd474cc7"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "c4fce4ee3d43e5b7dfd6df16b987ad22e9ede9ec43cec47ce9309f0fa85bad6b",
+  "started_utc": "2026-09-11T01:58:42.272413+00:00",
+  "tag": "historical-association-smoke-20260910"
+}

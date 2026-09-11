@@ -2704,3 +2704,11 @@ raw_data, parameters and success against direct execution before adoption of the
 migration; scientific status remains VOID/UNADOPTED.
 
 Pre-run validation: 89 tests passed in 90.77s, including trial replay, shared adapter, legacy aggregate, both ratchets and specification links. Ruff and diff checks pass. The producer is 164 lines shorter; the separate adapter adds 28 lines.
+
+
+The smoke executed at source174f5f8 and is retained under
+research/results/runs/memory.historical-association/historical-association-smoke-20260910.
+Its metrics/raw_data/parameters/success exactly match direct execution using recorded
+inputs, and its source archive validates. Nine raw vectors retain seeds1/2/3: eight
+measurement groups plus their derived directionality difference. Status is VOID.
+No GPU rerun, full historical replication or whole-package green claim is made.
