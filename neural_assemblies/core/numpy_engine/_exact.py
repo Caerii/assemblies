@@ -48,7 +48,11 @@ import numpy as np
 from ..index_spaces import validated_indices
 
 from ..backend import to_cpu
-from ..engine import ComputeEngine, ProjectionResult
+from ..engine import (
+    ComputeEngine,
+    ProjectionResult,
+    validate_deterministic_allocation,
+)
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..activity import ActivityState
 from .._pricing import inverse_indegree
@@ -443,7 +447,6 @@ class NumpyExactEngine(ComputeEngine):
 
     _UNSUPPORTED_INIT = {
         "synaptic_scaling": False,
-        "deterministic": False,   # this engine has no RNG stream to stabilise
     }
 
     # `norm_init` DEFAULTS TO FALSE, matching `numpy_sparse`, and the default
@@ -460,6 +463,10 @@ class NumpyExactEngine(ComputeEngine):
                  norm_init: bool = False, inhibitory_prob: float = 0.0,
                  inhibitory_weight: float = -0.2, dtype=None,
                  **kwargs) -> None:
+        if "deterministic" in kwargs:
+            validate_deterministic_allocation(
+                type(self), kwargs.pop("deterministic")
+            )
         if "projection_fidelity" in kwargs:
             from ..projection_fidelity import validate_projection_fidelity_capability
             validate_projection_fidelity_capability(

@@ -29,6 +29,17 @@ from typing import Dict, List, Optional
 import numpy as np
 
 
+def validate_deterministic_allocation(engine_type, value) -> bool:
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-deterministic-allocation"""
+    if type(value) is not bool:
+        raise ValueError("deterministic must be a bool")
+    if value and not getattr(engine_type, "supports_deterministic_allocation", False):
+        raise ValueError(
+            f"{engine_type.__name__} does not support deterministic allocation"
+        )
+    return value
+
+
 @dataclass
 class ProjectionResult:
     """Result of projecting into one area.
@@ -72,7 +83,7 @@ class ComputeEngine(ABC):
 
     def validate_brain_identity(
         self, *, p, seed, w_max, homeostasis=None, feedforward_inhibition=None,
-        projection_fidelity=None,
+        projection_fidelity=None, deterministic=None,
     ) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-identity
 
@@ -115,6 +126,19 @@ class ComputeEngine(ABC):
                     "pass a matching selection mode"
                 )
 
+        if deterministic is not None and self.supports_deterministic_allocation:
+            actual = getattr(self, "_deterministic", None)
+            if actual is None:
+                raise ValueError(
+                    f"{type(self).__name__} cannot validate Brain deterministic; "
+                    "store the executed allocation mode"
+                )
+            if actual is not deterministic:
+                raise ValueError(
+                    "Brain deterministic setting conflicts with supplied engine; "
+                    "pass a matching allocation mode"
+                )
+
     # -- Area / stimulus registration --
 
     supports_input_noise = False
@@ -127,6 +151,7 @@ class ComputeEngine(ABC):
     supports_synaptic_scaling_deferred = False
     supports_feedforward_inhibition = False
     supports_compiled_projection = False
+    supports_deterministic_allocation = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -621,6 +646,8 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
         engine = create_engine("numpy_sparse", p=0.05, seed=42, w_max=20.0)
     """
     resolved_type = engine_type(engine_name)
+    if "deterministic" in kwargs:
+        validate_deterministic_allocation(resolved_type, kwargs["deterministic"])
     from ._homeostasis import (
         HomeostasisConfig,
         validate_homeostasis_capabilities,

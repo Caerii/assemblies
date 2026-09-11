@@ -4031,3 +4031,25 @@ Validation: 243 exact, literature, slot, boundary, lazy-import and specification
 tests pass with 11 expected sampled-recurrence warnings. The changed Torch path
 passes 38 scaling and parity tests in the Visual Studio/CUDA shell. Ruff and
 whitespace checks pass.
+
+## Deterministic allocation is a typed capability (2026-09-11)
+
+Brain's documentation claimed `deterministic=True` ensured bit-identical results
+across code versions, even though the actual branches select exact-fit allocation
+and, on Torch, CPU sampling. Dense explicit accepted the option without reading
+it; exact drive rejected it only later through a permissive constructor path.
+Strings such as `"false"` were truthy and selected the enabled branch on sampled
+engines.
+
+The flag is now a strict boolean admitted through
+`supports_deterministic_allocation`. Sampled NumPy, Torch and their derived GPU
+adapters opt in. Dense and exact reject an enabled request before construction.
+Brain, the factory and direct constructors share the validator; supplied capable
+engines must carry the same stored execution policy as the adopting Brain. The
+docstring and linked IR contract explicitly limit the promise: engine and commit
+remain necessary parts of reproducibility.
+
+Validation: 233 constructor, topology, model-boundary, engine-ladder,
+lazy-import, specification and seeding tests pass with one optional-engine skip.
+The changed Torch path passes 38 scaling and parity tests in the CUDA developer
+shell. Ruff and whitespace checks pass.

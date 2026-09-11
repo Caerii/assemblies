@@ -10,7 +10,11 @@ from typing import Dict, List
 from collections import defaultdict
 
 from ..backend import get_xp, to_cpu
-from ..engine import ComputeEngine, ProjectionResult
+from ..engine import (
+    ComputeEngine,
+    ProjectionResult,
+    validate_deterministic_allocation,
+)
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration, validate_slot_configuration
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
@@ -58,6 +62,7 @@ class NumpyExplicitEngine(ComputeEngine):
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False):
+        validate_deterministic_allocation(type(self), deterministic)
         self.p = p
         self.w_max = w_max
         self.seed = int(seed)

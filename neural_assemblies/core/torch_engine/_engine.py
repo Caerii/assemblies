@@ -36,7 +36,11 @@ from ..numpy_engine._sparse import (
 from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_lri_parameters, refraction_increment, scaling_applies,
                             scaling_setpoint)
 from ..connectome import Connectome
-from ..engine import ComputeEngine, ProjectionResult
+from ..engine import (
+    ComputeEngine,
+    ProjectionResult,
+    validate_deterministic_allocation,
+)
 from ..index_spaces import reserve_initial_neuron_ids
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..semantics import (
@@ -95,6 +99,7 @@ class TorchSparseEngine(ComputeEngine):
 
     supports_norm_init = True
     supports_synaptic_scaling = True
+    supports_deterministic_allocation = True
     supports_input_noise = True
     supports_refraction = True
 
@@ -127,6 +132,7 @@ class TorchSparseEngine(ComputeEngine):
                  deterministic: bool = False, gpu_sampling: bool = True,
                  **kwargs):
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-option-remainder
+        deterministic = validate_deterministic_allocation(type(self), deterministic)
         if "projection_fidelity" in kwargs:
             from ..projection_fidelity import validate_projection_fidelity_capability
             validate_projection_fidelity_capability(

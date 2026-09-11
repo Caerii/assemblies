@@ -35,7 +35,12 @@ from typing import Dict, List, Tuple
 from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
-from .engine import ComputeEngine, create_engine, engine_type
+from .engine import (
+    ComputeEngine,
+    create_engine,
+    engine_type,
+    validate_deterministic_allocation,
+)
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import (
     HomeostasisConfig,
@@ -135,12 +140,11 @@ class Brain:
                    normalization and scaling settings must match too. Use
                    HomeostasisConfig.as_kwargs() to share those settings.
                    See ir/VERIFICATION.md#contract-engine-identity.
-            deterministic (bool): If True, use legacy code paths that preserve
-                   bit-identical RNG sequences for a given seed. Slower (~1.5-2x)
-                   but ensures exact reproducibility across code versions.
-                   If False (default), use optimized paths (amortised buffer
-                   growth, fast inverse-CDF sampling) that are statistically
-                   equivalent but produce different RNG sequences.
+            deterministic (bool): If True, request exact-fit allocation and the
+                   engine's deterministic sampling path. This is an execution
+                   policy, not a promise of cross-backend or cross-version bit
+                   identity. Unsupported engines reject it. If False (default),
+                   capable engines may use amortised growth and faster sampling.
             n_hint (int): Expected neuron count per area.  When
                    ``engine="auto"``, this guides engine selection: n >= 1M
                    with GPU available selects ``torch_sparse`` (CSR, GPU),
@@ -185,6 +189,7 @@ class Brain:
                 f"got {type(engine)}"
             )
         owner_type = engine_type(engine) if isinstance(engine, str) else type(engine)
+        deterministic = validate_deterministic_allocation(owner_type, deterministic)
         projection_fidelity = validate_projection_fidelity_capability(
             owner_type, projection_fidelity
         )
@@ -214,6 +219,7 @@ class Brain:
                 homeostasis=homeostasis,
                 feedforward_inhibition=feedforward_inhibition,
                 projection_fidelity=projection_fidelity,
+                deterministic=deterministic,
             )
         self.p = p
         self.w_max = w_max

@@ -973,6 +973,28 @@ dense drive and require rejection before engine or area state exists. A positive
 Torch control supplies every recognized option and reaches device setup, proving
 that the remainder check has not forbidden the supported configuration surface.
 
+<a id="contract-deterministic-allocation"></a>
+
+## Deterministic-allocation admission
+
+`deterministic` is a strict boolean execution policy. On capable engines, true
+selects exact-fit buffer growth and the engine's deterministic sampling branch;
+false permits amortized growth and faster sampling. It does not promise
+bit-identical results across engine implementations, dependency versions or code
+revisions. Scientific protocols must still record the engine and commit.
+
+Engines opt into `supports_deterministic_allocation`. Sampled NumPy, Torch and
+their derived GPU adapters implement the branch. Dense explicit has no lazy
+allocation branch, while exact drive has no sampling stream; both reject true
+rather than accept an inert option. Brain and `create_engine` validate before
+construction, and direct engine constructors apply the same boundary. When Brain
+adopts a capable engine, the requested policy must match the engine's stored
+executed policy.
+
+Controls reject integer, string and null substitutes for booleans, prove
+incapable constructors are not entered, distinguish the universal false default
+from an enabled request, and reject mismatched supplied-engine adoption.
+
 
 <a id="contract-backend-capability"></a>
 

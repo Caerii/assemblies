@@ -28,7 +28,11 @@ from .._pricing import (
 )
 from .._homeostasis import (column_scale, refraction_increment,
                             scaling_applies, scaling_setpoint, HomeostasisConfig, check_area_homeostasis, validate_lri_parameters)
-from ..engine import ComputeEngine, ProjectionResult
+from ..engine import (
+    ComputeEngine,
+    ProjectionResult,
+    validate_deterministic_allocation,
+)
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
@@ -342,6 +346,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     supports_fiber_learning_masks = True
     supports_sampled_recurrence_policy = True
     supports_compiled_projection = True
+    supports_deterministic_allocation = True
 
     def __init__(self, p: float, seed: int = 0, w_max: float = 20.0,
                  deterministic: bool = False,
@@ -350,6 +355,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                  synaptic_scaling_deferred: bool = False,
                  norm_init: bool = False,
                  sampled_recurrence_policy: str = "warn"):
+        deterministic = validate_deterministic_allocation(type(self), deterministic)
         self._sampled_recurrence_policy = SampledRecurrencePolicy.normalize(
             sampled_recurrence_policy
         )

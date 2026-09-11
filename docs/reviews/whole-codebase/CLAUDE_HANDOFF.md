@@ -2343,3 +2343,16 @@ A positive Torch admission case carries every supported option to its device
 boundary. The wider CPU gate is 243 passed with 11 expected sampled-recurrence
 warnings, and 38 Torch scaling/parity tests pass in the CUDA developer shell.
 This rule is now an Assembly IR contract linked from both implementations.
+
+The adjacent `deterministic` flag was also overclaiming and underchecking. Its
+docstring promised bit identity across code versions, sampled engines treated
+nonempty strings as true, and dense explicit accepted true without any branch to
+execute. It now names a strict-boolean allocation/sampling policy behind
+`supports_deterministic_allocation`; exact and dense reject enabled requests,
+while sampled NumPy, Torch and their derived adapters opt in. Supplied-engine
+adoption checks the stored mode instead of issuing a conflicting Brain receipt.
+
+The contract explicitly declines cross-backend and cross-version identity; run
+provenance still owns those claims. The CPU gate is 233 passed with one optional
+backend skip, and the changed Torch path is 38 scaling/parity tests green in the
+CUDA shell. Direct constructor negatives fail before device setup.
