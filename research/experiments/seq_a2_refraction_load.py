@@ -25,7 +25,6 @@ This sweeps arc SIZE at fixed content, so load M*k/n is the only thing moving.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -64,8 +63,8 @@ def main():
     seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
     rows = []
     print("=== does refraction need LOAD to converge? ===")
-    print(f"    sweeping arc size at fixed content, so load M*k/n is the only "
-          f"thing moving\n")
+    print("    sweeping arc size at fixed content, so load M*k/n is the only "
+          "thing moving\n")
     for label, moods in (("single-mood (3 conjunctions)", ["svo"]),
                          ("multi-mood (9 conjunctions)", list(ORDERS))):
         m_count = len(transitions_for(moods))
@@ -83,11 +82,10 @@ def main():
                   f"{ok}/{len(seeds)} correct", flush=True)
         print()
 
-    from _results import results_path
-    out = results_path("sequence", "seq_a2_refraction_load_results"
-                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json")
-    with open(out, "w") as fh:
-        json.dump(rows, fh, indent=2)
+    from _results import write_result
+    out = write_result("sequence", "seq_a2_refraction_load_results"
+                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json",
+                       rows)
     print(f"wrote {out}")
 
 

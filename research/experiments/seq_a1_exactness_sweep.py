@@ -28,7 +28,6 @@ metric that moves without the others is visible rather than averaged in.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -114,11 +113,10 @@ def main():
               f"{s['decided']:>5d}/{len(got):<2d} {s['mean_overlap']:>8.3f}",
               flush=True)
 
-    from _results import results_path
-    out = results_path("sequence", "seq_a1_exactness_sweep_results"
-                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json")
-    with open(out, "w") as fh:
-        json.dump({"summary": summary, "rows": rows}, fh, indent=2)
+    from _results import write_result
+    out = write_result("sequence", "seq_a1_exactness_sweep_results"
+                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json",
+                       {"summary": summary, "rows": rows})
     print(f"\nwrote {out}")
 
 

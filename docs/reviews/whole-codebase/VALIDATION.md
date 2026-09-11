@@ -4723,3 +4723,7 @@ The public `ops.bind` path now validates source/target existence, `project_round
 ## Measurement observation completeness (2026-09-11)
 
 `input_drive` no longer converts an omitted engine score into a fabricated `0.0`. It now requires every requested target area to appear in the post-projection observation and raises a diagnostic error when instrumentation is incomplete; reported zero remains valid. A true-negative monkeypatch test covers the failure, and metric/observation/orthogonality tests pass **20 tests**.
+
+## Shared legacy result writer (2026-09-11)
+
+The sequence experiment adapter now exposes `write_result`, one small wrapper around the canonical JSON boundary. Three sequence scripts use it, so result creation is exclusive, deterministic, and rejects nonfinite values before filesystem mutation. `results_path` now returns a `Path`, making read/write composition type-consistent. Two writer tests cover overwrite and invalid-number true negatives; Ruff, compilation, and diff checks are clean.

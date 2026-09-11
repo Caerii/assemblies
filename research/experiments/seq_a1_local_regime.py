@@ -25,7 +25,6 @@ brain that merely has a low `p` attribute.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -98,7 +97,7 @@ def arm(name, *, organ_p, seeds):
 
 def main():
     seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
-    print(f"=== organ at its own regime inside a sparse brain ===")
+    print("=== organ at its own regime inside a sparse brain ===")
     print(f"    ambient p = {AMBIENT_P}, organ p = {ORGAN_P}, k = {K}")
     print(f"    organ floors: arc 3 ln {N_ARC} = {3 * np.log(N_ARC):.1f}, "
           f"state 3 ln {N_STATE} = {3 * np.log(N_STATE):.1f}")
@@ -117,12 +116,10 @@ def main():
                and arms[1]["correct"] <= 0.2 * arms[1]["n"])
     print(f"\n  SEQ-ORGAN-EMBEDS: {'SUPPORTED' if verdict else 'NOT SUPPORTED'}")
 
-    from _results import results_path
-    out = results_path("sequence", "seq_a1_local_regime_results"
-                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json")
-    with open(out, "w") as fh:
-        json.dump({"ambient_p": AMBIENT_P, "organ_p": ORGAN_P, "arms": arms},
-                  fh, indent=2)
+    from _results import write_result
+    out = write_result("sequence", "seq_a1_local_regime_results"
+                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json",
+                       {"ambient_p": AMBIENT_P, "organ_p": ORGAN_P, "arms": arms})
     print(f"\nwrote {out}")
 
 
