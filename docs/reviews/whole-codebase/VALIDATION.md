@@ -4336,3 +4336,18 @@ to delegate through the shared parser and writer. The S5 hashed census remains
 unmigrated because its registered ten-seed protocol conflicts with the runner's
 mandatory twenty-seed hashed-study floor; changing that requires a named
 preregistration amendment and evidence replay.
+
+## Full non-slow suite diagnostic (2026-09-11)
+
+The package non-slow suite was run from the audit worktree with
+`.venv/Scripts/python.exe -X utf8 -m pytest neural_assemblies/tests -q -m 'not slow'`.
+It reached 999 passed, 18 skipped, 1 xfailed and 143 deselected before
+keyboard interruption after 15m43s; four failures were reported. Three were
+`test_bridge_reset_preserves_actual_population_not_requested_capacity[*]`:
+the backend preserved 20 neurons while the public `Area.w` facade remained 0.
+`Brain.reset_area_population_cursor(..., reset_count=False)` now synchronizes
+that facade from the owner state. The remaining ERP calibration failure is
+preserved as a scientific diagnostic: the sampled SENTENCES calibration for
+seed 42 produced `p600_auc = 0.000`, below the registered above-chance bar.
+No threshold was weakened to hide this inversion; the result requires a
+materialized/fixed-engine replay or an explicit amendment before adoption.

@@ -1358,6 +1358,11 @@ class Brain:
             return
         if reset_count:
             state.w = 0
+        else:
+            # Backend-owned areas can recruit through the engine without
+            # updating the facade descriptor.  A topology-preserving reset
+            # must still expose the actual population through the public API.
+            area.w = int(state.w)
         if not preserve_mapping:
             state.compact_to_neuron_id = []
             if getattr(state, "neuron_id_pool", None) is not None:
