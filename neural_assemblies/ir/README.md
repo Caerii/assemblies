@@ -53,6 +53,13 @@ checks the wire contract; it does not execute the Julia/Python numerical protoco
 Lean's reusable lowering rules live in `formal/AssemblyIR/Refinement.lean` and
 still require concrete backend simulation proofs.
 
+`formal/AssemblyIR/Projection.lean` instantiates those rules for a pure,
+scaled-integer explicit-round model and a dense-kernel instruction. It proves
+the field lowering for one round and finite programs, winner observation
+agreement, frozen-weight and other-area frame laws, and exact checked admission.
+Its selector and learning transform remain explicit parameters. This is a proof
+of the pure IR lowering, not of NumPy float32 or a Rust/CUDA executor.
+
 `formal/AssemblyIR/Domain.lean` adds a checked domain interface: state-dependent
 preconditions, one transition definition shared by execution and proof, and
 invariant preservation for accepted schedules. Its `checkedExecute` entry also

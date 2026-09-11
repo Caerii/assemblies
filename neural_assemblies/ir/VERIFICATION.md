@@ -25,8 +25,9 @@ proves conditional rules for sequential schedules:
 | `visible_count_is_insufficient` | Equal visible counts do not establish equal hidden states |
 
 These are generic proof rules, not proofs of the Python, Rust, Julia or CUDA
-implementations. No backend currently discharges `Simulates`. Neither the
-sampling distribution nor floating-point arithmetic has been formalized here.
+implementations. The pure explicit-round model below discharges `Simulates` for
+its internal dense-kernel instruction; no implementation backend does. Neither
+the sampling distribution nor floating-point arithmetic has been formalized here.
 
 ## One semantic definition, two consumers
 
@@ -364,6 +365,44 @@ formalize the numerical profile and its state/readout relation, then prove the
 local `Simulates` obligation and identity of the normalized input consumed by
 the proof. No generated Lean schedule or proof of Python/NumPy arithmetic is
 claimed here. Rust validates the explicit-round transport but does not execute it.
+
+<a id="contract-formal-explicit-round"></a>
+
+## Pure formal explicit-round lowering
+
+[Projection.lean](../../formal/AssemblyIR/Projection.lean) models the normalized
+round fields and a separately named `DenseKernelRound`. Its state contains area
+registration, population and cap sizes, winner neuron IDs and integer weights.
+Drive is the declared external integer bias followed by source-row sums in source
+and winner order. Winner selection and the per-fiber learning transform are
+arguments, so a target must supply them rather than inherit an unnamed tie or
+plasticity rule.
+
+`Valid` is an executable state-dependent admission decision. It rejects missing
+or duplicate sources, no input, a supplied drive with the wrong population
+length, unregistered areas, malformed source winners, `k > n`, and selected caps
+with the wrong size, duplicates or out-of-range IDs. `checkedRound_iff` proves
+that checked execution returns a state exactly when this predicate holds and
+that the result is the ordinary semantic step. This is a one-round pure failure;
+it does not claim rollback for an effectful implementation.
+
+`lowerRound_simulates` discharges `Refinement.Simulates` for the field mapping
+into one dense-kernel instruction. `lowerRound_program` lifts it to every finite
+schedule and `lowerRound_winners` proves equal winner observations. Separate
+theorems prove that frozen rounds preserve all weights, non-target areas preserve
+their winners, and target winners are exactly the selector result. Constructed
+examples check a hand-computed drive and learned weight. A broken lowering that
+clears the learning bit retains the old weight, so the proof suite distinguishes
+the omitted mechanism. Short drive, duplicate-source and invalid-selector cases
+all reject.
+
+The formal drive uses arbitrary-precision integers. A future translation must
+prove how finite JSON numbers become scaled integers and how NumPy float32
+addition, multiplication and clipping refine them under stated error bounds.
+Area-name decoding, fiber existence, Python exceptions, Rust/CUDA execution and
+the identity of a schema-validated document with the Lean value remain open.
+`lake build` checks warnings as errors; `lake env leanchecker
+AssemblyIR.Projection` independently checks the compiled declarations.
 
 
 <a id="contract-explicit-inputs"></a>

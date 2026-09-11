@@ -3174,3 +3174,33 @@ change.
 
 This closes transport drift for one restricted instruction. Rust does not yet
 execute it, and Lean does not yet prove its lowering or NumPy's arithmetic.
+
+## Pure Lean explicit-round lowering (2026-09-11)
+
+`formal/AssemblyIR/Projection.lean` now instantiates the generic refinement rule
+for a pure scaled-integer round and a distinct dense-kernel instruction. One
+semantic function owns ordered drive accumulation, winner replacement and
+learning writes; both instruction types supply its fields. The local
+`lowerRound_simulates` proof lifts to every finite program, and a winner-readout
+theorem follows from final-state equality. Frame theorems cover frozen weights,
+non-target winners and the exact selected target cap.
+
+The executable `Valid` decision moves malformed state ahead of mutation. It
+checks registration, source uniqueness, input presence, drive dimension, source
+winner IDs, `k <= n`, and selector output size/uniqueness/range.
+`checkedRound_iff` proves exact acceptance and result identity. A hand-computed
+two-neuron case has drive `[4,0]` and learns weight 3 to 4. A broken lowering that
+drops plasticity stays at 3, while short-drive, duplicate-source and invalid-cap
+controls reject.
+
+An initial theorem used Boolean `!=` where propositional inequality was intended;
+Lean refused the frame proof. A second draft quantified over arbitrary area
+values and therefore had no executable `Decidable` instance. The final contract
+uses finite-list Boolean checks, so admission evaluates and the proof compiles.
+`lake build` passes with warnings as errors and `lake env leanchecker
+AssemblyIR.Projection` accepts the module. Printed dependencies contain
+`propext` and `Quot.sound`, with no `sorryAx`.
+
+This proves the pure field lowering, not schema-to-Lean translation or NumPy,
+Rust or CUDA arithmetic. JSON decimal scaling, float32 error/clipping, fiber
+existence and effectful exception semantics remain explicit bridge obligations.

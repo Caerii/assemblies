@@ -1691,3 +1691,18 @@ The Python execution, Brain lowering, wire and specification gate is 123 passed.
 The assembly-ir crate is 4 passed, with rustfmt and Clippy clean under denied
 warnings. An isolated wheel contains the schema and corpus. Rust transport still
 has no numerical executor, and no Lean-to-NumPy simulation proof is claimed.
+
+## Pure formal explicit-round lowering (2026-09-11)
+
+Added `formal/AssemblyIR/Projection.lean`: a scaled-integer semantic round, a
+separate dense-kernel instruction, executable state admission, and a concrete
+`Simulates` proof for their field lowering. The proof lifts to finite schedules
+and winner observations. Frame laws cover frozen weights, non-target winners and
+the selected target cap. Admission rejects registration, dimension, index,
+duplicate-source, `k` and selector-output errors before returning state.
+
+Positive controls compute drive `[4,0]` and weight 3 -> 4. A lowering that drops
+learning remains at 3; three malformed cases reject. `lake build` with warnings
+as errors and `leanchecker AssemblyIR.Projection` pass, with no `sorryAx`.
+This is an internal pure lowering proof. The schema-to-Lean identity and concrete
+NumPy/Rust/CUDA arithmetic simulations remain open.
