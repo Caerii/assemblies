@@ -54,6 +54,78 @@ def test_smoke_record_is_void_and_includes_resolved_inputs(run):
     assert result['status'] == 'complete'
 
 
+def test_large_raw_json_is_a_digest_bound_compressed_attachment(run):
+    from research.evidence import load_json_attachment, validate_artifact
+    raw = {'frames': [{'seed': seed, 'neurons': list(range(200))}
+                      for seed in range(20)]}
+    path = run(measure=lambda _record: runner.ExperimentOutput(
+        {'verdict': 'UNADOPTED', 'raw': {'attachment': 'raw-frames.json.gz'}},
+        {'raw-frames.json.gz': raw}))
+    payload = json.loads(path.read_text())
+    assert payload['run']['schema_version'] == 5
+    assert '"frames": [' not in path.read_text()
+    assert set(payload['attachments']) == {'raw-frames.json.gz'}
+    metadata = payload['attachments']['raw-frames.json.gz']
+    assert metadata['bytes'] < metadata['decoded_bytes']
+    assert validate_artifact(path) == []
+    assert load_json_attachment(path, 'raw-frames.json.gz') == raw
+
+
+def test_attachment_encoding_is_deterministic():
+    first = runner._encode_attachments({'raw.json.gz': {'values': [3, 1, 2]}})
+    second = runner._encode_attachments({'raw.json.gz': {'values': [3, 1, 2]}})
+    assert first == second
+
+
+@pytest.mark.parametrize('damage', ['missing', 'changed', 'extra', 'metadata', 'json'])
+def test_attachment_damage_or_inventory_drift_is_rejected(run, damage):
+    import gzip
+    from research.evidence import validate_artifact
+    path = run(measure=lambda _record: runner.ExperimentOutput(
+        {'verdict': 'UNADOPTED'}, {'raw.json.gz': {'values': [1, 2, 3]}}))
+    attachment = path.parent / 'raw.json.gz'
+    payload = json.loads(path.read_text())
+    if damage == 'missing':
+        attachment.unlink()
+    elif damage == 'changed':
+        attachment.write_bytes(attachment.read_bytes() + b'x')
+    elif damage == 'extra':
+        (path.parent / 'unrecorded.json.gz').write_bytes(b'extra')
+    elif damage == 'metadata':
+        payload['attachments']['raw.json.gz']['decoded_sha256'] = '0' * 64
+        path.write_text(json.dumps(payload))
+    else:
+        malformed = gzip.compress(b'{"a": 1, "a": 2}', mtime=0)
+        attachment.write_bytes(malformed)
+        import hashlib
+        item = payload['attachments']['raw.json.gz']
+        item.update(sha256=hashlib.sha256(malformed).hexdigest(), bytes=len(malformed),
+                    decoded_sha256=hashlib.sha256(b'{"a": 1, "a": 2}').hexdigest(),
+                    decoded_bytes=len(b'{"a": 1, "a": 2}'))
+        path.write_text(json.dumps(payload))
+    assert validate_artifact(path)
+
+
+@pytest.mark.parametrize('name', ['../raw.json.gz', 'sub/raw.json.gz', 'raw.json',
+                                  'results.json.gz'])
+def test_unsafe_attachment_names_fail_before_sidecar_write(run, name, tmp_path):
+    with pytest.raises(ValueError, match='attachment names'):
+        run(measure=lambda _record: runner.ExperimentOutput({}, {name: [1, 2, 3]}))
+    directory = tmp_path / 'audit.fixture/fixture'
+    assert (directory / 'failure.json').exists()
+    assert not list(directory.glob('*.json.gz'))
+
+
+def test_nonfinite_attachment_fails_without_publishing_partial_sidecar(run, tmp_path):
+    with pytest.raises(ValueError, match='JSON compliant|nonfinite'):
+        run(measure=lambda _record: runner.ExperimentOutput(
+            {}, {'raw.json.gz': {'value': float('nan')}}))
+    directory = tmp_path / 'audit.fixture/fixture'
+    assert (directory / 'failure.json').exists()
+    assert not (directory / 'results.json').exists()
+    assert not (directory / 'raw.json.gz').exists()
+
+
 def test_failure_keeps_record_and_reserves_tag(run):
     def fail(record):
         raise RuntimeError('constructed failure')
@@ -206,7 +278,7 @@ def test_record_carries_shared_environment_fingerprint_without_raw_values(run, m
     monkeypatch.setenv('NEURAL_ASSEMBLIES_NO_RUST', 'private-test-value')
     path = run()
     record = json.loads(path.read_text())['run']
-    assert record['schema_version'] == 4
+    assert record['schema_version'] == 5
     fingerprint = record['environment']['variables_sha256']
     assert fingerprint['NEURAL_ASSEMBLIES_NO_RUST'] == dict(
         sweep._training_env_signature())['NEURAL_ASSEMBLIES_NO_RUST']

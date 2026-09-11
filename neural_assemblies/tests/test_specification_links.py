@@ -18,6 +18,7 @@ def test_reviewed_operations_keep_their_specification_links():
             "clone", "ExplicitRound", "execute_on_brain",
             "fork_parser_instance", "_pristine_copy", "_calibrate",
             "resolve_holdout_set",
+            "ExperimentOutput",
             "load_backbone_cache", "save_backbone_cache",
             "_sparse_sources_drive_to_explicit", "_project_impl", "set_winners", "_validated_winner_inputs", "_source_neuron_ids", "reinforce_connectome", "suppress_fiber_learning",
             "_reset_context_for_bridge", "AssemblyMemory", "HashedArcFSM", "HashedTransducer"} <= linked

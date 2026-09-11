@@ -9,6 +9,8 @@ from __future__ import annotations
 import argparse
 import ast
 from collections import defaultdict
+import gzip
+import hashlib
 import json
 from pathlib import Path
 import re
@@ -16,11 +18,61 @@ import subprocess
 
 from neural_assemblies.core.environment import ENVIRONMENT_POLICY, ENVIRONMENT_PREFIXES
 
-from research.json_documents import encode_document, load_document
+from research.json_documents import decode_document, encode_document, load_document
 from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
 _FILE_REF = re.compile(r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb)(?![\w])')
+_ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
+
+
+def _validate_attachments(path: Path, references) -> list[str]:
+    if not isinstance(references, dict):
+        return ['attachments must map safe sibling names to digests']
+    errors, expected_files = [], {'run.json', 'results.json', 'source.zip', *references}
+    actual_files = {item.name for item in path.parent.iterdir() if item.is_file()}
+    if actual_files != expected_files:
+        errors.append('completed artifact file inventory differs from attachment manifest')
+    fields = {'media_type', 'content_encoding', 'sha256', 'decoded_sha256',
+              'bytes', 'decoded_bytes'}
+    for name, metadata in references.items():
+        if (not isinstance(name, str) or not _ATTACHMENT_NAME.fullmatch(name)
+                or not isinstance(metadata, dict) or set(metadata) != fields):
+            errors.append(f'invalid attachment manifest entry: {name}')
+            continue
+        if (metadata['media_type'] != 'application/json'
+                or metadata['content_encoding'] != 'gzip'
+                or any(not re.fullmatch('[a-f0-9]{64}', str(metadata[field]))
+                       for field in ('sha256', 'decoded_sha256'))
+                or any(type(metadata[field]) is not int or metadata[field] < 0
+                       for field in ('bytes', 'decoded_bytes'))):
+            errors.append(f'invalid attachment metadata: {name}')
+            continue
+        try:
+            content = (path.parent / name).read_bytes()
+            if len(content) != metadata['bytes'] or hashlib.sha256(content).hexdigest() != metadata['sha256']:
+                errors.append(f'attachment digest or size mismatch: {name}')
+                continue
+            raw = gzip.decompress(content)
+            if (len(raw) != metadata['decoded_bytes']
+                    or hashlib.sha256(raw).hexdigest() != metadata['decoded_sha256']):
+                errors.append(f'decoded attachment digest or size mismatch: {name}')
+                continue
+            decode_document(raw.decode('utf-8'))
+        except (OSError, EOFError, UnicodeError, ValueError, gzip.BadGzipFile) as exc:
+            errors.append(f'unreadable attachment {name}: {exc}')
+    return errors
+
+
+def load_json_attachment(path: Path, name: str, *, root: Path = ROOT):
+    """Read one schema-5 attachment only after validating the complete artifact."""
+    errors = validate_artifact(path, root=root)
+    if errors:
+        raise ValueError('; '.join(errors))
+    references = load_document(path).get('attachments', {})
+    if name not in references:
+        raise KeyError(name)
+    return decode_document(gzip.decompress((path.parent / name).read_bytes()).decode('utf-8'))
 
 
 def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
@@ -40,9 +92,9 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
     missing = required - record.keys()
     if missing:
         return [f'missing run fields: {sorted(missing)}']
-    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4):
+    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5):
         errors.append('unsupported run schema version')
-    if record['schema_version'] in (2, 3, 4) or 'environment' in record:
+    if record['schema_version'] in (2, 3, 4, 5) or 'environment' in record:
         environment = record.get('environment')
         if (not isinstance(environment, dict)
                 or set(environment) != {'policy', 'variables_sha256'}
@@ -82,7 +134,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'dangling input artifact edge: {name}')
             if not re.fullmatch('[a-f0-9]{64}', str(digest)):
                 errors.append(f'invalid input artifact digest: {name}')
-    if record['schema_version'] in (3, 4) or 'source_archive' in record:
+    if record['schema_version'] in (3, 4, 5) or 'source_archive' in record:
         errors.extend(validate_source_archive(path.parent, record))
     seeds = record['seeds']
     if not isinstance(seeds, list) or any(type(s) is not int for s in seeds):
@@ -96,6 +148,8 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
         errors.append('run mode and scientific status are inconsistent')
     if payload.get('status') != 'complete' or not isinstance(payload.get('observations'), dict):
         errors.append('artifact is not a completed observation record')
+    if record['schema_version'] == 5:
+        errors.extend(_validate_attachments(path, payload.get('attachments')))
     return errors
 
 
@@ -156,7 +210,9 @@ def specification_links(root: Path = ROOT) -> tuple[list[dict], list[str]]:
     root = root.resolve()
     edges, errors = [], []
     package = root / 'neural_assemblies'
+    infrastructure = [root / 'research' / 'runner.py']
     sources = sorted([*package.rglob('*.py'), *package.rglob('*.rs'),
+                      *(path for path in infrastructure if path.is_file()),
                       *(root / 'formal' / 'AssemblyIR').rglob('*.lean')])
     for source in sources:
         text = source.read_text(encoding='utf-8-sig')

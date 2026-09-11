@@ -83,3 +83,26 @@ def test_study_seed_identity_fails_before_runner(monkeypatch):
     monkeypatch.setattr(study, "run_experiment", lambda **_kwargs: pytest.fail("must not run"))
     with pytest.raises(SystemExit):
         study.main(["--tag", "wrong-seeds", "--seeds", *map(str, range(20))])
+
+
+def test_experiment_indexes_raw_frames_in_one_attachment(monkeypatch):
+    seeds = [11, 17, 23]
+    corpus = [["does", "dog", "dog", "sees", "cat", "cat", "it", "bird", "bird", "doesnt"]]
+
+    def run_arm(group, _parameters, arm):
+        rows = reports(group, arm)
+        for row in rows:
+            row.update(test_corpus=corpus, frames=[{"identity": row["seed"]}],
+                       learned_state_digest="a" * 64, arm=arm)
+        return rows
+
+    monkeypatch.setattr(study, "run_arm", run_arm)
+    output = study.experiment({"mode": "smoke", "seeds": seeds,
+                               "parameters": deepcopy(study.SMOKE)})
+    assert output.observations["raw_observations"] == {
+        "attachment": "raw-frames.json.gz", "format": "temporal-position-frames-v1",
+        "brain_count": 3, "arm_count": 3, "frame_count": 9,
+    }
+    raw = output.json_attachments["raw-frames.json.gz"]
+    assert raw["corpora"] == {str(seed): corpus for seed in seeds}
+    assert all("test_corpus" not in row for rows in raw["arms"].values() for row in rows)

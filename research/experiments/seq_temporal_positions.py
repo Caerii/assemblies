@@ -10,7 +10,7 @@ from pathlib import Path
 from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
 from research.experiments.study4.ntp_agree import CHAIN_CLASSES, generate_chain
 from research.experiments.temporal_observations import capture_chain_arcs
-from research.runner import experiment_parser, run_experiment
+from research.runner import ExperimentOutput, experiment_parser, run_experiment
 
 
 ARMS = {
@@ -180,9 +180,28 @@ def experiment(record):
             arms[name].extend(run_arm(group, parameters, name))
     scored = score_arms(arms, seeds, parameters)
     passed = scored["instrument_valid"] and all(scored["checks"].values())
-    return {"arms": arms, **scored,
-            "verdict": "VOID" if record["mode"] == "smoke" else ("PASS" if passed else "FAIL"),
-            "scope": "position-specific subject-number representation in the fixed gap-2 chain"}
+    corpora = {}
+    for index, seed in enumerate(seeds):
+        corpus = arms["g0"][index]["test_corpus"]
+        if any(arms[name][index]["test_corpus"] != corpus for name in ARMS):
+            raise RuntimeError("paired arms did not evaluate the same test corpus")
+        corpora[str(seed)] = corpus
+    raw_arms = {name: [{key: value for key, value in report.items()
+                        if key != "test_corpus"} for report in reports]
+                for name, reports in arms.items()}
+    observations = {
+        **scored, "raw_observations": {
+            "attachment": "raw-frames.json.gz", "format": "temporal-position-frames-v1",
+            "brain_count": len(seeds), "arm_count": len(ARMS),
+            "frame_count": sum(len(report["frames"]) for reports in arms.values()
+                               for report in reports),
+        },
+        "verdict": "VOID" if record["mode"] == "smoke" else ("PASS" if passed else "FAIL"),
+        "scope": "position-specific subject-number representation in the fixed gap-2 chain",
+    }
+    return ExperimentOutput(observations, {
+        "raw-frames.json.gz": {"format": "temporal-position-frames-v1",
+                               "corpora": corpora, "arms": raw_arms}})
 
 
 def main(argv=None):

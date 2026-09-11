@@ -190,7 +190,7 @@ version 2 records remain historical records with that coverage limitation.
 
 ## Recoverable source
 
-The [runner](runner.py) writes schema 4 records with a sibling `source.zip` before
+The [runner](runner.py) writes schema 5 records with a sibling `source.zip` before
 calling measurement. The archive preserves exact checkout bytes, including mixed
 line endings and Git-discovered nonignored untracked source. Its `source/` members
 use the same inventory and ordering as `source_sha256`; `script` and `registration`
@@ -201,12 +201,12 @@ if capture fails, and measurement does not start.
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,
 and never extracts or executes code. The runner also validates the archive before
-publishing completion; the evidence validator checks it for every schema 3 or 4 record.
+publishing completion; the evidence validator checks it for every schema 3, 4 or 5 record.
 Schema 1 and 2 records remain readable without an archive. Their historical byte
 recovery gaps are not repaired by this change.
 
 This captures repository source, not a hermetic execution environment or all data.
-Schema 4 additionally preserves every declared repository input artifact under
+Schemas 4 and 5 additionally preserve every declared repository input artifact under
 `inputs/`, bound to its separately recorded SHA-256. Input aliases resolve to one
 repository-relative name; duplicates fail before reservation. Missing, extra or
 changed archived inputs invalidate the archive even if its ZIP digest is updated.
@@ -218,6 +218,30 @@ edge are distinct checks. Mutation during measurement prevents completed output.
 Undeclared datasets, installed binaries and external dependencies are not bundled. Keep those limits distinct
 from the scientific pass conditions. The archive is evidence to inspect, not a
 promise that executing it elsewhere reproduces a study.
+
+
+<a id="raw-evidence-attachments"></a>
+## Raw evidence attachments
+
+Run schema 5 separates compact indexed conclusions from large raw observations.
+An experiment may return `ExperimentOutput(observations, json_attachments)`. The
+runner validates every value as strict finite JSON, encodes it deterministically,
+compresses it with gzip at a fixed timestamp, and writes only safe sibling names
+ending in `.json.gz`. `results.json` records for each attachment its media type,
+encoding, compressed and decoded byte counts, and SHA-256 digests of both forms.
+It is written only after every attachment succeeds.
+
+The evidence validator requires the completed directory's exact file inventory,
+checks both sizes and digests, decompresses and parses every attachment with the
+same duplicate-key and finite-number rules as ordinary evidence, and never executes
+its contents. Missing, extra, renamed, malformed or modified sidecars invalidate the
+whole result. `load_json_attachment` returns content only after that full validation.
+Schemas 1 through 4 remain readable with their historical inline observations.
+
+Attachments reduce checkout size and review noise; they do not weaken retention.
+Summaries must identify the attachment and its domain-specific format, counts and
+scientific verdict. Compression does not turn a large opaque payload into a useful
+measurement, establish adoption, or replace domain-level recomputation from raw data.
 
 
 ### Legacy result storage

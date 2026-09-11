@@ -6,18 +6,20 @@ neural_assemblies.diagnostics owns statistics. A completed run is not a PASS.
 from __future__ import annotations
 
 import argparse
+from dataclasses import dataclass, field
 from datetime import datetime, timezone
+import gzip
 import hashlib
 import importlib
 import json
 from pathlib import Path
 import re
 import subprocess
-from typing import Callable, Mapping
+from typing import Any, Callable, Mapping
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
-from research.json_documents import write_new_document as _write_new
+from research.json_documents import encode_document, write_new_document as _write_new
 from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -38,6 +40,43 @@ def _is_source_input(path: Path) -> bool:
 
 
 _NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\Z')
+_ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
+
+
+@dataclass(frozen=True)
+class ExperimentOutput:
+    """Small indexed observations plus lossless, digest-bound raw JSON sidecars.
+
+    Specification: research/README.md#raw-evidence-attachments
+    """
+
+    observations: Mapping
+    json_attachments: Mapping[str, Any] = field(default_factory=dict)
+
+
+def _encode_attachments(attachments: Mapping[str, Any]) -> dict[str, tuple[bytes, dict]]:
+    if not isinstance(attachments, Mapping):
+        raise ValueError('json_attachments must be a mapping')
+    encoded = {}
+    for name, value in attachments.items():
+        if (not isinstance(name, str) or not _ATTACHMENT_NAME.fullmatch(name)
+                or name in {'results.json.gz', 'run.json.gz', 'failure.json.gz'}):
+            raise ValueError('attachment names must be safe sibling *.json.gz names')
+        raw = encode_document(value).encode('utf-8')
+        compressed = gzip.compress(raw, compresslevel=9, mtime=0)
+        encoded[name] = (compressed, {
+            'media_type': 'application/json', 'content_encoding': 'gzip',
+            'sha256': hashlib.sha256(compressed).hexdigest(),
+            'decoded_sha256': hashlib.sha256(raw).hexdigest(),
+            'bytes': len(compressed), 'decoded_bytes': len(raw),
+        })
+    return encoded
+
+
+def _write_new_bytes(path: Path, value: bytes) -> None:
+    with path.open('xb') as stream:
+        stream.write(value)
+        stream.flush()
 
 
 def experiment_parser(description: str, *, engines: tuple[str, ...],
@@ -123,7 +162,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     inputs = {name: hashlib.sha256(data).hexdigest() for name, data in input_bytes.items()}
     if expected_input_digests is not None and inputs != dict(expected_input_digests):
         raise ValueError('input artifacts differ from the configuration snapshot')
-    record = dict(schema_version=4, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
+    record = dict(schema_version=5, environment=environment_record(), source_inventory=SOURCE_INVENTORY, protocol=protocol, protocol_version=protocol_version,
                   script=script_path.relative_to(ROOT).as_posix(),
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
@@ -155,9 +194,16 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                                 'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest()}
     _write_new(directory / 'run.json', record)
     try:
-        observations = measure(json.loads(json.dumps(record)))
+        measured = measure(json.loads(json.dumps(record)))
+        if isinstance(measured, ExperimentOutput):
+            observations = measured.observations
+            attachments = _encode_attachments(measured.json_attachments)
+        else:
+            observations, attachments = measured, {}
         if not isinstance(observations, Mapping):
             raise ValueError('experiment must return an observations mapping')
+        # Validate summaries before writing any attachment or completed record.
+        observations = json.loads(encode_document(dict(observations)))
         if environment_record() != record['environment']:
             raise RuntimeError('repository environment changed during the run; observations cannot be adopted')
         if _source_identity() != {k: record[k] for k in ('git_commit', 'source_sha256')}:
@@ -170,8 +216,12 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         archive_errors = validate_source_archive(directory, record)
         if archive_errors:
             raise RuntimeError('; '.join(archive_errors))
+        for name, (content, _metadata) in attachments.items():
+            _write_new_bytes(directory / name, content)
         path = directory / 'results.json'
-        _write_new(path, {'run': record, 'status': 'complete', 'observations': dict(observations)})
+        _write_new(path, {'run': record, 'status': 'complete', 'observations': observations,
+                          'attachments': {name: metadata for name, (_content, metadata)
+                                          in attachments.items()}})
         return path
     except BaseException as exc:
         _write_new(directory / 'failure.json', {'run': record, 'status': 'failed',
