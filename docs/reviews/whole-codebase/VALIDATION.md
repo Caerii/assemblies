@@ -4763,3 +4763,7 @@ The recurrent-ratchet and refraction-stability studies now use the shared exclus
 ## S5 diagnostic writer migration (2026-09-11)
 
 The S5 bar-tie, cliff-anatomy, and memory-channel diagnostics now use the shared exclusive result writer. Payloads and bar calculations are unchanged; direct overwrite-prone writes are removed. Three latent Ruff issues in cliff anatomy were also fixed during validation.
+
+## Substrate and scaling writer migration (2026-09-11)
+
+The organ-substrate, scaling-merger-forensics, and substrate-ceiling studies now use the canonical exclusive result writer. Their multi-arm payloads and bar logic are unchanged, while direct overwrite-prone JSON writes are removed. All three scripts compile and pass Ruff.

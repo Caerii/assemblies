@@ -58,7 +58,6 @@ Nothing is read off a bare seed mean; every table carries per-seed values.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -344,14 +343,15 @@ def main():
         print("     real (F3) but not what merges; look elsewhere and do not")
         print("     report the population-setpoint story.")
 
-    path = os.path.join(_HERE, "seq_scaling_merger_forensics_results.json")
-    with open(path, "w") as fh:
-        json.dump({"n": N, "k": K, "beta": BETA, "p": P, "T": T, "M": M,
-                   "seeds": SEEDS, "chance": chance,
-                   "bars": {"F1": bool(b1), "F2": bool(b2), "F3": bool(b3),
-                            "F4": bool(b4), "F5": bool(b5)},
-                   "cells": {f"{a}/{s}": res[(a, s)] for (a, s) in cells}},
-                  fh, indent=2)
+    from _results import write_result
+    path = write_result(
+        "sequence", "seq_scaling_merger_forensics_results.json",
+        {"n": N, "k": K, "beta": BETA, "p": P, "T": T, "M": M,
+         "seeds": SEEDS, "chance": chance,
+         "bars": {"F1": bool(b1), "F2": bool(b2), "F3": bool(b3),
+                  "F4": bool(b4), "F5": bool(b5)},
+         "cells": {f"{a}/{s}": res[(a, s)] for (a, s) in cells}},
+    )
     print(f"\nwrote {path}")
 
 

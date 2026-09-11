@@ -27,7 +27,6 @@ TWO THINGS THIS STUDY HAS THAT THE ORIGINAL MEASUREMENT DID NOT:
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -292,18 +291,19 @@ def main():
               "narrowing to the configuration it was measured in "
               "(torch_sparse, one seed).")
 
-    path = os.path.join(_HERE, "seq_organ_substrate_results.json")
-    with open(path, "w") as fh:
-        json.dump({"group": GROUP, "organ_p": ORGAN_P,
-                   "presentations": PRESENTATIONS, "seeds": SEEDS,
-                   "bars": {"O1": True, "O2": bool(o2), "O3": bool(o3),
-                            "O4": bool(o4), "O5": bool(o5), "O6": bool(o6),
-                            "O7": bool(o7), "O8": bool(o8), "O9": bool(o9)},
-                   "refraction_R5": bool(r5),
-                   "cells": {f"{a}/{wm}/{s}": res[(a, ni, sc, wm, s)]
-                             for (a, ni, sc) in ARMS for wm in WMAXES
-                             for s in SEEDS}},
-                  fh, indent=2)
+    from _results import write_result
+    path = write_result(
+        "sequence", "seq_organ_substrate_results.json",
+        {"group": GROUP, "organ_p": ORGAN_P,
+         "presentations": PRESENTATIONS, "seeds": SEEDS,
+         "bars": {"O1": True, "O2": bool(o2), "O3": bool(o3),
+                  "O4": bool(o4), "O5": bool(o5), "O6": bool(o6),
+                  "O7": bool(o7), "O8": bool(o8), "O9": bool(o9)},
+         "refraction_R5": bool(r5),
+         "cells": {f"{a}/{wm}/{s}": res[(a, ni, sc, wm, s)]
+                   for (a, ni, sc) in ARMS for wm in WMAXES
+                   for s in SEEDS}},
+    )
     print(f"\nwrote {path}")
 
 

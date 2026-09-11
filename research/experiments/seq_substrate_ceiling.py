@@ -34,7 +34,6 @@ not a report, which is the correction to the original study.
 """
 from __future__ import annotations
 
-import json
 import math
 import os
 import sys
@@ -260,23 +259,21 @@ def main():
               "p=0.5 in PREREG_recurrent_ratchet.md and in the memory citing "
               "it, before anything else is built on it.")
 
-    path = os.path.join(_HERE, "seq_substrate_ceiling_results.json")
-    with open(path, "w") as fh:
-        json.dump({"T": T, "A": [A_N, A_K, A_P], "A_M": list(A_M),
-                   "betas": list(BETAS), "B_M": B_M,
-                   "B_points": [list(x) for x in B_POINTS],
-                   "best_beta": best,
-                   "ceilings": {a: {"m_star": ceil[a].m_star,
-                                    "lo": ceil[a].lo, "hi": ceil[a].hi,
-                                    "censored": ceil[a].censored,
-                                    "supported": ceil[a].supported,
-                                    "resolved": ceil[a].resolved()}
-                                for a in ARMS},
-                   "bars": {"CE1": bool(ce1), "CE2": True, "CE3": bool(ce3),
-                            "CE4": bool(ce4), "CE5": bool(ce5),
-                            "CE6": bool(ce6)},
-                   "cells": {"/".join(str(x) for x in c): res[c]
-                             for c in cells}}, fh, indent=2)
+    from _results import write_result
+    path = write_result(
+        "sequence", "seq_substrate_ceiling_results.json",
+        {"T": T, "A": [A_N, A_K, A_P], "A_M": list(A_M),
+         "betas": list(BETAS), "B_M": B_M,
+         "B_points": [list(x) for x in B_POINTS], "best_beta": best,
+         "ceilings": {a: {"m_star": ceil[a].m_star, "lo": ceil[a].lo,
+                          "hi": ceil[a].hi, "censored": ceil[a].censored,
+                          "supported": ceil[a].supported,
+                          "resolved": ceil[a].resolved()}
+                      for a in ARMS},
+         "bars": {"CE1": bool(ce1), "CE2": True, "CE3": bool(ce3),
+                  "CE4": bool(ce4), "CE5": bool(ce5), "CE6": bool(ce6)},
+         "cells": {"/".join(str(x) for x in c): res[c] for c in cells}},
+    )
     print(f"\nwrote {path}")
 
 

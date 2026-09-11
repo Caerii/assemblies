@@ -2635,3 +2635,5 @@ Migrated A1 step accuracy, A1 drift localization, and A2 word-order diagnostics 
 Migrated recurrent-ratchet and refraction-stability sequence studies to the shared result writer, preserving their payloads and bar logic. Removed three latent Ruff issues found in those files.
 
 Migrated S5 bar-tie, cliff-anatomy, and memory-channel diagnostics to the shared exclusive result writer. Scientific payloads and bar logic remain unchanged. Removed three latent Ruff issues found in cliff anatomy.
+
+Migrated organ-substrate, scaling-merger-forensics, and substrate-ceiling studies to the shared exclusive result writer. Their scientific payloads and bar calculations remain unchanged. All three scripts compile and pass Ruff.
