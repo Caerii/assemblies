@@ -490,6 +490,22 @@ def bind(brain, source_area, target_area, source_assembly=None, *,
 
     Returns the bound assembly as an immutable snapshot (NEURON IDs).
     """
+    for label, area_name in (("source_area", source_area),
+                             ("target_area", target_area)):
+        if area_name not in brain.areas:
+            raise KeyError(f"bind {label} is unknown: {area_name!r}")
+    if (isinstance(project_rounds, bool)
+            or not isinstance(project_rounds, Integral)
+            or project_rounds < 1):
+        raise ValueError("bind project_rounds must be a positive integer")
+    if (isinstance(tail_rounds, bool)
+            or not isinstance(tail_rounds, Integral)
+            or tail_rounds < 0):
+        raise ValueError("bind tail_rounds must be a nonnegative integer")
+    if type(fix_source) is not bool:
+        raise ValueError("bind fix_source must be an explicit boolean")
+    project_rounds = int(project_rounds)
+    tail_rounds = int(tail_rounds)
     # STALE SNAPSHOTS ARE EXPECTED, not exceptional, so the guard belongs here
     # rather than in each caller. `consolidation.prepare_area_for_replay`
     # deliberately resets an area's compact_to_neuron_id and re-issues neuron

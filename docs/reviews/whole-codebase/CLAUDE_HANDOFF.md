@@ -2611,3 +2611,5 @@ Scaffold Phase-B beta boosts are now exception-safe for both recurrent loops. In
 Moved scaffold admission checks into `_train_scaffold_step`, covering the direct `ScaffoldNetwork.train` path as well as bulk memorization. Unknown inputs and malformed schedules fail before projection; focused scaffold and sequence tests pass (25 tests).
 
 The scaffolded sequence wrapper and direct training primitive now share one stimulus coercion helper and one schedule admission helper. This reduces semantic drift and keeps invalid composed calls from creating auxiliary topology. Scaffold and sequence tests pass (25 tests); Ruff and diff checks are clean.
+
+The public binding operator now has one explicit schedule admission boundary: area names, positive setup rounds, nonnegative tail rounds, and boolean source-fixing policy are validated before any replay or mutation. This removes silent schedule coercion and the snapshot path no longer ignores malformed `project_rounds`. Six true-negative tests were added; operation-contract and orthogonality suites pass (152 tests).

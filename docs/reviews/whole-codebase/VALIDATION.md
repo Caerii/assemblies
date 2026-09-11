@@ -4715,3 +4715,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 ## Shared scaffold admission helper (2026-09-11)
 
 The scaffolded sequence wrapper and its single-step training primitive now share `_coerce_stimuli` and `_validate_scaffold_schedule`. The composed path validates ordered inputs and schedule before auxiliary topology creation; the primitive applies the same checks when called directly. This removes duplicated contract logic while preserving the no-partial-mutation boundary. Scaffold and sequence tests pass **25 tests**; Ruff and diff checks are clean.
+
+## Binding schedule admission (2026-09-11)
+
+The public `ops.bind` path now validates source/target existence, `project_rounds`, `tail_rounds`, and `fix_source` before snapshot replay or target mutation. Previously `max(0, tail_rounds)` silently converted invalid schedules into a different operation, and `project_rounds` could be ignored when a current snapshot was supplied. Six contract tests cover the true negatives; operation-contract and orthogonality suites pass **152 tests**.
