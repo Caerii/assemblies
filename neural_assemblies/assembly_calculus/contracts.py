@@ -476,6 +476,34 @@ class InputDrivePlan:
 
 
 @dataclass(frozen=True)
+class BindingStrengthPlan:
+    """Immutable overlap readout against a stored target assembly."""
+
+    sources: tuple[str, ...]
+    target_area: str
+    target_assembly: Assembly
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("binding strength requires at least one source area")
+        if any(not isinstance(name, str) or not name for name in self.sources):
+            raise ValueError("binding strength sources must be nonempty names")
+        if len(set(self.sources)) != len(self.sources):
+            raise ValueError("binding strength sources must be distinct")
+        _require_name("target_area", self.target_area)
+        if not isinstance(self.target_assembly, Assembly):
+            raise TypeError("binding strength target_assembly must be an Assembly")
+        if self.target_assembly.area != self.target_area:
+            raise ValueError("binding strength target_assembly belongs to another area")
+
+    def preflight(self, brain) -> None:
+        unknown = [name for name in (*self.sources, self.target_area)
+                   if name not in brain.areas]
+        if unknown:
+            raise KeyError(f"binding strength area name(s) are unknown: {unknown!r}")
+
+
+@dataclass(frozen=True)
 class SourceBindingPlan:
     """Immutable schedule for multi-source teacher-driven binding."""
 
@@ -1222,6 +1250,27 @@ INPUT_DRIVE_CONTRACT = OperationContract(
 )
 
 
+BINDING_STRENGTH_CONTRACT = OperationContract(
+    operation_id="binding-strength-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-strength",
+    plan_type=BindingStrengthPlan,
+    inputs=("brain", "sources", "target_area", "target_assembly", "source_assemblies"),
+    reads=("source winners", "binding pathway", "target Assembly neuron IDs"),
+    mutates=("nothing persistent; delegates to read-only recall",),
+    regime=("nonempty active source", "target snapshot in target area", "stable neuron-ID overlap"),
+    observed_outcome=("bounded target recovery overlap",),
+    failure_conditions=("unknown or empty sources", "target snapshot area mismatch", "inactive source"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_bind_strength_contract.py::"
+        "test_bind_strength_rejects_snapshot_from_wrong_area",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_bind_strength_contract.py::"
+        "test_bind_strength_rejects_inactive_source",
+    ),
+)
+
+
 SOURCE_BINDING_CONTRACT = OperationContract(
     operation_id="source-binding-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-source-binding",
@@ -1317,6 +1366,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "bind": BINDING_CONTRACT,
     "read_binding": BINDING_READ_CONTRACT,
     "input_drive": INPUT_DRIVE_CONTRACT,
+    "binding_strength": BINDING_STRENGTH_CONTRACT,
     "source_binding": SOURCE_BINDING_CONTRACT,
     "binding_recall": BINDING_RECALL_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,

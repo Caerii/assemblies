@@ -97,7 +97,7 @@ from .contracts import (
     ASSOCIATION_CONTRACT, ATTENTION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, CONVERGENCE_CONTRACT, MERGE_CONTRACT, SOURCE_BINDING_CONTRACT,
     ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, AttentionPlan, BindingPlan, BindingReadPlan, BindingRecallPlan, InputDrivePlan, SourceBindingPlan, ConsolidationPlan, ConsolidationProtocolPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
+    AssociationPlan, AttentionPlan, BindingPlan, BindingReadPlan, BindingRecallPlan, BindingStrengthPlan, InputDrivePlan, SourceBindingPlan, ConsolidationPlan, ConsolidationProtocolPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
     PreparedCompletion, ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
 )
@@ -152,6 +152,7 @@ from .tracing import (
 from .fiber import FiberCircuit
 from .readout import fuzzy_readout, readout_all, build_lexicon, Lexicon
 from .attention import AttentionCandidate, AttentionResult, attend
+from .binding import binding_strength
 from .fsm import FSMNetwork
 from .coin_config import AttractorConfig, SeedMixtureChoice
 from .context_choice import ContextAttractorChoice, ContextChoiceProtocol, ContextChoiceObservation
@@ -174,13 +175,13 @@ __all__ = [
     # Data
     "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
     "OperationContract", "ProjectionPlan", "ProjectionStep",
-    "AttentionPlan", "BindingPlan", "BindingReadPlan", "BindingRecallPlan", "InputDrivePlan", "SourceBindingPlan", "ConsolidationPlan", "ConsolidationProtocolPlan", "ConvergencePlan",
+    "AttentionPlan", "BindingPlan", "BindingReadPlan", "BindingRecallPlan", "BindingStrengthPlan", "InputDrivePlan", "SourceBindingPlan", "ConsolidationPlan", "ConsolidationProtocolPlan", "ConvergencePlan",
     "AssociationPlan", "CompletionPlan", "PreparedCompletion", "MergePlan",
     "ReciprocalProjectionPlan", "OrderedRecallPlan", "SequenceMemorizePlan",
     "SeparationPlan",
     "OPERATION_CONTRACTS", "ATTENTION_CONTRACT", "BINDING_CONTRACT", "CONSOLIDATION_CONTRACT", "PROJECTION_CONTRACT",
     "RECIPROCAL_PROJECTION_CONTRACT", "ASSOCIATION_CONTRACT", "MERGE_CONTRACT",
-    "COMPLETION_CONTRACT", "CONVERGENCE_CONTRACT", "SOURCE_BINDING_CONTRACT", "BINDING_RECALL_CONTRACT", "BINDING_READ_CONTRACT", "INPUT_DRIVE_CONTRACT", "CONSOLIDATION_PROTOCOL_CONTRACT", "ORDERED_RECALL_CONTRACT",
+    "COMPLETION_CONTRACT", "CONVERGENCE_CONTRACT", "SOURCE_BINDING_CONTRACT", "BINDING_RECALL_CONTRACT", "BINDING_READ_CONTRACT", "INPUT_DRIVE_CONTRACT", "BINDING_STRENGTH_CONTRACT", "CONSOLIDATION_PROTOCOL_CONTRACT", "ORDERED_RECALL_CONTRACT",
     "SEQUENCE_MEMORIZE_CONTRACT", "SEPARATION_CONTRACT",
     "ProjectionSweepConfig", "RecallSweepConfig", "ResponseDiagnostic",
     "ResponseTrace", "TraceStep", "Sequence", "Lexicon",
@@ -188,7 +189,7 @@ __all__ = [
     "compute_anchored_instability", "compute_jaccard_instability",
     "mean_jaccard_instability", "measure_n400",
     # Operations
-    "project", "bind", "read_binding", "reciprocal_project",
+    "project", "bind", "read_binding", "binding_strength", "reciprocal_project",
     "associate", "merge",
     "pattern_complete", "separate", "learn_assembly", "learn_assembly_from_pattern",
     "consolidate_pair",

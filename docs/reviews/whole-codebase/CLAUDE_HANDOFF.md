@@ -2675,3 +2675,5 @@ Generic consolidation is now distinct from consolidate_pair in the contract grap
 The binding surface now distinguishes write and read protocols in the IR-facing registry: BINDING_CONTRACT for ops.bind and BINDING_READ_CONTRACT for ops.read_binding, in addition to the parser-facing multi-source binding pair. This makes read-only guarantees inspectable and prevents a readout schedule from being mistaken for a learning schedule.
 
 Input-drive measurement is now a named contract rather than an incidental helper. INPUT_DRIVE_CONTRACT fixes the topology, metric definition, shared projection, and read-only scope, making the quantity used by ERP calibration inspectable and composable with the other operation protocols.
+
+Binding strength is now a named observation protocol in the contract graph. The compatibility name bind_strength and the descriptive binding_strength alias share one implementation and one stable-neuron-ID readout contract, so callers can compose it without confusing score, drive, and binding-write semantics.

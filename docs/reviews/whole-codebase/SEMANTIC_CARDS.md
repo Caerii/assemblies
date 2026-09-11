@@ -1579,3 +1579,9 @@ empty direction schedule fail before replay.
 ## Input-drive observation
 
 `binding.input_drive` compares a shared cue against multiple target areas in one projection. Its immutable plan fixes the source and target topology and selects either normalized pre-k-WTA energy or winner-only drive. The operation runs under the probe scope, restores persistent state, and returns comparable per-target scores. It is a readout, not a binding or learning operation; an inactive source is an invalid measurement domain.
+
+<a id="contract-binding-strength"></a>
+
+## Binding-strength readout
+
+`binding.binding_strength` replays an active source through the read-only binding recall path and computes overlap with a stored target snapshot. Both operands are stable neuron-ID Assemblies in the target area; the result is a bounded competition score. Inactive sources and snapshots from another area are invalid measurement domains, rather than numeric zeroes.

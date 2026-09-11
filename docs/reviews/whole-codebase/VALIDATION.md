@@ -4930,3 +4930,7 @@ Added BindingReadPlan and BINDING_READ_CONTRACT for ops.read_binding. The read-o
 ## Input-drive observation contract (2026-09-11)
 
 Added InputDrivePlan and INPUT_DRIVE_CONTRACT for the ERP/area-comparison diagnostic. It validates source and candidate topology and the explicit metric choice before the shared probe projection, and records that the readout restores persistent state. Semantic card, source link, registry, exports, and true-negative controls are present. Focused binding/metric/contract tests pass (179 tests); Ruff is clean.
+
+## Binding-strength contract (2026-09-11)
+
+Added BindingStrengthPlan and BINDING_STRENGTH_CONTRACT for the overlap readout that scores active-source recovery against a stored target Assembly. The implementation keeps bind_strength compatibility and adds the descriptive binding_strength alias, both resolving to the same contract-decorated function. Source links, registry/export ratchets, and focused tests pass (175); Ruff is clean.

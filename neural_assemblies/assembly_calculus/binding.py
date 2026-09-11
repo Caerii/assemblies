@@ -46,9 +46,11 @@ from .assembly import Assembly, overlap
 from .ops import activate_assembly, _snap
 from .contracts import (
     BINDING_RECALL_CONTRACT,
+    BINDING_STRENGTH_CONTRACT,
     INPUT_DRIVE_CONTRACT,
     SOURCE_BINDING_CONTRACT,
     BindingRecallPlan,
+    BindingStrengthPlan,
     InputDrivePlan,
     SourceBindingPlan,
     implements,
@@ -379,6 +381,7 @@ def input_drive(
     return {area: float(scores[area]) for area in targets}
 
 
+@implements(BINDING_STRENGTH_CONTRACT)
 def bind_strength(
     brain,
     *,
@@ -389,21 +392,16 @@ def bind_strength(
 ) -> float:
     """How well the cue currently reproduces ``target_assembly``, in [0, 1].
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-strength
+
     This is the competition score to compare across candidate targets, and the
     diagnostic to assert on: a value of exactly 0.0 means the fiber was never
     materialized, and 1.0 across *different* targets means they have collapsed
     onto one assembly.
     """
-    sources = list(sources)
-    if not sources:
-        raise ValueError("bind_strength requires at least one source area")
-    if not isinstance(target_assembly, Assembly):
-        raise TypeError("target_assembly must be an Assembly snapshot")
-    if target_assembly.area != target_area:
-        raise ValueError(
-            f"target_assembly belongs to {target_assembly.area!r}, "
-            f"not target_area {target_area!r}"
-        )
+    plan = BindingStrengthPlan(tuple(sources), target_area, target_assembly)
+    plan.preflight(brain)
+    sources = list(plan.sources)
     _activate_all(brain, source_assemblies)
     if not any(len(brain.areas[name].winners) > 0 for name in sources):
         # A numeric zero is reserved for a measured but unsuccessful recall;
@@ -418,3 +416,7 @@ def bind_strength(
     if got is None:
         raise RuntimeError("recall produced no target assembly after active cue")
     return float(overlap(got, target_assembly))
+
+
+# Canonical descriptive spelling; retain ``bind_strength`` for compatibility.
+binding_strength = bind_strength
