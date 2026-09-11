@@ -157,10 +157,10 @@ class RandomChoiceArea:
         # the coin degenerate (always the same answer).
         self.asm0 = project(brain, self._stim0, self.area_name,
                             rounds=rounds_train)
-        brain._engine_for(brain.areas[self.area_name]).reset_area_connections(self.area_name)
+        brain.reset_area_connections(self.area_name)
         self.asm1 = project(brain, self._stim1, self.area_name,
                             rounds=rounds_train)
-        brain._engine_for(brain.areas[self.area_name]).reset_area_connections(self.area_name)
+        brain.reset_area_connections(self.area_name)
 
         if construction == "attractor":
             self._build_attractor(fires)

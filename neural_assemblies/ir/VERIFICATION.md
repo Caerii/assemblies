@@ -2286,3 +2286,14 @@ reset is dispatched through the target area's owning engine, which matters for
 brains mixing sparse and explicit areas. Each projection uses recurrence and
 the reset only separates successive lexicon entries; it does not establish a
 readout accuracy claim.
+
+
+<a id="contract-reset-area-connections"></a>
+### Area-connection reset ownership
+
+`Brain.reset_area_connections(area)` dispatches to the engine that owns the
+named area. It forgets learned area-to-area weights while preserving
+stimulus-to-area fibers according to that engine's reset contract. Code using a
+mixed sparse/explicit brain must call this facade rather than reaching through
+the primary engine; otherwise a successful call can mutate unrelated storage
+or leave the intended owner unchanged.

@@ -2423,6 +2423,11 @@ Equal-overlap readout ties now use a documented lexical policy, so decoder
 labels and ranked output no longer depend on mapping insertion order. The
 focused gate is 19 passed.
 
+Reset ownership is now centralized. `Brain.reset_area_connections` dispatches
+to the actual owner of the named area, and direct primary-engine reset calls in
+calculus, parser, FSM and PFA code were replaced. The focused owner-routing
+gate is 27 passed, including an explicit-area negative/positive control.
+
 `build_lexicon` had a transaction and ownership gap: it could mutate earlier
 words before discovering an invalid mapping, and it reset through the primary
 engine even when the target area was explicit. It now preflights all inputs and

@@ -947,7 +947,7 @@ class IncrementalMixin:
 
                 # Reset core area connections for clean inner clause
                 for core in CORE_AREAS:
-                    self.brain._engine.reset_area_connections(core)
+                    self.brain.reset_area_connections(core)
 
                 # Build fresh circuit for inner clause
                 circuit = self._build_circuit()

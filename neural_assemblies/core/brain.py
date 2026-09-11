@@ -1301,6 +1301,22 @@ class Brain:
         """
         self._engine_for(self.areas[area_name]).clear_refractory(area_name)
 
+    def reset_area_connections(self, area_name: str) -> None:
+        """Forget learned area-to-area weights through the owning engine.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-reset-area-connections
+
+        Areas may be owned by different engines in one Brain: explicit areas
+        use the dense owner while sparse areas use the primary owner. A caller
+        must not reach through ``_engine`` and accidentally reset the wrong
+        storage object.
+        """
+        try:
+            area = self.areas[area_name]
+        except KeyError:
+            raise KeyError(f"unknown area {area_name!r}") from None
+        self._engine_for(area).reset_area_connections(area_name)
+
     def set_lri(self, area_name: str, refractory_period: int,
                 inhibition_strength: float) -> None:
         """Update LRI parameters for an area at runtime.

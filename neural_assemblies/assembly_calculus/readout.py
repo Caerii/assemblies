@@ -156,7 +156,6 @@ def build_lexicon(brain, area: str, words: List[str],
     if missing:
         raise ValueError(f"unknown lexicon stimuli: {sorted(set(missing))}")
 
-    owner = brain._engine_for(brain.areas[area])
     lexicon: Lexicon = {}
 
     for word in words:
@@ -165,6 +164,6 @@ def build_lexicon(brain, area: str, words: List[str],
         lexicon[word] = assembly
 
         # Reset recurrent connections so the next word starts fresh
-        owner.reset_area_connections(area)
+        brain.reset_area_connections(area)
 
     return lexicon

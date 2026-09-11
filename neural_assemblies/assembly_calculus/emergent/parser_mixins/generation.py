@@ -82,7 +82,7 @@ class GenerationMixin:
         lex = self.core_lexicons.get(core_area, {})
         if not lex:
             return None
-        self.brain._engine.reset_area_connections(core_area)
+        self.brain.reset_area_connections(core_area)
         self.brain.project({}, {role_area: [core_area]})
         if self.rounds > 1:
             self.brain.project_rounds(

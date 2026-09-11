@@ -152,7 +152,7 @@ class FSMNetwork:
             stim = self._sym_stim[sym]
             asm = project(b, stim, self.symbol_area, rounds=r)
             self.symbol_lexicon[sym] = asm
-            b._engine.reset_area_connections(self.symbol_area)
+            b.reset_area_connections(self.symbol_area)
 
         # Train stable state assemblies
         self.state_lexicon: Lexicon = {}
@@ -160,7 +160,7 @@ class FSMNetwork:
             stim = self._st_stim[st]
             asm = project(b, stim, self.state_area, rounds=r)
             self.state_lexicon[st] = asm
-            b._engine.reset_area_connections(self.state_area)
+            b.reset_area_connections(self.state_area)
 
     # ------------------------------------------------------------------
     # Runtime

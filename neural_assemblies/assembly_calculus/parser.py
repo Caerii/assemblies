@@ -191,7 +191,7 @@ class NemoParser:
             # zeroes the connectome and the index tie-break returns identical
             # winners: each word here has its own grounding stimulus, so the
             # tie-break is never reached.
-            self.brain._engine.reset_area_connections(lex_area)
+            self.brain.reset_area_connections(lex_area)
 
     def train_roles(self, sentences: List[List[str]]):
         """Phase 2: Role binding from SVO sentences.
@@ -292,13 +292,13 @@ class NemoParser:
         compares the best readout overlap.
         """
         # Project to LEX_NOUN
-        self.brain._engine.reset_area_connections("LEX_NOUN")
+        self.brain.reset_area_connections("LEX_NOUN")
         asm_n = project(self.brain, self.stim_map[word], "LEX_NOUN",
                         rounds=self.rounds)
         noun_scores = readout_all(asm_n, self.noun_lexicon)
 
         # Project to LEX_VERB
-        self.brain._engine.reset_area_connections("LEX_VERB")
+        self.brain.reset_area_connections("LEX_VERB")
         asm_v = project(self.brain, self.stim_map[word], "LEX_VERB",
                         rounds=self.rounds)
         verb_scores = readout_all(asm_v, self.verb_lexicon)

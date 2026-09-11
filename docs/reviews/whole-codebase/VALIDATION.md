@@ -4162,3 +4162,14 @@ checks pass.
 Readout ties are now deterministic as well: equal-overlap labels are ordered
 lexicographically in both decoder APIs, independent of dictionary insertion
 order. The focused readout/specification gate is 19 passed.
+
+## Area reset dispatch is owner-routed (2026-09-11)
+
+Reset call sites previously reached through `brain._engine`, even though a
+Brain can own explicit areas on a separate dense engine. A public
+`Brain.reset_area_connections` facade now resolves the named area's owner, and
+all calculus/parser/FSM/PFA call sites use it. Unknown areas fail before any
+dispatch.
+
+Validation: 27 reset-owner, readout, parser/FSM/PFA and specification-link tests
+pass. Ruff and whitespace checks pass.

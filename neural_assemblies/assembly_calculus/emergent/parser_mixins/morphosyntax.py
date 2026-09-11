@@ -389,7 +389,7 @@ class MorphosyntaxMixin:
                     continue
 
                 # Project phon → CONJ_CORE
-                self.brain._engine.reset_area_connections(CONJ_CORE)
+                self.brain.reset_area_connections(CONJ_CORE)
                 stim_dict = {phon: [CONJ_CORE]}
                 self.brain.project(stim_dict, {})
                 if self.rounds > 1:
@@ -404,7 +404,7 @@ class MorphosyntaxMixin:
                     self.core_lexicons[CONJ_CORE] = {}
                 self.core_lexicons[CONJ_CORE][word] = _snap(
                     self.brain, CONJ_CORE)
-                self.brain._engine.reset_area_connections(CONJ_CORE)
+                self.brain.reset_area_connections(CONJ_CORE)
 
     def detect_number(self, word: str) -> str:
         """Detect grammatical number, lexicon forms first, then grounding.

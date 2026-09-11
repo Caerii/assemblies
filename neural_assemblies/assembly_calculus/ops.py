@@ -791,7 +791,7 @@ def _reset_recurrent(brain, area_name):
     protocol. ``ASSEMBLIES_STRICT_DRIVE=1`` makes a violation say so at runtime
     instead of returning plausible winners.
     """
-    brain._engine.reset_area_connections(area_name)
+    brain.reset_area_connections(area_name)
 
 
 # ---------------------------------------------------------------------------
