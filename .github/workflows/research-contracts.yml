@@ -21,7 +21,7 @@ jobs:
       - run: uv sync --frozen
       - name: Reject unsafe research invocations and dead verification
         run: >-
-          uv run pytest -q
+          uv run --with pyright pytest -q
           neural_assemblies/tests/test_research_contracts.py
           neural_assemblies/tests/test_exact_engine_ladder.py
           neural_assemblies/tests/test_sampled_fiber_learning.py
