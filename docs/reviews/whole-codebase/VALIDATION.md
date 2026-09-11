@@ -4679,3 +4679,7 @@ Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ord
 ## Shared traced merge contract (2026-09-11)
 
 `merge_trace` now consumes `MergePlan`, including parent/target recurrence, back-projection, and explicit partial-stimulus modes. Topology and active-source preflight occur before clamping or mutation, and traced merges share the executable schedule. Merge trace tests pass **15 tests**.
+
+## Shared traced association contract (2026-09-11)
+
+`associate_trace` now consumes `AssociationPlan` for its three-phase schedule, source clamping, and topology preflight. Trace labels are derived from the plan steps, so traced association and executable association cannot diverge silently. Trace and operation-contract regressions pass **163 tests**.

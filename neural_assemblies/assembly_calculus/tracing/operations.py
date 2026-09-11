@@ -6,7 +6,7 @@ from collections.abc import Sequence
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, chance_overlap, overlap
 from neural_assemblies.assembly_calculus.contracts import (
-    CompletionPlan, MergePlan, OrderedRecallPlan, ProjectionPlan,
+    AssociationPlan, CompletionPlan, MergePlan, OrderedRecallPlan, ProjectionPlan,
     ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import _snap
@@ -154,94 +154,52 @@ def associate_trace(
     rounds: int = 10,
 ) -> AssemblyTrace:
     """Associate two sources through a target and trace all three phases."""
-    if rounds <= 0:
-        raise ValueError("rounds must be positive")
-
-    use_fix = stim_a is None and stim_b is None
-    source_a_was_fixed = brain.areas[source_a].fixed_assembly
-    source_b_was_fixed = brain.areas[source_b].fixed_assembly
-    if use_fix and not source_a_was_fixed:
-        brain.areas[source_a].fix_assembly()
-    if use_fix and not source_b_was_fixed:
-        brain.areas[source_b].fix_assembly()
+    plan = AssociationPlan(source_a, source_b, target, stim_a, stim_b, rounds)
+    plan.preflight(brain)
+    source_a, source_b, target = plan.source_a, plan.source_b, plan.target
+    rounds = plan.rounds
+    fixed_sources = (source_a, source_b) if plan.fix_sources else ()
+    was_fixed = {name: brain.areas[name].fixed_assembly for name in fixed_sources}
+    for name, fixed in was_fixed.items():
+        if not fixed:
+            brain.areas[name].fix_assembly()
 
     steps: list[TraceStep] = []
     previous: Assembly | None = None
-    round_index = 0
-
-    stim_dict_a = {stim_a: [source_a]} if stim_a else {}
-    stim_dict_b = {stim_b: [source_b]} if stim_b else {}
-    stim_dict_both = {}
-    if stim_a:
-        stim_dict_both[stim_a] = [source_a]
-    if stim_b:
-        stim_dict_both[stim_b] = [source_b]
-
     try:
-        for local_round in range(1, rounds + 1):
-            round_index += 1
-            dst = {source_a: [source_a, target]}
-            drive = f"phase 1: {source_a} -> {target}"
-            if local_round > 1:
-                dst[target] = [target]
-                drive = f"phase 1: {source_a} + {target} recurrence"
-            brain.project(stim_dict_a, dst)
-            previous = _append_step(
-                steps,
-                brain=brain,
-                operation="associate",
-                target=target,
-                round_index=round_index,
-                drive=drive,
-                sources=(source_a,),
-                previous=previous,
-            )
-
-        for local_round in range(1, rounds + 1):
-            round_index += 1
-            dst = {source_b: [source_b, target]}
-            drive = f"phase 2: {source_b} -> {target}"
-            if local_round > 1:
-                dst[target] = [target]
-                drive = f"phase 2: {source_b} + {target} recurrence"
-            brain.project(stim_dict_b, dst)
-            previous = _append_step(
-                steps,
-                brain=brain,
-                operation="associate",
-                target=target,
-                round_index=round_index,
-                drive=drive,
-                sources=(source_b,),
-                previous=previous,
-            )
-
-        for _ in range(rounds):
-            round_index += 1
-            if use_fix:
-                dst = {source_a: [target], source_b: [target], target: [target]}
+        for round_index, step in enumerate(plan.steps, start=1):
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+            phase = (round_index - 1) // rounds + 1
+            phase_round = (round_index - 1) % rounds + 1
+            if phase == 1:
+                source = source_a
+                drive = f"phase 1: {source} -> {target}"
+                if phase_round > 1:
+                    drive = f"phase 1: {source} + {target} recurrence"
+                sources = (source_a,)
+            elif phase == 2:
+                source = source_b
+                drive = f"phase 2: {source} -> {target}"
+                if phase_round > 1:
+                    drive = f"phase 2: {source} + {target} recurrence"
+                sources = (source_b,)
             else:
-                dst = {
-                    source_a: [source_a, target],
-                    source_b: [source_b, target],
-                    target: [target],
-                }
-            brain.project(stim_dict_both, dst)
+                drive = f"phase 3: {source_a} + {source_b} shared drive"
+                sources = (source_a, source_b)
             previous = _append_step(
                 steps,
                 brain=brain,
                 operation="associate",
                 target=target,
                 round_index=round_index,
-                drive=f"phase 3: {source_a} + {source_b} shared drive",
-                sources=(source_a, source_b),
+                drive=drive,
+                sources=sources,
                 previous=previous,
             )
     finally:
-        if use_fix and not source_a_was_fixed:
-            brain.areas[source_a].unfix_assembly()
-        if use_fix and not source_b_was_fixed:
-            brain.areas[source_b].unfix_assembly()
+        for name, fixed in was_fixed.items():
+            if not fixed:
+                brain.areas[name].unfix_assembly()
 
     return AssemblyTrace(operation="associate", target=target, steps=tuple(steps))
 
