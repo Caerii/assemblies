@@ -2661,3 +2661,5 @@ Aligned the public `__all__` manifest with the complete operation-contract regis
 Added the dedicated separation semantic card so `SeparationPlan` and `SEPARATION_CONTRACT` no longer point at an unresolved specification. The card documents the reset measurement and its scope limits. Specification-link and operation-contract tests pass (169 tests).
 
 Evidence graph gate: research.evidence check now combines maintained artifact/registration/source archive/comparison validation with specification links. It passes locally; audit remains inventory-only for legacy/reference paths.
+
+ERP protocol provenance is now enforceable at the measurement boundary. Set `ErpProtocol(engine_name="numpy_exact")` (or the registered engine) for a scientific arm; probes, frame collection, and calibration raise before sampling if the parser engine differs. Omitted identity remains an explicitly exploratory compatibility path. Focused protocol/context tests: 27 passed; Ruff clean. Do not relabel or relax the five unresolved ERP metric failures; they still need a registered remeasurement under the correct engine.

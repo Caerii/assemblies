@@ -82,6 +82,7 @@ def run_incremental_erp_probes(
     another -- which an environment read per probe permitted (#115).
     """
     protocol = ErpProtocol.from_environment() if protocol is None else protocol
+    _check_engine_identity(parser, protocol)
     if not words:
         return {"categories": {}, "roles": {}, "phrases": {}, "wobbly_probes": [], "erp_protocol": asdict(protocol)}, []
 
@@ -232,6 +233,19 @@ def run_incremental_erp_probes(
     result["erp_readiness"] = readiness
     result["erp_baseline"] = baseline
     return result, probes
+
+
+def _check_engine_identity(parser: "EmergentParser", protocol: ErpProtocol) -> None:
+    """Reject a measurement when its declared engine is not the live engine."""
+    if protocol.engine_name is None:
+        return
+    actual = str(getattr(parser, "engine_name", "unknown"))
+    if actual != protocol.engine_name:
+        raise ValueError(
+            "ERP protocol requires engine "
+            f"{protocol.engine_name!r}, parser uses {actual!r}; "
+            "the observation is void until the engine is explicit and matched",
+        )
 
 
 def probe_word_at_position(

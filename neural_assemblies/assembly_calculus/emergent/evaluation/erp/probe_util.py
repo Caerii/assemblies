@@ -26,6 +26,8 @@ def probe_context(brain):
 
 def critical_probe_measure_fn(
     probe_depth: str = "calibration",
+    *,
+    protocol=None,
 ) -> Callable:
     """Measure_fn that probes only the final content word of each sentence."""
     from .runner import run_incremental_erp_probes
@@ -39,6 +41,7 @@ def critical_probe_measure_fn(
             probe_depth=probe_depth,
             stop_at_position=pos,
             probe_positions={pos},
+            protocol=protocol if protocol is not None else kw.get("protocol"),
         )
 
     return measure

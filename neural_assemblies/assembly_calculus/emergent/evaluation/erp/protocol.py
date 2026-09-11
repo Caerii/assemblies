@@ -150,10 +150,17 @@ class ErpProtocol:
     afferent_energy: bool = False
     debug: bool = False
     context_reset: str = "construction"
+    # Optional engine identity for claims whose evidence is engine-specific.
+    # ``None`` keeps compatibility for exploratory calls; registered studies
+    # should set this explicitly so a sampled backend cannot masquerade as the
+    # fixed-connectome protocol.
+    engine_name: Optional[str] = None
 
     def __post_init__(self):
         if self.context_reset not in ("construction", "activity"):
             raise ValueError("context_reset must be 'construction' or 'activity'")
+        if self.engine_name is not None and not self.engine_name.strip():
+            raise ValueError("engine_name must be a non-empty string or None")
 
     @classmethod
     def from_environment(cls, env=None) -> "ErpProtocol":
@@ -209,7 +216,8 @@ class ErpProtocol:
                           "afferent_energy", "debug")
               if getattr(self, f)]
         flags = "+".join(on) if on else "no-flags"
-        return f"{flags};context_reset={self.context_reset}"
+        desc = f"{flags};context_reset={self.context_reset}"
+        return desc if self.engine_name is None else f"{desc};engine={self.engine_name}"
 
 
 #: The shipped protocol. `expected_slot` is ON -- it area-matches the

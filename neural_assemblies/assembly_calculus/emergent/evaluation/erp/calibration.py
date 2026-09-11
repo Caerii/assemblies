@@ -28,6 +28,7 @@ from .frames import (
     collect_frame_samples,
 )
 from .runner import run_incremental_erp_probes
+from .protocol import ErpProtocol
 
 # Lazy at call time, not import time: `diagnostics` pulls in the wider package
 # and this module is imported during parser construction.
@@ -348,6 +349,7 @@ def calibrate_erp_thresholds(
     ensure_prediction: bool = True,
     probe_depth: str = "calibration",
     fast: bool = False,
+    protocol: Optional[ErpProtocol] = None,
 ) -> ErpCalibrationReport:
     """Calibrate from one observation pass, then relabel those observations.
 
@@ -361,6 +363,9 @@ def calibrate_erp_thresholds(
     if ensure_prediction:
         _ensure_minimal_prediction_bridges(parser)
 
+    protocol = ErpProtocol.from_environment() if protocol is None else protocol
+    from .runner import _check_engine_identity
+    _check_engine_identity(parser, protocol)
     readiness = assess_erp_readiness(parser)
     from ..sweep import sweep_mode_enabled
     from .probe_util import critical_probe_measure_fn
@@ -374,10 +379,10 @@ def calibrate_erp_thresholds(
     gram_sents = grammatical_sentences or [
         list(words) for lbl, _d, words in frames if lbl == "grammatical"
     ]
-    measure_fn = critical_probe_measure_fn(probe_depth) if sweep else (
+    measure_fn = critical_probe_measure_fn(probe_depth, protocol=protocol) if sweep else (
         lambda p, w, **kw: run_incremental_erp_probes(
             p, w, apply_calibration=False, readiness=readiness,
-            probe_depth=probe_depth,
+            probe_depth=probe_depth, protocol=protocol,
         )
     )
     baseline = calibrate_erp_baseline(
@@ -403,6 +408,7 @@ def calibrate_erp_thresholds(
         holdout_words=holdout,
         probe_depth=probe_depth,
         warm_start=warm,
+        protocol=protocol,
     )
     thresholds = tune_thresholds_from_samples(
         raw_samples, baseline=baseline, fallback=fb,

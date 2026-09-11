@@ -4886,3 +4886,7 @@ The remaining five failures are ERP calibration/metric assertions and reproduce
 serially. They report category-violation p600 below grammatical (raw and clipped
 AUC 0.0), contradicting the test's declared direction. They are retained as
 scientific failures pending metric/protocol diagnosis; no threshold was relaxed.
+
+## ERP engine identity (2026-09-11)
+
+`ErpProtocol` now carries an optional declared `engine_name`. When a study declares one, incremental probes, frame collection, and threshold calibration reject a parser using another engine before producing observations. The identity is serialized with the protocol and included in its description; legacy exploratory calls remain compatible when it is omitted. Focused protocol/context tests pass (27 passed); Ruff is clean. The five existing ERP metric failures remain open and were not weakened.

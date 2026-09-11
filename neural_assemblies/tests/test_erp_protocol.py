@@ -9,6 +9,7 @@ and reading the environment happens in exactly one place.
 from __future__ import annotations
 
 import dataclasses
+from types import SimpleNamespace
 
 import pytest
 
@@ -16,6 +17,7 @@ from neural_assemblies.assembly_calculus.emergent.evaluation.erp.protocol import
     DEFAULT_PROTOCOL,
     ErpProtocol,
 )
+from neural_assemblies.assembly_calculus.emergent.evaluation.erp.runner import _check_engine_identity
 
 
 class TestTheShippedDefault:
@@ -77,6 +79,13 @@ class TestAnArmIsAValue:
     def test_describe_names_every_active_choice(self):
         d = ErpProtocol(expected_slot=True, afferent_energy=True).describe()
         assert "expected_slot" in d and "afferent_energy" in d
+
+    def test_engine_identity_is_part_of_a_declared_protocol(self):
+        p = ErpProtocol(engine_name="numpy_exact")
+        assert p.describe().endswith(";engine=numpy_exact")
+        _check_engine_identity(SimpleNamespace(engine_name="numpy_exact"), p)
+        with pytest.raises(ValueError, match="engine"):
+            _check_engine_identity(SimpleNamespace(engine_name="numpy_sparse"), p)
 
 
 class TestTheOneEnvironmentAdapter:

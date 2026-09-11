@@ -554,6 +554,8 @@ def collect_frame_samples(
     clean, and for the guard test that keeps them that way.
     """
     protocol = ErpProtocol.from_environment() if protocol is None else protocol
+    from .runner import _check_engine_identity
+    _check_engine_identity(parser, protocol)
     readiness = readiness or assess_erp_readiness(parser)
     baseline = baseline if baseline is not None else ErpBaseline()
     thresholds = thresholds or default_erp_thresholds()
