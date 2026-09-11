@@ -4783,3 +4783,7 @@ Added direct tests for `SequenceMemorizePlan`: malformed stimulus tuples and unk
 ## Public contract exports (2026-09-11)
 
 `OrderedRecallPlan`, `SequenceMemorizePlan`, and their contract objects are now exported from the public assembly-calculus package surface. A newcomer can inspect and compose the same immutable schedules used by the operations without importing internal modules. Operation-contract and public-boundary tests pass **268 tests**; Ruff and import smoke checks are clean.
+
+## Dedicated sequence semantic card (2026-09-11)
+
+Added `contract-sequence-memory` to the semantic-card specification and retargeted both sequence operation contracts to it. The card states the actual plan-owned state, write/read schedules, termination conditions, outcomes, and required null controls. Specification-link and operation-contract tests pass **166 tests**.

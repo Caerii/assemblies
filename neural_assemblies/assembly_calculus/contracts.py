@@ -741,7 +741,7 @@ COMPLETION_CONTRACT = OperationContract(
 ORDERED_RECALL_CONTRACT = OperationContract(
     operation_id="ordered-recall-v1",
     specification=(
-        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transition-machine"
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory"
     ),
     plan_type=OrderedRecallPlan,
     inputs=(
@@ -770,7 +770,7 @@ ORDERED_RECALL_CONTRACT = OperationContract(
 SEQUENCE_MEMORIZE_CONTRACT = OperationContract(
     operation_id="sequence-memorize-v1",
     specification=(
-        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-transition-machine"
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory"
     ),
     plan_type=SequenceMemorizePlan,
     inputs=("brain", "stimuli", "target", "rounds_per_step", "repetitions", "phase_b_ratio", "beta_boost"),

@@ -2645,3 +2645,5 @@ Added `SequenceMemorizePlan` and `SEQUENCE_MEMORIZE_CONTRACT`. The sequence trai
 Added direct plan-level tests for sequence memorization. Malformed stimulus tuples and unknown target topology now have explicit executable rejection coverage independent of the public wrapper. Contract and sequence-input tests pass (165 tests).
 
 Exported the ordered-recall and sequence-memorization plans/contracts from the public assembly-calculus package. The inspectable schedules are now part of the supported composition surface. Operation-contract and public-boundary tests pass (268 tests); Ruff and import smoke checks are clean.
+
+Added a dedicated sequence-memory semantic card and linked both `SequenceMemorizePlan` and `OrderedRecallPlan` contracts to it. The code-to-spec graph now describes their concrete schedules and controls instead of pointing at the broader transition-machine card. Specification-link and operation-contract tests pass (166 tests).

@@ -238,6 +238,30 @@ Code: `_hashed_fsm.py:HashedArcFSM`, `_arc_core.py:HashedArcCore`,
 - **Control:** disable arc->state learning while preserving the symbol/state
   conjunction; compare label accuracy and exact_fraction against trained controls.
 
+<a id="contract-sequence-memory"></a>
+
+## S: ordered sequence memory
+
+Code: `assembly_calculus/ops.py:sequence_memorize` and
+`assembly_calculus/ops.py:ordered_recall`; immutable schedules live in
+`assembly_calculus/contracts.py:SequenceMemorizePlan` and
+`OrderedRecallPlan`.
+
+- **State:** an ordered tuple of stimulus names, one target area, recurrent and
+  transition fibers, and (for recall) refractory history.
+- **Write:** each stimulus is projected for the declared rounds and repetitions;
+  the optional Phase-B ratio and temporary beta boost are part of the schedule.
+  The plan validates every input and topology before the first projection.
+- **Read:** recall clears refractory state, activates the cue, then self-projects
+  for the declared step budget. It stops on a cycle, a known-assembly novelty
+  failure, or the budget; it does not consult the training transition table.
+- **Outcome:** an ordered `Sequence` of immutable neuron-ID snapshots. A full
+  sequence is not implied by completion of the budget: recovery and retention
+  remain measured outcomes.
+- **Controls:** scalar/empty input, unknown topology, invalid phase schedules,
+  and recall with refractory period zero must fail before mutation. A beta-zero
+  or disabled-recurrent arm is required before adopting a learning claim.
+
 <a id="contract-transducer"></a>
 
 ## T: transducer
