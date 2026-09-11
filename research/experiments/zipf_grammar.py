@@ -168,7 +168,8 @@ def trial(gain, skew, seed):
             with pinned(brain, f"C{L - 1}", stored[L - 1][i]):
                 for _ in range(counts[i]):
                     merge(brain, f"C{L - 1}", f"P{L}", f"C{L}",
-                          stim_b=f"p{L}_{i}", rounds=T, **GATED)
+                          stim_b=f"p{L}_{i}", rounds=T,
+                          unstimulated_source_mode="require-fixed", **GATED)
                 stored[L][i] = read(brain, f"C{L}")
 
     hits = {}

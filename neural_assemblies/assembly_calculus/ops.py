@@ -62,8 +62,9 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
-    ASSOCIATION_CONTRACT, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    AssociationPlan, ProjectionPlan, ReciprocalProjectionPlan, implements,
+    ASSOCIATION_CONTRACT, MERGE_CONTRACT, PROJECTION_CONTRACT,
+    RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan, MergePlan, ProjectionPlan,
+    ReciprocalProjectionPlan, implements,
 )
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
@@ -600,9 +601,11 @@ def associate(brain, source_a, source_b, target,
     return _snap(brain, target)
 
 
+@implements(MERGE_CONTRACT)
 def merge(brain, source_a, source_b, target,
           stim_a=None, stim_b=None, rounds=10, *,
-          parent_self=True, target_self=True, back_project=True) -> Assembly:
+          parent_self=True, target_self=True, back_project=True,
+          unstimulated_source_mode=None) -> Assembly:
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge
 
     Coactivate ``source_a`` and ``source_b`` into ``target`` from the first round.
@@ -614,39 +617,20 @@ def merge(brain, source_a, source_b, target,
     claims with different controls, particularly when many items share an area.
 
     ``stim_a`` and ``stim_b`` drive their respective sources. When both are
-    absent, both sources are clamped temporarily; providing only one stimulus
-    leaves both unclamped. Return-edge learning also depends on the backend's
-    fixed-target plasticity policy. Existing clamp flags are restored on exit.
+    absent, both current sources are clamped temporarily. With exactly one
+    stimulus, ``unstimulated_source_mode`` must explicitly be ``require-fixed``,
+    ``fix-current`` or ``evolving``. Return-edge learning also depends on the
+    backend's fixed-target plasticity policy. Borrowed clamps are restored.
 
     Return the final target neuron-ID Assembly, without a retrieval test.
     """
-    # Fixed versus stimulus-driven sources have different learning semantics;
-    # see the linked contract and the backend fixed-target plasticity policy.
-    use_fix = (stim_a is None and stim_b is None)
-
-    stim_dict = {}
-    if stim_a:
-        stim_dict[stim_a] = [source_a]
-    if stim_b:
-        stim_dict[stim_b] = [source_b]
-
-    src_map = {
-        source_a: ([source_a] if parent_self else []) + [target],
-        source_b: ([source_b] if parent_self else []) + [target],
-    }
-    tgt_list = (([target] if target_self else [])
-                + ([source_a, source_b] if back_project else []))
-
-    with _fixed_sources(brain, *((source_a, source_b) if use_fix else ())):
-        # Step 1: Simultaneous projection (no target recurrence yet)
-        brain.project(stim_dict, dict(src_map))
-
-        # Steps 2+: Add target recurrence and feedback to sources
-        for _ in range(rounds - 1):
-            brain.project(
-                stim_dict,
-                {**src_map, **({target: tgt_list} if tgt_list else {})},
-            )
+    plan = MergePlan(
+        source_a, source_b, target, stim_a, stim_b, rounds,
+        parent_self, target_self, back_project, unstimulated_source_mode,
+    )
+    plan.preflight(brain)
+    with _fixed_sources(brain, *plan.fixed_sources):
+        plan.execute_steps(brain)
 
     return _snap(brain, target)
 

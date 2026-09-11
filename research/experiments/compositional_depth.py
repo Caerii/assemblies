@@ -236,7 +236,8 @@ def train_chains(brain, recursive: bool):
                     levels[lv - 1][m].winners, dtype=np.int64)
                 brain.areas[src].fix_assembly()
                 cur[m] = merge(brain, src, LEAF_B, tgt,
-                               stim_b=f"t{seqs[m][lv]}", rounds=MERGE_ROUNDS)
+                               stim_b=f"t{seqs[m][lv]}", rounds=MERGE_ROUNDS,
+                               unstimulated_source_mode="require-fixed")
                 brain.areas[src].unfix_assembly()
         levels[lv] = cur
     return levels, seqs

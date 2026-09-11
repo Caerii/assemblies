@@ -125,7 +125,8 @@ def trial(seed, gated, rounds=None):
         for m in range(M_ITEMS):
             with pinned(brain, level(L - 1), stored[L - 1][m]):
                 merge(brain, level(L - 1), PARTNER[L], level(L),
-                      stim_b=f"{STIM_OF[PARTNER[L]]}{m}", rounds=rounds, **kw)
+                      stim_b=f"{STIM_OF[PARTNER[L]]}{m}", rounds=rounds,
+                      unstimulated_source_mode="require-fixed", **kw)
                 stored[L][m] = read(brain, level(L))
 
     full = {L: 0 for L in range(1, DEPTH + 1)}

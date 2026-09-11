@@ -286,6 +286,29 @@ coactivation sweep distinguishes zero, registered and excessive joint training.
 This preserves A1: the operation returns a candidate target snapshot; an
 association claim still requires the separately cued before/after measurement.
 
+## Merge plan resolution (2026-09-11)
+
+`MergePlan` makes the three edge switches and every round inspectable. It rejects
+aliased areas or stimuli, invalid rounds, truthy nonbooleans, missing topology and
+empty unstimulated parents before mutation. Both-unstimulated calls retain the
+legacy scoped clamp; both-stimulus calls retain the evolving-parent schedule.
+
+M1's partial-stimulus ambiguity is now explicit. Exactly one stimulus requires
+`unstimulated_source_mode`: `require-fixed` verifies a clamp owned by the caller,
+`fix-current` borrows a clamp around the current assembly, and `evolving` verifies
+that the current parent is free. An omitted or contradicted mode rejects before
+the backend. The thirteen static research callers were audited: twelve existing
+pinning scopes now declare `require-fixed`, while `universality_composition` names
+its deliberately live composed parent `evolving`. Their edge schedules are
+unchanged.
+
+Migration tests reproduce both-fixed, both-driven, partial-fixed and
+partial-evolving schedules on all three NumPy engines, comparing all area states,
+recruitment and RNG. A constructed schedule control removes return edges when
+`back_project=False`; the existing weight-level control remains responsible for
+the scientific two-way-connectivity claim. Completion is the remaining legacy
+operation card.
+
 <a id="contract-read-only"></a>
 
 ## Read-only observation: executable obligations

@@ -101,7 +101,8 @@ def trial(seed: int):
         lvl1[m] = read(brain, C1)
     for m in range(M_ITEMS):
         with pinned(brain, C1, lvl1[m]):
-            merge(brain, C1, D, C2, stim_b=f"d{m}", rounds=MERGE_ROUNDS)
+            merge(brain, C1, D, C2, stim_b=f"d{m}", rounds=MERGE_ROUNDS,
+                  unstimulated_source_mode="require-fixed")
             lvl2[m] = read(brain, C2)
 
     def settle(src, tgt):

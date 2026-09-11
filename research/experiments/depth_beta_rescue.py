@@ -116,7 +116,8 @@ def trial(beta, seed):
         for m in range(M_ITEMS):
             with pinned(brain, f"C{L-1}", stored[L - 1][m]):
                 merge(brain, f"C{L-1}", f"P{L}", f"C{L}",
-                      stim_b=f"p{L}_{m}", rounds=MERGE_T, **GATED)
+                      stim_b=f"p{L}_{m}", rounds=MERGE_T,
+                      unstimulated_source_mode="require-fixed", **GATED)
                 stored[L][m] = read_assembly(brain, f"C{L}")
 
     full = {L: 0 for L in range(1, DEPTH + 1)}

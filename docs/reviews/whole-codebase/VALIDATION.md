@@ -3393,3 +3393,35 @@ This checkpoint establishes schedule identity and rejects the formerly ambiguous
 mixed-source mode. The returned target remains a candidate representation; the
 linked coactivation sweep supplies the measured operation control. Merge and
 completion remain unmigrated.
+
+## Merge makes partial-source state explicit (2026-09-11)
+
+`MergePlan` now owns the simultaneous first round and every later parent,
+target-recurrent and return edge. It validates three distinct areas, distinct
+stimuli, positive rounds and explicit booleans for parent recurrence, target
+recurrence and back-projection. Missing topology and empty unstimulated parents
+reject before backend mutation.
+
+Exactly one parent stimulus no longer implies an unnamed source-state policy.
+The caller must select `require-fixed`, `fix-current`, or `evolving`; preflight
+checks the fixed/evolving claims against the current facade state. An AST audit
+found thirteen static partial-stimulus calls. Twelve were already enclosed by an
+explicit pinning scope and now declare `require-fixed`; the live composed parent
+in `universality_composition` declares `evolving`. A repeat AST audit reports no
+unnamed static partial calls, and a repository-wide AST ratchet rejects future
+ones. All touched research scripts compile.
+
+The migration matrix covers both fixed, both stimulus-driven, partial pre-fixed
+and partial evolving protocols on `numpy_sparse`, `numpy_exact` and
+`numpy_explicit`. It compares all three areas' stable and compact winners,
+recruitment, owned RNG and source clamp ownership. The contract suite reports 111
+passed. The package merge-focused calculus, semantic, literature, computation and
+simulation selection reports 17 passed. The expanded operation, public-boundary,
+specification, literature and integration gate reports 345 passed and 4
+optional-reference skips. The CUDA-initialized Torch parity suite reports 27
+passed. This is schedule preservation and protocol admission; no historical
+result was recomputed or reinterpreted.
+
+The back-projection switch has a constructed schedule negative, while the existing
+three-seed weight-level control remains the scientific two-way-connectivity test.
+Completion remains the final legacy operation migration.

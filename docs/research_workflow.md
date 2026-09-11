@@ -122,3 +122,19 @@ do not repair them by widening the golden after seeing the output.
 The `Research contracts` pull-request workflow runs the fast CPU rejection,
 provenance, registration and teaching-example tests. It is a narrow instrument
 gate, separate from hardware parity and preregistered study execution.
+
+## Explicit partial-source merge
+
+`merge` accepts zero or two parent stimuli without another mode argument. A call
+with exactly one stimulus must state what the current unstimulated parent means:
+
+```python
+merge(brain, "COMPOSED", "WORD", "NEXT", stim_b="word-7",
+      unstimulated_source_mode="require-fixed")
+```
+
+Use `require-fixed` when an outer scope owns the clamp, `fix-current` when merge
+should borrow a clamp around the current winners, and `evolving` when the current
+unstimulated parent is deliberately allowed to move. The first and third modes
+verify the current facade state before projection. Omitting this choice now raises
+before mutation; the old call shape did not say which transition system it meant.

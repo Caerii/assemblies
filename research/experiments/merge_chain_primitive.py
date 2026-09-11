@@ -109,7 +109,8 @@ def train(brain):
             # every level above the first is forced into it.
             brain.areas[C1].winners = np.array(lvl1[m].winners, dtype=np.int64)
             brain.areas[C1].fix_assembly()
-            lvl2[m] = merge(brain, C1, D, C2, stim_b=f"d{m}", rounds=ROUNDS)
+            lvl2[m] = merge(brain, C1, D, C2, stim_b=f"d{m}", rounds=ROUNDS,
+                            unstimulated_source_mode="require-fixed")
             brain.areas[C1].unfix_assembly()
     return lvl1, lvl2
 

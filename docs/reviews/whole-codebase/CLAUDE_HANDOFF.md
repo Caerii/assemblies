@@ -1840,3 +1840,25 @@ ladder now require the real MNIST CSVs before computation; absent data yields tw
 explicit skips in 0.52 seconds. The localization run reached 7 passes and that
 failure in 494.48 seconds, then stopped. Merge and completion remain the operation
 contract migrations; this change does not adopt a new association result.
+
+## Merge partial-source semantics are now explicit (2026-09-11)
+
+`MergePlan` freezes the first simultaneous parent step and all later recurrence
+and return edges. It rejects aliased topology, bad rounds or switches, missing
+areas/stimuli and inactive unstimulated parents before mutation. A one-stimulus
+call must now declare its other parent `require-fixed`, `fix-current`, or
+`evolving`, and the first and third modes verify current clamp state.
+
+The caller audit found thirteen partial calls: twelve already lived inside
+pinning scopes and now say `require-fixed`; `universality_composition` explicitly
+says `evolving`. No unnamed static partial call remains, and an AST ratchet blocks
+new ones. All touched scripts compile. The four source patterns reproduce the old
+edge/state trajectory on all three NumPy engines. Contract tests are 111 passed;
+the merge-focused package
+selection is 17 passed. The expanded operation/public/specification/integration
+gate is 345 passed with 4 optional-reference skips, and CUDA-initialized Torch
+parity is 27 passed. The public workflow documents the compatibility change.
+
+This preserves old arithmetic while making the protocol claim executable. It does
+not rerun any registered study. Completion remains the last operation-card
+migration before the shared plan layer covers the original five operations.

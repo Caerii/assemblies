@@ -134,7 +134,8 @@ def trial(seed):
         for m in range(M_ITEMS):
             with pinned(brain, slot(L - 1, m), stored[L - 1][m]):
                 merge(brain, slot(L - 1, m), PARTNER[L], slot(L, m),
-                      stim_b=f"{STIM_OF[PARTNER[L]]}{m}", rounds=MERGE_ROUNDS)
+                      stim_b=f"{STIM_OF[PARTNER[L]]}{m}", rounds=MERGE_ROUNDS,
+                      unstimulated_source_mode="require-fixed")
                 stored[L][m] = read(brain, slot(L, m))
 
     def select(src_area, src_ids, level):

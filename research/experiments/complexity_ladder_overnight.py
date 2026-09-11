@@ -162,7 +162,8 @@ def trial(n, m_items, depth, seed):
         for m in range(m_items):
             with pinned(brain, level(L - 1), stored[L - 1][m]):
                 merge(brain, level(L - 1), partner(L), level(L),
-                      stim_b=f"p{L}_{m}", rounds=MERGE_ROUNDS, **GATED)
+                      stim_b=f"p{L}_{m}", rounds=MERGE_ROUNDS,
+                      unstimulated_source_mode="require-fixed", **GATED)
                 stored[L][m] = read(brain, level(L))
 
     # A collapsed level makes every number below it read at chance for a

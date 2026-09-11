@@ -238,7 +238,7 @@ Empty surfaces reject during contract construction. The public implementation
 carries the exact object as `operation_contract`, and the read-only
 `OPERATION_CONTRACTS` registry provides discovery without importing research prose.
 
-Projection, reciprocal projection and association are the first migrated operations.
+Projection, reciprocal projection, association and merge are migrated operations.
 `ProjectionPlan` validates nonempty
 names, a positive integral round count and an explicit Boolean recurrence choice,
 then freezes the full ordered `ProjectionStep` sequence. Execution validates the
@@ -275,9 +275,22 @@ recurrence begins.
 Association migration comparisons cover both source protocols on all three NumPy
 engines. They reconstruct the removed imperative helper and compare all three
 areas' stable and compact winners, recruitment, owned RNG, clamp restoration and
-the next read-only observation. Merge and completion still need their own immutable
-plan types and contract objects; migrated schedule identity is not evidence for
-their scientific outcomes.
+the next read-only observation.
+
+`MergePlan` freezes simultaneous parent drive and the later target schedule. The
+parent-self, target-self and back-projection switches require explicit booleans.
+With no stimuli it borrows both current parent assemblies as clamps; with two
+stimuli both parents evolve. Exactly one stimulus requires the caller to declare
+the other parent's state as `require-fixed`, `fix-current`, or `evolving`.
+Preflight verifies that declaration against current state. This prevents a missing
+stimulus from silently selecting a different transition system.
+
+All thirteen statically visible partial-stimulus research calls now name their
+mode. Twelve already execute inside a pinning scope and declare `require-fixed`;
+the live composed parent in `universality_composition` declares `evolving`.
+Migration comparisons cover all four historical source patterns on all three
+NumPy engines. Completion still needs its immutable execution/observation plan;
+migrated schedule identity is not evidence for any operation's scientific outcome.
 
 
 ## Repetition shares the ordinary transition boundary

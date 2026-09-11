@@ -238,7 +238,8 @@ def compose3(brain, i: int, j: int, l: int, rounds: int = MERGE_ROUNDS):
 
     merge(brain, SRC_A, SRC_B, COMP,
           stim_a=f"a{i}", stim_b=f"b{j}", rounds=rounds)
-    return merge(brain, COMP, SRC_C, COMP2, stim_b=f"c{l}", rounds=rounds)
+    return merge(brain, COMP, SRC_C, COMP2, stim_b=f"c{l}", rounds=rounds,
+                 unstimulated_source_mode="evolving")
 
 
 # --------------------------------------------------------------------------

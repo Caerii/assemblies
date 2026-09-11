@@ -1,5 +1,6 @@
 """Executable obligations for first-class Assembly Calculus contracts."""
 
+import ast
 import copy
 from dataclasses import FrozenInstanceError, replace
 from pathlib import Path
@@ -9,12 +10,12 @@ import numpy as np
 import pytest
 
 from neural_assemblies.assembly_calculus.contracts import (
-    ASSOCIATION_CONTRACT, OPERATION_CONTRACTS, PROJECTION_CONTRACT,
-    RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan, ProjectionPlan,
-    ReciprocalProjectionPlan,
+    ASSOCIATION_CONTRACT, MERGE_CONTRACT, OPERATION_CONTRACTS,
+    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
+    MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import (
-    associate, project, reciprocal_project,
+    associate, merge, project, reciprocal_project,
 )
 from neural_assemblies.assembly_calculus.tracing import snapshot_area
 from neural_assemblies.core.brain import Brain
@@ -33,8 +34,8 @@ class RecordingBrain:
 class RecordingReciprocalBrain:
     def __init__(self):
         self.areas = {
-            "A": SimpleNamespace(winners=[4, 7]),
-            "B": SimpleNamespace(winners=[]),
+            "A": SimpleNamespace(winners=[4, 7], fixed_assembly=False),
+            "B": SimpleNamespace(winners=[], fixed_assembly=False),
         }
         self.calls = []
 
@@ -211,6 +212,111 @@ def test_association_preflight_rejects_before_the_first_mutation(failure):
     assert brain.calls == []
 
 
+@pytest.mark.parametrize("rounds", [0, -1, True, 1.5])
+def test_merge_plan_rejects_invalid_rounds(rounds):
+    with pytest.raises(ValueError, match="positive integer"):
+        MergePlan("A", "B", "T", rounds=rounds)
+
+
+@pytest.mark.parametrize("switch", ["parent_self", "target_self", "back_project"])
+def test_merge_plan_requires_explicit_boolean_switches(switch):
+    fields = {switch: 1}
+    with pytest.raises(ValueError, match="explicit boolean"):
+        MergePlan("A", "B", "T", **fields)
+
+
+def test_partial_merge_requires_an_explicit_unstimulated_source_mode():
+    with pytest.raises(ValueError, match="partial-stimulus merge requires"):
+        MergePlan("A", "B", "T", stim_b="sb")
+
+
+def test_static_partial_merge_calls_name_the_unstimulated_source_mode():
+    failures = []
+    for root in (Path("neural_assemblies"), Path("research")):
+        for path in root.rglob("*.py"):
+            tree = ast.parse(path.read_text(encoding="utf-8"), filename=str(path))
+            for node in ast.walk(tree):
+                if not isinstance(node, ast.Call):
+                    continue
+                function = node.func
+                name = (
+                    function.id if isinstance(function, ast.Name)
+                    else function.attr if isinstance(function, ast.Attribute)
+                    else ""
+                )
+                if name != "merge":
+                    continue
+                keywords = {kw.arg: kw.value for kw in node.keywords if kw.arg}
+
+                def present(field):
+                    value = keywords.get(field)
+                    return value is not None and not (
+                        isinstance(value, ast.Constant) and value.value is None
+                    )
+
+                if present("stim_a") != present("stim_b"):
+                    if "unstimulated_source_mode" not in keywords:
+                        failures.append(f"{path}:{node.lineno}")
+    assert failures == []
+
+
+def test_partial_merge_rejects_an_unknown_source_mode():
+    with pytest.raises(ValueError, match="partial-stimulus merge requires"):
+        MergePlan(
+            "A", "B", "T", stim_b="sb", unstimulated_source_mode="guess",
+        )
+
+
+@pytest.mark.parametrize("names", [
+    ("A", "A", "T"), ("A", "B", "A"), ("A", "B", "B"),
+])
+def test_merge_plan_rejects_aliased_areas(names):
+    with pytest.raises(ValueError, match="three distinct"):
+        MergePlan(*names)
+
+
+def test_merge_plan_rejects_aliased_parent_stimuli():
+    with pytest.raises(ValueError, match="distinct parent stimuli"):
+        MergePlan("A", "B", "T", "same", "same")
+
+
+@pytest.mark.parametrize("mode", ["require-fixed", "fix-current", "evolving"])
+def test_partial_merge_accepts_each_explicit_source_mode(mode):
+    assert MergePlan(
+        "A", "B", "T", stim_b="sb", unstimulated_source_mode=mode,
+    ).unstimulated_source == "A"
+
+
+def test_nonpartial_merge_rejects_a_meaningless_source_mode():
+    with pytest.raises(ValueError, match="only valid"):
+        MergePlan("A", "B", "T", unstimulated_source_mode="evolving")
+
+
+def test_merge_back_projection_switch_changes_the_declared_schedule():
+    enabled = MergePlan("A", "B", "T", rounds=2, back_project=True)
+    disabled = MergePlan("A", "B", "T", rounds=2, back_project=False)
+    assert enabled.steps[1].fibers_dict()["T"] == ["T", "A", "B"]
+    assert disabled.steps[1].fibers_dict()["T"] == ["T"]
+
+
+@pytest.mark.parametrize("mode,fixed", [
+    ("require-fixed", False), ("evolving", True),
+])
+def test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode(
+    mode, fixed,
+):
+    brain = RecordingReciprocalBrain()
+    brain.areas["T"] = SimpleNamespace(winners=[], fixed_assembly=False)
+    brain.areas["A"].fixed_assembly = fixed
+    brain.stimuli = {"sb": object()}
+    plan = MergePlan(
+        "A", "B", "T", stim_b="sb", unstimulated_source_mode=mode,
+    )
+    with pytest.raises(ValueError, match="to be fixed|to be evolving"):
+        plan.execute_steps(brain)
+    assert brain.calls == []
+
+
 @pytest.mark.parametrize("name,operation,contract,plan_type", [
     ("projection", project, PROJECTION_CONTRACT, ProjectionPlan),
     (
@@ -218,6 +324,7 @@ def test_association_preflight_rejects_before_the_first_mutation(failure):
         RECIPROCAL_PROJECTION_CONTRACT, ReciprocalProjectionPlan,
     ),
     ("association", associate, ASSOCIATION_CONTRACT, AssociationPlan),
+    ("merge", merge, MERGE_CONTRACT, MergePlan),
 ])
 def test_public_operation_carries_the_registered_contract(
     name, operation, contract, plan_type,
@@ -422,3 +529,74 @@ def test_plan_execution_reproduces_the_former_association_path(
             candidate.project({}, {"A": ["T"], "T": ["T"]})
             future.append(snapshot_area(candidate, "T"))
     np.testing.assert_array_equal(future[0].winners, future[1].winners)
+
+
+@pytest.mark.parametrize("engine_name", [
+    "numpy_sparse", "numpy_exact", "numpy_explicit",
+])
+@pytest.mark.parametrize("mode", [
+    "fixed-both", "driven-both", "require-fixed", "fix-current", "evolving",
+])
+def test_plan_execution_reproduces_the_former_merge_path(engine_name, mode):
+    brain = Brain(engine=engine_name, p=.2, seed=43, norm_init=False)
+    for area in ("A", "B", "T"):
+        brain.add_area(area, 60, 6, beta=.1)
+    brain.add_stimulus("sa", 6)
+    brain.add_stimulus("sb", 6)
+    project(brain, "sa", "A", rounds=3, recurrent=True)
+    project(brain, "sb", "B", rounds=3, recurrent=True)
+
+    if mode == "fixed-both":
+        stimuli = (None, None)
+        source_mode = None
+    elif mode == "driven-both":
+        stimuli = ("sa", "sb")
+        source_mode = None
+    else:
+        stimuli = (None, "sb")
+        source_mode = mode
+    if mode == "require-fixed":
+        brain.areas["A"].fix_assembly()
+    previous = copy.deepcopy(brain)
+
+    actual = merge(
+        brain, "A", "B", "T", stim_a=stimuli[0], stim_b=stimuli[1],
+        rounds=3, parent_self=True, target_self=True, back_project=True,
+        unstimulated_source_mode=source_mode,
+    )
+
+    reference_fixed = (
+        ("A", "B") if mode == "fixed-both"
+        else ("A",) if mode == "fix-current"
+        else ()
+    )
+    for source in reference_fixed:
+        previous.areas[source].fix_assembly()
+    stim_dict = {}
+    if stimuli[0] is not None:
+        stim_dict[stimuli[0]] = ["A"]
+    if stimuli[1] is not None:
+        stim_dict[stimuli[1]] = ["B"]
+    parents = {"A": ["A", "T"], "B": ["B", "T"]}
+    previous.project(stim_dict, parents)
+    for _ in range(2):
+        previous.project(stim_dict, {**parents, "T": ["T", "A", "B"]})
+    for source in reference_fixed:
+        previous.areas[source].unfix_assembly()
+        previous._engine_for(previous.areas[source]).unfix_assembly(source)
+
+    np.testing.assert_array_equal(actual.winners, snapshot_area(previous, "T").winners)
+    for area_name in ("A", "B", "T"):
+        actual_engine = brain._engine_for(brain.areas[area_name])
+        prior_engine = previous._engine_for(previous.areas[area_name])
+        np.testing.assert_array_equal(
+            actual_engine.get_winners(area_name), prior_engine.get_winners(area_name),
+        )
+        assert actual_engine.get_num_ever_fired(area_name) == (
+            prior_engine.get_num_ever_fired(area_name)
+        )
+    if hasattr(brain._engine, "_rng"):
+        assert brain._engine._rng.bit_generator.state == (
+            previous._engine._rng.bit_generator.state
+        )
+    assert brain.areas["A"].fixed_assembly is (mode == "require-fixed")

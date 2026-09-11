@@ -220,6 +220,131 @@ class AssociationPlan:
             brain.project(step.stimuli_dict(), step.fibers_dict())
 
 
+_UNSTIMULATED_SOURCE_MODES = frozenset({"require-fixed", "fix-current", "evolving"})
+
+
+@dataclass(frozen=True)
+class MergePlan:
+    """Validated simultaneous two-parent merge schedule."""
+
+    source_a: str
+    source_b: str
+    target: str
+    stim_a: str | None = None
+    stim_b: str | None = None
+    rounds: int = 10
+    parent_self: bool = True
+    target_self: bool = True
+    back_project: bool = True
+    unstimulated_source_mode: str | None = None
+
+    def __post_init__(self) -> None:
+        names = (
+            ("source_a", self.source_a),
+            ("source_b", self.source_b),
+            ("target", self.target),
+        )
+        for label, value in names:
+            _require_name(label, value)
+        if len({value for _, value in names}) != len(names):
+            raise ValueError("merge requires three distinct areas")
+        for label, value in (("stim_a", self.stim_a), ("stim_b", self.stim_b)):
+            if value is not None:
+                _require_name(label, value)
+        if self.stim_a is not None and self.stim_a == self.stim_b:
+            raise ValueError("merge requires distinct parent stimuli")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        for label in ("parent_self", "target_self", "back_project"):
+            _explicit_bool(label, getattr(self, label))
+
+        partial = (self.stim_a is None) != (self.stim_b is None)
+        mode = self.unstimulated_source_mode
+        if partial:
+            if mode not in _UNSTIMULATED_SOURCE_MODES:
+                raise ValueError(
+                    "partial-stimulus merge requires unstimulated_source_mode "
+                    "'require-fixed', 'fix-current', or 'evolving'"
+                )
+        elif mode is not None:
+            raise ValueError(
+                "unstimulated_source_mode is only valid for a partial-stimulus merge"
+            )
+
+    @property
+    def unstimulated_source(self) -> str | None:
+        if self.stim_a is None and self.stim_b is not None:
+            return self.source_a
+        if self.stim_b is None and self.stim_a is not None:
+            return self.source_b
+        return None
+
+    @property
+    def fixed_sources(self) -> tuple[str, ...]:
+        if self.stim_a is None and self.stim_b is None:
+            return (self.source_a, self.source_b)
+        source = self.unstimulated_source
+        if self.unstimulated_source_mode == "fix-current" and source is not None:
+            return (source,)
+        return ()
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        stimuli = tuple(
+            (stimulus, (source,))
+            for source, stimulus in (
+                (self.source_a, self.stim_a),
+                (self.source_b, self.stim_b),
+            )
+            if stimulus is not None
+        )
+        def parent_targets(source: str) -> tuple[str, ...]:
+            return (source, self.target) if self.parent_self else (self.target,)
+        parents = (
+            (self.source_a, parent_targets(self.source_a)),
+            (self.source_b, parent_targets(self.source_b)),
+        )
+        target_targets = (
+            ((self.target,) if self.target_self else ())
+            + ((self.source_a, self.source_b) if self.back_project else ())
+        )
+        first = ProjectionStep(stimuli=stimuli, fibers=parents)
+        tail_fibers = parents + (
+            ((self.target, target_targets),) if target_targets else ()
+        )
+        tail = ProjectionStep(stimuli=stimuli, fibers=tail_fibers)
+        return (first,) + (tail,) * (self.rounds - 1)
+
+    def preflight(self, brain) -> None:
+        for name in (self.source_a, self.source_b, self.target):
+            if name not in brain.areas:
+                raise IndexError(f"Not in brain.areas: {name}")
+        for stimulus in (self.stim_a, self.stim_b):
+            if stimulus is not None and stimulus not in brain.stimuli:
+                raise IndexError(f"Not in brain.stimuli: {stimulus}")
+        unstimulated = [
+            source for source, stimulus in (
+                (self.source_a, self.stim_a),
+                (self.source_b, self.stim_b),
+            )
+            if stimulus is None
+        ]
+        empty = [name for name in unstimulated if len(brain.areas[name].winners) == 0]
+        if empty:
+            raise ValueError(f"merge requires active unstimulated sources: {empty}")
+        source = self.unstimulated_source
+        if source is not None and self.unstimulated_source_mode == "require-fixed":
+            if not brain.areas[source].fixed_assembly:
+                raise ValueError(f"merge requires source {source!r} to be fixed")
+        if source is not None and self.unstimulated_source_mode == "evolving":
+            if brain.areas[source].fixed_assembly:
+                raise ValueError(f"merge requires source {source!r} to be evolving")
+
+    def execute_steps(self, brain) -> None:
+        self.preflight(brain)
+        for step in self.steps:
+            brain.project(step.stimuli_dict(), step.fibers_dict())
+
+
 @dataclass(frozen=True)
 class OperationContract:
     """Reviewable scientific surface attached to an executable operation."""
@@ -343,10 +468,45 @@ ASSOCIATION_CONTRACT = OperationContract(
 )
 
 
+MERGE_CONTRACT = OperationContract(
+    operation_id="merge-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge",
+    plan_type=MergePlan,
+    inputs=(
+        "brain", "source_a", "source_b", "target", "stim_a", "stim_b",
+        "rounds", "parent_self", "target_self", "back_project",
+        "unstimulated_source_mode",
+    ),
+    reads=("parent winners", "optional parent stimuli", "participating weights"),
+    mutates=("target winners", "participating weights", "engine history", "clamps"),
+    regime=(
+        "three distinct registered areas",
+        "active unstimulated parents",
+        "explicit mode for exactly one unstimulated parent",
+    ),
+    observed_outcome=("final jointly-driven target neuron-ID snapshot",),
+    failure_conditions=(
+        "invalid schedule switch",
+        "ambiguous partial-stimulus protocol",
+        "source clamp contradicts declared mode",
+        "unknown topology",
+        "empty unstimulated source",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_merge_back_projection_switch_changes_the_declared_schedule",
+        "neural_assemblies/tests/test_ac_conformance.py::"
+        "test_merge_creates_two_way_connectivity_with_bounded_support",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,
+    "merge": MERGE_CONTRACT,
 })
 
 
