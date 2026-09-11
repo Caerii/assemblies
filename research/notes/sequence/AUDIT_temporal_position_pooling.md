@@ -36,3 +36,27 @@ selection error into a corrected distractor-only number.
 The performance observation still motivates representation-versus-readout research.
 The prior statement that g=0 already carries a0.11 distractor contrast does not.
 No new scientific outcome is adopted from the constructed software counterexample.
+
+
+## Replacement observation contract
+
+research/experiments/temporal_observations.py defines the CPU analysis boundary.
+Build an expected manifest from the complete agreement-chain corpus and declared
+gap. Derive subject number from AUX and token role from the fixed chain vocabulary;
+validate the role sequence and agreement words. Exclude only the final prediction
+target. Each frame must name sentence_id, position, token, subject_number and exactly
+k unique in-range neuron IDs. The frame inventory must equal the manifest: reject
+missing, duplicate, extra or mismatched rows rather than silently dropping sentences.
+
+Report every processed position separately, with its derived role and distractor
+flag. For each position retain same/different-subject pair counts and overlap means,
+and their contrast. Both pair types must exist. These are within-brain pair means,
+not independent seed replicates or confidence intervals. Retain frames and corpus
+in the eventual run artifact; this analyzer returns summaries, not a storage format.
+Frame ordering may change without changing results because identities are explicit.
+
+Constructed agreement-only signal must yield zero contrast at every distractor;
+subject-specific distractor arcs must change those contrasts. This validates the
+instrument on known cases, not its scientific conclusion on trained neural systems.
+GPU frame capture, learning-state checks, registration and empirical reruns remain
+required. The old pooled collector stays blocked until that new path is validated.

@@ -49,6 +49,7 @@ jobs:
           neural_assemblies/tests/test_projection_rounds_contract.py
           neural_assemblies/tests/test_probe_state_contract.py
           neural_assemblies/tests/test_temporal_position_audit.py
+          neural_assemblies/tests/test_temporal_observations.py
           neural_assemblies/tests/test_historical_merge_trials.py
           neural_assemblies/tests/test_historical_association_trials.py
           neural_assemblies/tests/test_historical_noise_trials.py

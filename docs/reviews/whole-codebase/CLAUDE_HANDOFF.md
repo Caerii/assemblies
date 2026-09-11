@@ -1528,3 +1528,12 @@ preserving separate prediction results. Old collection now fails before GPU work
 31 audit/register/specification/ratchet checks pass. Next is a position-specific
 collector and registered rerun, not a readout study assuming the0.11 premise.
 See VALIDATION.md#temporal-mechanism-position-pooling-audit-2026-09-10.
+
+
+## Position-specific temporal observation boundary (2026-09-10)
+
+The replacement CPU analyzer validates complete sentence/token/arc frames and
+reports each position separately.45 checks pass, including the confounded negative,
+positive signal and generated corpora at gaps1/2/3/6. It is not yet wired to GPU
+collection; TM-9 remains suspended pending a registered rerun. See
+VALIDATION.md#position-specific-temporal-observation-boundary-2026-09-10.

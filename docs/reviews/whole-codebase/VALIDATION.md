@@ -2850,3 +2850,24 @@ or measured yet. See research/notes/sequence/AUDIT_temporal_position_pooling.md.
 Validation:12 audit/register checks and19 specification/two-ratchet checks pass;
 Ruff and diff checks pass. No GPU run was necessary for this constructed confound,
 and no historical GPU artifact was rewritten. The new audit tests enter CPU CI.
+
+
+## Position-specific temporal observation boundary (2026-09-10)
+
+Added temporal_observations.py, linked to the replacement observation contract.
+It derives a complete manifest from the declared chain corpus/gap and requires
+exact sentence/position/token/subject identities plus k unique in-range arc IDs.
+Missing, duplicate, extra and mislabelled frames fail. Analysis returns separate
+positions with token role, distractor flag, pair counts and same/different means;
+it never pools directly informative agreement words into distractor evidence.
+
+Known agreement-only signal gives zero contrast at every distractor; constructed
+subject-specific distractor arcs change it. Reordering frames leaves output invariant.
+Actual generated corpora at gaps1/2/3/6 satisfy the manifest; all-constant arcs have
+zero contrast. Single-subject corpora cannot silently manufacture a comparison.
+These are within-brain pair summaries, not seed-level uncertainty or neural evidence.
+
+45 tests pass in37.16s across the new analyzer, original confound counterexample,
+specification links and both ratchets. Ruff and diff checks pass; tests enter CPU CI.
+GPU frame collection, frozen-state validation, preregistration and empirical reruns
+remain open. Old TM-9 stays blocked and no suspended scientific claim is restored.
