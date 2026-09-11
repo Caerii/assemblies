@@ -245,3 +245,45 @@ passing reference test" over "old code, untested". The reference test was too
 weak to arbitrate (winner sets at small scale cannot see 2e-3 drive errors),
 and the arbiter that settled it was ENGINE parity on the DRIVE. When two
 implementations disagree, neither is verified by a test they both pass.
+
+---
+
+## Amendment 3 (2026-09-11, before running): retain the cliff and its sensitivity
+
+`CAP-CLIFF` currently points at a maintained-run artifact for a different
+`(n,k)` cell. The exact-path cliff values above survive only as aggregate prose;
+the original per-brain vectors were not retained in an identified JSON artifact.
+This amendment therefore specifies a fresh reproduction and sensitivity run. It
+does not manufacture provenance for the 2026-08-25 measurement.
+
+Run protocol version 2 of `research/experiments/seq_capacity_scaling.py` with:
+
+    engine       hashed_assembly_memory / exact count-then-apply AssemblyMemory
+    arm          B (norm_init=true, synaptic_scaling=false)
+    n, k         8000, 60
+    p, beta      0.50, 0.10
+    rounds       8
+    w_max        20
+    readout      net
+    checkpoints  192, 256, 320, 384, 512
+    seeds        42..61 (20 independent brains)
+    recall       32 stored items per brain and checkpoint
+    measurement RNG seed 1234
+
+The historical exact-path aggregates are rank-1 `0.938 / 0.486 / 0.014` at
+`M = 256 / 320 / 384`. The frozen bars are:
+
+* **A3-R1, reproduction:** the new means at M=256, 320 and 384 are respectively
+  within 0.10, 0.15 and 0.10 absolute rank-1 of those historical aggregates.
+* **A3-C1, cliff:** mean rank-1 falls by at least 0.75 from M=256 to M=384.
+* **A3-S1, instrument movement:** for every seed, rank-1 at M=192 exceeds
+  rank-1 at M=512 by at least 0.50.
+* **A3-S0, constructed dead probe:** substituting the M=512 vector for the
+  M=192 vector must fail A3-S1.
+
+Failure of A3-R1 means the maintained protocol does not reproduce the registered
+number and `CAP-CLIFF` must keep the old result and new result separate. Failure
+of A3-C1 means the cliff shape does not reproduce. Failure of A3-S1 means the
+readout does not move reliably across the tested load range, so this artifact
+cannot close the register sensitivity gap. No threshold will be changed after
+the run.
