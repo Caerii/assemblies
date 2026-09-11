@@ -12,6 +12,7 @@ def test_throughput_reports_per_seed_quantiles():
                        seeds=[1, 2, 3])
     cell = result["cells"][0]
     assert result["status"] == "diagnostic"
+    assert "git_commit" in result["runtime"]
     assert result["storage"] == "materialized"
     assert result["model_semantics"]["connectome"] == "fixed-hash-regenerated"
     assert len(cell["per_seed"]) == 3

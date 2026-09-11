@@ -14,6 +14,7 @@ import json
 from pathlib import Path
 import platform
 import statistics
+import subprocess
 import time
 
 from neural_assemblies.assembly_calculus import project
@@ -29,6 +30,16 @@ def _quantiles(values: list[float]) -> dict[str, float]:
         "p90": p90,
         "max": ordered[-1],
     }
+
+
+def _git_commit() -> str | None:
+    try:
+        return subprocess.check_output(
+            ["git", "rev-parse", "HEAD"], stderr=subprocess.DEVNULL,
+            text=True,
+        ).strip()
+    except (OSError, subprocess.CalledProcessError):
+        return None
 
 
 def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
@@ -74,6 +85,7 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
         "seeds": seeds,
         "cells": cells,
         "runtime": {"python": platform.python_version(), "platform": platform.platform(),
+                    "git_commit": _git_commit(),
                     "recorded_utc": datetime.now(timezone.utc).isoformat()},
     }
 

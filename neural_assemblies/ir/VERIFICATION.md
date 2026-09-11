@@ -60,7 +60,7 @@ record, even if the source code change is only one parameter.
 ## Operational benchmark contract
 
 The maintained throughput benchmark is an engineering diagnostic. It must
-record the resolved engine and model semantics, dimensions, round count,
+record the resolved engine, model semantics, and code revision, dimensions, round count,
 independent seed identities, storage mode, per-seed timings, and summary
 quantiles. It rejects fewer than three unique seeds and never replaces an
 existing output. A benchmark result does not certify scientific validity,
