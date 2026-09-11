@@ -1339,6 +1339,8 @@ class Brain:
             area = self.areas[area_name]
         except KeyError:
             raise KeyError(f"unknown area {area_name!r}") from None
+        if type(preserve_mapping) is not bool or type(reset_count) is not bool:
+            raise TypeError("preserve_mapping and reset_count must be boolean")
         owner = self._engine_for(area)
         if reset_count:
             area.w = 0

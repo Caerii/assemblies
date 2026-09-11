@@ -4299,3 +4299,8 @@ Validation: 2 parser engine-identity compatibility tests passed.
 The population migration was tightened to remove duplicate facade calls in the
 context bridge and linker. Four targeted bridge/preallocation tests remain
 green after deduplication.
+
+The population facade now rejects non-boolean `preserve_mapping` and
+`reset_count` switches before resolving or mutating backend state.
+
+Validation: 5 population-owner tests passed, including invalid-switch controls.

@@ -33,3 +33,11 @@ def test_stimulus_beta_updates_use_explicit_target_owner():
         brain.update_plasticities(stim_update_map={"A": [("s", 0.2)]})
     set_beta.assert_called_once_with("A", "s", 0.2)
     primary_set_beta.assert_not_called()
+
+
+@pytest.mark.parametrize("kwargs", [{"preserve_mapping": 1}, {"reset_count": None}])
+def test_population_cursor_rejects_non_boolean_protocol_switches(kwargs):
+    brain = Brain(engine="numpy_sparse", norm_init=False)
+    brain.add_area("A", 20, 2, 0.1)
+    with pytest.raises(TypeError, match="must be boolean"):
+        brain.reset_area_population_cursor("A", **kwargs)

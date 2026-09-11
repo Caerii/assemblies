@@ -2507,3 +2507,6 @@ sampling regression is green.
 The population migration was tightened to remove duplicate facade calls in the
 context bridge and linker. Four targeted bridge/preallocation tests remain
 green after deduplication.
+
+The facade now rejects non-boolean semantic switches before mutation. Five
+population-owner tests pass, including invalid-switch controls.
