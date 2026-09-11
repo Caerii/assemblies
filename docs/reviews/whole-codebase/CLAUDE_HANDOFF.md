@@ -1739,3 +1739,18 @@ The complete rerun at `02cacc9` is green: 3,256 passed, 65 skipped,
 expected-failure reasons, slowest nodes and hashes of both raw artifacts. This
 is the current non-slow package baseline; slow tests, unavailable CuPy execution,
 scientific adoption and cross-backend semantic proof remain outside the claim.
+
+## Engine admission errors are no longer erased (2026-09-11)
+
+The lazy factory used to catch a mapped provider's `ImportError`, broadly reload
+engines, and finally call the requested built-in name unknown. It now raises the
+public `EngineUnavailableError` from the original cause. A provider that imports
+without registering its mapped name has its own explicit admission message;
+genuinely unmapped names retain the old unknown-name `ValueError`, and constructor
+failures remain unchanged.
+
+The implementation cites `VERIFICATION.md#contract-engine-admission`. Constructed
+negative cases cover missing dependency, missing registration and invalid name.
+The focused engine/spec/lazy-import gate is 68 passed; Ruff, compilation and diff
+checks pass. A live `cuda_implicit` request on this machine now reports missing
+`cupy` with `ModuleNotFoundError` preserved as the cause.

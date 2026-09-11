@@ -708,6 +708,25 @@ run, reject unavailable identity, and check matching identity in newly created
 auxiliary dense engines with both finite and absent clips.
 
 
+<a id="contract-engine-admission"></a>
+
+## Named-engine admission and failure identity
+
+Engine names in the built-in module map are known even when their optional
+implementation cannot load. `ensure_engine` attempts only the module named by that
+map and records its `ImportError`; it returns false for both unavailable and unknown
+names because it is a membership probe. `create_engine` preserves the distinction:
+a mapped implementation failure raises `EngineUnavailableError`, chained from the
+original import error, while an unmapped and unregistered name raises the existing
+unknown-name `ValueError`. Constructor errors after successful registration remain
+constructor errors and are not relabeled. A provider module that imports but fails
+to register its mapped name is also rejected here with that condition stated.
+
+This boundary runs before engine construction or model-state mutation. It does not
+claim that an importable backend has a usable device or satisfies parity; each
+backend's runtime admission and conformance gates own those stronger claims.
+
+
 <a id="contract-homeostasis-config"></a>
 
 ## Shared homeostasis configuration

@@ -454,6 +454,11 @@ class ComputeEngine(ABC):
 
 _ENGINE_REGISTRY: Dict[str, type] = {}
 _ENGINES_LOADED = False
+_ENGINE_LOAD_ERRORS: Dict[str, ImportError] = {}
+
+
+class EngineUnavailableError(ValueError):
+    """A known engine could not load its implementation or dependencies."""
 
 
 def _ensure_engines_loaded():
@@ -517,8 +522,10 @@ def ensure_engine(engine_name: str) -> bool:
         import importlib
 
         importlib.import_module(f".{module}", __package__)
-    except ImportError:
+    except ImportError as error:
+        _ENGINE_LOAD_ERRORS[engine_name] = error
         return False
+    _ENGINE_LOAD_ERRORS.pop(engine_name, None)
     return engine_name in _ENGINE_REGISTRY
 
 
@@ -530,6 +537,8 @@ def list_engines() -> List[str]:
 
 def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
     """Instantiate a registered engine by name.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-admission
 
     Extra *kwargs* are forwarded to the engine constructor.
 
@@ -551,7 +560,16 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
     #
     # Fall back to the broad load only when the narrow one fails, so an unknown
     # or aliased name still reports the full list of what is available.
-    if not ensure_engine(engine_name):
+    if engine_name in _ENGINE_MODULES and not ensure_engine(engine_name):
+        error = _ENGINE_LOAD_ERRORS.get(engine_name)
+        detail = (
+            f": {error}" if error
+            else ": provider module loaded without registering the engine"
+        )
+        raise EngineUnavailableError(
+            f"Engine {engine_name!r} is known but unavailable{detail}"
+        ) from error
+    if engine_name not in _ENGINE_MODULES and not ensure_engine(engine_name):
         _ensure_engines_loaded()
     if engine_name not in _ENGINE_REGISTRY:
         available = ", ".join(_ENGINE_REGISTRY.keys()) or "(none)"

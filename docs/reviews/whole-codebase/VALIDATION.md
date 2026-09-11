@@ -3253,3 +3253,23 @@ raw JUnit and log artifacts. This accepts the package lint checkpoint as the
 current non-slow software baseline. It does not cover tests marked slow, execute
 the unavailable CuPy backend, adopt scientific evidence, or prove backend
 semantic equivalence.
+
+## Engine admission failure identity (2026-09-11)
+
+The lazy engine factory previously swallowed a built-in provider's `ImportError`
+and then reported the requested mapped name as an unknown engine. That merged a
+typo, a missing optional dependency, and a broken provider import into one false
+diagnosis. It also discarded the traceback needed to fix the environment or code.
+
+`EngineUnavailableError` now distinguishes known-but-unloadable providers while
+remaining a `ValueError` subtype for caller compatibility. The factory chains the
+original import failure; if the provider loads but omits its required registry
+entry, admission says so explicitly. Unmapped names retain the unknown-name error,
+and constructor errors after registration are untouched. The implementation links
+to `VERIFICATION.md#contract-engine-admission`.
+
+Constructed controls cover all three admission branches. In this environment a
+live `cuda_implicit` request now identifies missing `cupy` and preserves its
+`ModuleNotFoundError` cause. The engine-admission, spec-link, lazy-import and exact
+engine gate reports 68 passed in 13.91 seconds. Package Ruff, compilation and diff
+checks pass.
