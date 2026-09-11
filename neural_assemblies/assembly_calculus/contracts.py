@@ -406,6 +406,8 @@ class BindingPlan:
     def __post_init__(self) -> None:
         _require_name("source_area", self.source_area)
         _require_name("target_area", self.target_area)
+        if self.source_area == self.target_area:
+            raise ValueError("bind requires distinct source and target areas")
         if isinstance(self.project_rounds, bool) or not isinstance(self.project_rounds, Integral) or self.project_rounds < 1:
             raise ValueError("bind project_rounds must be a positive integer")
         if isinstance(self.tail_rounds, bool) or not isinstance(self.tail_rounds, Integral) or self.tail_rounds < 0:
