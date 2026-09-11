@@ -4516,3 +4516,10 @@ pass and the entire maintained package remains Ruff-clean.
 `get_overlaps` now requires `percentage` to be an actual boolean; truthy values
 such as `1` or `"yes"` no longer silently change the metric's normalization.
 The simulation utility contract suite passes **10 tests** with Ruff clean.
+
+## Binary overlap domain contract (2026-09-11)
+
+`overlap_from_binary` now validates positive support size, equal-length 1-D
+vectors, and `k <= n` before normalization. The former `max(k, 1)` fallback could
+turn invalid inputs into plausible ratios. The E2 overlap suite passes **11
+ tests** with Ruff clean.

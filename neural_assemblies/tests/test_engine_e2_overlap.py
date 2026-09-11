@@ -42,6 +42,17 @@ def test_overlap_from_binary_matches_assembly_explicit():
     assert asm_ov == pytest.approx(len(shared) / k, abs=1e-6)
 
 
+@pytest.mark.parametrize("a, b, k", [
+    (np.zeros(4), np.zeros(4), 0),
+    (np.zeros(4), np.zeros(4), 5),
+    (np.zeros((2, 2)), np.zeros((2, 2)), 1),
+    (np.zeros(4), np.zeros(5), 1),
+])
+def test_overlap_from_binary_rejects_undefined_domains(a, b, k):
+    with pytest.raises(ValueError, match="binary overlap"):
+        overlap_from_binary(a, b, k)
+
+
 def test_assembly_from_area_matches_dot_on_explicit_brain(explicit_mnist_brain):
     brain = explicit_mnist_brain
     rng = np.random.default_rng(1)

@@ -205,4 +205,13 @@ def overlap_from_binary(a: np.ndarray, b: np.ndarray, k: int) -> float:
     Returns ``dot(a, b) / k``.  For equal-size assemblies this matches
     :func:`overlap` on :meth:`Assembly.from_area` snapshots.
     """
-    return float(np.dot(a, b)) / max(int(k), 1)
+    if (isinstance(k, bool) or not isinstance(k, Integral)
+            or k <= 0):
+        raise ValueError("binary overlap requires a positive integer k")
+    a = np.asarray(a)
+    b = np.asarray(b)
+    if a.ndim != 1 or b.ndim != 1 or a.shape != b.shape:
+        raise ValueError("binary overlap requires equal-length 1-D vectors")
+    if k > a.size:
+        raise ValueError("binary overlap k cannot exceed vector length")
+    return float(np.dot(a, b)) / int(k)
