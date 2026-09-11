@@ -40,6 +40,7 @@ from ..engine import (
     ComputeEngine,
     ProjectionResult,
     validate_deterministic_allocation,
+    validate_engine_boolean_option,
 )
 from ..index_spaces import reserve_initial_neuron_ids
 from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
@@ -100,6 +101,8 @@ class TorchSparseEngine(ComputeEngine):
     supports_norm_init = True
     supports_synaptic_scaling = True
     supports_deterministic_allocation = True
+    supports_gpu_sampling = True
+    supports_dense_drive = True
     supports_input_noise = True
     supports_refraction = True
 
@@ -133,6 +136,9 @@ class TorchSparseEngine(ComputeEngine):
                  **kwargs):
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-option-remainder
         deterministic = validate_deterministic_allocation(type(self), deterministic)
+        gpu_sampling = validate_engine_boolean_option(
+            type(self), "gpu_sampling", gpu_sampling, "supports_gpu_sampling"
+        )
         if "projection_fidelity" in kwargs:
             from ..projection_fidelity import validate_projection_fidelity_capability
             validate_projection_fidelity_capability(
@@ -169,12 +175,18 @@ class TorchSparseEngine(ComputeEngine):
         # model the sparse sampler approximates), then a single topk over n.
         # More arithmetic than the sparse path -- deliberately, so it is
         # GPU-parallel and, with a fixed [n] drive, batchable (Lever B).
-        self.dense_drive = bool(kwargs.pop("dense_drive", False))
+        self.dense_drive = validate_engine_boolean_option(
+            type(self), "dense_drive", kwargs.pop("dense_drive", False),
+            "supports_dense_drive",
+        )
         # Read-only inference: suppress candidate sampling so a projection never
         # materializes new neurons (select only among already-materialized ones).
         # Inference should not mutate the brain; this also makes prediction
         # deterministic and gives a fixed connectome to batch over (BatchedLM).
-        self.readonly = bool(kwargs.pop("readonly", False))
+        readonly = kwargs.pop("readonly", False)
+        if type(readonly) is not bool:
+            raise ValueError("readonly must be a bool")
+        self.readonly = readonly
         # Per-fiber connection density (`add_connectivity`). Empty until set;
         # every consumer must route through `_p_for` so homogeneous brains
         # keep the scalar fast paths (mirrors NumpySparseEngine._fiber_p).

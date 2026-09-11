@@ -40,6 +40,15 @@ def validate_deterministic_allocation(engine_type, value) -> bool:
     return value
 
 
+def validate_engine_boolean_option(engine_type, option, value, capability) -> bool:
+    """Validate a backend-specific boolean before construction or mutation."""
+    if type(value) is not bool:
+        raise ValueError(f"{option} must be a bool")
+    if not getattr(engine_type, capability, False):
+        raise ValueError(f"{engine_type.__name__} does not support {option}")
+    return value
+
+
 @dataclass
 class ProjectionResult:
     """Result of projecting into one area.
@@ -83,7 +92,8 @@ class ComputeEngine(ABC):
 
     def validate_brain_identity(
         self, *, p, seed, w_max, homeostasis=None, feedforward_inhibition=None,
-        projection_fidelity=None, deterministic=None,
+        projection_fidelity=None, deterministic=None, gpu_sampling=None,
+        dense_drive=None,
     ) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-engine-identity
 
@@ -139,6 +149,18 @@ class ComputeEngine(ABC):
                     "pass a matching allocation mode"
                 )
 
+        for option, requested, attribute in (
+            ("gpu_sampling", gpu_sampling, "_gpu_sampling"),
+            ("dense_drive", dense_drive, "dense_drive"),
+        ):
+            if requested is not None and getattr(self, f"supports_{option}", False):
+                actual = getattr(self, attribute, None)
+                if actual is None or actual is not requested:
+                    raise ValueError(
+                        f"Brain {option} setting conflicts with supplied engine; "
+                        "pass matching settings"
+                    )
+
     # -- Area / stimulus registration --
 
     supports_input_noise = False
@@ -152,6 +174,8 @@ class ComputeEngine(ABC):
     supports_feedforward_inhibition = False
     supports_compiled_projection = False
     supports_deterministic_allocation = False
+    supports_gpu_sampling = False
+    supports_dense_drive = False
 
     @abstractmethod
     def describe_model_semantics(self):
@@ -648,6 +672,14 @@ def create_engine(engine_name: str, **kwargs) -> ComputeEngine:
     resolved_type = engine_type(engine_name)
     if "deterministic" in kwargs:
         validate_deterministic_allocation(resolved_type, kwargs["deterministic"])
+    for option, capability in (
+        ("gpu_sampling", "supports_gpu_sampling"),
+        ("dense_drive", "supports_dense_drive"),
+    ):
+        if option in kwargs:
+            validate_engine_boolean_option(
+                resolved_type, option, kwargs[option], capability
+            )
     from ._homeostasis import (
         HomeostasisConfig,
         validate_homeostasis_capabilities,

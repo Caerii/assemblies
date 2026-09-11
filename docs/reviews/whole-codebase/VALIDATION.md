@@ -4053,3 +4053,20 @@ Validation: 233 constructor, topology, model-boundary, engine-ladder,
 lazy-import, specification and seeding tests pass with one optional-engine skip.
 The changed Torch path passes 38 scaling and parity tests in the CUDA developer
 shell. Ruff and whitespace checks pass.
+
+## Torch execution choices are reachable and recorded through Brain (2026-09-11)
+
+`dense_drive` changed Torch's candidate domain and was already reflected in its
+model semantics, but Brain could not request it. `gpu_sampling` was only
+reachable by direct Torch construction. Both paths also coerced arbitrary values
+through truthiness. Brain now exposes both as optional backend-scoped settings:
+omission selects the backend default, explicit values on other engines fail, and
+the effective post-construction choice is stored. `create_engine` and direct
+Torch construction share strict boolean admission. Deterministic Torch runs
+correctly report effective GPU sampling as false when the deterministic branch
+forces CPU sampling.
+
+Validation: 215 focused admission, identity, constructor, lazy-import and
+specification tests pass. The CUDA developer shell passes 41 Torch scaling,
+parity and batched-next-token tests, with two existing PyTorch sparse warnings.
+Ruff and whitespace checks pass.

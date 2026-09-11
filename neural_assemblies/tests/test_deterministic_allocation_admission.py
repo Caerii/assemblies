@@ -80,3 +80,10 @@ def test_direct_torch_constructor_requires_a_boolean_before_device_setup():
 
     with pytest.raises(ValueError, match="deterministic must be a bool"):
         TorchSparseEngine(p=0.1, deterministic="true")
+
+
+@pytest.mark.parametrize("option", ["gpu_sampling", "dense_drive"])
+def test_torch_only_options_reject_explicit_values_on_other_engines(option):
+    kwargs = {option: False}
+    with pytest.raises(ValueError, match=f"does not support {option}"):
+        Brain(engine="numpy_exact", norm_init=False, **kwargs)

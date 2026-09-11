@@ -2356,3 +2356,17 @@ The contract explicitly declines cross-backend and cross-version identity; run
 provenance still owns those claims. The CPU gate is 233 passed with one optional
 backend skip, and the changed Torch path is 38 scaling/parity tests green in the
 CUDA shell. Direct constructor negatives fail before device setup.
+
+Torch's remaining execution knobs are now on the public semantic path. Brain
+accepts optional `gpu_sampling` and `dense_drive` settings, resolves omitted
+values from the chosen backend, rejects explicit values on incapable engines,
+and records the effective choice after construction. The latter is essential:
+`dense_drive` changes `ModelSemantics.candidate_domain`, while deterministic Torch
+execution can turn a requested GPU sampler into an effective CPU sampler.
+
+Strict boolean validation is shared by Brain, `create_engine` and direct Torch
+construction; supplied Torch engines must match effective settings. The focused
+CPU gate is 215 passed, and the CUDA shell passes 41 scaling/parity/batched-token
+tests with only the two existing PyTorch sparse warnings. `readonly` remains
+inference state governed by `Brain.read_only()` rather than a construction model
+option.

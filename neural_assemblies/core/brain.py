@@ -40,6 +40,7 @@ from .engine import (
     create_engine,
     engine_type,
     validate_deterministic_allocation,
+    validate_engine_boolean_option,
 )
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import (
@@ -113,6 +114,8 @@ class Brain:
         w_max: float = DEFAULT_W_MAX,
         engine="auto",
         deterministic: bool = False,
+        gpu_sampling: bool | None = None,
+        dense_drive: bool | None = None,
         n_hint: int = 0,
         projection_fidelity: str = "exact",
         inhibitory_prob: float = 0.0,
@@ -145,6 +148,12 @@ class Brain:
                    policy, not a promise of cross-backend or cross-version bit
                    identity. Unsupported engines reject it. If False (default),
                    capable engines may use amortised growth and faster sampling.
+            gpu_sampling (bool | None): Torch-only choice of GPU versus CPU
+                   candidate sampling. ``None`` uses the backend default and
+                   other engines reject an explicit value.
+            dense_drive (bool | None): Torch-only choice to score every neuron
+                   candidate instead of sampled order statistics. ``None`` uses
+                   the backend default and other engines reject an explicit value.
             n_hint (int): Expected neuron count per area.  When
                    ``engine="auto"``, this guides engine selection: n >= 1M
                    with GPU available selects ``torch_sparse`` (CSR, GPU),
@@ -190,6 +199,29 @@ class Brain:
             )
         owner_type = engine_type(engine) if isinstance(engine, str) else type(engine)
         deterministic = validate_deterministic_allocation(owner_type, deterministic)
+        if gpu_sampling is None:
+            gpu_sampling = (
+                bool(getattr(engine, "_gpu_sampling", True))
+                if isinstance(engine, ComputeEngine)
+                and owner_type.supports_gpu_sampling
+                else (True if owner_type.supports_gpu_sampling else None)
+            )
+        else:
+            gpu_sampling = validate_engine_boolean_option(
+                owner_type, "gpu_sampling", gpu_sampling,
+                "supports_gpu_sampling",
+            )
+        if dense_drive is None:
+            dense_drive = (
+                bool(getattr(engine, "dense_drive", False))
+                if isinstance(engine, ComputeEngine)
+                else False
+            )
+        else:
+            dense_drive = validate_engine_boolean_option(
+                owner_type, "dense_drive", dense_drive,
+                "supports_dense_drive",
+            )
         projection_fidelity = validate_projection_fidelity_capability(
             owner_type, projection_fidelity
         )
@@ -220,12 +252,16 @@ class Brain:
                 feedforward_inhibition=feedforward_inhibition,
                 projection_fidelity=projection_fidelity,
                 deterministic=deterministic,
+                gpu_sampling=gpu_sampling,
+                dense_drive=dense_drive,
             )
         self.p = p
         self.w_max = w_max
         self.save_size = save_size
         self.save_winners = save_winners
         self.deterministic = deterministic
+        self.gpu_sampling = gpu_sampling
+        self.dense_drive = dense_drive
         self.areas: Dict[str, Area] = {}
         self.stimuli: Dict[str, Stimulus] = {}
         self.connectomes_by_stimulus: Dict[str, Dict[str, Connectome]] = {}
@@ -261,9 +297,26 @@ class Brain:
             # parity). Pinned by `test_engine_norm_init_contract`.
             if norm_init:
                 engine_kwargs["norm_init"] = True
+            if gpu_sampling is not None:
+                engine_kwargs["gpu_sampling"] = gpu_sampling
+            if dense_drive:
+                engine_kwargs["dense_drive"] = True
             self._engine: ComputeEngine = create_engine(engine, **engine_kwargs)
         else:
             self._engine = engine
+
+        # Record the effective backend policy. Deterministic Torch execution
+        # disables GPU sampling even when its request default was true.
+        self.gpu_sampling = (
+            bool(self._engine._gpu_sampling)
+            if self._engine.supports_gpu_sampling
+            else None
+        )
+        self.dense_drive = (
+            bool(self._engine.dense_drive)
+            if self._engine.supports_dense_drive
+            else False
+        )
 
         actual_semantics = self._engine.describe_model_semantics()
         if requested_semantics is not None:

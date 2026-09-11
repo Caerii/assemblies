@@ -995,6 +995,32 @@ Controls reject integer, string and null substitutes for booleans, prove
 incapable constructors are not entered, distinguish the universal false default
 from an enabled request, and reject mismatched supplied-engine adoption.
 
+<a id="contract-torch-execution-options"></a>
+
+## Torch execution-option admission
+
+`gpu_sampling` and `dense_drive` are Torch-specific execution choices. The former
+selects the device used for truncated-normal candidate sampling; the latter
+changes the candidate domain from sampled order statistics to all-neuron drive.
+Because the latter changes `ModelSemantics.candidate_domain`, it is a model choice
+and must be present in Brain construction when requested. An omitted Brain value
+uses the selected backend's default; an explicit value on an incapable backend,
+including `False`, is rejected as inapplicable rather than recorded as a no-op.
+
+Both options are strict booleans. Brain, `create_engine` and direct Torch
+construction validate them before device setup. Brain forwards them through the
+same constructor path and records the effective values after construction;
+deterministic Torch execution may make effective GPU sampling false even when the
+requested default was true. Supplied Torch engines are admitted only when their
+effective options match Brain's request. `readonly` is a separate inference
+state, not one of these model-construction options, and remains governed by the
+`read_only` context contract.
+
+Controls cover invalid truthy substitutes, explicit inapplicable options,
+requested dense-drive semantics and effective-policy recording. A positive Torch
+admission case reaches device setup with all recognized options, so the boundary
+does not merely reject everything.
+
 
 <a id="contract-backend-capability"></a>
 
