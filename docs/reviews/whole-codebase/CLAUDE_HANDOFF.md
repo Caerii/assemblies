@@ -2583,3 +2583,5 @@ Temporary sequence beta boosts are now exception-safe: recurrent projection fail
 `materialize_fiber` now distinguishes unknown topology (`KeyError`) from a valid inactive source (`False`). Focused fiber, binding, and sequence regressions pass (12 tests).
 
 `bind_strength` now separates invalid measurement domains from a measured zero: it requires an active source and a target snapshot belonging to the declared target area. Focused binding-strength and role-binding tests pass (9 tests).
+
+`OrderedRecallPlan` is now a frozen contract object in the shared calculus contract layer, and `ordered_recall` constructs and preflights it before execution. This makes the sequence readout schedule inspectable and composable while preserving the public function signature. Contract and sequence tests pass (173 tests).

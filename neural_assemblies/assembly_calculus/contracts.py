@@ -447,6 +447,45 @@ class CompletionPlan:
 
 
 @dataclass(frozen=True)
+class OrderedRecallPlan:
+    """Validated schedule for recurrent sequence readout with LRI."""
+
+    area: str
+    cue: str
+    max_steps: int = 20
+    convergence_threshold: float = 0.9
+    rounds_per_step: int = 1
+    novelty_threshold: float = 0.3
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        _require_name("cue", self.cue)
+        for label, value in (("max_steps", self.max_steps),
+                             ("rounds_per_step", self.rounds_per_step)):
+            if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+                raise ValueError(f"{label} must be a positive integer")
+            object.__setattr__(self, label, int(value))
+        for label, value in (("convergence_threshold", self.convergence_threshold),
+                             ("novelty_threshold", self.novelty_threshold)):
+            if (isinstance(value, bool) or not isinstance(value, Real)
+                    or not math.isfinite(float(value))
+                    or not 0.0 <= float(value) <= 1.0):
+                raise ValueError(f"{label} must be a finite real number in [0, 1]")
+            object.__setattr__(self, label, float(value))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise KeyError(f"ordered_recall area is unknown: {self.area!r}")
+        if self.cue not in brain.stimuli:
+            raise KeyError(f"ordered_recall cue stimulus is unknown: {self.cue!r}")
+        if brain.areas[self.area].refractory_period == 0:
+            raise ValueError(
+                f"ordered_recall requires refractory_period > 0 for area {self.area!r}. "
+                "Add the area with refractory_period=N to enable LRI."
+            )
+
+
+@dataclass(frozen=True)
 class OperationContract:
     """Reviewable scientific surface attached to an executable operation."""
 

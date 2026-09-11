@@ -65,6 +65,7 @@ from .contracts import (
     ASSOCIATION_CONTRACT, COMPLETION_CONTRACT, MERGE_CONTRACT,
     PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
     CompletionPlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
+    OrderedRecallPlan,
     implements,
 )
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
@@ -1099,26 +1100,17 @@ def ordered_recall(brain, area, cue, max_steps=20,
     Raises:
         ValueError: If the area has ``refractory_period == 0``.
     """
-    if area not in brain.areas:
-        raise KeyError(f"ordered_recall area is unknown: {area!r}")
-    if cue not in brain.stimuli:
-        raise KeyError(f"ordered_recall cue stimulus is unknown: {cue!r}")
-    for label, value in (("max_steps", max_steps),
-                         ("rounds_per_step", rounds_per_step)):
-        if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
-            raise ValueError(f"{label} must be a positive integer")
-    for label, value in (("convergence_threshold", convergence_threshold),
-                         ("novelty_threshold", novelty_threshold)):
-        if (isinstance(value, bool) or not isinstance(value, Real)
-                or not np.isfinite(float(value)) or not 0.0 <= float(value) <= 1.0):
-            raise ValueError(f"{label} must be a finite real number in [0, 1]")
-
-    area_obj = brain.areas[area]
-    if area_obj.refractory_period == 0:
-        raise ValueError(
-            f"ordered_recall requires refractory_period > 0 for area {area!r}. "
-            f"Add the area with refractory_period=N to enable LRI."
-        )
+    plan = OrderedRecallPlan(
+        area, cue, max_steps, convergence_threshold,
+        rounds_per_step, novelty_threshold,
+    )
+    plan.preflight(brain)
+    area = plan.area
+    cue = plan.cue
+    max_steps = plan.max_steps
+    convergence_threshold = plan.convergence_threshold
+    rounds_per_step = plan.rounds_per_step
+    novelty_threshold = plan.novelty_threshold
 
     # Clear refractory history from any previous operations
     brain.clear_refractory(area)

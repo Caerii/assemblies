@@ -4659,3 +4659,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 ## Nonvacuous binding-strength measurement (2026-09-11)
 
 `bind_strength` now rejects empty/inactive cue domains and target snapshots from the wrong area. A numeric `0.0` is reserved for an observed unsuccessful recall rather than missing measurement inputs. Binding-strength and role-binding regressions pass **9 tests**.
+
+## Inspectable ordered-recall plan (2026-09-11)
+
+Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ordered_recall` through it. The sequence protocol’s validated parameters and topology preflight are now reusable data rather than execution-local checks. The ordered-recall, sequence, and operation-contract suites pass **173 tests**; Ruff is clean.
