@@ -226,6 +226,35 @@ that proof. Other direct users of `Brain.project_rounds` still have legacy
 filtering and cannot be declared equivalent to the explicit operation contract.
 
 
+<a id="contract-operation-objects"></a>
+
+## First-class operation contracts and schedules
+
+`assembly_calculus.contracts.OperationContract` is the package-level contract
+shape for a named calculus operation. Every instance must name its inputs, state
+reads, immutable plan type, mutations, regime requirements, observed outcome,
+failure conditions, specification anchor and at least one constructed control.
+Empty surfaces reject during contract construction. The public implementation
+carries the exact object as `operation_contract`, and the read-only
+`OPERATION_CONTRACTS` registry provides discovery without importing research prose.
+
+Projection is the first migrated operation. `ProjectionPlan` validates nonempty
+names, a positive integral round count and an explicit Boolean recurrence choice,
+then freezes the full ordered `ProjectionStep` sequence. Execution validates the
+stimulus and target before the first call and sends exactly those inspected steps
+to `Brain.project`. Round one is stimulus-only; each later step has the stimulus
+and includes target recurrence exactly when requested. No global Brain recurrence
+switch participates in this plan.
+
+The migration comparison reconstructs the former direct-first-round plus
+`Brain.project_rounds` tail on all three NumPy engines. It compares stable-ID and
+compact winners, recruitment, owned RNG state, and a subsequent read-only
+observation. The recurrent-learning control remains the behavioral negative named
+by the contract. Reciprocal projection, association, merge and completion still
+need their own immutable plan types and contract objects; the projection object is
+not evidence for their schedules or scientific outcomes.
+
+
 ## Repetition shares the ordinary transition boundary
 
 `Brain.project_rounds` now executes the selected named-target schedule through

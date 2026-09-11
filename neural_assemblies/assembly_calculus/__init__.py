@@ -93,6 +93,10 @@ from .metrics import (
     measure_n400,
 )
 from .sequence import Sequence
+from .contracts import (
+    OPERATION_CONTRACTS, PROJECTION_CONTRACT, OperationContract,
+    ProjectionPlan, ProjectionStep,
+)
 from .ops import (
     project,
     bind,
@@ -164,6 +168,8 @@ from .emergent import EmergentParser
 __all__ = [
     # Data
     "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
+    "OperationContract", "ProjectionPlan", "ProjectionStep",
+    "OPERATION_CONTRACTS", "PROJECTION_CONTRACT",
     "ProjectionSweepConfig", "RecallSweepConfig", "ResponseDiagnostic",
     "ResponseTrace", "TraceStep", "Sequence", "Lexicon",
     "overlap", "chance_overlap", "overlap_from_binary", "snapshot_area",

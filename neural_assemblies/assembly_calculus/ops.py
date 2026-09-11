@@ -61,6 +61,7 @@ from contextlib import contextmanager
 import numpy as np
 
 from .assembly import Assembly, overlap
+from .contracts import PROJECTION_CONTRACT, ProjectionPlan, implements
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
 
@@ -372,6 +373,7 @@ def _fixed_sources(brain, *names):
             (engine.fix_assembly if engine_fixed else engine.unfix_assembly)(name)
 
 
+@implements(PROJECTION_CONTRACT)
 def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
     """Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection
 
@@ -387,21 +389,7 @@ def project(brain, stimulus, target, rounds=10, recurrent=False) -> Assembly:
     neither stability nor partial-cue recovery. Use a registered training
     schedule and a matched negative control before claiming assembly formation.
     """
-    if isinstance(rounds, bool) or not isinstance(rounds, (int, np.integer)) or rounds < 1:
-        raise ValueError("rounds must be a positive integer")
-    brain.project({stimulus: [target]}, {})
-    if recurrent:
-        # Driven directly rather than through project_rounds, whose `a != target`
-        # filter would strip the recurrence this argument exists to request.
-        for _ in range(rounds - 1):
-            brain.project({stimulus: [target]}, {target: [target]})
-    elif rounds > 1:
-        brain.project_rounds(
-            target=target,
-            areas_by_stim={stimulus: [target]},
-            dst_areas_by_src_area={},
-            rounds=rounds - 1,
-        )
+    ProjectionPlan(stimulus, target, rounds, recurrent).execute(brain)
     return _snap(brain, target)
 
 

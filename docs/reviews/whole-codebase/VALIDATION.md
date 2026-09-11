@@ -3314,3 +3314,25 @@ Clippy clean. The theorem dependencies are `propext`, `Classical.choice` and
 `Quot.sound`, with no `sorryAx`. This establishes wire-field identity and exact
 scaling admission. It does not choose a scientific scale or prove NumPy float32,
 clipping, Rust execution, CUDA arithmetic, or arbitrary JSON-schema equivalence.
+
+## First executable operation contract (2026-09-11)
+
+The semantic cards described operation schedules, but callers could neither inspect
+nor compose them as values. Projection now owns an immutable `ProjectionPlan` of
+ordered `ProjectionStep` objects. Construction rejects blank names, nonintegral or
+nonpositive rounds and implicit truthy recurrence. Execution preflights the named
+stimulus and target before mutation, then submits exactly the declared steps. The
+public `project` function executes that plan and carries its `OperationContract`.
+
+The contract object cannot be created with an empty input, read, mutation, regime,
+outcome, failure or control surface. It names the source specification and the
+existing recurrent-learning negative control. A read-only registry makes migrated
+contracts discoverable; it currently contains projection only.
+
+A migration gate reconstructs the prior first-round plus `project_rounds` tail on
+sampled, fixed-connectome and explicit NumPy engines. It compares stable neuron-ID
+snapshots, compact winners, recruitment, RNG where owned, and the next read-only
+observation. The broader operation/spec gate reports 127 passed and 4 skipped;
+public/onboarding coverage reports 117 passed and 1 skipped. Ruff, compilation and
+diff checks pass. Reciprocal projection, association, merge and completion remain
+function schedules until migrated under their own controls.

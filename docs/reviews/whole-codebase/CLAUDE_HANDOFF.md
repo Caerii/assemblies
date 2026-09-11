@@ -1783,3 +1783,18 @@ focused gate is 46 passed; Rust is 4 passed with fmt and Clippy clean. There is 
 `sorryAx`. The remaining bridge is numerical: selecting a scientific scale and
 relating integer semantics to float32 addition, multiplication, clipping, Rust
 execution and CUDA arithmetic.
+
+## Projection is now an inspectable operation value (2026-09-11)
+
+`ProjectionPlan` freezes and validates every projection step before mutation, and
+the public `project` function executes that exact sequence. Its attached
+`OperationContract` names inputs, state reads, mutations, regime, observed outcome,
+failure conditions, specification and constructed recurrent-learning control.
+Incomplete contracts reject at construction; the registry is immutable and contains
+only projection, so it does not imply the other operations are migrated.
+
+The migration comparison reconstructs the former path on all three NumPy engines
+and compares stable/compact winners, recruitment, owned RNG and a subsequent
+read-only observation. Operation/spec tests are 127 passed, 4 skipped; public and
+onboarding tests are 117 passed, 1 skipped. CI now includes the contract-object
+suite. Reciprocal projection, association, merge and completion are next.
