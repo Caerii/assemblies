@@ -21,3 +21,12 @@ def test_write_result_rejects_nonfinite_json_before_creating_file(tmp_path, monk
     with pytest.raises(ValueError, match="not JSON compliant"):
         _results.write_result("line", "bad.json", {"value": float("nan")})
     assert not (tmp_path / "line" / "bad.json").exists()
+
+
+@pytest.mark.parametrize("line, name", [("../escape", "run.json"),
+                                         ("line", "../escape.json"),
+                                         ("C:/outside", "run.json"),
+                                         ("line", "")])
+def test_result_path_rejects_path_fragments(line, name):
+    with pytest.raises(ValueError, match="simple result name"):
+        _results.results_path(line, name)

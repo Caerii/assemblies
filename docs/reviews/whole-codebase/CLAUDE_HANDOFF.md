@@ -2619,3 +2619,5 @@ The public binding operator now has one explicit schedule admission boundary: ar
 Added a single `write_result` boundary to the legacy experiment adapter and migrated three sequence scripts. They now share exclusive creation and canonical finite JSON encoding instead of hand-written `open(..., "w")` and `json.dump` blocks. The path helper returns `Path` consistently. Writer tests cover overwrite and nonfinite-number rejection; Ruff and compilation are clean.
 
 Migrated the A1 arc-transfer, drift, and limit-cycle studies to the shared `write_result` boundary. Their scientific payloads remain unchanged while result creation is now exclusive and canonical under `research/results/sequence`. All three compile and pass Ruff.
+
+Hardened the shared result adapter against path fragments. `results_path` and `write_result` now accept only simple path components, so traversal or absolute destinations cannot escape the canonical results tree. Six writer and path tests pass; Ruff and diff checks are clean.

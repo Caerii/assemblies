@@ -4731,3 +4731,7 @@ The sequence experiment adapter now exposes `write_result`, one small wrapper ar
 ## Sequence result-write migration (2026-09-11)
 
 Three adjacent A1 studies (`arc_transfer`, `drift`, and `limit_cycle`) now use the shared sequence result adapter. Their payloads are unchanged, but outputs are stored under the canonical results tree and are created through the exclusive finite-JSON boundary. This removes three more direct overwrite paths and keeps the sequence evidence family composable.
+
+## Result path confinement (2026-09-11)
+
+The shared result adapter now validates both line and filename components before directory creation. Traversal, absolute paths, separators, and empty names fail before filesystem mutation, keeping evidence writes confined to the canonical results tree. Six writer/path tests pass; Ruff and diff checks are clean.
