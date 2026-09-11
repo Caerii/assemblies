@@ -2457,6 +2457,9 @@ incremental reset and the compiled linker. Both resolve the area's owner first;
 19 targeted tests pass. This is an ownership cleanup, not a claim that the
 legacy private engine access across specialized MNIST surgery is complete.
 
+The unsupervised role ring clearer also now resolves the role area's owner
+before resetting backend state. Seven role tests pass.
+
 The owner negative test found a second issue: explicit areas could receive the
 same beta/connectivity write twice because the explicit mirror was also the
 resolved owner. Identity-guarded mirroring now enforces one write per owner;

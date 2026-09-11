@@ -4227,3 +4227,9 @@ training.
 
 Validation: the compiled-bridge sampling regression passes, along with ruff and
 whitespace checks. The test emits only the existing sampled-recurrence warning.
+
+Role ring activity clearing now resolves each role area's owner before touching
+backend population state, closing the same mixed-engine assumption in the
+unsupervised training path.
+
+Validation: 7 unsupervised-role tests passed; ruff and whitespace checks pass.

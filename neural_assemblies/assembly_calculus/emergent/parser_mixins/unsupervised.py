@@ -76,7 +76,7 @@ class UnsupervisedMixin:
         if getattr(self, "_compiled_training_enabled", True):
             area = self.brain.areas[role_area]
             area.w = 0
-            engine = self.brain._engine
+            engine = self.brain._engine_for(self.brain.areas[role_area])
             if hasattr(engine, "_areas") and role_area in engine._areas:
                 engine._areas[role_area].w = 0
 
