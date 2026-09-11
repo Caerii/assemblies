@@ -32,6 +32,8 @@ class BatchedLM:
     """Frozen-connectome batched next-token predictor extracted from a trained
     ``next_token`` brain on the torch_sparse engine.
 
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-batched-next-token
+
     Args:
         brain: trained Brain on the ``torch_sparse`` engine.
         area: the LEX area name.
@@ -41,12 +43,13 @@ class BatchedLM:
     """
 
     def __init__(self, brain, area, vocab, stimuli_map, lexicon):
+        eng = brain._engine
+        if not getattr(eng, "supports_batched_next_token", False):
+            raise TypeError(
+                f"BatchedLM requires an engine with batched next-token support; "
+                f"{type(eng).__name__} does not provide that capability.")
         import torch
 
-        eng = brain._engine
-        if not hasattr(eng, "_area_conns"):
-            raise TypeError(
-                "BatchedLM requires the torch_sparse engine (CUDA).")
         self._torch = torch
         self.area = area
         self.vocab = list(vocab)

@@ -2231,3 +2231,15 @@ composition code consults the explicit `supports_stim_preallocation`
 capability and omits this optimization when it is not applicable. The
 operation changes capacity only; it does not train weights, change winners, or
 establish a scientific result.
+
+
+<a id="contract-batched-next-token"></a>
+### Batched next-token inference
+
+`BatchedLM` is admitted only from an engine that explicitly advertises
+`supports_batched_next_token`. Backend shape coincidence or private-field
+presence is not a conformance test. Unsupported engines fail before importing
+CUDA-specific implementation code; a capable engine must expose the frozen
+connectome and vocabulary-drive state required by the batched predictor. This
+contract governs execution availability and does not certify agreement with a
+sequential readout; parity remains a separate measured gate.

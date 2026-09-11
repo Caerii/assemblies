@@ -2390,3 +2390,10 @@ in and preserves the existing vector while extending capacity; the emergent
 linker checks the capability instead of method presence. Dense paths no longer
 receive a false success. The focused tests include both the dense negative and
 the sparse live-vector positive.
+
+The next backend-shape footgun was `BatchedLM` using `_area_conns` presence as
+its Torch test. A CPU engine could satisfy that shape and then fail later on a
+missing device or incompatible connection. The IR now names batched next-token
+inference as an explicit capability; Torch opts in and the constructor rejects
+unsupported engines before backend-specific imports. The focused gate is 13
+passed, including the real CUDA predictor tests and specification links.

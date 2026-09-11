@@ -177,6 +177,7 @@ class ComputeEngine(ABC):
     supports_gpu_sampling = False
     supports_dense_drive = False
     supports_stim_preallocation = False
+    supports_batched_next_token = False
 
     @abstractmethod
     def describe_model_semantics(self):

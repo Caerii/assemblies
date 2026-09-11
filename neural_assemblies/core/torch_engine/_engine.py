@@ -103,6 +103,7 @@ class TorchSparseEngine(ComputeEngine):
     supports_deterministic_allocation = True
     supports_gpu_sampling = True
     supports_dense_drive = True
+    supports_batched_next_token = True
     supports_input_noise = True
     supports_refraction = True
 

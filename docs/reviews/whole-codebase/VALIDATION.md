@@ -4098,3 +4098,15 @@ without pretending to have extended storage.
 Validation: the focused admission tests cover a dense negative and a sparse
 positive vector extension; specification-link and whitespace checks are run
 with the slice gate.
+
+## Batched inference has an explicit backend capability (2026-09-11)
+
+`BatchedLM` previously inferred Torch support from a private `_area_conns`
+attribute. The constructor now admits only engines advertising
+`supports_batched_next_token`, and rejects unsupported engines before importing
+CUDA-specific code. Torch opts in; sequential-versus-batched agreement remains
+an independent parity measurement.
+
+Validation: 13 batched-admission, specification-link and batched-predictor tests
+pass, with the two existing PyTorch sparse warnings. Ruff and whitespace checks
+pass.
