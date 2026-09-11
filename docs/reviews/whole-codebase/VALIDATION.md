@@ -4360,3 +4360,12 @@ separation statistics. It now caches and returns the complete
 `ErpCalibrationReport`; a focused regression test proves the evidence object is
 preserved by identity. The sampled-engine ERP inversion remains an independent
 open scientific failure.
+
+## Operational profiling hygiene (2026-09-11)
+
+The README profiling command now routes every sparse benchmark brain through an
+explicit `sampled_recurrence_policy="acknowledged"` setting because this is an
+operational timing probe, not sequence evidence. Its scaling/deepcopy cases use
+the same constructor helper, and the synthetic plasticity loop uses a bounded
+multiplier to avoid overflow warnings. The complete profiling command exits
+successfully with no RuntimeWarning output and prints `DONE`.

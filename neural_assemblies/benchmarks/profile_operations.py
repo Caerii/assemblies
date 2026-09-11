@@ -31,8 +31,16 @@ SPARSE_CFG = dict(n=10_000, k=100, p=0.05, beta=0.1, engine="numpy_sparse")
 EXPLICIT_CFG = dict(n=1_000, k=100, p=0.05, beta=0.1, engine="numpy_explicit")
 
 
-def _brain(cfg):
-    return Brain(p=cfg["p"], save_winners=True, seed=SEED, engine=cfg["engine"])
+def _brain(cfg, *, seed=SEED):
+    kwargs = dict(
+        p=cfg["p"], save_winners=True, seed=seed, engine=cfg["engine"],
+    )
+    # This is an operational timing probe, not sequence evidence.  State the
+    # sampled-recurrence choice explicitly so the README command is quiet and
+    # cannot be mistaken for a scientifically valid recurrent run.
+    if cfg["engine"] == "numpy_sparse":
+        kwargs["sampled_recurrence_policy"] = "acknowledged"
+    return Brain(**kwargs)
 
 
 # ---------------------------------------------------------------------------
@@ -346,7 +354,7 @@ def bench_primitives_sparse():
     for _ in range(1000):
         with Timer() as t:
             ix = np.ix_(rows, cols)
-            mat[ix] *= 1.1
+            mat[ix] *= 1.0001
         times.append(t.elapsed)
     avg = np.mean(times)
     print(f"  plasticity ix_ update (100x100)      {fmt_ms(avg)}")
@@ -386,13 +394,13 @@ def bench_scaling():
     k = 100
 
     for n in sizes:
-        b = Brain(p=0.05, save_winners=True, seed=SEED, engine="numpy_sparse")
+        b = _brain({"p": 0.05, "engine": "numpy_sparse"})
         b.add_stimulus("stim", k)
         b.add_area("A", n, k, 0.1)
 
         times = []
         for trial in range(3):
-            b2 = Brain(p=0.05, save_winners=True, seed=SEED + trial, engine="numpy_sparse")
+            b2 = _brain({"p": 0.05, "engine": "numpy_sparse"}, seed=SEED + trial)
             b2.add_stimulus("stim", k)
             b2.add_area("A", n, k, 0.1)
             with Timer() as t:
@@ -412,7 +420,7 @@ def bench_deepcopy():
     banner("deepcopy cost (relevant for associate/merge tests)")
     n, k, beta = 10_000, 100, 0.1
 
-    b = Brain(p=0.05, save_winners=True, seed=SEED, engine="numpy_sparse")
+    b = _brain({"p": 0.05, "engine": "numpy_sparse"})
     b.add_stimulus("stimA", k)
     b.add_stimulus("stimB", k)
     b.add_area("A", n, k, beta)
