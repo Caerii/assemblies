@@ -4611,3 +4611,7 @@ provenance signals.
 ## Binding area-name admission (2026-09-11)
 
 `recall` and `input_drive` now reject unknown source and target area names with `KeyError` instead of filtering them out and returning `None` or `{}`. This makes misspelled diagnostics fail at the boundary. Area-contract, drive, and pre-k-WTA regressions pass **18 tests**.
+
+## Explicit input-drive metric (2026-09-11)
+
+`input_drive` now rejects unknown metric names instead of silently taking the `winners` branch. Only `pre_kwta` and `winners` are valid, preserving the distinction between global pre-selection energy and post-selection winner drive. The binding diagnostic suite passes **19 tests**, with Ruff clean.

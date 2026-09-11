@@ -2559,3 +2559,5 @@ Semantic-envelope and attention purity regression: 65 passed, 1 expected xfail. 
 Binding now has an executable input contract: `bind` raises when neither a usable source snapshot/stimulus nor nonempty live source activity exists. This closes a silent no-op path that could return a target assembly trained from no source evidence. Focused input and role-binding regressions pass (4 tests).
 
 Binding diagnostics now preserve area-name semantics: `recall` and `input_drive` raise on unknown source/target names instead of silently dropping them. Focused area-contract, drive, and pre-k-WTA tests pass (18 tests).
+
+`input_drive` now admits only its two declared measurements (`pre_kwta` and `winners`); an unknown metric raises instead of silently changing the scientific quantity. Focused binding diagnostics pass (19 tests).

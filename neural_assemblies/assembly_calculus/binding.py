@@ -306,6 +306,8 @@ def input_drive(
     and any registered mutual inhibition resolves between them exactly as it
     would during normal operation.
     """
+    if metric not in {"pre_kwta", "winners"}:
+        raise ValueError("input_drive metric must be 'pre_kwta' or 'winners'")
     sources = list(sources)
     targets = list(target_areas)
     unknown_sources = [a for a in sources if a not in brain.areas]
