@@ -410,6 +410,10 @@ class TestTrainingPerf:
         )
         compiled.train_lexicon(skip_known=False)
         with_compiled = count_winner_sampling(compiled)
+        mapping = compiled.brain._engine.get_neuron_id_mapping("CONTEXT")
+        assert mapping is None or len(mapping) == len(set(mapping)), (
+            "compiled ring allocation must preserve unique stable neuron IDs"
+        )
 
         microscopic = EmergentParser(
             n=N, k=K, seed=46, rounds=ROUNDS, fast_training=True, norm_init=False,
