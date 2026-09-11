@@ -4598,3 +4598,8 @@ snapshot attention schedule: selected key support is at most `topK`, value
 support is at most `outputSize`, and zero-sized limits cannot inhabit the
 schedule. `lake build AssemblyIR.Attention AssemblyIR` completes successfully
 across **10 jobs** with no `sorryAx`.
+
+The semantic-envelope regression remains green across model profiles, organ
+profiles, materialization semantics, and the attention purity boundary: **65
+tests passed, 1 expected xfail**, with sampled recurrence warnings retained as
+provenance signals.

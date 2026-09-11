@@ -2553,3 +2553,5 @@ Attention compatibility now requires query and keys to share one area/index doma
 Added formal/AssemblyIR/Attention.lean with proofs that selected support and bounded value support respect topK/outputSize, and that zero-sized limits are impossible. Lean build completes 10 jobs without sorryAx.
 
 Attention API failures now distinguish malformed snapshot types (TypeError) from empty valid domains (ValueError). Focused attention suite: 11 passed.
+
+Semantic-envelope and attention purity regression: 65 passed, 1 expected xfail. Model, organ, and materialization profile checks remain green; sampled recurrence warnings remain intentional.

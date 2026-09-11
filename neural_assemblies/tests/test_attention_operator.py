@@ -35,6 +35,21 @@ def test_attention_multi_key_output_is_deterministic_and_bounded():
     assert len(result.value) == 2
 
 
+def test_attention_is_pure_and_does_not_alias_inputs():
+    query = _assembly("Q", [1, 2])
+    keys = {"a": _assembly("Q", [1, 2])}
+    values = {"a": _assembly("V", [7, 8])}
+    before = (query.neuron_ids.copy(), keys["a"].neuron_ids.copy(),
+              values["a"].neuron_ids.copy())
+
+    result = attend(query, keys, values)
+
+    assert np.array_equal(query.neuron_ids, before[0])
+    assert np.array_equal(keys["a"].neuron_ids, before[1])
+    assert np.array_equal(values["a"].neuron_ids, before[2])
+    assert result.value.neuron_ids is not values["a"].neuron_ids
+
+
 @pytest.mark.parametrize("kwargs", [
     {"top_k": 0}, {"top_k": 3}, {"output_size": 0}, {"temperature": 0},
 ])
