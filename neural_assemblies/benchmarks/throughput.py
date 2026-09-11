@@ -1,5 +1,7 @@
 """Reproducible operational throughput benchmark for projection.
 
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-operational-benchmark
+
 This is a performance diagnostic, not scientific evidence.  It reports one
 timing per seed and summary quantiles so a single fast or slow process cannot
 look like a stable performance claim.

@@ -55,6 +55,18 @@ no-overwrite, index validity, missing-evidence rejection or proof obligations.
 Changing a scientific rule requires a named model/protocol revision in the run
 record, even if the source code change is only one parameter.
 
+<a id="contract-operational-benchmark"></a>
+
+## Operational benchmark contract
+
+The maintained throughput benchmark is an engineering diagnostic. It must
+record the resolved engine and model semantics, dimensions, round count,
+independent seed identities, storage mode, per-seed timings, and summary
+quantiles. It rejects fewer than three unique seeds and never replaces an
+existing output. A benchmark result does not certify scientific validity,
+backend refinement, or cross-machine comparability; those require their own
+protocol and evidence.
+
 <a id="contract-checked-domain"></a>
 
 ## Checked domain contract
