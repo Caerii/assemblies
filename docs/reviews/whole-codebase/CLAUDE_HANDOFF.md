@@ -2062,6 +2062,32 @@ Schema evolution is narrow: Brain and sequence/memory organ runs continue to emi
 schema 7, while only alignment emits schema 8. Historical schemas remain readable;
 archive, attachment, environment and profile checks now cover schema 8. The
 focused runner/semantics gate is 115 passed and the evidence/specification/export/
-register gate is 30 passed. The remaining acceptance step is migrating
-`word_capacity.py` to this entry point and reproducing a committed registered
-cell, rather than treating schema support alone as provenance closure.
+register gate is 30 passed.
+
+## Word-capacity schema-8 replay (2026-09-11)
+
+The remaining acceptance step is complete. `word_capacity_run.py` is the
+maintained tag-required entry point; it records the full version-3.2 protocol and
+canonical alignment profile, passes that profile into the actual scheduled or
+hashed constructor, and rejects protocol or backend drift before CUDA work. The
+legacy module delegates to it, so its former optional-tag overwrite path is gone.
+
+The scheduled-CUDA artifact at
+`research/results/runs/aligner.word-capacity/word-capacity-cell-a-schema8-replay-20260911/`
+uses the original seeds 42,1..19, FEAT 4000x100 and V=16..1024. Every one of the
+140 accuracy observations is exactly equal to the committed Part-2 cell A. Its
+ceiling is 73.82614696009215 with one censored seed and its schema-8 evidence
+validation is clean. The registration links it as a VOID software reproduction.
+
+Remaining scope is explicit: migrate the Part-1 FEAT ladder under a separately
+versioned protocol if it must be rerun, turn currently fixed corpus constants
+into a protocol object before varying them, and migrate the other experiment
+families. Do not infer full five-cell reproduction or new adoption from this
+one-cell preservation gate.
+
+The methodology ratchet initially reported two explicit multiline `Brain`
+constructors as unpinned because it searched only the opening line. It now
+counts engine keywords from the parsed call, with positive and negative scanner
+controls, so formatting cannot manufacture or hide this error class.
+Four false allowances were removed; the remaining baseline is 63 files and 92
+actually unpinned constructors.

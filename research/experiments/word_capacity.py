@@ -6,21 +6,21 @@ V* is where per-type alignment (against the whole inventory, chance 1/V)
 crosses 0.90, read by the shared `ceiling_from_curve` standard -- a curve,
 not a grid point, and CENSORED when it never crosses.
 
-    python research/experiments/word_capacity.py [--seeds 42,1,2,3,4] [--cells A,B,C,D,E] [--smoke]
+    python -m research.experiments.word_capacity_run --tag UNIQUE --smoke \
+        --seeds 42 1 2
 
-`--smoke` checks the API on a tiny grid. Its numbers are VOID.
+The shared runner requires a unique tag, records the complete protocol and
+alignment semantics, and refuses overwrites.  `--smoke` checks the API on a
+tiny grid; its numbers are VOID.  See PREREG_word_capacity.md for the registered
+twenty-seed invocation.
 """
 from __future__ import annotations
 
-import argparse
-import json
 import os
 import random
 import sys
 import time
 from collections import Counter
-
-import numpy as np
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, os.path.dirname(os.path.dirname(_HERE)))
@@ -107,7 +107,9 @@ def type_accuracy(seed, V, n, k, stim_size):
     return hits / max(scored, 1), scored
 
 
-def type_accuracy_hashed(seeds, V, n, k, stim_size, track_pinned=False):
+def type_accuracy_hashed(
+    seeds, V, n, k, stim_size, track_pinned=False, *, aligner_semantics=None,
+):
     """All seeds as ONE batch of brains on the hashed substrate.
 
     The corpus is shared across the brains (seeded by the first seed): the
@@ -125,7 +127,8 @@ def type_accuracy_hashed(seeds, V, n, k, stim_size, track_pinned=False):
     # regime the parity gate verified (DESIGN_hashed_aligner.md).
     al = HashedAligner(seeds, words, features, n=n, k=k, feat_n=FEAT_N,
                        feat_k=FEAT_K, stim_size=stim_size, p=U.P, beta=U.BETA,
-                       rounds_word=ROUNDS_HASHED, track_pinned=track_pinned)
+                       rounds_word=ROUNDS_HASHED, track_pinned=track_pinned,
+                       aligner_semantics=aligner_semantics)
     al.train(exp, random.Random(seeds[0] + 11))
     inventory = sorted({b for _w, bs in exp for b in bs})
     scored = [w for w in words if exposures[w] >= U.MIN_EXPOSURES]
@@ -151,7 +154,9 @@ def _bytes_per_brain(V, n, feat_n):
     return 4 * (3 * I * feat_n + (F + 1) * feat_n + V * n + F * feat_n)
 
 
-def run_cell_scheduled(name, seeds, vs, feat=(FEAT_N, FEAT_K)):
+def run_cell_scheduled(
+    name, seeds, vs, feat=(FEAT_N, FEAT_K), *, aligner_semantics=None,
+):
     """Every (V, seed) task of a cell in as few launches as the memory budget
     allows (layer 1). Each brain has its own corpus (seeded by its seed),
     vocabulary, bundle inventory and schedule; only the area shape is
@@ -168,19 +173,19 @@ def run_cell_scheduled(name, seeds, vs, feat=(FEAT_N, FEAT_K)):
         chunk, used = [], 0
         for t in (t for t in tasks if t[0] == V):
             if chunk and used + per_task[t] > LAUNCH_BUDGET:
-                _run_chunk(name, chunk, feat, curve)
+                _run_chunk(name, chunk, feat, curve, aligner_semantics)
                 chunk, used = [], 0
             chunk.append(t)
             used += per_task[t]
         if chunk:
-            _run_chunk(name, chunk, feat, curve)
+            _run_chunk(name, chunk, feat, curve, aligner_semantics)
     for V in vs:
         print(f"      V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
               f"  (chance {1 / V:.3f})", flush=True)
     return curve
 
 
-def _run_chunk(name, tasks, feat, curve):
+def _run_chunk(name, tasks, feat, curve, aligner_semantics=None):
     import torch
     from neural_assemblies.core.torch_engine._scheduled_aligner import (
         ScheduledAligner, pad_schedules, schedule_of)
@@ -226,7 +231,8 @@ def _run_chunk(name, tasks, feat, curve):
     al = ScheduledAligner([t["seed"] * 1000 + t["V"] for t in per], n=n, k=k,
                           feat_n=feat_n, feat_k=feat_k, n_words=Vmax,
                           n_features=Fmax, stim_size=stim, p=U.P, beta=U.BETA,
-                          rounds_word=ROUNDS_HASHED)
+                          rounds_word=ROUNDS_HASHED,
+                          aligner_semantics=aligner_semantics)
     al.prepare(feats)
     al.train(W, Bd, device_loop=True)          # layer 3: one launch per chunk
     acc, scored = al.type_accuracy(tgt, nb, expo, U.MIN_EXPOSURES)
@@ -241,9 +247,11 @@ def _run_chunk(name, tasks, feat, curve):
 
 
 def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
-             feat=(FEAT_N, FEAT_K)):
+             feat=(FEAT_N, FEAT_K), *, aligner_semantics=None):
     if engine == "scheduled":
-        return run_cell_scheduled(name, seeds, vs, feat=feat)
+        return run_cell_scheduled(
+            name, seeds, vs, feat=feat, aligner_semantics=aligner_semantics,
+        )
     if feat != (FEAT_N, FEAT_K):
         raise ValueError("FEAT is a parameter of the scheduled engine only")
     n, k, s = CELLS[name]
@@ -254,7 +262,8 @@ def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
         if engine == "hashed":
             t0 = time.perf_counter()
             acc, scored, pin = type_accuracy_hashed(seeds, V, n, k, s,
-                                                     track_pinned)
+                                                     track_pinned,
+                                                     aligner_semantics=aligner_semantics)
             accs = [float(a) for a in acc]
             if pin:
                 pinned[V] = pin
@@ -279,12 +288,12 @@ def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,
     return curve
 
 
-def ceilings(curve, seeds):
+def ceilings(curve, seeds, threshold=THRESHOLD):
     """Per-seed V* by the shared standard; ensemble across seeds."""
     stars, censored = [], 0
     for i, _seed in enumerate(seeds):
         pts = [(V, accs[i]) for V, accs in curve.items()]
-        c = ceiling_from_curve(pts, threshold=THRESHOLD)
+        c = ceiling_from_curve(pts, threshold=threshold)
         # Censored in EITHER direction: never crossed (high) or never above
         # the threshold at all (low -- the standard returns the smallest V
         # uncensored there, which would read as a value).
@@ -292,6 +301,60 @@ def ceilings(curve, seeds):
             censored += 1
         stars.append(float(c.m_star))
     return stars, censored
+
+
+def capacity_report(results, seeds, threshold=THRESHOLD):
+    """Return the registered curve summaries and bars as strict JSON values."""
+    cells = {}
+    ensembles = {}
+    censored = {}
+    for name, curve in results.items():
+        stars, count = ceilings(curve, seeds, threshold)
+        n, k, stim = CELLS[name]
+        ensemble = ensemble_from_values(
+            stars, label=f"{name} n={n} k={k} s={stim} V*", keys=seeds,
+        )
+        ensembles[name], censored[name] = ensemble, count
+        cells[name] = {
+            "n": n, "k": k, "stimulus_size": stim, "n_over_k": n / k,
+            "ceiling": {
+                "values": list(ensemble.values), "seed_ids": list(ensemble.keys),
+                "mean": ensemble.mean, "ci95_half_width": ensemble.ci,
+                "ci95_lo": ensemble.low, "ci95_hi": ensemble.high,
+            },
+            "censored_seeds": count,
+        }
+
+    def available(*names):
+        return all(name in ensembles and censored[name] == 0 for name in names)
+
+    bars = {}
+    if available("A", "B", "C"):
+        a, b, c = (ensembles[name] for name in ("A", "B", "C"))
+        step1 = (b.mean - a.mean) > (a.high - a.mean) + (b.mean - b.low)
+        step2 = (c.mean - b.mean) > (b.high - b.mean) + (c.mean - c.low)
+        bars["W1"] = {"status": "PASS" if step1 and step2 else "FAIL",
+                      "a_lt_b_beyond_pooled_ci": step1,
+                      "b_lt_c_beyond_pooled_ci": step2}
+    else:
+        bars["W1"] = {"status": "VOID", "reason": "missing or censored cell"}
+    if available("B", "D"):
+        ratio = ensembles["D"].mean / ensembles["B"].mean
+        status = "PASS" if abs(ratio - 1) <= .25 else (
+            "FAIL" if abs(ratio - 1) > .40 else "INCONCLUSIVE"
+        )
+        bars["W2"] = {"status": status, "d_over_b": ratio}
+    else:
+        bars["W2"] = {"status": "VOID", "reason": "missing or censored cell"}
+    if available("B", "E"):
+        ratio = ensembles["E"].mean / ensembles["B"].mean
+        status = "PASS" if ratio >= 1.3 else (
+            "FAIL" if ratio <= 1.1 else "INCONCLUSIVE"
+        )
+        bars["W3"] = {"status": status, "e_over_b": ratio}
+    else:
+        bars["W3"] = {"status": "VOID", "reason": "missing or censored cell"}
+    return {"cells": cells, "bars": bars}
 
 
 # ---------------------------------------------------------------------------
@@ -314,87 +377,23 @@ def ladder(cells, seeds, vs):
 
 def judge(results, seeds):
     print("\n=== BARS (PREREG_word_capacity.md) ===")
-    ens, cens = {}, {}
-    for name in results:
-        stars, c = ceilings(results[name], seeds)
-        n, k, s = CELLS[name]
-        e = ensemble_from_values(stars, label=f"{name} n={n} k={k} s={s} V*")
-        ens[name], cens[name] = e, c
-        print(f"  {e}   n/k {n / k:.0f}   censored seeds {c}/{len(seeds)}")
-
-    def ok(*names):
-        return all(nm in ens and cens[nm] == 0 for nm in names)
-
-    if ok("A", "B", "C"):
-        a, b, c = ens["A"], ens["B"], ens["C"]
-        step1 = (b.mean - a.mean) > (a.high - a.mean) + (b.mean - b.low)
-        step2 = (c.mean - b.mean) > (b.high - b.mean) + (c.mean - c.low)
-        print(f"  {'PASS' if step1 and step2 else 'FAIL'}  W1 V* rises with "
-              f"n/k: A<B {step1}, B<C {step2} (beyond pooled CI)")
-    else:
-        print("  VOID  W1 -- a cell is censored or missing")
-    if ok("B", "D"):
-        r = ens["D"].mean / ens["B"].mean
-        v = ("PASS" if abs(r - 1) <= 0.25 else
-             ("FAIL" if abs(r - 1) > 0.40 else "INCONCLUSIVE"))
-        print(f"  {v}  W2 ratio law: V*(D)/V*(B) = {r:.2f} at equal n/k")
-    else:
-        print("  VOID  W2 -- a cell is censored or missing")
-    if ok("B", "E"):
-        r = ens["E"].mean / ens["B"].mean
-        v = "PASS" if r >= 1.3 else ("FAIL" if r <= 1.1 else "INCONCLUSIVE")
-        print(f"  {v}  W3 anchor: V*(E)/V*(B) = {r:.2f} (s doubled)")
-    else:
-        print("  VOID  W3 -- a cell is censored or missing")
+    report = capacity_report(results, seeds)
+    for name, cell in report["cells"].items():
+        ceiling = cell["ceiling"]
+        print(f"  {name}: {ceiling['mean']:.4f} +/- {ceiling['ci95_half_width']:.4f} "
+              f"(n={len(seeds)}, {min(ceiling['values']):.4f}.."
+              f"{max(ceiling['values']):.4f})   n/k {cell['n_over_k']:.0f}   "
+              f"censored seeds {cell['censored_seeds']}/{len(seeds)}")
+    print(f"  {report['bars']['W1']}")
+    print(f"  {report['bars']['W2']}")
+    print(f"  {report['bars']['W3']}")
+    return report
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--seeds", default="42,1,2,3,4")
-    ap.add_argument("--cells", default="A,B,C,D,E")
-    ap.add_argument("--smoke", action="store_true")
-    ap.add_argument("--engine", choices=("numpy", "hashed", "scheduled"),
-                    default="numpy",
-                    help="hashed = all seeds batched on the generated-connectome "
-                         "substrate (DESIGN_hashed_aligner.md)")
-    ap.add_argument("--track-pinned", action="store_true",
-                    help="hashed only: measure the GEMM-shortcut precondition")
-    ap.add_argument("--feat", default=f"{FEAT_N},{FEAT_K}",
-                    help="Amendment 3: FEAT (n,k) for the scheduled engine")
-    ap.add_argument("--wide", action="store_true",
-                    help="Amendment 3: V grid to 1024")
-    ap.add_argument("--ladder", action="store_true",
-                    help="Amendment 3, Part 1: the FEAT ladder on --cells")
-    ap.add_argument("--tag", default="", help="suffix for the results file")
-    args = ap.parse_args()
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
-    seeds = [int(x) for x in args.seeds.split(",")]
-    vs = (8, 16) if args.smoke else (VS_WIDE if args.wide else VS)
-    feat = tuple(int(x) for x in args.feat.split(","))
-    if args.smoke:
-        print("SMOKE: API check only; numbers VOID")
-    if args.ladder:
-        out = ladder(args.cells.split(","), seeds, vs)
-        from _results import results_path
-        path = results_path("aligner", f"word_capacity_ladder{args.tag}.json")
-        with open(path, "w") as fh:
-            json.dump({"seeds": seeds, "curves": out}, fh, indent=2)
-        print(f"wrote {path}")
-        return
-    print(f"WORD CAPACITY  engine {args.engine}  cells {args.cells}  "
-          f"V grid {vs}  seeds {seeds}  threshold {THRESHOLD}  FEAT {feat}")
-    results = {}
-    for name in args.cells.split(","):
-        results[name] = run_cell(name, seeds, vs, engine=args.engine,
-                                 track_pinned=args.track_pinned, feat=feat)
-    judge(results, seeds)
-    from _results import results_path
-    path = results_path("aligner", f"word_capacity_results_{args.engine}{args.tag}.json")
-    with open(path, "w") as fh:
-        json.dump({"seeds": seeds, "cells": {nm: {str(V): a for V, a in c.items()}
-                                              for nm, c in results.items()}},
-                  fh, indent=2)
-    print(f"wrote {path}")
+def main(argv=None):
+    """Route every new invocation through immutable schema-8 evidence."""
+    from research.experiments.word_capacity_run import main as run
+    return run(argv)
 
 
 if __name__ == "__main__":

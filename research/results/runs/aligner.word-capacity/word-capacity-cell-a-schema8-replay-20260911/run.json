@@ -1,0 +1,126 @@
+{
+  "engine": "scheduled_aligner",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "alignment",
+    "profiles": {
+      "default": {
+        "anchor_gain": 20.0,
+        "anchor_normalization": "inverse-indegree",
+        "anchor_plasticity": "none",
+        "anchor_weight_ceiling": null,
+        "arithmetic": "float32",
+        "connectome": "fixed-hash-regenerated",
+        "cross_normalization": "inverse-indegree-with-column-scaling",
+        "cross_plasticity": "multiplicative-unbounded",
+        "cross_store": "present-only",
+        "cross_weight_ceiling": null,
+        "inference_schedule": "frozen-anchor-and-cross-readout",
+        "rounds_per_pair": 2,
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "tie_break": "deterministic-hash-jitter",
+        "training_schedule": "anchored-cross-situational"
+      }
+    }
+  },
+  "git_commit": "14769d9e48663d6c497c15804686f7e64b2c37b4",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "category_count": 4,
+    "cell_definitions": {
+      "A": [
+        1000,
+        50,
+        50
+      ],
+      "B": [
+        2000,
+        50,
+        50
+      ],
+      "C": [
+        4000,
+        50,
+        50
+      ],
+      "D": [
+        4000,
+        100,
+        100
+      ],
+      "E": [
+        2000,
+        50,
+        100
+      ]
+    },
+    "cells": [
+      "A"
+    ],
+    "connection_probability": 0.05,
+    "exposures_per_referent": 12,
+    "feature_area": [
+      4000,
+      100
+    ],
+    "minimum_exposures": 3,
+    "plasticity": 0.1,
+    "referents_per_scene": 3,
+    "rounds_per_pair": 2,
+    "threshold": 0.9,
+    "vocabulary_sizes": [
+      16,
+      32,
+      64,
+      128,
+      256,
+      512,
+      1024
+    ]
+  },
+  "protocol": "aligner.word-capacity",
+  "protocol_version": "3.2",
+  "registration": "research/notes/aligner/PREREG_word_capacity.md",
+  "registration_sha256": "be13ca6ee9f53316a554a20e75cecf08712b12282167b8a01a4c823a4be31fa7",
+  "schema_version": 8,
+  "scientific_status": "VOID",
+  "script": "research/experiments/word_capacity_run.py",
+  "script_sha256": "c32a5859f0847633a1d59e12a57e842babe7a0c9ce61ad6c8446cad2d72a1edc",
+  "seeds": [
+    42,
+    1,
+    2,
+    3,
+    4,
+    5,
+    6,
+    7,
+    8,
+    9,
+    10,
+    11,
+    12,
+    13,
+    14,
+    15,
+    16,
+    17,
+    18,
+    19
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "a713214c3ad17faa84f0900fe9eac37b8bbc7a1c7253152095d5df4db30f52a9"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "1335bdf64d9a8785ef90bf4f059c6291691c7af8f66ab7b37a8182f8825eb3e5",
+  "started_utc": "2026-09-11T11:40:15.137955+00:00",
+  "tag": "word-capacity-cell-a-schema8-replay-20260911"
+}

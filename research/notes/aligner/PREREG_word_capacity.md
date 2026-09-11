@@ -285,3 +285,24 @@ through a fiber, and those are different quantities.
 
 **Instrument.** Five cells, 140 brains each, in ~4 minutes of GPU time on
 the present-only kernel; the same sweep was hours on numpy two days ago.
+
+### Schema-8 migration replay (2026-09-11; software check, VOID)
+
+The maintained entry point is now:
+
+```bash
+python -m research.experiments.word_capacity_run --tag UNIQUE
+```
+
+It requires a unique tag, records the complete version-3.2 protocol and the
+scheduled aligner's two-family execution semantics, rejects incomplete or
+changed fixed parameters before CUDA work, and writes an immutable run record.
+The legacy `word_capacity.py` entry delegates to this same boundary.
+
+The focused migration artifact at
+[`word-capacity-cell-a-schema8-replay-20260911`](../../results/runs/aligner.word-capacity/word-capacity-cell-a-schema8-replay-20260911/results.json)
+replayed cell A at FEAT = 4000 x 100 over the registered vocabulary grid and
+the original twenty seeds. All 140 accuracy values are exactly equal to
+`word_capacity_results_scheduled_feat4000x100.json`; the recomputed ceiling is
+73.826 with one censored seed. This is a VOID software reproduction of one
+registered cell, not new scientific evidence.

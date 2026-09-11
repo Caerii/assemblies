@@ -29,7 +29,7 @@ them.
 | sequence | `seq_s5_arc_drift.py`, `seq_s5_arc_clip.py` | post hoc diagnostics: arc relocation across presentations, and its cause | ~1 min each |
 | sequence | `seq_a3_transducer.py --engine hashed` | the induced-state transducer at width (`--strength` for Amendment 2) | ~45 min |
 | sequence | `seq_a3_oracle_ceiling.py` | the corpus's oracle-state ceiling, computed | seconds |
-| aligner | `word_capacity.py` | word capacity of the cross-situational learner | see its docstring |
+| aligner | `word_capacity_run.py` | word capacity of the cross-situational learner, with schema-8 alignment semantics | `python -m research.experiments.word_capacity_run --tag UNIQUE` (registered 20 seeds by default); add `--smoke --seeds 42 1 2` only for a VOID API check |
 
 The numpy-era scripts these supersede (`seq_a1_horizon.py`,
 `seq_s5_soft_census.py`, `seq_s5_word_problem.py`, ...) remain runnable and

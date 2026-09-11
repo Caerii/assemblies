@@ -162,7 +162,6 @@
     "research/experiments/gated_role_binding.py": 1,
     "research/experiments/information_theory/test_coding_capacity.py": 1,
     "research/experiments/lib/brain_setup.py": 1,
-    "research/experiments/lib/freeform.py": 1,
     "research/experiments/lib/grounding.py": 2,
     "research/experiments/lib/unsupervised.py": 1,
     "research/experiments/merge_backproj_gated.py": 1,
@@ -188,11 +187,9 @@
     "research/experiments/primitives/test_merge_association.py": 3,
     "research/experiments/primitives/test_prediction_n400.py": 1,
     "research/experiments/primitives/test_role_self_organization.py": 1,
-    "research/experiments/projection_idempotence.py": 1,
     "research/experiments/recurrent_assembly_decay.py": 1,
     "research/experiments/round_resolved_read.py": 1,
     "research/experiments/run_quick_validation.py": 7,
-    "research/experiments/shared_lexical_area.py": 1,
     "research/experiments/slot_addressing_drift.py": 1,
     "research/experiments/slot_addressing_drive.py": 1,
     "research/experiments/stability/test_assembly_distinctiveness.py": 2,
@@ -204,7 +201,6 @@
     "research/experiments/universality_composition.py": 1,
     "research/experiments/universality_diagnose.py": 2,
     "research/experiments/worker_divergence_probe.py": 1,
-    "research/experiments/zipf_grammar.py": 1,
-    "research/literature/parity/pnas2020_paper_claims.py": 1
+    "research/experiments/zipf_grammar.py": 1
   }
 }

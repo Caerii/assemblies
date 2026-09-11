@@ -42,7 +42,7 @@ WHAT IS CHECKED
    -- discovered only after an evening of work built on top of them.
 
 WHY A RATCHET AND NOT A BAN. The baseline is 129 files and ~1196 hand-rolled
-sites; 79 files and 118 unpinned constructions. Most predate the tooling and
+sites; 63 files and 92 unpinned constructions. Most predate the tooling and
 some are legitimately fine -- a mean over conditions is not a mean over seeds,
 and plenty of scripts are demos rather than measurements. Banning outright
 would mean a flag day nobody will take. Freezing the counts stops the pattern
@@ -134,7 +134,6 @@ BASELINE_PATH = os.path.join(os.path.dirname(os.path.abspath(__file__)),
 _SEEDY = re.compile(r"\b(statistics\.mean|np\.mean|numpy\.mean)\b")
 _SEEDLOOP = re.compile(r"\bfor\s+\w*seed\w*\s+in\b|\bseeds\b")
 _SANCTIONED = re.compile(r"\b(ensemble|paired_delta|compare_arms)\s*\(")
-_BRAIN = re.compile(r"\bBrain\s*\(")
 
 
 _SEED_ADVICE = (
@@ -189,6 +188,23 @@ def _load_baseline():
     return data["hand_rolled_seed_stats"], data["unpinned_engine"]
 
 
+def _unpinned_brain_constructions(source):
+    """Count semantic Brain calls whose argument list omits ``engine=``."""
+    tree = ast.parse(source)
+    count = 0
+    for node in ast.walk(tree):
+        if not isinstance(node, ast.Call):
+            continue
+        is_brain = (
+            isinstance(node.func, ast.Name) and node.func.id == "Brain"
+        ) or (
+            isinstance(node.func, ast.Attribute) and node.func.attr == "Brain"
+        )
+        if is_brain and not any(keyword.arg == "engine" for keyword in node.keywords):
+            count += 1
+    return count
+
+
 def _scan():
     hand, unpinned = {}, {}
     for full in python_sources(REPO):
@@ -210,8 +226,9 @@ def _scan():
         if (_SEEDY.search(code) and _SEEDLOOP.search(code)
                 and not _SANCTIONED.search(code)):
             hand[rel] = len(_SEEDY.findall(code))
-        n = sum(1 for line in code.splitlines()
-                if _BRAIN.search(line) and "engine=" not in line)
+        # Parse the original source: blanking string literals preserves line
+        # scans, but can turn expressions containing strings into invalid Python.
+        n = _unpinned_brain_constructions(text)
         if n:
             unpinned[rel] = n
     return hand, unpinned
@@ -314,6 +331,11 @@ def test_no_non_strict_expected_failures():
         "non-strict expected failures let changed scientific outcomes pass CI; "
         f"use strict=True or replace the unstable instrument: {found}"
     )
+
+
+def test_unpinned_engine_scan_reads_the_complete_call():
+    assert _unpinned_brain_constructions("Brain(\n  engine=chosen,\n  seed=1,\n)") == 0
+    assert _unpinned_brain_constructions("module.Brain(\n  seed=1,\n)") == 1
 
 
 def test_baselines_are_not_stale():

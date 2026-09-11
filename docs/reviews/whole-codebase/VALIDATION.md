@@ -3669,6 +3669,36 @@ Only alignment records use schema 8. Existing Brain and organ runs remain schema
 attachment, environment, canonical-profile and seed validation now extend through
 schema 8. The runner/semantic gate reports 115 passed; the evidence,
 specification, lazy-export and register gate reports 30 passed. A temporary
-schema-8 runner artifact validates cleanly. `word_capacity.py` still needs a
-shared-runner adapter and committed-cell reproduction before its provenance is
-closed.
+schema-8 runner artifact validates cleanly.
+
+## Word-capacity consumes schema-8 alignment semantics (2026-09-11)
+
+The registered word-capacity study now enters through
+`research.experiments.word_capacity_run`. Its version-3.2 record names every
+cell, vocabulary size, feature-area shape, corpus constant, threshold, seed and
+the complete two-family aligner profile. Missing fields, duplicate or unordered
+grids, changed fixed constants, invalid areas and a feature shape unsupported by
+the hashed backend fail before CUDA construction. The old module entry delegates
+to the same tag-required, no-overwrite runner.
+
+The real scheduled-CUDA replay at
+`research/results/runs/aligner.word-capacity/word-capacity-cell-a-schema8-replay-20260911/`
+matches all 140 committed cell-A observations exactly across seven vocabulary
+sizes and twenty seeds. The recomputed ceiling is 73.82614696009215 with one
+censored seed, consistent with the registered 73.8 result. The artifact passes
+schema-8 evidence validation and is explicitly VOID because this is a migration
+replay of one cell. A three-seed CUDA smoke also validated before being removed.
+
+This closes provenance for the maintained Part-2 entry and proves numerical
+preservation for cell A. The FEAT ladder remains a separate historical callable,
+and the fixed version-3.2 corpus constants are validated rather than exposed as
+new protocol knobs; either change requires its own versioned adapter and bars.
+
+The combined methodology gate also exposed a false positive in its engine
+ratchet: it inspected only the line containing `Brain(`, so an explicit
+`engine=` on the next line appeared unpinned. The ratchet now parses the complete
+Python call and has a constructed multiline negative and an actually unpinned
+positive. This keeps the guard strict without forcing semantically meaningless
+formatting.
+Four stale allowances for explicit multiline constructors were removed, leaving
+63 files and 92 actually unpinned calls in the grandfathered baseline.
