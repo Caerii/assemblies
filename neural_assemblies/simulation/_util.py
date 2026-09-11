@@ -32,6 +32,12 @@ def overlap(a, b, percentage: bool = False):
 def get_overlaps(winners_list: Sequence, base: int, percentage: bool = False):
     """Overlap of every winner list in ``winners_list`` with
     ``winners_list[base]``."""
+    if isinstance(base, bool) or not isinstance(base, int):
+        raise ValueError("base must be an integer winner-list index")
+    if base < 0 or base >= len(winners_list):
+        raise ValueError(
+            f"base index {base} is outside winner-list range [0, {len(winners_list)})"
+        )
     base_winners = winners_list[base]
     k = len(base_winners)
     if percentage and k == 0:

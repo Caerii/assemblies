@@ -4476,3 +4476,10 @@ length directly; Ruff and bytecode compilation pass.
 base winner set with an explicit `ValueError` instead of leaking division by
 zero. Count overlap remains defined for an empty base. Two focused tests and
 Ruff pass.
+
+## Simulation overlap index contract (2026-09-11)
+
+`get_overlaps` now validates the base list index before reading it, rejecting
+booleans, non-integers, negative values, and out-of-range values with an
+explicit `ValueError`. The simulation utility contract suite now has six
+passing tests.

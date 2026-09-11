@@ -12,3 +12,9 @@ def test_percentage_overlap_rejects_empty_base():
 
 def test_count_overlap_allows_empty_base():
     assert get_overlaps([[], [1, 2]], 0) == [0, 0]
+
+
+@pytest.mark.parametrize("base", [-1, 2, True, "0"])
+def test_invalid_base_index_fails_explicitly(base):
+    with pytest.raises(ValueError, match="base"):
+        get_overlaps([[1]], base)
