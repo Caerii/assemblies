@@ -2535,3 +2535,16 @@ requires --tag and labels --quick VOID; full output remains UNADOPTED.
 Combined historical-study tests passed 150 in 3.59s; six phase replay fixtures remain
 exact. Ruff passes. The source-linked migration registration precedes the planned
 six-cell smoke; no tagged phase smoke has run at this pre-run checkpoint.
+
+
+The final phase CLI/adapter suite passed 23 tests in 2.41s. Committed d4f4a45
+before the recorded six-cell smoke. Direct execution exactly matches archived
+metrics/raw_data/parameters/success; only timestamps/duration are excluded.
+Both crossing entries remain explicit not_observed/null beta. The source archive
+and record validate and all observations remain VOID.
+Artifact: research/results/runs/memory.historical-phase/historical-phase-smoke-20260910/.
+No backend code changed and no older artifacts were rewritten.
+
+Source-link, two-ratchet and aggregate controls passed 34 tests in 47.85s.
+Ruff and diff checks pass. No new GPU or whole-package run is claimed for the
+phase adapter; the six original numerical replay fixtures remain exact.

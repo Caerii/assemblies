@@ -30,3 +30,14 @@ and source archive. Missing crossings remain explicit; a sample mean crossing th
 threshold is not enough for above_threshold interval status. Crossings are selected
 descriptive grid observations, not simultaneous confidence or monotonicity claims.
 No old provenance gaps or obsolete aggregate grids are repaired by inference.
+
+
+## Migration result (2026-09-10)
+
+Committed implementation and registration at d4f4a45 before the
+[recorded smoke](../../results/runs/memory.historical-phase/historical-phase-smoke-20260910/results.json).
+Six cells retain seeds1/2/3. Direct execution with the saved inputs exactly matches
+metrics, raw_data, parameters and success under canonical JSON comparison, excluding
+timestamps/duration. Record and source archive validate. Both requested sparsities
+have explicit not_observed crossings with null beta. Status remains VOID; no phase
+boundary, fixed point, or new scientific adoption is inferred.

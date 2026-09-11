@@ -1391,3 +1391,8 @@ Phase grids, H3 k/beta, schedules, threshold and seed IDs are explicit and valid
 before compute; duplicate realized assembly sizes fail. Its tagged shared-runner
 adapter and migration registration are ready, with smoke still VOID and full
 UNADOPTED. See VALIDATION.md#configurable-phase-grid-migration-2026-09-10.
+
+
+The phase smoke now has a validated archive and exact direct/runner equivalence
+for six cells, with both sampled crossings explicitly absent. Scientific status
+remains VOID. The old aggregate grid is still not silently translated.

@@ -14,6 +14,7 @@ them.
 | Line | Script | What it measures | Typical run |
 |------|--------|------------------|-------------|
 | memory | `seq_capacity_scaling.py` | capacity M* of a recurrent area, Hebbian or refracted, with gating and readout options | `python -m research.runner capacity-scaling --tag UNIQUE --registration research/notes/memory/PREREG_refraction_memory.md --nk 4000:60 --arms B`; see registration for the full load grid |
+| memory | `historical_phase.py` | learning-on persistence grid and descriptive sampled crossings | `python -m research.runner historical-phase --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_scaling.py` | learning-on persistence and censored convergence times; no asymptotic classification | `python -m research.runner historical-scaling --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_projection.py` | corrected historical learning-on projection study; smoke VOID, full UNADOPTED | `python -m research.runner historical-projection --smoke --seeds 1 2 3 --tag UNIQUE` |
 | memory | `historical_noise.py` | preserved learning-on-recovery protocol; smoke is VOID, full output UNADOPTED | `python -m research.runner historical-noise --smoke --seeds 1 2 3 --tag UNIQUE` |
@@ -84,5 +85,5 @@ their original provenance limitations.
 The legacy phase-diagram study now reports marginal interval classifications and
 descriptive sampled threshold crossings, including absent crossings. Its old
 mean-based "stable" labels did not establish a phase boundary. Evaluation continues
-learning; all cells now retain raw seed observations. Its fixed H3 k=100 currently
-requires n>=100 for a complete outer run. Grid/schedule/runner migration remains open.
+learning; all cells now retain raw seed observations. Its H3 k, grids and schedules are now explicit; the default H3 k100 requires
+n>=100, while compatible smaller configurations are available through the runner.
