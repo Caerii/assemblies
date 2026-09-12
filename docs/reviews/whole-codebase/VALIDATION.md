@@ -6083,3 +6083,6 @@ The virtual-weight override batch now rejects unequal row/column batch lists bef
 ### Hashed fiber round-history gate (2026-09-12)
 
 The hashed Torch fiber emitter now rejects mismatched previous/new round histories before filtering empty rounds. This preserves the one-to-one round provenance required by its GEMM emission path. Engine reachability and hashed parity suites pass **16 tests with 2 optional skips**; B905/F is clean.
+### NumPy projection density alignment gate (2026-09-12)
+
+The sparse projection path now validates that per-fiber density metadata has one entry per input-size entry before computing population sigma, and uses strict pairing in the calculation. Cross-engine projection and pricing suites pass **35 tests**; the four sampled-recurrence warnings are intentional provenance guards, and B905/F is clean.

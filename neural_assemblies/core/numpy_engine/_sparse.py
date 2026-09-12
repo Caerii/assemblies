@@ -1893,8 +1893,10 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         # Per-fiber densities where they are set: this is a population spread
         # over the SAME per-fiber binomials the sampler prices.
         _sigma_ps = input_ps if input_ps is not None else [self.p] * len(input_sizes)
+        if len(_sigma_ps) != len(input_sizes):
+            raise RuntimeError("projection density metadata must align with input sizes")
         pop_sigma = float(np.sqrt(sum(sz * pp * (1.0 - pp)
-                                      for sz, pp in zip(input_sizes, _sigma_ps)))) or None
+                                      for sz, pp in zip(input_sizes, _sigma_ps, strict=True)))) or None
         if pop_sigma is not None and norm_div is not None:
             pop_sigma = pop_sigma / norm_div
         new_winner_indices = self._select_winner_indices(
