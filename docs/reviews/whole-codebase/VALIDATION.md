@@ -6989,3 +6989,6 @@ Added `Brain.temporary_plasticity`, an exception-safe context manager that snaps
 ## Parser fiber-gain scope unified (2026-09-12)
 
 `EmergentParser._gain_on_fiber` now delegates directed beta ownership and restoration to `Brain.temporary_plasticity`; its only responsibility is calculating the multiplied rate. This removes the duplicate engine `get_beta`/`set_beta` bracket and unifies parser, sequence, and scaffold protocol scopes. Focused validation: `test_split_feature_areas.py` 12 passed; Pyright on parser core and Brain 0 errors/warnings/information.
+## Role overlay beta lookup unified (2026-09-12)
+
+`EmergentParser.role_bind_gain` now resolves base directed rates through `Brain.plasticity_rate` rather than reaching into the area-owning engine. This completes the parser's migration to the Brain-owned directed plasticity boundary while preserving its overlay cache. Validation: role-bind-gain tests 3 passed; Pyright 0 diagnostics.

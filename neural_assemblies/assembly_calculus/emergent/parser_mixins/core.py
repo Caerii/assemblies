@@ -438,10 +438,12 @@ class CoreParserMixin(
         for core in sorted(set(GROUNDING_TO_CORE.values())):
             for role in THEMATIC_AREAS:
                 key = (role, core)
-                eng = self.brain._engine_for(self.brain.areas[role])
                 base = self._role_fiber_base_beta.get(key)
                 if base is None:
-                    base = eng.get_beta(role, core)
+                    # Brain is the single owner of directed beta lookup;
+                    # reaching into an engine here made overlay behavior
+                    # depend on which backend happened to own the area.
+                    base = self.brain.plasticity_rate(core, role)
                     self._role_fiber_base_beta[key] = base
                 self.brain.update_plasticity(core, role, base * gain)
         self._role_bind_gain = gain
