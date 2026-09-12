@@ -106,8 +106,11 @@ def validate_lri_parameters(refractory_period, inhibition_strength) -> tuple[int
     Canonicalize accepted scalars before constructing history or publishing state.
     The period must fit the backend's Python deque length representation.
     """
-    if (isinstance(refractory_period, bool) or not isinstance(refractory_period, Integral)
-            or not 0 <= refractory_period <= sys.maxsize):
+    if (isinstance(refractory_period, bool)
+            or not isinstance(refractory_period, Integral)):
+        raise ValueError("LRI refractory_period must be a nonnegative platform-sized integer")
+    period = int(refractory_period)
+    if not 0 <= period <= sys.maxsize:
         raise ValueError("LRI refractory_period must be a nonnegative platform-sized integer")
     if isinstance(inhibition_strength, bool) or not isinstance(inhibition_strength, Real):
         raise ValueError("LRI inhibition_strength must be a finite nonnegative real number")
@@ -117,7 +120,7 @@ def validate_lri_parameters(refractory_period, inhibition_strength) -> tuple[int
         raise ValueError("LRI inhibition_strength must be representable as a finite float") from exc
     if not math.isfinite(strength) or strength < 0:
         raise ValueError("LRI inhibition_strength must be a finite nonnegative real number")
-    return int(refractory_period), strength
+    return period, strength
 
 
 # ---------------------------------------------------------------------------
@@ -308,9 +311,10 @@ def column_scale(sums, setpoint: Any, *, xp: Any = None, eps: float = 1e-12):
         nonzero = xp.abs(sums) > eps
         safe = xp.where(nonzero, sums, 1.0)
         return xp.where(nonzero, setpoint / safe, 1.0)
-    import torch
-    return torch.where(sums.abs() > eps, setpoint / sums,
-                       torch.ones_like(sums))
+    from ._torch_ops import torch_ops
+    nonzero = sums.abs() > eps
+    safe = torch_ops.where(nonzero, sums, 1.0)
+    return torch_ops.where(nonzero, setpoint / safe, torch_ops.ones_like(sums))
 
 
 # ---------------------------------------------------------------------------
