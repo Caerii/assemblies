@@ -431,7 +431,7 @@ class NemoParser:
         margin_fn = getattr(self.parser, "_role_binding_margin", None)
         if margin_fn is None:
             return gated
-        scores = {}
+        scores: Dict[str, float] = {}
         for area, label in _ROLE_LABEL.items():
             if area not in self.brain.areas or label == "ACTION":
                 continue
@@ -445,7 +445,7 @@ class NemoParser:
             scores[label] = prior + self.lexical_weight * lex
         if not scores:
             return gated
-        best = max(scores, key=scores.get)
+        best = max(scores, key=lambda label: scores[label])
         return best if scores[best] > 0.0 else gated
 
     def _role_by_readout(self, word: str, min_overlap: float = 0.25
