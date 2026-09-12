@@ -5309,6 +5309,14 @@ finite, exclusive `write_new_document` boundary. Computation, output path, and
 payload schema are unchanged, and its direct-write ratchet exception is
 removed. Compilation, Ruff, and the result-writer ratchet pass: **1 passed**.
 
+### E%-WTA capacity writer migration (2026-09-12)
+
+The one-shot E%-WTA capacity study now emits `results_capacity.json` through
+the canonical finite, exclusive writer. Its arms, aggregate fields, and
+analysis remain unchanged; reruns cannot silently replace the capacity
+artifact. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls
