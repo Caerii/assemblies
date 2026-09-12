@@ -45,6 +45,12 @@ def test_fork_retains_internal_metadata_alias_without_sharing_parent(parser):
     assert fork._dist_categories is not parser._dist_categories
 
 
+@pytest.mark.parametrize("wobbly", [False, True])
+def test_fork_records_wobbly_provenance(parser, wobbly):
+    fork = fork_parser_instance(parser, wobbly=wobbly)
+    assert fork._wobbly_fork is wobbly
+
+
 class Uncopyable:
     def __deepcopy__(self, memo):
         raise TypeError("cannot copy this state")

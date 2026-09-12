@@ -441,7 +441,6 @@ def _probe_at_critical_position_warm(
     pos: int,
     *,
     readiness: ErpReadiness,
-    baseline: ErpBaseline,
     probe_depth: str,
     cache: Dict[Tuple[str, ...], _WarmParseState],
     protocol: ErpProtocol,

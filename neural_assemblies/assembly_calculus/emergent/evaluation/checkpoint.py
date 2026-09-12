@@ -74,6 +74,9 @@ def fork_parser_instance(
     """
     parser = copy.deepcopy(src)
     _reset_ephemeral_parser_state(parser)
+    # The flag controls downstream wobbly-episode replay. Preserve it on the
+    # fork so the low-level copy does not erase experiment provenance.
+    parser._wobbly_fork = bool(wobbly)
     return parser
 
 
