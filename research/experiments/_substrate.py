@@ -34,9 +34,13 @@ import dataclasses
 import itertools
 import os
 import statistics
+from io import TextIOWrapper
 from typing import Dict, Iterable, Optional, Sequence, Tuple
 
 import numpy as np
+
+from neural_assemblies.assembly_calculus.assembly import neuron_overlap
+from neural_assemblies.core.index_spaces import NeuronIds
 
 #: Minimum trials before a rate may be REPORTED. This project has already
 #: retracted a headline that read 0.375 at 24 trials and 0.104 at 96; 24 cannot
@@ -61,9 +65,8 @@ def read(brain, area: str) -> np.ndarray:
 
 def similarity(a, b) -> float:
     """Overlap between two things ``read()`` returned. Order-insensitive."""
-    from neural_assemblies.assembly_calculus.assembly import overlap
-    return float(overlap(np.asarray(a, dtype=np.int64),
-                         np.asarray(b, dtype=np.int64)))
+    return float(neuron_overlap(NeuronIds(np.asarray(a, dtype=np.int64)),
+                                NeuronIds(np.asarray(b, dtype=np.int64))))
 
 
 def rank1(live, table: Dict) -> object:
@@ -273,6 +276,8 @@ def _resolve_module(mod_name, mod_file):
         return cached
     spec = importlib.util.spec_from_file_location(
         "_parallel_seeds_main", mod_file)
+    if spec is None or spec.loader is None:
+        raise ImportError(f"cannot load experiment module from {mod_file}")
     mod = importlib.util.module_from_spec(spec)
     sys.modules["_parallel_seeds_main"] = mod
     spec.loader.exec_module(mod)
@@ -481,7 +486,7 @@ def assert_machine_idle(threshold: float = 40.0) -> None:
     nothing when psutil is unavailable.
     """
     try:
-        import psutil
+        import psutil  # pyright: ignore[reportMissingImports]
     except ImportError:
         return
     load = psutil.cpu_percent(interval=0.3)
@@ -517,7 +522,8 @@ def report_rate(label: str, hits: int, trials: int, chance: float) -> str:
 def main() -> None:
     """Demonstrate that each removed error class is really removed."""
     import sys
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if isinstance(sys.stdout, TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     from neural_assemblies.core.brain import Brain
 
     n, k, beta = 2000, 45, 0.1
