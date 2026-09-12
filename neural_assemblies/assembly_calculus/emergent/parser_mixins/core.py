@@ -101,6 +101,12 @@ class CoreParserMixin(
     order they run in and the state they share.
     """
 
+    # Optional evidence stores shared by acquisition and wobbly parsing. They
+    # are declared at the composition root so consumers agree on ownership;
+    # the stores remain lazy because most parser instances never use them.
+    _exposure_log: Optional[List[List[str]]]
+    _wobbly_resolutions: Optional[Dict[str, Dict[str, object]]]
+
     # DEFAULTS phon_weight=6.0, beta=0.05 -- the Phase B pair, flipped on three
     # independent lines of evidence (deferred until all three were in):
     #   1. core-assembly duplicates 0.32 -> 0.06, role retrieval 0.77 -> 0.97

@@ -6457,3 +6457,7 @@ Bootstrap classification now names its compatibility result as `BootstrapScores`
 ### Optional frame and distributional classifier gates (2026-09-12)
 
 POS inference now treats frame and distributional classifiers as optional capabilities. It validates callability once, narrows their return shape, and falls back to empty evidence when the composed parser omits either surface. This removes direct hidden MRO access and the possible `None` category key. Pyright diagnostics dropped from **14 to 12**; classification evidence tests pass **23 tests**, and `git diff --check` is clean.
+
+### Core evidence-store ownership gate (2026-09-12)
+
+The composition root now declares the lazy evidence stores shared by acquisition and wobbly parsing: the exposure log and per-word wobbly resolutions. Ownership is explicit at the parser boundary while lazy allocation remains unchanged for parsers that do not use those features. Classification evidence tests pass **23 tests**, and `git diff --check` is clean. The remaining static diagnostics are method-capability and legacy evidence-map typing issues, not undeclared store ownership.
