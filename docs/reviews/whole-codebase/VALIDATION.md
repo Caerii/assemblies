@@ -1,4 +1,4 @@
-ï»¿# Verification of the isolated migration
+# Verification of the isolated migration
 
 Worktree: `assemblies-astra-audit-20260909`, based on
 `3334876cf57991d27b1651c343f4640b4bcffaa6`. Tests used the existing Python
@@ -4646,7 +4646,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 
 ## Exception-safe sequence plasticity (2026-09-11)
 
-`sequence_memorize` now restores a temporary `beta_boost` in a `finally` block. A backend failure during recurrent training can no longer contaminate the Brainâ€™s later plasticity state. The injected-failure regression plus sequence suites pass **26 tests**.
+`sequence_memorize` now restores a temporary `beta_boost` in a `finally` block. A backend failure during recurrent training can no longer contaminate the Brain’s later plasticity state. The injected-failure regression plus sequence suites pass **26 tests**.
 
 ## Active-source input-drive admission (2026-09-11)
 
@@ -4662,7 +4662,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 
 ## Inspectable ordered-recall plan (2026-09-11)
 
-Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ordered_recall` through it. The sequence protocolâ€™s validated parameters and topology preflight are now reusable data rather than execution-local checks. The ordered-recall, sequence, and operation-contract suites pass **173 tests**; Ruff is clean.
+Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ordered_recall` through it. The sequence protocol’s validated parameters and topology preflight are now reusable data rather than execution-local checks. The ordered-recall, sequence, and operation-contract suites pass **173 tests**; Ruff is clean.
 
 ## Shared traced recall contract (2026-09-11)
 
@@ -4710,7 +4710,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 
 ## Scaffold primitive admission (2026-09-11)
 
-`_train_scaffold_step`, the primitive used by `ScaffoldNetwork.train`, now validates stimulus, both areas, round count, Phase-B ratio, and beta boost itself. Single-item training can no longer bypass the bulk wrapperâ€™s contract. Scaffold and sequence tests pass **25 tests**.
+`_train_scaffold_step`, the primitive used by `ScaffoldNetwork.train`, now validates stimulus, both areas, round count, Phase-B ratio, and beta boost itself. Single-item training can no longer bypass the bulk wrapper’s contract. Scaffold and sequence tests pass **25 tests**.
 
 ## Shared scaffold admission helper (2026-09-11)
 
@@ -5657,5 +5657,5 @@ direct winner replacement, pickle round-trips, and old-checkpoint fallback:
 so their semantic identity survives at runtime without abandoning NumPy array
 operations or device-compatible validation. `overlap` rejects mixed branded
 spaces before calculating a meaningless score, while unbranded arrays retain
-the compatibility path. Static Pyright checks plus runtime true-negative and
-assembly-calculus tests pass: **96 passed**. Ruff and diff checks pass.
+the compatibility path. Static Pyright checks plus runtime true-negative and\nassembly-calculus tests pass: **34 passed**. Ruff and diff checks pass.
+
