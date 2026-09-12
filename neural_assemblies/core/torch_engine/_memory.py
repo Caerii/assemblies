@@ -32,6 +32,7 @@ from __future__ import annotations
 import math
 
 import torch
+from typing import Any, cast
 
 from ._hashed import AreaFiber, DenseOrganFiber, HashedArea, StimulusFiber
 
@@ -160,5 +161,6 @@ class AssemblyMemory:
         return self.area.bias
 
     def check(self):
-        if hasattr(self.fiber, "check"):
-            self.fiber.check()
+        check = getattr(cast(Any, self.fiber), "check", None)
+        if check is not None:
+            check()
