@@ -5965,3 +5965,10 @@ The experimental hyperdimensional calculus helpers now reject mismatched
 function/domain sequences instead of silently truncating through `zip`. The
 finite-difference and integration entry points validate domain cardinality, and
 the demo validates raw value lengths. Focused contract tests pass **2 tests**.
+
+### Language helper signature cleanup (2026-09-12)
+
+The internal `parseHelper` no longer accepts the already-consumed `p` and
+`LEX_k` values. The public `parse` API still owns those configuration values
+and passes them only to brain construction; the helper receives only the state
+it actually uses. Language parsing tests pass **7 tests**.

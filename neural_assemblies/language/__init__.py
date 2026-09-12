@@ -48,10 +48,10 @@ def parse(sentence="cats chase mice", language="English", p=0.1, LEX_k=20,
         explicit_areas = RUSSIAN_EXPLICIT_AREAS
         readout_rules = RUSSIAN_READOUT_RULES
 
-    return parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug, 
+    return parseHelper(b, sentence, project_rounds, verbose, debug, 
                       lexeme_dict, all_areas, explicit_areas, readout_method, readout_rules)
 
-def parseHelper(b, sentence, p, LEX_k, project_rounds, verbose, debug, 
+def parseHelper(b, sentence, project_rounds, verbose, debug, 
                 lexeme_dict, all_areas, explicit_areas, readout_method, readout_rules):
     """
     Helper function for parsing with detailed control.
