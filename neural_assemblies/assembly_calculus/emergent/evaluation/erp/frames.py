@@ -24,6 +24,7 @@ from .protocol import ErpProtocol
 from .runner import ErpProbeResult, run_incremental_erp_probes
 
 if TYPE_CHECKING:
+    from ....fiber import FiberCircuit
     from ...parser import EmergentParser
 
 CalibrationFrame = Tuple[str, str, List[str]]
@@ -323,7 +324,7 @@ class PositionErpSample:
 @dataclass
 class _WarmParseState:
     """Incremental parse carry-over for prefix warm-start between frames."""
-    circuit: object
+    circuit: "FiberCircuit"
     verb_seen: bool
     noun_count: int
     subject_core: Optional[str]

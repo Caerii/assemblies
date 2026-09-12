@@ -6355,3 +6355,7 @@ Wobbly mining now resolves the parser cache through an explicit `None` check, pr
 ### Parser checkpoint fork state gate (2026-09-12)
 
 The composed parser now declares its `_wobbly_fork` provenance flag alongside its other checkpoint and cache state. Forking no longer writes an undeclared dynamic attribute at the parser boundary. Pyright reports **0 diagnostics** for checkpoint evaluation; parser-fork contract tests pass **21 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### ERP warm-frame circuit typing gate (2026-09-12)
+
+Warm ERP frame state now carries the concrete `FiberCircuit` type returned by the parser, so cached prefixes cannot pass an unconstrained object into incremental advancement. Pyright reports **0 diagnostics**; ERP probe tests pass **5 tests with 1 intentional sampled-recurrence warning**, and Ruff F/E9 plus `git diff --check` are clean.
