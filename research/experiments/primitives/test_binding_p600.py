@@ -53,6 +53,7 @@ from research.experiments.base import (
 )
 from research.experiments.metrics.instability import compute_anchored_instability
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.metrics import jaccard_similarity
 
 
 NOUNS = ["dog", "cat", "bird", "boy", "girl"]
@@ -112,11 +113,7 @@ def _measure_binding_difficulty(
     for i in range(1, len(round_winners)):
         prev = round_winners[i - 1]
         curr = round_winners[i]
-        union = prev | curr
-        if len(union) > 0:
-            jaccard = len(prev & curr) / len(union)
-        else:
-            jaccard = 1.0
+        jaccard = jaccard_similarity(prev, curr)
         if jaccard >= 0.95:
             convergence_round = i
             break

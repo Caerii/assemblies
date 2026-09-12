@@ -6,10 +6,14 @@ These are paired metrics computed across conditions (e.g., grammatical
 vs. agreement violation) rather than within a single measurement.
 """
 
-from typing import Set
+from collections.abc import Hashable, Iterable
+
+from neural_assemblies.assembly_calculus.metrics import jaccard_similarity
 
 
-def compute_vp_distance(winners_a: Set[int], winners_b: Set[int]) -> float:
+def compute_vp_distance(
+    winners_a: Iterable[Hashable], winners_b: Iterable[Hashable]
+) -> float:
     """Jaccard distance between two VP assemblies.
 
     Measures how much the VP representation shifts between two conditions
@@ -24,7 +28,4 @@ def compute_vp_distance(winners_a: Set[int], winners_b: Set[int]) -> float:
         Jaccard distance (1 - Jaccard similarity), in [0, 1].
         Returns 0.0 if both sets are empty.
     """
-    union = winners_a | winners_b
-    if len(union) == 0:
-        return 0.0
-    return 1.0 - len(winners_a & winners_b) / len(union)
+    return 1.0 - jaccard_similarity(winners_a, winners_b)

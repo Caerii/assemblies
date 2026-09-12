@@ -14,6 +14,8 @@ import sys
 
 import numpy as np
 
+from neural_assemblies.assembly_calculus.metrics import jaccard_similarity
+
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from seq_s5_word_problem import (  # noqa: E402
@@ -27,12 +29,6 @@ REPEATS = 3
 
 def _pairs(soft):
     return {tuple(rec["pair"]) for rec in soft}
-
-
-def _jaccard(a, b):
-    if not a and not b:
-        return float("nan")
-    return len(a & b) / len(a | b)
 
 
 def worker(group_name, seed, _arm="tie"):
@@ -68,8 +64,8 @@ def worker(group_name, seed, _arm="tie"):
         "soft0": sorted(s0),
         "noisy_counts": [len(p) for p, _h in noisy],
         "noisy_hard": [h for _p, h in noisy],
-        "jaccard_vs_det": [_jaccard(s0, s) for s in sets],
-        "jaccard_noisy_pairs": [_jaccard(sets[i], sets[j])
+        "jaccard_vs_det": [jaccard_similarity(s0, s) for s in sets],
+        "jaccard_noisy_pairs": [jaccard_similarity(sets[i], sets[j])
                                 for i in range(REPEATS)
                                 for j in range(i + 1, REPEATS)],
     }

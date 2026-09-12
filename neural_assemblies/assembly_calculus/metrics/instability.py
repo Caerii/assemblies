@@ -41,10 +41,11 @@ References:
 
 from __future__ import annotations
 
-from typing import Any, Dict, Iterable, List, Set
+from collections.abc import Hashable, Iterable
+from typing import Any, Dict, List, Set
 
 
-def jaccard_similarity(a: Iterable[int], b: Iterable[int]) -> float:
+def jaccard_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
     """Return set Jaccard similarity, with the empty/empty identity of 1."""
     left, right = set(a), set(b)
     union = left | right
