@@ -158,9 +158,10 @@ class ParserBrain(Brain):
         area.unfix_assembly()
         empty = np.array([], dtype=np.uint32)
         area.winners = empty
-        self.engine.set_winners(area_name, empty)
-        if area.explicit and self._explicit_engine is not None:
-            self._explicit_engine.set_winners(area_name, empty)
+        # Write through the owning backend only.  Mirroring both primary and
+        # explicit engines made the parser's state depend on private storage
+        # and could leave the non-owner looking authoritative.
+        self.engine_for(area_name).set_winners(area_name, empty)
 
     def _set_area_winners(self, area_name, winners):
         """Set winners on an area and sync to the compute engine."""
