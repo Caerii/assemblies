@@ -88,7 +88,7 @@ class RandomChoiceArea:
     k=200, beta=3.0`` over 4 brains x 60 flips, the settled state overlaps the
     winning attractor **0.985** against a chance floor of ``k/n = 0.100``.
 
-    ``construction="legacy"`` (the default, for now) scores **0.159** on that
+    ``construction="legacy"`` (when explicitly selected) scores **0.159** on that
     same measurement -- barely off the floor. Its recurrent fiber is never
     allocated, so the settle loop delivers zero drive and the returned 0/1
     came from the seed RNG. Its construction remains available for inspection,
@@ -111,8 +111,8 @@ class RandomChoiceArea:
             this HIGH (~3.0); an assembly must survive its own recurrence.
         rounds_train: Training rounds per attractor (default 15).
         prefix: Namespace prefix (default "_coin").
-        construction: "legacy" (default, inspectable but flips rejected) or
-            "attractor" (validated). See above.
+        construction: Required explicit choice: "attractor" (validated working
+            coin) or "legacy" (historical inspection; flips rejected). See above.
         fires: attractor construction only -- how many times each assembly is
             force-fired into the shared connectome (default 2). Symmetric by
             construction; raising it deepens both basins equally.
@@ -127,11 +127,14 @@ class RandomChoiceArea:
         beta: float = 0.05,
         rounds_train: int = 15,
         prefix: str = "_coin",
-        construction: Construction = "legacy",
+        construction: Construction | None = None,
         fires: int = 2,
     ):
         if construction not in ("legacy", "attractor"):
-            raise ValueError("construction must be 'legacy' or 'attractor'")
+            raise ValueError(
+                "construction is required: choose 'attractor' for a working coin "
+                "or 'legacy' only for explicit historical inspection"
+            )
         rounds_train = validate_round_count(rounds_train)
         if isinstance(fires, bool) or not isinstance(fires, Integral) or fires < 0:
             raise ValueError("fires must be a nonnegative integer")

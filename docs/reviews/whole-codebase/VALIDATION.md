@@ -6175,3 +6175,7 @@ The partitioned non-slow slice 1700:1840 passed **140 tests in 20.41 seconds**. 
 ### Literature parity and materialization slice (2026-09-12)
 
 The partitioned non-slow slice 1840:1980 passed **136 tests, 2 optional skips, and 2 expected xfails in 71.46 seconds**. It covers literature goldens/parity, LRI, materialization, and metric kernels. Forty sampled-recurrence warnings are intentional provenance guards.
+
+### Explicit neural-coin construction gate (2026-09-12)
+
+`RandomChoiceArea` now requires an explicit construction choice. Omitting it cannot silently instantiate the measured-broken legacy instrument; callers must select the validated attractor construction or opt into legacy inspection deliberately. Coin construction, seed, and PFA contract suites pass **52 tests**.
