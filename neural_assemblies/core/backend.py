@@ -14,6 +14,8 @@ Usage::
         arr = xp.zeros(100, dtype=xp.float32)
 """
 
+import importlib
+
 import numpy as np
 
 _xp = np
@@ -56,7 +58,7 @@ def cupy_available():
     if _HAS_CUPY is None:
         try:
             _torch_first()
-            import cupy
+            cupy = importlib.import_module("cupy")
             cupy.array([1.0])  # verify GPU is usable
             _HAS_CUPY = True
         except Exception:
@@ -76,11 +78,11 @@ def set_backend(name="auto"):
         _xp = np
     elif name == "cupy":
         _torch_first()
-        import cupy
+        cupy = importlib.import_module("cupy")
         _xp = cupy
     elif name == "auto":
         # cupy_available already ran _torch_first before importing CuPy.
-        _xp = __import__("cupy") if cupy_available() else np
+        _xp = importlib.import_module("cupy") if cupy_available() else np
     else:
         raise ValueError(f"Unknown backend: {name!r}")
 
@@ -106,8 +108,7 @@ def xp_name(xp=None) -> str:
 def xp_by_name(name: str):
     """Inverse of `xp_name`. Cheap: after the first call it is a dict lookup."""
     if name == "cupy":
-        import cupy
-        return cupy
+        return importlib.import_module("cupy")
     return np
 
 
