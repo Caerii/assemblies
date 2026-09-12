@@ -56,15 +56,15 @@ class RecoveryObservation:
         _validate_recovery_members(self.reference, cue=self.cue, recovery=self.recovered)
 
     @property
-    def cue_overlap(self):
+    def cue_overlap(self) -> float:
         return recall_fraction(self.cue.neuron_ids, self.reference.neuron_ids)
 
     @property
-    def recovered_overlap(self):
+    def recovered_overlap(self) -> float:
         return recall_fraction(self.recovered.neuron_ids, self.reference.neuron_ids)
 
     @property
-    def improvement(self):
+    def improvement(self) -> float:
         return self.recovered_overlap - self.cue_overlap
 
 
