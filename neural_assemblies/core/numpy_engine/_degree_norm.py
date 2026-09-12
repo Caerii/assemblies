@@ -12,6 +12,7 @@ brain's.
 from __future__ import annotations
 
 import os
+from typing import Any
 
 import numpy as np
 
@@ -23,6 +24,12 @@ from ._virtual_weights import VirtualWeights
 
 class DegreeNormMixin:
     """Degree/norm methods of `NumpySparseEngine`; see module docstring."""
+
+    # Host surface supplied by NumpySparseEngine; the array namespace is
+    # deliberately Any because the same concern runs over NumPy and CuPy.
+    _xp: Any
+    norm_init: float
+    p: float
 
     #: Set NEURAL_ASSEMBLIES_VERIFY_NNZ=1 to assert the incrementally
     #: maintained column counts against a full recount on every read. Slow, and
@@ -318,6 +325,7 @@ class DegreeNormMixin:
                 base = add if base is None or have == 0 else xp.concatenate(
                     [base, add])
                 conn._norm_deg_base = base
+            assert base is not None
             deg = base[:cols]
             unknown = max(int(n_pre) - int(rows_known), 0)
 

@@ -10,6 +10,7 @@ was 99%% of an evaluation's runtime (6f779ef).
 from __future__ import annotations
 
 import numpy as np
+from typing import Any, Dict, Optional
 
 from ._csr_weights import scipy_sparse
 from ._virtual_weights import VirtualWeights
@@ -50,8 +51,15 @@ _CSR_MAX_DENSITY = 0.25
 class DriveCacheMixin:
     """Drive-mirror methods of `NumpySparseEngine`; see module docstring."""
 
+    # Explicit host surface for this composed concern.  These are provided by
+    # NumpySparseEngine and are declared here so the mixin can be checked in
+    # isolation without pretending it owns engine lifecycle state.
+    _csr_drive: Dict[Any, Any]
+    _xp: Any
 
-    def invalidate_csr_drive(self, src: str = None, tgt: str = None) -> None:
+
+    def invalidate_csr_drive(self, src: Optional[str] = None,
+                             tgt: Optional[str] = None) -> None:
         """Drop CSR mirrors. Call from EVERY path that writes area weights.
 
         Over-invalidating costs one rebuild; under-invalidating silently
