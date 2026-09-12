@@ -6578,3 +6578,7 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 
 - _SemanticRecord now casts its dataclass reflection inputs at the generic base boundary, preserving runtime validation while making 
 ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0 diagnostics; model/organ semantics tests: 36 passed in 3.98s.
+
+## 2026-09-12 — connectome RNG compatibility boundary
+
+- Made the legacy module-or-Generator RNG fallback explicit with a narrowly scoped dynamic cast. This preserves direct-connectome compatibility while keeping production seeded-Generator semantics unchanged. Pyright: 0 diagnostics; connectome and capacity/fingerprint tests: 12 passed in 1.60s (expected sampled warnings).

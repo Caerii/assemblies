@@ -1,6 +1,6 @@
 # connectome.py
 
-from typing import Optional
+from typing import Any, Optional, cast
 
 import numpy as np
 
@@ -66,7 +66,11 @@ class Connectome:
         The fallback exists only for direct construction (e.g. unit tests).
         Production callers pass a seeded generator -- see the `rng` argument.
         """
-        return self._rng if self._rng is not None else np.random
+        # ``np.random`` is a legacy module fallback while production callers
+        # provide a Generator; keep that compatibility explicit at this
+        # dynamic boundary rather than pretending both objects share a static
+        # protocol that NumPy's stubs do not expose.
+        return cast(Any, self._rng if self._rng is not None else np.random)
 
     def _initialize_weights(self):
         """
