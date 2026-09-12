@@ -19,9 +19,11 @@ This is neurally plausible:
 - Weighted sum (like population coding)
 """
 
+import importlib
+from typing import Any, List, Tuple, Optional
 import numpy as np
-import cupy as cp
-from typing import List, Tuple, Optional
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 from dataclasses import dataclass
 
 
@@ -31,6 +33,14 @@ class MemoryEntry:
     key: np.ndarray  # Dense binary vector [n]
     value: np.ndarray  # Dense binary vector [n]
     metadata: Optional[dict] = None  # Optional metadata for debugging
+
+
+def _current(brain: Any, area: Any) -> CpArray:
+    """Return an active assembly or fail explicitly in demos/helpers."""
+    assembly = brain.current[area]
+    if assembly is None:
+        raise RuntimeError(f"area {area!r} has no active assembly")
+    return assembly
 
 
 class HopfieldMemory:
@@ -61,19 +71,19 @@ class HopfieldMemory:
         self._value_matrix: Optional[np.ndarray] = None
         self._dirty = True
     
-    def assembly_to_dense(self, assembly: cp.ndarray) -> np.ndarray:
+    def assembly_to_dense(self, assembly: CpArray) -> np.ndarray:
         """Convert sparse assembly (k indices) to dense binary vector."""
         dense = np.zeros(self.n, dtype=np.float32)
         indices = assembly.get().astype(np.int64)
         dense[indices] = 1.0
         return dense
     
-    def dense_to_assembly(self, dense: np.ndarray) -> cp.ndarray:
+    def dense_to_assembly(self, dense: np.ndarray) -> CpArray:
         """Convert dense vector to sparse assembly (top-k indices)."""
         indices = np.argsort(dense)[-self.k:]
         return cp.array(indices, dtype=cp.uint32)
     
-    def store(self, key_assembly: cp.ndarray, value_assembly: cp.ndarray,
+    def store(self, key_assembly: CpArray, value_assembly: CpArray,
               metadata: Optional[dict] = None):
         """
         Store a (key, value) association.
@@ -100,8 +110,8 @@ class HopfieldMemory:
         self._value_matrix = np.stack([m.value for m in self.memories])
         self._dirty = False
     
-    def retrieve(self, query_assembly: cp.ndarray, 
-                 top_k: int = 1) -> List[Tuple[cp.ndarray, float, Optional[dict]]]:
+    def retrieve(self, query_assembly: CpArray,
+                 top_k: int = 1) -> List[Tuple[CpArray, float, Optional[dict]]]:
         """
         Retrieve values matching the query using attention.
         
@@ -133,7 +143,10 @@ class HopfieldMemory:
         
         results = []
         for idx in top_indices:
-            value_dense = self._value_matrix[idx]
+            value_matrix = self._value_matrix
+            if value_matrix is None:
+                raise RuntimeError("value matrix was not built before retrieval")
+            value_dense = value_matrix[idx]
             value_assembly = self.dense_to_assembly(value_dense)
             results.append((
                 value_assembly,
@@ -143,7 +156,7 @@ class HopfieldMemory:
         
         return results
     
-    def retrieve_weighted(self, query_assembly: cp.ndarray) -> cp.ndarray:
+    def retrieve_weighted(self, query_assembly: CpArray) -> CpArray:
         """
         Retrieve weighted sum of all values (soft attention).
         
@@ -225,11 +238,11 @@ class VPMemoryStore:
         self.vp_to_verb = HopfieldMemory(n, k, temperature)
         self.vp_to_object = HopfieldMemory(n, k, temperature)
     
-    def store_intransitive(self, subject_assembly: cp.ndarray, 
-                           verb_assembly: cp.ndarray,
-                           vp_assembly: cp.ndarray,
-                           subject_word: str = None,
-                           verb_word: str = None):
+    def store_intransitive(self, subject_assembly: CpArray,
+                           verb_assembly: CpArray,
+                           vp_assembly: CpArray,
+                           subject_word: Optional[str] = None,
+                           verb_word: Optional[str] = None):
         """
         Store an intransitive sentence (subject + verb).
         
@@ -250,14 +263,14 @@ class VPMemoryStore:
         self.vp_to_subject.store(vp_assembly, subject_assembly, metadata)
         self.vp_to_verb.store(vp_assembly, verb_assembly, metadata)
     
-    def store_transitive(self, subject_assembly: cp.ndarray,
-                         verb_assembly: cp.ndarray,
-                         object_assembly: cp.ndarray,
-                         vp_assembly: cp.ndarray,
-                         sv_assembly: cp.ndarray,
-                         subject_word: str = None,
-                         verb_word: str = None,
-                         object_word: str = None):
+    def store_transitive(self, subject_assembly: CpArray,
+                         verb_assembly: CpArray,
+                         object_assembly: CpArray,
+                         vp_assembly: CpArray,
+                         sv_assembly: CpArray,
+                         subject_word: Optional[str] = None,
+                         verb_word: Optional[str] = None,
+                         object_word: Optional[str] = None):
         """
         Store a transitive sentence (subject + verb + object).
         
@@ -282,8 +295,8 @@ class VPMemoryStore:
         self.vp_to_verb.store(vp_assembly, verb_assembly, metadata)
         self.vp_to_object.store(vp_assembly, object_assembly, metadata)
     
-    def retrieve_subject_for_verb(self, verb_assembly: cp.ndarray, 
-                                   top_k: int = 3) -> List[Tuple[cp.ndarray, float, dict]]:
+    def retrieve_subject_for_verb(self, verb_assembly: CpArray,
+                                   top_k: int = 3) -> List[Tuple[CpArray, float, Optional[dict]]]:
         """
         Retrieve subjects for a given verb.
         
@@ -291,8 +304,8 @@ class VPMemoryStore:
         """
         return self.verb_to_subject.retrieve(verb_assembly, top_k)
     
-    def retrieve_verb_for_subject(self, subject_assembly: cp.ndarray,
-                                   top_k: int = 3) -> List[Tuple[cp.ndarray, float, dict]]:
+    def retrieve_verb_for_subject(self, subject_assembly: CpArray,
+                                   top_k: int = 3) -> List[Tuple[CpArray, float, Optional[dict]]]:
         """
         Retrieve verbs for a given subject.
         
@@ -300,8 +313,8 @@ class VPMemoryStore:
         """
         return self.subject_to_verb.retrieve(subject_assembly, top_k)
     
-    def retrieve_object_for_sv(self, sv_assembly: cp.ndarray,
-                                top_k: int = 3) -> List[Tuple[cp.ndarray, float, dict]]:
+    def retrieve_object_for_sv(self, sv_assembly: CpArray,
+                                top_k: int = 3) -> List[Tuple[CpArray, float, Optional[dict]]]:
         """
         Retrieve objects for a given subject-verb pair.
         
@@ -357,7 +370,7 @@ if __name__ == "__main__":
         brain._clear_area(area)
         for _ in range(20):
             brain._project(area, phon, learn=True)
-        words[name] = brain.current[area].copy()
+        words[name] = _current(brain, area).copy()
     
     # Learn sentences
     print("\n2. Learning sentences...")
@@ -377,7 +390,7 @@ if __name__ == "__main__":
         for _ in range(20):
             brain._project(Area.VP, subj_asm, learn=True)
             brain._project(Area.VP, verb_asm, learn=True)
-        vp_asm = brain.current[Area.VP].copy()
+        vp_asm = _current(brain, Area.VP).copy()
         
         memory.store_intransitive(subj_asm, verb_asm, vp_asm, subject, verb)
         print(f"   {subject} {verb}")
@@ -398,12 +411,12 @@ if __name__ == "__main__":
         for _ in range(20):
             brain._project(Area.VP, subj_asm, learn=True)
             brain._project(Area.VP, verb_asm, learn=True)
-        sv_asm = brain.current[Area.VP].copy()
+        sv_asm = _current(brain, Area.VP).copy()
         
         # Create full VP
         for _ in range(20):
             brain._project(Area.VP, obj_asm, learn=True)
-        vp_asm = brain.current[Area.VP].copy()
+        vp_asm = _current(brain, Area.VP).copy()
         
         memory.store_transitive(subj_asm, verb_asm, obj_asm, vp_asm, sv_asm, 
                                 subject, verb, obj)
@@ -449,7 +462,7 @@ if __name__ == "__main__":
     for _ in range(20):
         brain._project(Area.VP, words['dog'], learn=True)
         brain._project(Area.VP, words['chases'], learn=True)
-    dog_chases = brain.current[Area.VP].copy()
+    dog_chases = _current(brain, Area.VP).copy()
     
     results = memory.retrieve_object_for_sv(dog_chases, top_k=3)
     for asm, score, meta in results:
@@ -462,7 +475,7 @@ if __name__ == "__main__":
     for _ in range(20):
         brain._project(Area.VP, words['cat'], learn=True)
         brain._project(Area.VP, words['chases'], learn=True)
-    cat_chases = brain.current[Area.VP].copy()
+    cat_chases = _current(brain, Area.VP).copy()
     
     results = memory.retrieve_object_for_sv(cat_chases, top_k=3)
     for asm, score, meta in results:
