@@ -30,7 +30,9 @@ import tempfile
 import pytest
 
 from neural_assemblies.assembly_calculus.assembly import overlap
-from neural_assemblies.core.index_spaces import CompactIdx, NeuronIds
+from neural_assemblies.core.index_spaces import (
+    CompactIdx, NeuronIds, to_neuron_ids, validated_indices,
+)
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -57,12 +59,14 @@ MUST_BE_CLEAN = {12, 13, 14}
 
 
 def test_mixing_index_spaces_is_rejected_at_runtime():
-    compact = CompactIdx(np.array([1, 2, 3], dtype=np.uint32))
-    neurons = NeuronIds(np.array([77, 88, 99], dtype=np.uint32))
+    compact = CompactIdx(np.array([0, 1, 2], dtype=np.uint32))
+    neurons =(np.array([77, 88, 99], dtype=np.uint32))
     with pytest.raises(TypeError, match="same index space"):
         overlap(compact, neurons)
     assert overlap(compact, compact) == 1.0
     assert overlap(neurons, neurons) == 1.0
+    assert type(validated_indices(compact)) is CompactIdx
+    assert type(to_neuron_ids(compact, [77, 88, 99])) is NeuronIds
 
 
 def _pyright_error_lines(source: str) -> set:

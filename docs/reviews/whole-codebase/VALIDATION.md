@@ -5660,3 +5660,10 @@ spaces before calculating a meaningless score, while unbranded arrays retain
 the compatibility path. Static Pyright checks plus runtime true-negative and
 assembly-calculus tests pass: **34 passed**. Ruff and diff checks pass.
 
+
+### Runtime brand preservation regression (2026-09-12)
+
+The index-space tests now verify that canonical validation preserves a branded
+`CompactIdx` and that explicit conversion produces a branded `NeuronIds`.
+This prevents future normalization changes from silently erasing the runtime
+safety boundary. The focused static/runtime suite passes: **7 passed**.
