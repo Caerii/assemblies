@@ -7,12 +7,13 @@ V=512 for the four size-matched arms.  Output: ``results_deep.json``.
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
@@ -71,7 +72,7 @@ def main():
                       "beta": BETA, "V_max": V_MAX,
                       "checkpoints": CHECKPOINTS, "seeds": len(SEEDS)},
            "rows": rows, "duration_s": time.time() - t0}
-    (HERE / "results_deep.json").write_text(json.dumps(out, indent=1))
+    write_new_document(HERE / "results_deep.json", out)
     print(f"done in {out['duration_s']:.1f}s")
 
 
