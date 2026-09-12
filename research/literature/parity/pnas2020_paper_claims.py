@@ -242,10 +242,11 @@ def main() -> None:
     for norm in (False, True):
         results[f"norm_init={norm}"] = run(a.n, a.k, p, a.beta, a.seeds, norm)
     if a.json:
-        with open(a.json, "w", encoding="utf-8") as f:
-            json.dump({"parameters": vars(a), "paper_targets":
-                       {k: v[1] for k, v in PAPER.items()},
-                       "results": str(results)}, f, indent=2)
+        write_new_document(Path(a.json), {
+            "parameters": vars(a),
+            "paper_targets": {k: v[1] for k, v in PAPER.items()},
+            "results": str(results),
+        })
 
 
 if __name__ == "__main__":

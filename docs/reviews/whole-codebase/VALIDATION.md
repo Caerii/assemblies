@@ -6187,3 +6187,7 @@ The maintained specification graph resolves all discovered implementation and fo
 ### Immutable literature recorder gate (2026-09-12)
 
 The ten parity golden recorders now use `research.json_documents.write_new_document`, so an existing golden cannot be silently overwritten. They compile successfully. Literature-golden and legacy-result-storage tests pass **48 tests, 5 optional skips, and 1 expected xfail in 108.53 seconds**.
+
+### PNAS claims recorder boundary (2026-09-12)
+
+The parameterized PNAS claims recorder now writes its optional JSON output through the create-only evidence boundary, so `--json` cannot overwrite a prior measurement. The module compiles and shares the same strict finite-number/canonical encoding path as the other golden recorders.
