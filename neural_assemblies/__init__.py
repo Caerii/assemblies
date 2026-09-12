@@ -70,6 +70,7 @@ _LAZY_EXPORTS.update({
         "snapshot_area", "source_response_traces",
         "FiberCircuit",
         "OperationContract", "OPERATION_CONTRACTS",
+        "BatchedLM", "BatchedSeqTrainer",
     )
 })
 
@@ -120,6 +121,7 @@ if TYPE_CHECKING:  # pragma: no cover
         pattern_complete_trace, project, project_trace, reciprocal_project,
         reciprocal_project_trace, separate, snapshot_area,
         source_response_traces, OperationContract, OPERATION_CONTRACTS,
+        BatchedLM, BatchedSeqTrainer,
     )
     from .compute import (
         EPercentPolicy, NeuralComputationEngine, PlasticityEngine,
@@ -227,6 +229,7 @@ __all__ = [
     'snapshot_area', 'source_response_traces',
     'FiberCircuit',
     'OperationContract', 'OPERATION_CONTRACTS',
+    'BatchedLM', 'BatchedSeqTrainer',
 
     # Optional backend installation and runtime capability
     'CUPY_INSTALLED', 'GPU_AVAILABLE', 'cupy_available',

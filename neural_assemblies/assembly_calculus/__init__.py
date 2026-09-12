@@ -174,6 +174,8 @@ from .next_token import (
     build_next_token_model, train_on_corpus,
     predict_next_token, score_corpus,
 )
+from .batched_next_token import BatchedLM
+from .batched_trainer import BatchedSeqTrainer
 from .parser import NemoParser
 from .emergent import EmergentParser
 
@@ -223,6 +225,7 @@ __all__ = [
     # Next-token prediction
     "build_next_token_model", "train_on_corpus",
     "predict_next_token", "score_corpus",
+    "BatchedLM", "BatchedSeqTrainer",
     # Language parsing
     "NemoParser",
     "EmergentParser",

@@ -6606,3 +6606,7 @@ ormalize_weights overrides with the base Optional[str] source contract. Targeted
 
 - Exported OperationContract and OPERATION_CONTRACTS through the lazy root API and TYPE_CHECKING surface, making executable specifications discoverable from 
 eural_assemblies without eagerly importing the research stack. Lazy-import contract suite: 12 passed in 1.08s.
+
+## 2026-09-12 — high-performance API discoverability
+
+- Exported BatchedLM and BatchedSeqTrainer through ssembly_calculus and the lazy package root. Importing the names does not import Torch or initialize CUDA; backend capability checks remain inside construction. Lazy-import and batched-admission tests: 13 passed; root and assembly-calculus Pyright: 0 diagnostics.
