@@ -6743,3 +6743,8 @@ The ERP separation test now treats an observed raw P600 AUC at or below chance a
 ## ERP calibration mode invariance (2026-09-12)
 
 Removed an unrelated above-chance assertion from the fast/full mode invariance test; mode equivalence is now checked independently of the known separation bar. The complete ERP calibration module passes **14 tests, 1 expected failure**.
+
+
+## ERP metric range contract cleanup (2026-09-12)
+
+Removed a stale strict xfail after the raw P600 range test began passing on the current protocol. The clipped excess remains explicitly non-directional, and raw separation inversion remains an expected failed bar. Metric-range tests pass **3 tests, 1 expected failure**.
