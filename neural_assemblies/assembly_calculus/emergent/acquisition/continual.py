@@ -139,10 +139,10 @@ def replay_corpus_sample(
             continue
         parser.ingest_raw_sentence(known)
         if hasattr(parser, "train_next_token"):
+            grounding_map = getattr(parser, "word_grounding", {})
             grounded = GroundedSentence(
                 words=known,
-                contexts=[parser.word_grounding.get(w, GroundingContext())
-                          for w in known],
+                contexts=[grounding_map.get(w, GroundingContext()) for w in known],
             )
             parser.train_next_token([grounded], dedupe_sentences=False)
         count += 1
