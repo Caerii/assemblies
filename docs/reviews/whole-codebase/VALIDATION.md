@@ -5204,3 +5204,12 @@ unpacking. FSM/PFA state and symbol collection errors use the same
 `ValueError` contract as the transition-domain validator. The shared
 transition, FSM, and PFA modules are Pyright/Ruff-clean; transition-domain and
 PFA checks pass: **79 passed**.
+
+### E%-WTA formation postconditions (2026-09-11)
+
+`form_assembly` now asserts the construction postcondition that adjacency,
+recurrent weights, and stimulus weights exist before the measured iteration
+and density calculation. `assembly_density` accepts both ordinary integer
+sequences and the NumPy winner arrays emitted by the formation loop. This
+keeps a missing matrix from becoming a plausible density result. The module is
+Pyright/Ruff-clean; E%-WTA conformance checks pass: **14 passed**.

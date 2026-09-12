@@ -133,7 +133,7 @@ class FormationResult:
         return int(len(self.winners))
 
 
-def assembly_density(adjacency: np.ndarray, members: Sequence[int]) -> float:
+def assembly_density(adjacency: np.ndarray, members: Sequence[int] | np.ndarray) -> float:
     """Directed synaptic density of ``members`` (Eq. 11).
 
     ``D = |S| / (|N|(|N|-1))`` counting only synapses among the members.
@@ -196,6 +196,12 @@ def form_assembly(
         stim_weights = present_s.astype(np.float64)
         inh_s = present_s & (rng.random((stimulus_size, n)) < p_i)
         stim_weights[inh_s] = w_inh
+
+    # The three matrices are guaranteed by the construction branches above;
+    # make that postcondition explicit before entering the measured dynamics.
+    assert adjacency is not None
+    assert recurrent is not None
+    assert stim_weights is not None
 
     ever_fired = np.zeros(n, dtype=bool)
     prev: np.ndarray = np.array([], dtype=int)
