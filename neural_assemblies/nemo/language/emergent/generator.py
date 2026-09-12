@@ -30,8 +30,17 @@ class SentenceGenerator:
     - Co-occurrence for selectional preferences
     """
     
-    def __init__(self, learner: EmergentLanguageLearner):
+    def __init__(
+        self,
+        learner: EmergentLanguageLearner,
+        *,
+        rng: np.random.Generator | None = None,
+        seed: int | None = None,
+    ):
+        if rng is not None and seed is not None:
+            raise ValueError("provide rng or seed, not both")
         self.learner = learner
+        self.rng = rng if rng is not None else np.random.default_rng(seed)
     
     def generate_structured(self) -> List[str]:
         """
@@ -57,12 +66,12 @@ class SentenceGenerator:
         # Determiner?
         det_noun_count = trans.get(('FUNCTION', 'NOUN'), 0)
         if determiners and det_noun_count > 10:
-            sentence.append(np.random.choice(determiners))
+            sentence.append(self.rng.choice(determiners))
         
         # Adjective?
         adj_noun_count = trans.get(('ADJECTIVE', 'NOUN'), 0)
-        if adjectives and adj_noun_count > 5 and np.random.rand() > 0.5:
-            sentence.append(np.random.choice(adjectives))
+        if adjectives and adj_noun_count > 5 and self.rng.random() > 0.5:
+            sentence.append(self.rng.choice(adjectives))
         
         # Subject noun (prefer AGENT words)
         agent_nouns = [(n, self.learner.word_as_first_arg[n]) 
@@ -71,9 +80,9 @@ class SentenceGenerator:
             weights = [c for _, c in agent_nouns]
             total = sum(weights)
             probs = [w/total for w in weights]
-            subj = np.random.choice([n for n, _ in agent_nouns], p=probs)
+            subj = self.rng.choice([n for n, _ in agent_nouns], p=probs)
         else:
-            subj = np.random.choice(nouns)
+            subj = self.rng.choice(nouns)
         sentence.append(subj)
         
         # === VERB ===
@@ -85,7 +94,10 @@ class SentenceGenerator:
             freq = self.learner.word_count.get(v, 1)
             verb_scores[v] = cooc + freq * 0.1
         
-        best_verb = max(verb_scores, key=verb_scores.get) if verb_scores else np.random.choice(verbs)
+        best_verb = (
+            max(verb_scores, key=lambda word: float(verb_scores[word]))
+            if verb_scores else str(self.rng.choice(verbs))
+        )
         sentence.append(best_verb)
         
         # === OBJECT NP (optional) ===
@@ -95,7 +107,7 @@ class SentenceGenerator:
         
         if is_transitive:
             if determiners:
-                sentence.append(np.random.choice(determiners))
+                sentence.append(self.rng.choice(determiners))
             
             # Object noun (prefer PATIENT words, different from subject)
             patient_nouns = [(n, self.learner.word_as_second_arg[n]) 
@@ -104,10 +116,10 @@ class SentenceGenerator:
                 weights = [c for _, c in patient_nouns]
                 total = sum(weights)
                 probs = [w/total for w in weights]
-                obj = np.random.choice([n for n, _ in patient_nouns], p=probs)
+                obj = self.rng.choice([n for n, _ in patient_nouns], p=probs)
             else:
                 obj_candidates = [n for n in nouns if n != subj]
-                obj = np.random.choice(obj_candidates) if obj_candidates else np.random.choice(nouns)
+                obj = self.rng.choice(obj_candidates) if obj_candidates else self.rng.choice(nouns)
             sentence.append(obj)
         
         return sentence
@@ -125,8 +137,10 @@ class SentenceGenerator:
             if prev_category is None:
                 # Start with noun or determiner
                 if self.learner.mood_word_first:
-                    first_word = max(self.learner.mood_word_first, 
-                                    key=self.learner.mood_word_first.get)
+                    first_word = max(
+                        self.learner.mood_word_first,
+                        key=lambda word: int(self.learner.mood_word_first[word]),
+                    )
                     cat, _ = self.learner.get_emergent_category(first_word)
                     if cat == 'FUNCTION':
                         cat = 'NOUN'
@@ -143,7 +157,7 @@ class SentenceGenerator:
                     break
                 
                 total = sum(candidates.values())
-                r = np.random.rand() * total
+                r = self.rng.random() * total
                 cumsum = 0
                 cat = None
                 for c, count in candidates.items():
@@ -157,7 +171,7 @@ class SentenceGenerator:
             
             # Get word from category
             if cat in vocab and vocab[cat]:
-                word = np.random.choice(vocab[cat])
+                word = self.rng.choice(vocab[cat])
                 sentence.append(word)
                 prev_category = cat
             else:
@@ -206,7 +220,7 @@ class SentenceGenerator:
         
         # === SUBJECT NP ===
         if determiners:
-            sentence.append(np.random.choice(determiners))
+            sentence.append(self.rng.choice(determiners))
         
         # Pick subject from AGENT-role words that have learned assemblies
         min_agent_count = 10
@@ -220,7 +234,7 @@ class SentenceGenerator:
         if not agent_nouns:
             return []  # No learned nouns
         
-        subj = np.random.choice(agent_nouns)
+        subj = self.rng.choice(agent_nouns)
         sentence.append(subj)
         
         # Get subject's LEARNED assembly (not random!)
@@ -263,7 +277,7 @@ class SentenceGenerator:
             weights = [s for _, s in compatible_verbs]
             total = sum(weights)
             probs = [w/total for w in weights]
-            best_verb = np.random.choice(verb_list, p=probs)
+            best_verb = self.rng.choice(verb_list, p=probs)
         else:
             # Fallback: use co-occurrence (learned signal, just different access)
             verb_scores = {v: self.learner.word_cooccurrence[subj].get(v, 0) 
@@ -273,9 +287,9 @@ class SentenceGenerator:
                 weights = [verb_scores[v] for v in verb_list]
                 total = sum(weights)
                 probs = [w/total for w in weights]
-                best_verb = np.random.choice(verb_list, p=probs)
+                best_verb = self.rng.choice(verb_list, p=probs)
             else:
-                best_verb = np.random.choice(verbs_with_assemblies)
+                best_verb = self.rng.choice(verbs_with_assemblies)
         
         sentence.append(best_verb)
         
@@ -292,7 +306,7 @@ class SentenceGenerator:
         
         if is_transitive:
             if determiners:
-                sentence.append(np.random.choice(determiners))
+                sentence.append(self.rng.choice(determiners))
             
             # Find objects with learned assemblies
             patient_nouns = [n for n in nouns 
@@ -323,12 +337,12 @@ class SentenceGenerator:
                 weights = [s for _, s in compatible_objects]
                 total = sum(weights)
                 probs = [w/total for w in weights]
-                obj = np.random.choice(obj_list, p=probs)
+                obj = self.rng.choice(obj_list, p=probs)
             else:
                 # Fallback: prefer PATIENT-role words
                 patient_words = [n for n in patient_nouns 
                                 if self.learner.word_as_second_arg[n] > 0]
-                obj = np.random.choice(patient_words) if patient_words else np.random.choice(patient_nouns)
+                obj = self.rng.choice(patient_words) if patient_words else self.rng.choice(patient_nouns)
             
             sentence.append(obj)
         

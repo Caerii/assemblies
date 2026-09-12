@@ -6893,3 +6893,8 @@ The evidence graph now recognizes committed `.log` and `.txt` study artifacts as
 ## Instance-owned integrated trainer randomness (2026-09-12)
 
 `nemo/language/integrated_trainer.py` now accepts either an injected NumPy generator or a seed and routes subject, verb, and object sampling through it. An isolated seeded trainer probe passes without loading the optional CuPy learner; Pyright, Ruff, and compilation are clean.
+
+
+## Instance-owned emergent generator randomness (2026-09-12)
+
+`nemo/language/emergent/generator.py` now accepts either an injected NumPy generator or a seed, routes all stochastic word and transition choices through that generator, and uses explicit numeric score selectors. Pyright, Ruff, and compilation are clean. Runtime generation remains gated by the optional legacy/CuPy learner stack.
