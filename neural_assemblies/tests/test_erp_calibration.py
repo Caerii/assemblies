@@ -81,6 +81,14 @@ def test_calibration_rejects_invalid_critical_position(position):
         )
 
 
+@pytest.mark.parametrize("fast", [None, 1, "true"])
+def test_calibration_rejects_invalid_fast_flag(fast):
+    with pytest.raises(ValueError, match="fast must be a bool"):
+        calibrate_erp_thresholds(
+            SimpleNamespace(), ensure_prediction=False, fast=fast,
+        )
+
+
 def test_calibration_observes_frames_once(monkeypatch):
     """Tuning must not become a hidden second training schedule."""
     from neural_assemblies.assembly_calculus.emergent.evaluation.erp import calibration
@@ -106,12 +114,13 @@ def test_calibration_observes_frames_once(monkeypatch):
         return []
 
     monkeypatch.setattr(calibration, "collect_frame_samples", collect_once)
-    calibration.calibrate_erp_thresholds(
+    report = calibration.calibrate_erp_thresholds(
         SimpleNamespace(), ensure_prediction=False, fast=False,
         critical_position=7,
     )
     assert len(calls) == 1
     assert calls[0][1]["critical_position"] == 7
+    assert report.fast_requested is False
 
 
 class TestErpCalibration:

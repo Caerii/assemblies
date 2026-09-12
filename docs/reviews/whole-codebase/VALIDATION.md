@@ -5909,3 +5909,10 @@ drive-cache tests pass **6 tests**, covering the expansion path.
 `calibrate_erp_thresholds` now threads an explicitly supplied critical position
 into frame collection; `None` preserves dynamic per-frame selection. Invalid
 positions fail before parser access, and five calibration tests pass.
+
+### ERP fast-flag provenance (2026-09-12)
+
+The compatibility `fast` flag is now type-checked and recorded as
+`fast_requested` in `ErpCalibrationReport`, while the measurement protocol
+remains intentionally unchanged. Four calibration tests cover invalid values
+and report provenance.

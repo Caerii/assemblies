@@ -119,6 +119,7 @@ class ErpCalibrationReport:
     by_label: Dict[str, Dict[str, float]] = field(default_factory=dict)
     separation: Dict[str, float] = field(default_factory=dict)
     tuned: bool = False
+    fast_requested: bool = False
     engine_name: str = "unknown"
 
     def p600_quantities(self) -> ErpQuantities:
@@ -363,6 +364,8 @@ def calibrate_erp_thresholds(
         type(critical_position) is not int or critical_position < 0
     ):
         raise ValueError("critical_position must be a nonnegative integer or None")
+    if type(fast) is not bool:
+        raise ValueError("fast must be a bool")
     if ensure_prediction:
         _ensure_minimal_prediction_bridges(parser)
 
@@ -479,6 +482,7 @@ def calibrate_erp_thresholds(
         by_label=by_label,
         separation=separation,
         tuned=readiness.p600_ready,
+        fast_requested=fast,
         engine_name=str(getattr(parser, "engine_name", "unknown")),
     )
     # Cache the complete observation, not only thresholds.  Reconstructing a
