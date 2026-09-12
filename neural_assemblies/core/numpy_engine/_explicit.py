@@ -15,7 +15,9 @@ from ..engine import (
     ProjectionResult,
     validate_deterministic_allocation,
 )
-from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration, validate_slot_configuration
+from ..registration import (validate_input_noise, validate_stimulus_registration,
+                            validate_area_registration, validate_slot_configuration,
+                            validate_plasticity_rate)
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
 from ..semantics import (
@@ -130,6 +132,7 @@ class NumpyExplicitEngine(ComputeEngine):
         """
         input_noise_std = validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
+        beta = validate_plasticity_rate(beta)
         slot_count = validate_slot_configuration(n, slot_count, winner_policy)
         _reject_unsupported(
             f"NumpyExplicitEngine.add_area({name!r})", self._UNSUPPORTED_AREA,

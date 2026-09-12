@@ -33,7 +33,8 @@ from ..engine import (
     ProjectionResult,
     validate_deterministic_allocation,
 )
-from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
+from ..registration import (validate_input_noise, validate_stimulus_registration,
+                            validate_area_registration, validate_plasticity_rate)
 from ..connectome import Connectome
 from ..projection_fidelity import ProjectionFidelity
 from ..semantics import (
@@ -742,6 +743,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                  input_noise_std: float = 0.0) -> None:
         input_noise_std = validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
+        beta = validate_plasticity_rate(beta)
         refractory_period, inhibition_strength = validate_lri_parameters(
             refractory_period, inhibition_strength)
         xp = self._xp

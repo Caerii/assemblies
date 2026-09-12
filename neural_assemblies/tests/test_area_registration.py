@@ -251,6 +251,21 @@ def test_area_beta_rejects_nonfinite_negative_and_boolean(beta):
     assert 'bad' not in brain.areas
 
 
+@pytest.mark.parametrize('engine_name', ['numpy_sparse', 'numpy_exact', 'numpy_explicit'])
+def test_direct_numpy_engines_share_beta_registration_validation(engine_name):
+    from neural_assemblies.core.numpy_engine import (
+        NumpyExactEngine, NumpyExplicitEngine, NumpySparseEngine,
+    )
+    engine = {
+        'numpy_sparse': NumpySparseEngine,
+        'numpy_exact': NumpyExactEngine,
+        'numpy_explicit': NumpyExplicitEngine,
+    }[engine_name](p=.1)
+    with pytest.raises(ValueError):
+        engine.add_area('bad', 4, 2, beta=float('nan'))
+    assert not engine._areas
+
+
 @pytest.mark.parametrize('path', ['primary', 'auxiliary', 'direct'])
 def test_runtime_policy_cannot_bypass_slot_contract(path):
     from neural_assemblies import ThresholdPolicy

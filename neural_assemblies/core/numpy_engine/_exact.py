@@ -53,7 +53,8 @@ from ..engine import (
     ProjectionResult,
     validate_deterministic_allocation,
 )
-from ..registration import validate_input_noise, validate_stimulus_registration, validate_area_registration
+from ..registration import (validate_input_noise, validate_stimulus_registration,
+                            validate_area_registration, validate_plasticity_rate)
 from ..activity import ActivityState
 from .._pricing import inverse_indegree
 from ..semantics import (
@@ -585,6 +586,7 @@ class NumpyExactEngine(ComputeEngine):
             )
         validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
+        beta = validate_plasticity_rate(beta)
         _reject_unsupported(
             f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
             dict(input_noise_std=input_noise_std, slot_count=slot_count,

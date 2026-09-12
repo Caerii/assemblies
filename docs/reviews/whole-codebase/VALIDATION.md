@@ -7016,3 +7016,6 @@ Added a shared Brain-side validator for competition policies. Area registration 
 ## Canonical beta validation at area registration (2026-09-12)
 
 `Brain.add_area` and direct `Area` construction now validate and canonicalize beta through `validate_plasticity_rate` before creating descriptors or backend state. Invalid negative, nonfinite, boolean, and string rates cannot enter the model under one facade and fail later under another. Validation: area-registration plus area suites 215 passed; Pyright on Brain and Area 0 errors/warnings/information.
+## Backend beta registration parity (2026-09-12)
+
+Applied `validate_plasticity_rate` to NumPy sparse, NumPy exact, NumPy explicit, and Torch engine `add_area` implementations. Direct engine construction now has the same beta acceptance contract as Brain and Area. Validation: area-registration suite 213 passed, including direct-engine cases; Pyright on all four engine modules 0 errors/warnings/information.
