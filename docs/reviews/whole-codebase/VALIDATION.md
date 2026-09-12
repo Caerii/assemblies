@@ -5598,3 +5598,11 @@ artifact through the canonical finite, exclusive writer. Its L0/L1 and
 gain arms, synthetic guard, paired comparisons, and output schema are
 unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
 and both result-writer ratchets pass: **2 passed**.
+
+### Fixed-output research writer migrations (2026-09-12)
+
+The paper-regime scale, readout decision-rule, role-recipe 2x2, and surprise-gain
+studies now publish through the canonical exclusive writer. Their registered
+arms and output schemas are unchanged; reruns fail rather than replacing
+prior evidence. Ruff, compilation, the result-writer ratchets, and diff checks
+pass.

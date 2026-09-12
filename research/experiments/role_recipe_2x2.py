@@ -62,12 +62,15 @@ import os
 import random
 import statistics as st
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from sentence_conditioned_readout import (  # noqa: E402
     EVENTS,
@@ -227,8 +230,7 @@ def main():
                          if kk != "ret_rows"} for k, v in cells.items()},
            "ret_rows": {k: v["ret_rows"] for k, v in cells.items()},
            "analysis": analysis}
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_new_document(Path(OUT_PATH), out)
     print(json.dumps(analysis, indent=2))
     print(f"-> {OUT_PATH}")
 
