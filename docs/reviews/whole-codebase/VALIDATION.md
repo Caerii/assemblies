@@ -7317,3 +7317,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Validation: `uv run pyright neural_assemblies/core/numpy_engine --outputjson` (12 files, 0 errors).
 - Validation: `uv run pytest neural_assemblies/tests/test_engine_backend_isolation.py neural_assemblies/tests/test_explicit_projection.py neural_assemblies/tests/test_cross_engine_projection.py -q` (19 passed, 3 skipped, 4 warnings, 27.07s).
 - Maintained-suite topology remains split into fast and measured slow tiers; the fast tier uses xdist `loadfile` and the slow tier contains empirical setup gates.
+
+
+## 2026-09-12 fast-tier profiling pass
+
+- Full maintained fast tier after the backend pass: 3,817 passed, 141 skipped, 7 xfailed, 10 subtests in 449.32s with `-n 8 --dist loadfile`.
+- Duration profile identified seven remaining parser/ERP end-to-end probes above 50s; centralized collection now assigns them to the measured slow tier.
+- Collection after the change: 3,958 fast tests and 165 slow tests (4,123 total). This keeps the local contract loop bounded while preserving all empirical tests in the full suite.

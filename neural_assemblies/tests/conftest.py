@@ -65,6 +65,16 @@ _SLOW_NODEID_SUBSTRINGS = (
     "test_same_seed_same_classifications",
     "test_evaluation_on_curriculum_parser",
     "test_predict_returns_ranked_list",
+    # Remaining end-to-end ERP/parser probes dominate the fast tier even with
+    # EMERGENT_*_FAST enabled. Keep their empirical signal in the slow tier so
+    # contract failures surface quickly during local development.
+    "test_grammatical_excess_is_crushed_against_the_floor",
+    "test_stage3_learns_roles",
+    "test_the_control_arm_is_alive",
+    "test_calibrate_mine_replay_pipeline",
+    "test_a_parse_grows_a_trained_parser",
+    "test_scaled_lexicon_trains",
+    "test_recall_meets_theorem_3_bound",
 )
 
 
@@ -95,10 +105,11 @@ def _restore_array_backend():
     dismissed as flakiness. It also only reproduces where CuPy is actually
     installed, so CI never sees it.
 
-    THIS IS A CONTAINMENT, NOT THE FIX. The real repair is to stop consulting a
-    process-global in the first place -- pass the array module down per engine
-    -- which is tracked separately as a refactor. Restoring here makes the
-    suite's signal trustworthy in the meantime; it does NOT make the leak safe
+    Engine-owned state now pins its array module, so ordinary NumPy/Sparse
+    projections are isolated. The fixture remains because legacy adapters and
+    optional GPU constructors still mutate the compatibility selector; it keeps
+    those boundaries from contaminating unrelated tests until that adapter is
+    retired.
     for library users, who can still construct a CuPy engine and find their
     next numpy Brain broken.
     """
