@@ -41,6 +41,7 @@ from __future__ import annotations
 
 import os
 import re
+from functools import lru_cache
 
 from ._source_scan import code_lines, count_attribute_reads, python_sources
 
@@ -101,6 +102,7 @@ _ADVICE = (
 )
 
 
+@lru_cache(maxsize=1)
 def _scan():
     found = {}
     for full in python_sources(REPO):
@@ -285,6 +287,7 @@ def _count_w_reads(text: str) -> int:
     return count_attribute_reads(text, "w")
 
 
+@lru_cache(maxsize=1)
 def _scan_w():
     found = {}
     for full in python_sources(REPO):

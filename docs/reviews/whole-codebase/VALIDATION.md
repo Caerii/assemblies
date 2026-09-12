@@ -7376,3 +7376,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - After empirical class isolation, a normal 12-worker fast run completed 3,787 passed, 138 skipped, 5 xfailed, 10 subtests in 276.67s (4:36) before thread-setting rollback; the current untuned baseline remains 283.82s (4:43) due run variance.
 - Newly identified dominant costs were ERP/parser diagnostics at 130--140s each; they are now slow-tier classes, preserving their scientific checks while removing them from the contract loop.
 - Direct README example execution completes in 7.37s on this host; the larger in-suite duration reflects xdist contention rather than a 49s intrinsic example cost.
+
+
+## 2026-09-12 ratchet scan reuse
+
+- Cached the two source ratchet inventories for the duration of a test process; repeated baseline/staleness checks now reuse the same immutable checkout scan.
+- Focused validation: 8 passed in 10.66s; the slowest scan was 6.21s, versus roughly 27s per scan in the prior fast-tier profile.
+- Both compact-index and `.w` ratchets remain active, including their positive controls and stale-baseline checks.
