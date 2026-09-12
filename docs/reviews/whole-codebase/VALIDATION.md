@@ -5026,3 +5026,12 @@ Scoring is explicitly frozen and reports ranked-overlap top-1/top-3/MRR metrics;
 unknown later tokens cannot produce a partial result or silently adapt the
 model. Next-token, batched, and registry validation passes: **173 passed**;
 Ruff and the evidence graph are clean.
+
+## Cue recovery observation contract (2026-09-11)
+
+`observe_recovery` now consumes `RecoveryPlan` and is registered as
+`RECOVERY_CONTRACT`. Reference/cue area identity, cue size, ID bounds, full
+materialization, recurrence, rounds, and seed are admitted before the read-only
+probe. The observation denominator and null/failed-recovery outcomes remain
+explicit. Noise-robustness, operation-contract, and lazy-import tests pass:
+**201 passed**; Ruff is clean.

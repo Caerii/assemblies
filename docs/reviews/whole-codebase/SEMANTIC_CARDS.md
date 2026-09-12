@@ -567,6 +567,18 @@ of candidates over which the summed drive was measured.
 
 <a id="contract-activation"></a>
 
+<a id="contract-cue-recovery"></a>
+
+## Cue recovery observation
+
+`recovery.observe_recovery` measures recovery of a stored reference Assembly
+after a cue perturbation. `RecoveryPlan` validates nonempty same-area snapshots,
+cue size, ID bounds, full population materialization, positive rounds, and the
+explicit recurrence switch before entering `Brain.read_only`. The returned
+observation reports cue overlap, recovered overlap, and improvement using the
+reference denominator. Partial populations and malformed cues fail before
+activation, so an invalid probe cannot masquerade as zero recovery.
+
 ## Assembly snapshot activation
 
 `ops.activate_assembly` injects a stable-neuron-ID `Assembly` snapshot into its

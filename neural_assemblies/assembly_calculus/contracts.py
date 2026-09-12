@@ -183,7 +183,46 @@ class NextTokenScorePlan:
         NextTokenTrainingPlan(
             self.area, self.corpus, self.stimuli_map,
             self.rounds_per_token, repetitions=1,
-        ).preflight(brain)
+            ).preflight(brain)
+
+
+@dataclass(frozen=True)
+class RecoveryPlan:
+    """Validated state-preserving cue-recovery observation."""
+
+    reference: Assembly
+    cue: Assembly
+    rounds: int
+    seed: int | None = None
+    recurrence_enabled: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reference, Assembly) or not len(self.reference):
+            raise ValueError("recovery requires a nonempty Assembly reference")
+        if not isinstance(self.cue, Assembly) or self.cue.area != self.reference.area:
+            raise ValueError("cue must be an Assembly in the reference area")
+        if len(self.cue) > len(self.reference):
+            raise ValueError("cue winner count exceeds reference size")
+        if isinstance(self.rounds, bool) or not isinstance(self.rounds, Integral) or self.rounds < 1:
+            raise ValueError("recovery rounds must be a positive integer")
+        if self.seed is not None and (isinstance(self.seed, bool) or not isinstance(self.seed, Integral) or self.seed < 0):
+            raise ValueError("recovery seed must be a nonnegative integer or None")
+        _explicit_bool("recurrence_enabled", self.recurrence_enabled)
+        object.__setattr__(self, "rounds", int(self.rounds))
+        if self.seed is not None:
+            object.__setattr__(self, "seed", int(self.seed))
+
+    def preflight(self, brain) -> None:
+        if self.reference.area not in brain.areas:
+            raise KeyError(f"recovery area is unknown: {self.reference.area!r}")
+        area = brain.areas[self.reference.area]
+        for assembly in (self.reference, self.cue):
+            if np.any(np.asarray(assembly.neuron_ids) >= area.n):
+                raise ValueError("recovery neuron IDs exceed area population")
+        owner = brain._engine_for(area)
+        count = owner.materialized_count(self.reference.area)
+        if count is not None and count != area.n:
+            raise ValueError("recovery observation requires a fully materialized population")
 
 
 @dataclass(frozen=True)
@@ -1331,6 +1370,25 @@ NEXT_TOKEN_SCORE_CONTRACT = OperationContract(
 )
 
 
+RECOVERY_CONTRACT = OperationContract(
+    operation_id="cue-recovery-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-cue-recovery",
+    plan_type=RecoveryPlan,
+    inputs=("brain", "reference Assembly", "cue Assembly", "rounds", "seed", "recurrence_enabled"),
+    reads=("fully materialized recurrent area", "reference/cue neuron IDs"),
+    mutates=("temporary winners only under read-only scope",),
+    regime=("nonempty reference", "cue in reference area", "full materialization", "explicit recurrence control"),
+    observed_outcome=("cue overlap, recovered overlap, improvement",),
+    failure_conditions=("unknown area", "invalid IDs", "partial population", "invalid rounds/seed"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_recovery_improves_cue_and_fails_learning_and_dynamics_nulls",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_partial_population_refuses_before_activating_cue",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1821,6 +1879,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "predict_next_token": NEXT_TOKEN_PREDICTION_CONTRACT,
     "train_on_corpus": NEXT_TOKEN_TRAINING_CONTRACT,
     "score_corpus": NEXT_TOKEN_SCORE_CONTRACT,
+    "observe_recovery": RECOVERY_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,

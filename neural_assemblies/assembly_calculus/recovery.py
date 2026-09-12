@@ -4,9 +4,9 @@ from numbers import Integral
 import numpy as np
 
 from ..core.index_spaces import NeuronIds, validated_indices
-from ..core.registration import validate_round_count
 from .assembly import Assembly
 from .ops import activate_assembly, _snap
+from .contracts import RECOVERY_CONTRACT, RecoveryPlan, implements
 
 
 def replace_neurons(reference: Assembly, *, population: NeuronIds, count: int, seed: int) -> Assembly:
@@ -68,25 +68,23 @@ class RecoveryObservation:
         return self.recovered_overlap - self.cue_overlap
 
 
+@implements(RECOVERY_CONTRACT)
 def observe_recovery(brain, reference: Assembly, cue: Assembly, *, rounds: int,
                      seed: int | None = None, recurrence_enabled: bool = True) -> RecoveryObservation:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-cue-recovery
 
     Read a fully materialized recurrent area without retaining learning or activity.
     Overlap uses reference size, so dropping neurons cannot manufacture completion.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-cue-recovery
     """
-    rounds = validate_round_count(rounds)
-    if type(recurrence_enabled) is not bool:
-        raise ValueError('recurrence_enabled must be boolean')
-    _validate_recovery_members(reference, cue=cue)
+    plan = RecoveryPlan(reference, cue, rounds, seed, recurrence_enabled)
+    plan.preflight(brain)
+    reference, cue = plan.reference, plan.cue
+    rounds, seed, recurrence_enabled = plan.rounds, plan.seed, plan.recurrence_enabled
     area = brain.areas[reference.area]
     for assembly in (reference, cue):
         validated_indices(assembly.neuron_ids, upper=area.n, unique=True)
-    owner = brain._engine_for(area)
-    count = owner.materialized_count(reference.area)
-    # ComputeEngine uses None for dense engines whose population is always present.
-    if count is not None and count != area.n:
-        raise ValueError('recovery observation requires a fully materialized population')
     with brain.read_only(seed=seed):
         area.fixed_assembly = False
         activate_assembly(brain, cue)
