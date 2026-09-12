@@ -8,12 +8,14 @@ Brain assembly-calculus engine differs (e.g. non-LRI sequence recall).
 from __future__ import annotations
 
 import numpy as np
+from numbers import Integral
 
 
-def k_cap(input_arr: np.ndarray, cap_size: int) -> np.ndarray:
+def k_cap(input_arr: np.ndarray, cap_size: int | np.integer) -> np.ndarray:
     """Top-cap_size indices by total input (reference ``brain.k_cap``)."""
-    if isinstance(cap_size, bool) or not isinstance(cap_size, int) or cap_size < 0:
+    if isinstance(cap_size, bool) or not isinstance(cap_size, Integral) or cap_size < 0:
         raise ValueError("cap_size must be a non-negative integer")
+    cap_size = int(cap_size)
     if cap_size == 0:
         return np.array([], dtype=int)
     if np.all(input_arr == 0):

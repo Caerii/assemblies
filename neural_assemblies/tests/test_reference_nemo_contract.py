@@ -10,6 +10,7 @@ def test_k_cap_zero_is_empty_and_negative_is_rejected() -> None:
     drive = np.array([1.0, 2.0, 3.0])
 
     assert k_cap(drive, 0).size == 0
+    assert k_cap(drive, np.int64(1)).size == 1
     with pytest.raises(ValueError, match="cap_size"):
         k_cap(drive, -1)
 
