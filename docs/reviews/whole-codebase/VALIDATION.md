@@ -6303,3 +6303,7 @@ The Rust workspace and the packaged Python IR crate compile and test against the
 ### Cross-language formatting and Lean build gate (2026-09-12)
 
 `cargo fmt --check` passes for both Rust IR manifests, and `lake build` completes all **10 Lean jobs**. Lean reports theorem axiom dependencies explicitly (for example `propext`, `Quot.sound`, and selected classical principles), preserving proof provenance while confirming the full formal project builds.
+
+### Throughput artifact serialization gate (2026-09-12)
+
+The throughput benchmark now delegates result-file creation to the canonical IR JSON writer, so benchmark artifacts share finite-value validation, deterministic UTF-8 encoding, and create-only overwrite semantics with the research and cross-language paths. Its focused contract suite passes **4 tests**, including a real CLI output and second-run overwrite refusal; Ruff F/E9 and `git diff --check` are clean.

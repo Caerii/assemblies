@@ -19,6 +19,7 @@ import time
 
 from neural_assemblies.assembly_calculus import project
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.ir.protocol import write_json_document
 
 
 def _quantiles(values: list[float]) -> dict[str, float]:
@@ -128,9 +129,7 @@ def main(argv=None) -> int:
     if args.output is None:
         print(encoded, end="")
     else:
-        args.output.parent.mkdir(parents=True, exist_ok=True)
-        with args.output.open("x", encoding="utf-8") as stream:
-            stream.write(encoded)
+        write_json_document(args.output, result)
         print(args.output)
     return 0
 
