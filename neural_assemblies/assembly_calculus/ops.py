@@ -62,10 +62,11 @@ import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import (
+    ACTIVATION_CONTRACT,
     ASSOCIATION_CONTRACT, BINDING_CONTRACT, BINDING_READ_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, CONVERGENCE_CONTRACT, MERGE_CONTRACT,
     ORDERED_RECALL_CONTRACT,
     SEPARATION_CONTRACT,
-    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, AssociationPlan,
+    PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT, ActivationPlan, AssociationPlan,
     BindingReadPlan, CompletionPlan, ConsolidationPlan, ConvergencePlan, MergePlan, ProjectionPlan, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan, BindingPlan,
     SEQUENCE_MEMORIZE_CONTRACT,
@@ -182,6 +183,7 @@ def _compact_index(engine, area_name: str):
     return inverse
 
 
+@implements(ACTIVATION_CONTRACT)
 def activate_assembly(brain, assembly: Assembly) -> None:
     """Inject a lexicon assembly snapshot into an area's active winners.
 
@@ -198,7 +200,12 @@ def activate_assembly(brain, assembly: Assembly) -> None:
     that neuron ID has no compact slot here.  It is a genuine consistency
     check, not a lookup that should be made tolerant -- silently dropping the
     missing neurons would inject a truncated, subtly wrong assembly.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation
     """
+    plan = ActivationPlan(assembly)
+    plan.preflight(brain)
+    assembly = plan.assembly
     area_name = assembly.area
     if area_name not in brain.areas:
         raise ValueError(f"Unknown area {area_name!r}")

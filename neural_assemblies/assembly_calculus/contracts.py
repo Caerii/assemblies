@@ -47,6 +47,28 @@ class ProjectionStep:
 
 
 @dataclass(frozen=True)
+class ActivationPlan:
+    """Validated injection of a stable-neuron Assembly snapshot."""
+
+    assembly: Assembly
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.assembly, Assembly):
+            raise TypeError("assembly must be an Assembly snapshot")
+
+    def preflight(self, brain) -> None:
+        area_name = self.assembly.area
+        if area_name not in brain.areas:
+            raise ValueError(f"Unknown area {area_name!r}")
+        area = brain.areas[area_name]
+        ids = np.asarray(self.assembly.winners)
+        if ids.ndim != 1 or not np.issubdtype(ids.dtype, np.integer):
+            raise ValueError("assembly neuron IDs must be a one-dimensional integer array")
+        if np.any(ids < 0) or np.any(ids >= area.n):
+            raise ValueError("assembly neuron IDs must be within the area")
+
+
+@dataclass(frozen=True)
 class ProjectionPlan:
     """Validated schedule for the named stimulus-to-area operation.
 
@@ -1009,6 +1031,27 @@ CONVERGENCE_CONTRACT = OperationContract(
 )
 
 
+ACTIVATION_CONTRACT = OperationContract(
+    operation_id="assembly-activation-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
+    plan_type=ActivationPlan,
+    inputs=("brain", "assembly snapshot"),
+    reads=("stable neuron IDs", "target area index mapping"),
+    mutates=("target area winners", "engine activity state"),
+    regime=("snapshot belongs to target area", "IDs are valid in current population"),
+    observed_outcome=("no return value; target activity is updated",),
+    failure_conditions=("unknown area", "invalid neuron IDs", "stale snapshot mapping"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_public_model_boundaries.py::"
+        "test_explicit_activation_rejects_neuron_outside_area",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_public_model_boundaries.py::"
+        "test_explicit_activation_rejects_neuron_outside_area",
+    ),
+)
+
+
 PROJECTION_CONTRACT = OperationContract(
     operation_id="projection-v1",
     specification=(
@@ -1471,6 +1514,7 @@ CONTEXT_STEP_CONTRACT = OperationContract(
 
 
 OPERATION_CONTRACTS = MappingProxyType({
+    "activate_assembly": ACTIVATION_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,

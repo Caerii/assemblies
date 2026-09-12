@@ -565,6 +565,18 @@ of candidates over which the summed drive was measured.
 
 <a id="contract-context-observation"></a>
 
+<a id="contract-activation"></a>
+
+## Assembly snapshot activation
+
+`ops.activate_assembly` injects a stable-neuron-ID `Assembly` snapshot into its
+own area and translates IDs into the current engine's compact index space.
+It reads the target mapping and mutates only target activity state; it does not
+learn weights or recruit neurons. Unknown areas, malformed/out-of-range IDs,
+and stale mappings fail before the engine receives winners. This boundary is
+the explicit bridge between persistent Assembly values and backend-local index
+values, so silently dropping an unmappable neuron is forbidden.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction

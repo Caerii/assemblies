@@ -4959,3 +4959,12 @@ area-role distinctness, source cardinality, positive rounds, topology, stimuli,
 and stimulus-area pairs. `consolidate` validates every step before executing
 any, preventing a malformed later step from leaving earlier replay mutations.
 Focused consolidation/contract tests pass: **174 passed**; Ruff is clean.
+
+## Assembly snapshot activation contract (2026-09-11)
+
+`activate_assembly` is now a registered operation with `ActivationPlan` and
+`ACTIVATION_CONTRACT`. The plan validates the snapshot type, target area, and
+stable neuron-ID domain before translating into backend compact indices or
+mutating activity. Its source docstring and semantic card explain the index
+space bridge and retain the out-of-range true negative. Contract/public-boundary
+/lazy-import validation passes: **286 passed**; Ruff is clean.
