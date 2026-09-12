@@ -5507,3 +5507,10 @@ artifact through the canonical finite, exclusive writer. Its paired arms,
 undefined-item handling, per-seed AUC summaries, and output schema are
 unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
 and both result-writer ratchets pass: **2 passed**.
+### Overlap-ceiling writer migration (2026-09-12)
+
+The registered overlap-ceiling study now publishes its fixed per-seed result
+artifact through the canonical finite, exclusive writer. Its form/lemma
+measurements, error fingerprint, and output schema are unchanged; reruns
+cannot silently replace the evidence. Compilation, Ruff, and both
+result-writer ratchets pass: **2 passed**.

@@ -10,7 +10,6 @@
     "research/experiments/flush_rate_sweep.py": 1,
     "research/experiments/gain_max_sweep.py": 1,
     "research/experiments/imbalance_attribution.py": 1,
-    "research/experiments/overlap_ceiling.py": 1,
     "research/experiments/paper_regime_2x2.py": 1,
     "research/experiments/paper_regime_scale.py": 1,
     "research/experiments/per_seed_pl_attribution.py": 1,

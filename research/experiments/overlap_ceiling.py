@@ -64,16 +64,18 @@ checkpoints make seeds nearly free) before reading the bars.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 SEEDS = list(range(42, 47))
 PRE_STAGES = ("FIRST_WORDS", "VOCABULARY_SPURT", "TWO_WORD")
@@ -273,8 +275,9 @@ def main():
 
     cell_results = run_cells(run_cell, [(s,) for s in SEEDS])
     results = {seed: res for (seed,), res in cell_results.items()}
-    with open(OUT_PATH, "w") as f:
-        json.dump({str(s): v for s, v in results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        str(s): v for s, v in results.items()
+    })
 
     # ---- B0 power gate (read on seed 42; gates the full run) ----
     pl42 = results[42]["items"]["PL"]
