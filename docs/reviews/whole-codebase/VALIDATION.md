@@ -6708,3 +6708,8 @@ The Torch boundary ratchet now also checks that every member declared by `TorchO
 ## Assembly-calculus Torch boundary migration (2026-09-12)
 
 `assembly_calculus/batched_trainer.py` now uses the shared `torch_ops` protocol instead of a locally imported module and blanket Pyright suppression. The existing `self._torch` compatibility seam remains for composed methods. Pyright and Ruff report zero diagnostics; batched trainer regressions pass **6 tests**.
+
+
+## Assembly-calculus next-token boundary migration (2026-09-12)
+
+`assembly_calculus/batched_next_token.py` (`BatchedLM`) now uses the shared `torch_ops` boundary instead of direct generated Torch calls and a module-wide Pyright suppression. Its compatibility field remains available for composed callers. Pyright and Ruff report zero diagnostics; next-token, admission, and Torch parity tests pass **33 tests**.
