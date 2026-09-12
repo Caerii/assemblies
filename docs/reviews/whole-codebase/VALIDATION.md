@@ -5921,3 +5921,11 @@ and report provenance.
 
 The calibration callback now names its intentionally ignored compatibility
 kwargs as private, making the fixed probe protocol explicit to static analysis.
+
+### Core capability-hook contracts (2026-09-12)
+
+Default engine hooks now make unsupported and intentional no-op behavior explicit:
+area and parameter inputs are validated or named in errors, dense engines document
+that mapping/materialization queries do not apply, and hashed anchor hooks discard
+shared arguments deliberately. Ruff's ARG scan is clean across `core` and
+`assembly_calculus`; index-space and projection contract tests pass **53 tests**.
