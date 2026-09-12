@@ -6485,3 +6485,7 @@ Dialogue compiler calls now record the full-parser composition invariant explici
 ### Bounded state-prediction surface gate (2026-09-12)
 
 `StatePredictionMixin` now declares its shared runtime surface: brain, stimulus map, core lexicons, inference rounds, bootstrap state, and the sibling methods used for lexical activation and prediction cleanup. These declarations make the paper-faithful bounded-state path statically composable without changing its additive behavior. Pyright reports **0 diagnostics**; state-prediction tests pass **10 tests**, and `git diff --check` is clean.
+
+### Classification bootstrap compatibility gate (2026-09-12)
+
+`CategoryClassificationMixin.classify_word_cached` now preserves the full `BootstrapScores` compatibility mapping, including provenance metadata, for alternate-grounding and non-lexicon paths. Numeric-only projections remain confined to score arithmetic in POS inference, so callers do not silently lose evidence metadata. Pyright reports **0 diagnostics** for the mixin; classification evidence and observation tests pass **36 tests**, and `git diff --check` is clean.

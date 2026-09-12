@@ -1,7 +1,7 @@
 """Category queries with an explicit neural observation boundary."""
 
 
-from typing import Dict, Optional, Tuple
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING, cast
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
 from neural_assemblies.core.brain import Brain
@@ -10,6 +10,10 @@ from ..core.areas import CORE_AREAS, CORE_TO_CATEGORY
 from ..core.grounding import GroundingContext
 from ..core.classification import ClassificationEvidence
 from ._shared import DistributionalStats
+from ..acquisition.pos_inference import BootstrapScores
+
+if TYPE_CHECKING:
+    from ..parser import EmergentParser
 
 
 class CategoryClassificationMixin:
@@ -28,18 +32,26 @@ class CategoryClassificationMixin:
     _bootstrap_categories: Dict[str, str]
     _dist_categories: Dict[str, str]
 
+    if TYPE_CHECKING:
+        def classify_distributional(self, word: str) -> Tuple[str, Dict[str, float]]: ...
+        def _grounding_stim_names(self, grounding: GroundingContext) -> List[str]: ...
+        _grounding_stim_names_set: set[str]
+
     def classify_word_cached(
         self,
         word: str,
         grounding: Optional[GroundingContext] = None,
-    ) -> Tuple[str, Dict[str, float]]:
+    ) -> Tuple[str, BootstrapScores]:
         """Fast default-context classification; alternate grounding is uncached.
 
         Specification: neural_assemblies/ir/VERIFICATION.md#contract-classification-cache-context
         """
         if grounding is not None and grounding != self.word_grounding.get(word):
             from ..acquisition.pos_inference import classify_word_bootstrapped
-            return classify_word_bootstrapped(self, word, grounding)
+            cat, raw_scores = classify_word_bootstrapped(
+                cast("EmergentParser", self), word, grounding
+            )
+            return cat, raw_scores
         cached = self._category_cache.get(word)
         if cached is not None:
             return cached, {}
@@ -60,22 +72,24 @@ class CategoryClassificationMixin:
         )
 
         ctx = grounding if grounding is not None else self.word_grounding.get(word)
-        if not is_word_in_lexicon(self, word):
-            cat, scores = classify_word_bootstrapped(self, word, ctx)
+        if not is_word_in_lexicon(cast("EmergentParser", self), word):
+            cat, raw_scores = classify_word_bootstrapped(
+                cast("EmergentParser", self), word, ctx
+            )
             if cat != "UNKNOWN":
                 self._category_cache[word] = cat
-            return cat, scores
+            return cat, raw_scores
 
         if self.dist_stats.word_count.get(word, 0) > 0:
             cat, scores = self.classify_distributional(word)
             if cat != "UNKNOWN":
                 self._category_cache[word] = cat
-                return cat, scores
+                return cat, cast(BootstrapScores, scores)
 
         cat, scores = self.classify_word(word, grounding=grounding)
         if cat != "UNKNOWN":
             self._category_cache[word] = cat
-        return cat, scores
+        return cat, cast(BootstrapScores, scores)
 
     def _invalidate_category_cache(self, word: Optional[str] = None) -> None:
         if word is None:
