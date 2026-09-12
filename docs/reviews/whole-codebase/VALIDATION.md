@@ -6541,3 +6541,7 @@ All parser mixin capability declarations now agree on the canonical `classify_wo
 ### Parser composition closure gate (2026-09-12)
 
 The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostics**. The final closure aligned the canonical classification signature across all mixins and removed the last parser-level override conflicts for role reconstruction, fiber-gain context management, and optional word-order state. Parser composition and morphology tests pass **19 tests**, with expected sampled-recurrence warnings preserved.
+
+## 2026-09-12 — interactive session boundary
+
+- uv run pyright neural_assemblies/assembly_calculus/emergent/session/interactive.py neural_assemblies/assembly_calculus/emergent/parser_mixins/blocks.py — 0 diagnostics. EmergentSession.parser now names the composed EmergentParser surface, and the Blocks training protocol mirrors the concrete 	rain signature so method binding is checked instead of erased behind object. uv run pytest neural_assemblies/tests/test_emergent_agent.py neural_assemblies/tests/test_conversation_curriculum.py -q -m 'not slow' — running; completion recorded below.

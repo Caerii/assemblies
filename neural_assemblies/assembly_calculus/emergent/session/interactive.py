@@ -25,13 +25,16 @@ import os
 import re
 import warnings
 from dataclasses import dataclass, field
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
 
 from ..session.dialogue_state import DialogueState
 from ..structured_json import record_to_tool_call
 from ..structured_io import InstructionFrame, ToolCall
 from ..tools import ToolRegistry
 from ..blocks_bridge import BlocksLanguageExecutor, frame_to_blocks_action
+
+if TYPE_CHECKING:
+    from ..parser import EmergentParser
 
 
 @dataclass
@@ -47,7 +50,7 @@ class Turn:
 class EmergentSession:
     """Multi-turn wrapper: parse → tool dispatch → response generation."""
 
-    parser: object
+    parser: "EmergentParser"
     registry: ToolRegistry = field(default_factory=ToolRegistry)
     dialogue: DialogueState = field(default_factory=DialogueState)
     history: List[Turn] = field(default_factory=list)

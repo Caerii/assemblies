@@ -24,7 +24,15 @@ class _BlocksTrainingSurface(Protocol):
         self, vocab: Dict[str, "GroundingContext"]
     ) -> None: ...
 
-    def train(self, *args: object, **kwargs: object) -> object: ...
+    def train(
+        self,
+        sentences: Optional[List["GroundedSentence"]] = None,
+        holdout_words: Optional[set] = None,
+        train_prediction: bool = False,
+        include_word_order: bool = True,
+        include_morphology: bool = True,
+        progress: Optional["TrainProgress"] = None,
+    ) -> None: ...
 
     def train_dialogue(self) -> None: ...
 
