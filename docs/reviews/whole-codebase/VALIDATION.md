@@ -6315,3 +6315,7 @@ Protocol exports now reuse the canonical JSON encoder and create-only writer use
 ### Index-space conversion admission gate (2026-09-12)
 
 The compact-to-stable conversion boundary now rejects an already-branded `NeuronIds` value instead of treating it as a compact position array. This turns a previously plausible remapping into an immediate, actionable type error while retaining raw-array compatibility for legacy callers. Index-space and public-boundary suites pass **117 tests**; Ruff F/E9 and `git diff --check` are clean.
+
+### Static index-space type gate (2026-09-12)
+
+The pyright probe for compact versus stable neuron indices is available and was executed against the current branch: **1 slow static test passed** (with the three non-slow runtime cases deselected). The checker reports errors for all constructed mixed-space calls and no errors for same-space calls, preserving the intended true-negative/true-positive split.
