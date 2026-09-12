@@ -5150,6 +5150,17 @@ The contract decorator is now a generic callable protocol carrying its
 weakening decorated function signatures. The contract module is Pyright-clean
 and its focused suite passes: **163 passed**.
 
+### Maintained-suite regression baseline (2026-09-11)
+
+The fresh non-slow maintained run completed with **3708 passed, 139 skipped,
+6 xfailed, and 8 failures** in 29 minutes. The failures reproduce the known
+five ERP calibration/metric defects and two CUDA tests that require the Visual
+Studio developer shell (`where cl` is unavailable); the eighth was the
+methodology ratchet detecting two baselines above the post-deduplication seed
+counts. Those counts are now lowered from 17 to 16 and from 4 to 3 in the
+frozen baseline, and the ratchet passes: **6 passed**. No calculus, transition,
+or contract regression appeared.
+
 ### Sequence operator state and result typing (2026-09-11)
 
 `sequence_memorize` now snapshots the target beta before the optional scoped
