@@ -6513,3 +6513,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Unsupervised role training capability gate (2026-09-12)
 
 `UnsupervisedMixin` now declares its neural state and role assembly stores, and all corpus/compiler/topology boundaries explicitly witness the composed parser capabilities they require. This keeps structural role inference and compiled training on one typed path without changing the unsupervised protocol. Pyright reports **0 diagnostics**; passive voice and role binding margin tests pass **15 tests**, with the expected sampled-recurrence warning preserved.
+
+### Constituent-order capability gate (2026-09-12)
+
+`ConstituentOrderMixin` now declares its bounded neural state, role/core assembly stores, scene and mood state, and lexical core lookup. Optional mood and scene assemblies are narrowed before activation, making the transition mechanism’s state preconditions explicit. Pyright reports **0 diagnostics**; word-order learner and generation tests pass **16 tests with 2 existing xfails**. Expected sampled-recurrence warnings remain visible.

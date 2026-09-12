@@ -54,6 +54,7 @@ import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.core.index_spaces import NeuronIds
+from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.binding import (
     bind, bind_strength, materialize_fiber,
 )
@@ -87,7 +88,21 @@ _ROLE_ORDER = (ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT)
 class ConstituentOrderMixin:
     """Learn and use word order via SYN -> ROLE transition synapses."""
 
+    brain: Brain
+    k: int
+    rounds: int
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    role_lexicons: Dict[str, Dict[str, Assembly]]
+    _frame_assemblies: Dict[int, Assembly]
+    _role_identity_cache: Dict[str, Assembly]
+    _scene_assembly: Optional[Assembly]
+    _mood_assembly: Optional[Assembly]
+    _scene_fillers: Dict[str, str]
+    _mood: str
     _order_paths_bootstrapped: bool = False
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
 
     def _bootstrap_order_paths(self) -> None:
         """Materialize SYN->ROLE and MOOD->ROLE fibers once, plasticity off.
@@ -229,6 +244,7 @@ class ConstituentOrderMixin:
         # ROLE (+ MOOD, tonic) -> SYN, tau steps.
         srcs = {role_area: [syn]}
         if use_mood:
+            assert mood_assembly is not None
             activate_assembly(self.brain, mood_assembly)
             srcs[MOOD] = [syn]
         self.brain.project({}, srcs)
@@ -567,7 +583,9 @@ class ConstituentOrderMixin:
                 if ROLE_SCENE in self.brain.areas and getattr(
                     self, "_scene_assembly", None,
                 ) is not None:
-                    activate_assembly(self.brain, self._scene_assembly)
+                    scene_assembly = self._scene_assembly
+                    assert scene_assembly is not None
+                    activate_assembly(self.brain, scene_assembly)
                     sources[ROLE_SCENE] = [role]
                 self.brain.project({}, sources)
                 asm = _snap(self.brain, role)
