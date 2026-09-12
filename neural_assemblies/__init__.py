@@ -69,6 +69,7 @@ _LAZY_EXPORTS.update({
         "merge_trace", "pattern_complete_trace", "ordered_recall_trace",
         "snapshot_area", "source_response_traces",
         "FiberCircuit",
+        "OperationContract", "OPERATION_CONTRACTS",
     )
 })
 
@@ -118,7 +119,7 @@ if TYPE_CHECKING:  # pragma: no cover
         ordered_recall_trace, overlap, pattern_complete,
         pattern_complete_trace, project, project_trace, reciprocal_project,
         reciprocal_project_trace, separate, snapshot_area,
-        source_response_traces,
+        source_response_traces, OperationContract, OPERATION_CONTRACTS,
     )
     from .compute import (
         EPercentPolicy, NeuralComputationEngine, PlasticityEngine,
@@ -225,6 +226,7 @@ __all__ = [
     'merge_trace', 'pattern_complete_trace', 'ordered_recall_trace',
     'snapshot_area', 'source_response_traces',
     'FiberCircuit',
+    'OperationContract', 'OPERATION_CONTRACTS',
 
     # Optional backend installation and runtime capability
     'CUPY_INSTALLED', 'GPU_AVAILABLE', 'cupy_available',
