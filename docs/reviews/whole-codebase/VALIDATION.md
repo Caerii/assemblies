@@ -5292,3 +5292,12 @@ Its scoped filename selection and payload are unchanged, while direct
 overwrite mode and the corresponding ratchet baseline entry are removed.
 The study compiles, Ruff is clean, and the result-writer ratchet passes:
 **1 passed**.
+
+### S5 norm-init intervention writer migration (2026-09-12)
+
+The norm-init intervention keeps its committed reference read and now routes
+its result output through the shared finite, exclusive `write_new_document`
+boundary. The output path and payload are unchanged; its direct-write ratchet
+exception is removed. A latent f-string lint issue in the touched script was
+also corrected. Compilation, Ruff, and the result-writer ratchet pass:
+**1 passed**.

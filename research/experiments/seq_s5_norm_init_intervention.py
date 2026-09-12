@@ -12,8 +12,11 @@ import json
 import os
 import random
 import sys
+from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.diagnostics import assembly_overlap
@@ -190,7 +193,7 @@ def main():
 
     pcts = [p for v in rc.values() for p in v["intruder_pct"]]
     print("\n=== BARS ===")
-    print(f"  PASS  N1 control reproduces registered census")
+    print("  PASS  N1 control reproduces registered census")
     n2 = total_soft_i == 0
     print(f"  {'PASS' if n2 else 'FAIL'}  N2 intervention soft rate is ZERO "
           f"(total soft {total_soft_i})")
@@ -215,8 +218,7 @@ def main():
 
 def _write(out):
     path = os.path.join(_HERE, "seq_s5_norm_init_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    write_new_document(Path(path), out)
     print(f"\nwrote {path}")
 
 
