@@ -5325,6 +5325,15 @@ The output schema and CLI paths are unchanged; the JSON artifact can no longer
 be silently overwritten. Compilation, Ruff, and both result-writer ratchets
 pass: **2 passed**.
 
+### Training-path comparison writer migration (2026-09-12)
+
+The training-path comparison now publishes its JSON evidence through the
+canonical exclusive writer while retaining its separate CSV export and CLI
+paths. Removing `default=str` makes unsupported values fail at the evidence
+boundary instead of being silently coerced. The migration also removed an
+unused timing assignment and import exposed by Ruff. Compilation, Ruff, and
+both result-writer ratchets pass: **2 passed**.
+
 ### A1 FSM parity writer migration (2026-09-12)
 
 The A1 FSM parity CLI now writes its configurable `--out` artifact through

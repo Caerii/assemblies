@@ -12,13 +12,13 @@ from __future__ import annotations
 
 import argparse
 import csv
-import json
 import os
 import statistics
-import sys
 import time
 from pathlib import Path
 from typing import Dict, List
+
+from research.json_documents import write_new_document
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["EMERGENT_DEV_CURRICULUM"] = "1"
@@ -198,10 +198,8 @@ def main() -> int:
     for seed in args.seeds:
         for name in args.paths:
             print(f"\n=== {name} seed={seed} ===", flush=True)
-            t0 = time.perf_counter()
             row = runners[name](args.n, args.k, seed, holdout)
             rows.append(row)
-            wall = time.perf_counter() - t0
             print(
                 f"  science={row['science_score']:.3f} "
                 f"strain={row['novel_strain']:.1%} "
@@ -226,7 +224,7 @@ def main() -> int:
     }
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps(payload, indent=2, default=str), encoding="utf-8")
+    write_new_document(args.output, payload)
 
     fieldnames = ["path", "seed"] + list(BATTERY_KEYS) + ["blocked_at_stage", "remedial_sentences"]
     with args.csv.open("w", newline="", encoding="utf-8") as f:

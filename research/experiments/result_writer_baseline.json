@@ -49,7 +49,6 @@
     "research/experiments/capacity/lexicon_capacity.py": 1,
     "research/experiments/capacity/norm_init_capacity.py": 1,
     "research/experiments/capacity/parser_recruitment.py": 1,
-    "research/experiments/compare_training_paths.py": 1,
     "research/experiments/epwta_capacity/beta_control.py": 1,
     "research/experiments/epwta_capacity/capacity.py": 1,
     "research/experiments/epwta_capacity/deep.py": 1,
