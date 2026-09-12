@@ -33,7 +33,7 @@ CONVERTING. `to_neuron_ids` is the one direction that is ever correct. There is
 deliberately no `to_compact`: compact indices are engine-internal and change
 whenever an area grows, so a stored one is a bug waiting to be dereferenced.
 """
-from typing import List, TypeVar
+from typing import List
 
 import numpy as np
 
@@ -59,11 +59,6 @@ class CompactIdx(_BrandedIndices):
 
 class NeuronIds(_BrandedIndices):
     """Stable neuron identities in the area population index space."""
-
-#: Binds to ONE of the two per call site. Use for functions valid within either
-#: space but never across them -- see the module docstring.
-SameSpace = TypeVar("SameSpace", CompactIdx, NeuronIds)
-
 
 def validated_indices(values, *, upper: int | None = None, label: str = 'indices', xp=np, unique: bool = False) -> np.ndarray:
     """Validate before uint32 conversion on the supplied array backend.

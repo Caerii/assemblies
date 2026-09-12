@@ -5715,3 +5715,11 @@ match the implemented branded index arrays, explicit overloads, invalid-index
 validation, and device-preserving conversion behavior. This removes obsolete
 claims that runtime types are erased or invalid indices are dropped, preventing
 future contributors from following superseded architecture guidance.
+
+### Remove obsolete SameSpace alias (2026-09-12)
+
+The unused `SameSpace` TypeVar was removed from the index-space module, and its
+module and operation documentation now show the explicit overloads that
+Pyright actually checks. This reduces the number of competing type patterns
+without changing runtime behavior. Pyright reports **0 errors** and the
+focused index-space suite passes: **8 passed**.
