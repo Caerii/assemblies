@@ -31,7 +31,7 @@ Reference:
     arXiv:2306.15364.
 """
 
-from typing import Dict, List, Mapping, Optional, Sequence, Tuple
+from typing import List, Mapping, Optional, Sequence, Tuple
 
 from .assembly import Assembly, overlap
 from .ops import project
