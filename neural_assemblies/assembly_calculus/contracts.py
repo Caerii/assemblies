@@ -14,6 +14,7 @@ from typing import Callable, Mapping, ParamSpec, Protocol, TypeVar, cast
 import numpy as np
 
 from .assembly import Assembly
+from ..core.index_spaces import NeuronIds
 
 _P = ParamSpec("_P")
 _R_co = TypeVar("_R_co", covariant=True)
@@ -239,7 +240,7 @@ class CueReplacementPlan:
     """Validated deterministic replacement cue construction."""
 
     reference: Assembly
-    population: object
+    population: NeuronIds
     count: int
     seed: int
 
