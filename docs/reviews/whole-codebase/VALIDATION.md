@@ -5222,6 +5222,15 @@ unpacking. FSM/PFA state and symbol collection errors use the same
 transition, FSM, and PFA modules are Pyright/Ruff-clean; transition-domain and
 PFA checks pass: **79 passed**.
 
+### Shared automaton domain normalization (2026-09-11)
+
+FSM and PFA now use the same `normalize_domain` helper for state and symbol
+collections. It owns string rejection, nonempty-name validation, duplicate
+detection, and list canonicalization; `TransitionMap.validate_domain` reuses
+the same rule. This removes two copies of a semantic boundary while retaining
+the pre-neural validation order. Transition/FSM/PFA checks pass: **79 passed**;
+all three modules remain Pyright/Ruff-clean.
+
 ### E%-WTA formation postconditions (2026-09-11)
 
 `form_assembly` now asserts the construction postcondition that adjacency,

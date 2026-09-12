@@ -51,7 +51,7 @@ from typing import Dict, List
 
 from .readout import Lexicon
 from .ops import project
-from .transitions import TransitionLike, TransitionMap
+from .transitions import TransitionLike, TransitionMap, normalize_domain
 
 
 class FSMNetwork:
@@ -91,10 +91,8 @@ class FSMNetwork:
         prefix: str = "_fsm",
     ):
         self.brain = brain
-        if isinstance(states, (str, bytes)) or isinstance(symbols, (str, bytes)):
-            raise ValueError("states and symbols must be ordered collections, not strings")
-        states = list(states)
-        symbols = list(symbols)
+        states = normalize_domain(states, "states")
+        symbols = normalize_domain(symbols, "symbols")
         self.transition_map = TransitionMap(transitions).validate_domain(states, symbols, initial_state)
         self.states = list(states)
         self.symbols = list(symbols)

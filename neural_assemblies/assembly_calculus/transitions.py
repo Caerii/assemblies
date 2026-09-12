@@ -101,6 +101,18 @@ class Transition:
 TransitionLike = Transition | tuple[str, str, str] | tuple[str, str, str, float]
 
 
+def normalize_domain(values: Iterable[str], name: str) -> list[str]:
+    """Canonicalize one finite automaton domain before neural construction."""
+    if isinstance(values, (str, bytes)):
+        raise ValueError(f'{name} must be a collection of names')
+    normalized = list(values)
+    if any(not isinstance(value, str) or not value for value in normalized):
+        raise ValueError(f'{name} must contain nonempty strings')
+    if len(normalized) != len(set(normalized)):
+        raise ValueError(f'{name} must contain unique names')
+    return normalized
+
+
 def normalize_transitions(
     transitions: Iterable[TransitionLike],
 ) -> list[Transition]:
@@ -146,14 +158,7 @@ class TransitionMap:
         """Reject invalid declarations and dangling edges before brain allocation."""
         domains = {}
         for name, values in (('states', states), ('symbols', symbols)):
-            if isinstance(values, (str, bytes)):
-                raise ValueError(f'{name} must be a collection of names')
-            values = tuple(values)
-            if any(not isinstance(value, str) or not value for value in values):
-                raise ValueError(f'{name} must contain nonempty strings')
-            if len(values) != len(set(values)):
-                raise ValueError(f'{name} must contain unique names')
-            domains[name] = set(values)
+            domains[name] = set(normalize_domain(values, name))
         if not isinstance(initial_state, str) or initial_state not in domains['states']:
             raise ValueError('initial_state must belong to the declared states')
         for transition in self:

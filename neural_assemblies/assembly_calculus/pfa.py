@@ -50,7 +50,7 @@ import numpy as np
 from .assembly import Assembly, overlap
 from .ops import activate_assembly, project, _snap
 from .fsm import FSMNetwork
-from .transitions import TransitionLike, TransitionMap
+from .transitions import TransitionLike, TransitionMap, normalize_domain
 from .coin_config import SeedMixtureChoice
 
 FlipMode = Literal["k_split", "compete"]
@@ -453,10 +453,8 @@ class PFANetwork:
         self.choice = choice
         self.flip_mode = choice.mode if choice is not None else None
 
-        if isinstance(states, (str, bytes)) or isinstance(symbols, (str, bytes)):
-            raise ValueError("states and symbols must be ordered collections, not strings")
-        states = list(states)
-        symbols = list(symbols)
+        states = normalize_domain(states, "states")
+        symbols = normalize_domain(symbols, "symbols")
         self.transition_map = TransitionMap(transitions).validate_domain(
             states, symbols, initial_state).validate_probability_mass()
         self._branch_schedules = {key: self.transition_map.branch_schedule(*key)
