@@ -14,12 +14,14 @@ is only reachable under homeostasis.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.diagnostics import assembly_overlap
@@ -177,8 +179,7 @@ def main():
         "verdicts": {"TR1": tr1, "TR2": tr2, "TR3": tr3, "TR4": tr4},
     }
     path = os.path.join(_HERE, "seq_s5_theorem_regime_results.json")
-    with open(path, "w") as fh:
-        json.dump(payload, fh, indent=2)
+    write_new_document(Path(path), payload)
     print(f"\nwrote {path}")
 
 

@@ -5301,3 +5301,10 @@ boundary. The output path and payload are unchanged; its direct-write ratchet
 exception is removed. A latent f-string lint issue in the touched script was
 also corrected. Compilation, Ruff, and the result-writer ratchet pass:
 **1 passed**.
+
+### S5 theorem-regime writer migration (2026-09-12)
+
+The theorem-regime study now emits its result artifact through the shared
+finite, exclusive `write_new_document` boundary. Computation, output path, and
+payload schema are unchanged, and its direct-write ratchet exception is
+removed. Compilation, Ruff, and the result-writer ratchet pass: **1 passed**.
