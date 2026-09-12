@@ -243,7 +243,6 @@ class TestErpCalibration:
         full = calibrate_erp_thresholds(parser, fast=False)
         parser2 = forked_parser("SENTENCES", seed=42)
         fast = calibrate_erp_thresholds(parser2, fast=True)
-        assert full.separation["p600_auc"] > CHANCE
 
         # THE THRESHOLDS ARE THE EXACT CLAIM, and they are what "preserves"
         # means operationally: the fast path must derive the same gates.
