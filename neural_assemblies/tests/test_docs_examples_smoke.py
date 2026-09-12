@@ -37,6 +37,14 @@ def test_readme_nemo_imports_smoke() -> None:
     assert len(sentence) == 3
 
 
+def test_nemo_cpu_safe_utilities_do_not_require_cupy() -> None:
+    """Curriculum and generation utilities have no GPU import side effect."""
+    from neural_assemblies.nemo.language import Curriculum, SentenceGenerator
+
+    assert Curriculum.__name__ == "Curriculum"
+    assert SentenceGenerator.__name__ == "SentenceGenerator"
+
+
 def test_basic_example_script_runs() -> None:
     example = REPO_ROOT / "examples" / "01_basic_assembly_calculus.py"
     result = subprocess.run(
