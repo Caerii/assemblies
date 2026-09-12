@@ -6940,3 +6940,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: VP decoder now has explicit optional CuPy boundary, nullable decode fields, and nullable pattern-search inputs. Focused Pyright: 0 errors.
 - 2026-09-12: Emergent CUDA adapter now has explicit optional handle typing, nullable area_seed contract, deterministic local demo RNG, and initialized benchmark state. Focused Pyright: 0 errors; fallback projection smoke returned 4 winners.
 - 2026-09-12: Hopfield associative memory now has explicit optional CuPy/assembly types, nullable metadata retrieval contracts, guarded cached matrices, and explicit active-assembly checks. Focused Pyright: 0 errors.
+- 2026-09-12: Neural decoder now exposes explicit optional CuPy assembly types and nullable object-pattern input; focused Pyright: 0 errors.

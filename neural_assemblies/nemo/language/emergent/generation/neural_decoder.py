@@ -13,8 +13,10 @@ This is the key to truly emergent generation:
 No string lookups. No templates. Pure neural activation.
 """
 
-from typing import List, Tuple, Optional, Dict, TYPE_CHECKING
-import cupy as cp
+import importlib
+from typing import Any, List, Tuple, Optional, Dict, TYPE_CHECKING
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 if TYPE_CHECKING:
     from ..brain import EmergentNemoBrain
@@ -35,7 +37,7 @@ class NeuralDecoder:
         
         # Cache of word -> PHON assembly for fast lookup
         # This is populated during learning
-        self._phon_cache: Dict[str, cp.ndarray] = {}
+        self._phon_cache: Dict[str, CpArray] = {}
     
     def cache_phon_assemblies(self):
         """
@@ -50,7 +52,7 @@ class NeuralDecoder:
                 self._phon_cache[word] = assembly.copy()
     
     def decode_to_word(self, source_area: Area, 
-                       source_assembly: cp.ndarray) -> Tuple[Optional[str], float]:
+                       source_assembly: CpArray) -> Tuple[Optional[str], float]:
         """
         Decode an assembly to a word through assembly overlap.
         
@@ -79,7 +81,7 @@ class NeuralDecoder:
         return self.brain.find_best_matching_word(source_area, source_assembly)
     
     def decode_to_words(self, source_area: Area,
-                        source_assembly: cp.ndarray,
+                        source_assembly: CpArray,
                         top_k: int = 5,
                         min_overlap: float = 0.05) -> List[Tuple[str, float]]:
         """
@@ -99,7 +101,7 @@ class NeuralDecoder:
         return compatible[:top_k]
     
     def _project_to_phon(self, source_area: Area, 
-                         source_assembly: cp.ndarray) -> Optional[cp.ndarray]:
+                         source_assembly: CpArray) -> Optional[CpArray]:
         """
         Project from a core area back to PHON.
         
@@ -117,7 +119,7 @@ class NeuralDecoder:
         
         return result
     
-    def _find_best_phon_match(self, phon_activation: cp.ndarray) -> Tuple[Optional[str], float]:
+    def _find_best_phon_match(self, phon_activation: CpArray) -> Tuple[Optional[str], float]:
         """Find the word whose PHON assembly best matches the activation."""
         best_word = None
         best_overlap = 0.0
@@ -134,7 +136,7 @@ class NeuralDecoder:
         
         return best_word, best_overlap
     
-    def _find_matching_phon(self, phon_activation: cp.ndarray,
+    def _find_matching_phon(self, phon_activation: CpArray,
                             top_k: int,
                             min_overlap: float) -> List[Tuple[str, float]]:
         """Find top-k words matching the PHON activation."""
@@ -158,20 +160,20 @@ class NeuralDecoder:
     # AREA-SPECIFIC DECODING
     # =========================================================================
     
-    def decode_noun(self, noun_assembly: cp.ndarray) -> Tuple[Optional[str], float]:
+    def decode_noun(self, noun_assembly: CpArray) -> Tuple[Optional[str], float]:
         """Decode a NOUN_CORE assembly to a word."""
         return self.decode_to_word(Area.NOUN_CORE, noun_assembly)
     
-    def decode_verb(self, verb_assembly: cp.ndarray) -> Tuple[Optional[str], float]:
+    def decode_verb(self, verb_assembly: CpArray) -> Tuple[Optional[str], float]:
         """Decode a VERB_CORE assembly to a word."""
         return self.decode_to_word(Area.VERB_CORE, verb_assembly)
     
-    def decode_nouns(self, noun_assembly: cp.ndarray, 
+    def decode_nouns(self, noun_assembly: CpArray,
                      top_k: int = 5) -> List[Tuple[str, float]]:
         """Decode a NOUN_CORE assembly to multiple candidate nouns."""
         return self.decode_to_words(Area.NOUN_CORE, noun_assembly, top_k)
     
-    def decode_verbs(self, verb_assembly: cp.ndarray,
+    def decode_verbs(self, verb_assembly: CpArray,
                      top_k: int = 5) -> List[Tuple[str, float]]:
         """Decode a VERB_CORE assembly to multiple candidate verbs."""
         return self.decode_to_words(Area.VERB_CORE, verb_assembly, top_k)
@@ -331,7 +333,7 @@ class EmergentRetriever:
         return [(w, s) for w, s in candidates if w != subject][:top_k]
     
     def check_pattern_exists(self, subject: str, verb: str, 
-                             obj: str = None) -> Tuple[bool, float]:
+                             obj: Optional[str] = None) -> Tuple[bool, float]:
         """
         Check if a pattern exists through neural activation.
         
