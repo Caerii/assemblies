@@ -7177,3 +7177,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Raised the default seed count from two to three and reject fewer than three seeds, matching the repository measurement rule.
 - `uv run pyright neural_assemblies/programs/colt_multiassembly_numpy.py`: 0 errors.
 - Smoke protocol: two seeds rejected; three-seed small run completed with explicit result.
+
+
+## 2026-09-12 ? Nemo FSM domain boundaries
+
+- FSM construction now accepts explicit string sequences, rejects empty state/symbol domains, and validates a concrete initial state before allocating areas.
+- `uv run pyright neural_assemblies/programs/nemo_fsm.py`: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_nemo_fsm.py -q`: 3 passed in 0.41s.
