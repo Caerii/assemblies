@@ -6283,3 +6283,7 @@ The full `neural_assemblies/tests` non-slow, non-GPU collection completed in **1
 ### CUDA parity environment gate (2026-09-12)
 
 The GPU-marked collection discovered **6 tests: 4 skipped and 2 failed**. CUDA is present (`torch 2.12.1+cu130`, RTX 3080), but the two temporal capture tests fail before execution because the fused extension cannot load: `cl.exe` is absent from PATH and `ninja` is missing. `scripts/check_cuda_toolchain.py` independently reports the same actionable environment gaps while resolving `CUDA_HOME`, `nvcc`, and `vcvars64.bat`; no backend result is inferred from this failed build gate.
+
+### Fused CUDA parity gate (2026-09-12)
+
+The scheduled-aligner parity tests no longer depend on `torch.testing.assert_close`, whose implementation imports optional `torch.distributed`/SymPy machinery unrelated to these zero-tolerance tensor checks. A local exact-equality helper keeps the gate's semantics explicit. In the prepared CUDA developer shell (`scripts/cuda-dev.cmd`), fused scheduled-aligner and temporal-observation tests pass **6/6** in **20.81 seconds**.

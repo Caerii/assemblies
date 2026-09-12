@@ -50,6 +50,11 @@ def _features_tensor(inventory, features, B):
     return t.unsqueeze(0).expand(B, -1, -1).contiguous()
 
 
+def _assert_exact(actual, expected):
+    """Compare parity tensors without importing torch.distributed/sympy."""
+    assert torch.equal(actual, expected), "parity tensors differ exactly"
+
+
 def test_scheduled_equals_batched_on_one_corpus(mod):
     from neural_assemblies.core.torch_engine._hashed_aligner import HashedAligner
     from neural_assemblies.core.torch_engine._scheduled_aligner import (
@@ -84,7 +89,7 @@ def test_scheduled_equals_batched_on_one_corpus(mod):
     al.prepare(_features_tensor(inventory, features, len(seeds)))
     al.train(W, Bd)
     tab = al.overlap_table()                                   # [B, V, I]
-    torch.testing.assert_close(tab.permute(1, 2, 0), ref_tab, rtol=0, atol=0)
+    _assert_exact(tab.permute(1, 2, 0), ref_tab)
 
 
 def test_a_different_schedule_in_the_same_launch_does_not_disturb(mod):
@@ -113,7 +118,7 @@ def test_a_different_schedule_in_the_same_launch_does_not_disturb(mod):
     alone = run([schedule_of(exp, wi, bi, order)], [42])
     together = run([schedule_of(exp, wi, bi, order),
                     schedule_of(exp, wi, bi, half)], [42, 7])
-    torch.testing.assert_close(together[0], alone[0], rtol=0, atol=0)
+    _assert_exact(together[0], alone[0])
 
 
 @pytest.mark.parametrize("feat_k", [50, 100])
@@ -144,6 +149,6 @@ def test_device_loop_equals_python_loop(mod, feat_k):
 
     tab_py, cmax_py, C_py = run(False)
     tab_dev, cmax_dev, C_dev = run(True)
-    torch.testing.assert_close(C_dev, C_py, rtol=0, atol=0)
-    torch.testing.assert_close(cmax_dev, cmax_py, rtol=0, atol=0)
-    torch.testing.assert_close(tab_dev, tab_py, rtol=0, atol=0)
+    _assert_exact(C_dev, C_py)
+    _assert_exact(cmax_dev, cmax_py)
+    _assert_exact(tab_dev, tab_py)
