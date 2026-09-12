@@ -459,6 +459,14 @@ def test_registry_and_public_callable_cannot_drift():
         )
 
 
+def test_next_token_model_alias_uses_lexicon_contract():
+    from neural_assemblies.assembly_calculus.next_token import build_next_token_model
+    from neural_assemblies.assembly_calculus.contracts import LEXICON_BUILD_CONTRACT
+
+    assert build_next_token_model.operation_contract is LEXICON_BUILD_CONTRACT
+    assert LEXICON_BUILD_CONTRACT.specification in (build_next_token_model.__doc__ or "")
+
+
 def test_constructed_control_node_resolves():
     for contract in OPERATION_CONTRACTS.values():
         for node in contract.constructed_controls:

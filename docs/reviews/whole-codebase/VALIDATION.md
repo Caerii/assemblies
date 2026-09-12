@@ -5085,3 +5085,7 @@ The authoritative `pytest neural_assemblies/tests -q -m "not slow"` run complete
 ### Attention plan centralization (2026-09-11)
 
 The pure assembly attention operator now canonicalizes key/value labels and delegates schedule, type, area, and numerical validation to `AttentionPlan`; only the public mapping boundary retains the TypeError needed for malformed snapshots. The executable readout therefore shares one immutable contract with the registry and avoids duplicated validation logic. Attention and operation-contract checks pass: **174 passed**; Ruff is clean.
+
+### Next-token model contract alias (2026-09-11)
+
+`build_next_token_model`, the public convenience constructor, now carries the same `LEXICON_BUILD_CONTRACT` as `build_lexicon` and links directly to the lexicon semantic card. A contract identity test prevents the convenience path from drifting into a second validation schedule. Next-token and contract checks pass: **172 passed**; Ruff is clean. The sampled-recurrence warnings are intentional and preserve the sampler-audit boundary.

@@ -57,9 +57,15 @@ from typing import Dict, List, Tuple
 
 from .readout import readout_all, build_lexicon, Lexicon
 from .ops import sequence_memorize, _snap
-from .contracts import NEXT_TOKEN_PREDICTION_CONTRACT, NEXT_TOKEN_SCORE_CONTRACT, NEXT_TOKEN_TRAINING_CONTRACT, NextTokenPredictionPlan, NextTokenScorePlan, NextTokenTrainingPlan, implements
+from .contracts import (
+    LEXICON_BUILD_CONTRACT, NEXT_TOKEN_PREDICTION_CONTRACT,
+    NEXT_TOKEN_SCORE_CONTRACT, NEXT_TOKEN_TRAINING_CONTRACT,
+    NextTokenPredictionPlan, NextTokenScorePlan, NextTokenTrainingPlan,
+    implements,
+)
 
 
+@implements(LEXICON_BUILD_CONTRACT)
 def build_next_token_model(brain, area: str, vocab: List[str],
                            stimuli_map: Dict[str, str],
                            rounds: int = 10) -> Lexicon:
@@ -77,6 +83,11 @@ def build_next_token_model(brain, area: str, vocab: List[str],
 
     Returns:
         Lexicon mapping word -> Assembly.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-lexicon-build
+
+    This convenience name carries the same contract as ``build_lexicon``;
+    there is one validation and mutation schedule underneath both entry points.
     """
     return build_lexicon(brain, area, vocab, stimuli_map, rounds=rounds)
 
