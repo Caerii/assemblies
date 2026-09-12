@@ -1249,11 +1249,12 @@ class Arbitration:
         a, t = self.by_arm.get(arm), self.by_arm.get(truth)
         if a is None or t is None:
             return None
-        try:
-            return [float(x) / float(y) if y else float("nan")
-                    for x, y in zip(a, t)]
-        except TypeError:
+        if np.isscalar(a) and np.isscalar(t):
             return float(a) / float(t) if t else float("nan")
+        if np.isscalar(a) or np.isscalar(t) or len(a) != len(t):
+            raise ValueError("arbitration ratios require equally sized sequences")
+        return [float(x) / float(y) if y else float("nan")
+                for x, y in zip(a, t, strict=True)]
 
     def __str__(self) -> str:
         def fmt(v):
@@ -1473,7 +1474,7 @@ def ensemble_from_values(values: Sequence[float], label: str = "arm",
     identities = tuple(keys) if keys is not None else None
     keys = list(identities) if identities is not None else list(range(len(vals)))
     _validate_ensemble_keys(keys, len(vals))
-    bad = [s for s, v in zip(keys, vals) if math.isnan(v)]
+    bad = [s for s, v in zip(keys, vals, strict=True) if math.isnan(v)]
     if bad:
         # Refuse LOUDLY rather than let statistics.stdev die with a cryptic
         # AttributeError deep in the fraction machinery (it cost two
@@ -1487,7 +1488,7 @@ def ensemble_from_values(values: Sequence[float], label: str = "arm",
             f"means the per-seed statistic is UNDEFINED there (constant "
             f"outcomes, empty selection). Handle those seeds explicitly "
             f"-- do not silently filter them.")
-    infinite = [s for s, v in zip(keys, vals) if not math.isfinite(v)]
+    infinite = [s for s, v in zip(keys, vals, strict=True) if not math.isfinite(v)]
     if infinite:
         raise ValueError(f"ensemble '{label}': non-finite values from seeds {infinite}")
     mean = statistics.mean(vals)
@@ -1550,7 +1551,7 @@ def paired_delta(a: Ensemble, b: Ensemble, label: str = "delta") -> Ensemble:
         raise ValueError("paired_delta needs the same seeds in both arms")
     if a.keys != b.keys:
         raise ValueError("paired_delta needs the same seed keys in the same order in both arms")
-    diffs = [x - y for x, y in zip(a.values, b.values)]
+    diffs = [x - y for x, y in zip(a.values, b.values, strict=True)]
     return ensemble_from_values(diffs, label, keys=a.keys)
 
 
@@ -1733,14 +1734,14 @@ def load_audit(brains: Dict[str, Any], threshold: float = 0.05
     Returns:
         One `LoadGap` per area present in every arm, worst gap first.
     """
+    if not isinstance(threshold, (int, float)) or not np.isfinite(threshold) or threshold < 0:
+        raise ValueError("threshold must be a finite nonnegative number")
     if len(brains) < 2:
         raise ValueError("load_audit compares arms; give it at least two")
     loads = {arm: area_load(b) for arm, b in brains.items()}
     shared = set.intersection(*(set(d) for d in loads.values()))
     engines = {getattr(b, "engine_name", "?") for b in brains.values()}
     engine = engines.pop() if len(engines) == 1 else "mixed"
-    if not isinstance(threshold, (int, float)) or not np.isfinite(threshold) or threshold < 0:
-        raise ValueError("threshold must be a finite nonnegative number")
     gaps = [LoadGap(area=a, engine=engine, threshold=float(threshold),
                     by_arm={arm: loads[arm][a] for arm in brains})
             for a in sorted(shared)]

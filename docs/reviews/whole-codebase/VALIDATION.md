@@ -6092,3 +6092,6 @@ Role binding, lexicon registration, phrase training, and constituent sequencing 
 ### Register rendering and evidence gate (2026-09-12)
 
 The theory evidence validator now uses strict treatment/control pairing after its explicit length check. The rendering gate also exposed stale Unicode content in `docs/register.md`; the register was regenerated from `theory.render_markdown()`. Citation, evidence-check, and active-graph suites pass **21 tests**, and the B905/F scan is clean.
+### Diagnostics validation-order gate (2026-09-12)
+
+`load_audit` validates its threshold before checking arm count, making invalid scalar input deterministic and preserving the documented error contract. The ensemble helper suite passes **27 tests** with three intentional sampled-engine warnings; diagnostics B905/F is clean. The broader H9 diagnostic module was stopped after repeated long-running duplicate invocations, so no pass is claimed for it.
