@@ -6533,3 +6533,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Cross-mixin classification signature gate (2026-09-12)
 
 All parser mixin capability declarations now agree on the canonical `classify_word_cached(word, grounding=None)` signature and the concrete `BootstrapScores` compatibility result. The phrase store is consistently `Assembly`-valued, eliminating an override conflict at the composition root. Pyright reports **0 diagnostics** across the affected composition modules; parser composition and trained-order generation tests pass **18 tests**.
+
+### Prediction capability contract gate (2026-09-12)
+
+`PredictionMixin` now declares its context lifecycle and incremental-building capabilities, and prediction lexicon/bridge compiler calls explicitly witness the composed parser and compiled topology interfaces. The context-compiled flag is typed as the callable capability actually used by the bridge schedule. Pyright reports **0 diagnostics**; batched and scaling next-token tests pass **10 tests with 1 existing xfail**.

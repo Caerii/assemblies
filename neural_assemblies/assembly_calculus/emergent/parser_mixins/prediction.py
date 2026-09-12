@@ -42,7 +42,7 @@ through the approximation.
 """
 
 from contextlib import nullcontext
-from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, cast
 
 from neural_assemblies.assembly_calculus.ops import project, _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
@@ -64,6 +64,8 @@ from ..training.linker import link_bridge_topology
 if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex, TransitionCache
     from ..curriculum.data import GroundedSentence
+    from ..parser import EmergentParser
+    from ..training.compiled import CompiledTopologyParser
 
 
 class PredictionMixin:
@@ -79,6 +81,13 @@ class PredictionMixin:
     fast_training: bool
     prediction_lexicon: Dict[str, Assembly]
     _bridge_topology_linked: bool
+
+    if TYPE_CHECKING:
+        def _reset_context_state(self) -> None: ...
+        def _reset_context_for_bridge(self, *, preserve_topology: bool = False) -> None: ...
+        def _advance_context_direct(self, word: str, *, rounds: Optional[int] = None, use_lexicon_core: bool = True) -> str: ...
+        def _context_compiled_active(self) -> bool: ...
+        def build_context_incremental(self, words: List[str], *, reset: bool = True, direct: bool = False, preserve_topology: bool = False) -> Dict[str, Any]: ...
 
     _prediction_paths_bootstrapped: bool = False
 
@@ -132,7 +141,7 @@ class PredictionMixin:
 
         from ..training.linker import link_prediction_lexicon
 
-        link_prediction_lexicon(self, targets)
+        link_prediction_lexicon(cast("EmergentParser", self), targets)
 
     def _train_next_token_bridge(
         self,
@@ -208,7 +217,7 @@ class PredictionMixin:
             if dedupe_sentences:
                 from ..training.perf import dedupe_grounded_sentences
                 sentences = dedupe_grounded_sentences(sentences, self.stim_map)
-            corpus_index = compile_corpus(self, sentences)
+            corpus_index = compile_corpus(cast("EmergentParser", self), sentences)
 
         transitions = corpus_index.transitions
         if transition_cache is not None:
@@ -236,12 +245,15 @@ class PredictionMixin:
 
         if compiled_enabled:
             link_bridge_topology(
-                self, corpus_index, lex_targets, force=force_link,
+                cast("EmergentParser", self), corpus_index, lex_targets,
+                force=force_link,
             )
         else:
             self._ensure_prediction_lexicon(lex_targets)
 
-        plan = compile_training_plan(self, corpus_index, transitions=transitions)
+        plan = compile_training_plan(
+            cast("EmergentParser", self), corpus_index, transitions=transitions
+        )
         by_prefix = group_bridge_ops_by_prefix(plan.bridge_ops)
         prefix_order = plan.prefix_order or sorted(
             by_prefix.keys(), key=lambda p: (len(p), p),
@@ -268,7 +280,9 @@ class PredictionMixin:
             # use_compiled is False and its freeze+ring setup is itself the
             # collapse mechanism.
             topo_session = (
-                compiled_topology(self, plan.topology)
+                compiled_topology(
+                    cast("CompiledTopologyParser", self), plan.topology
+                )
                 if use_compiled else nullcontext()
             )
             with topo_session:
