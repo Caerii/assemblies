@@ -56,6 +56,15 @@ _SLOW_NODEID_SUBSTRINGS = (
     "test_calibration_mode_does_not_change_observations",
     "test_calibration_reports_auc_and_span",
     "test_sentences_depth_holdout_bootstrap_floor",
+    "test_stage2_expands_vocab",
+    "test_session_bootstrap_conversation_smoke",
+    "test_unknown_word_registered_on_interact",
+    "test_train_for_conversation_registers_prediction",
+    "test_dialogue_stage_runs_dialogue_phase",
+    "test_scaled_vocabulary_builds",
+    "test_same_seed_same_classifications",
+    "test_evaluation_on_curriculum_parser",
+    "test_predict_returns_ranked_list",
 )
 
 
