@@ -6888,3 +6888,8 @@ The evidence graph now recognizes committed `.log` and `.txt` study artifacts as
 ## Instance-owned sentence generation randomness (2026-09-12)
 
 `nemo/language/generator.py` now accepts either an injected NumPy generator or a seed (rejecting ambiguous use), and all weighted and fallback choices use that instance-owned source. A deterministic seeded generation probe and exclusive-configuration check pass; Pyright, Ruff, and compilation are clean. End-to-end Nemo import remains CuPy-gated as recorded above.
+
+
+## Instance-owned integrated trainer randomness (2026-09-12)
+
+`nemo/language/integrated_trainer.py` now accepts either an injected NumPy generator or a seed and routes subject, verb, and object sampling through it. An isolated seeded trainer probe passes without loading the optional CuPy learner; Pyright, Ruff, and compilation are clean.

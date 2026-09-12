@@ -70,9 +70,19 @@ class IntegratedNemoTrainer:
     - Tracks learning progress
     """
     
-    def __init__(self, params: NemoParams = None, verbose: bool = True):
+    def __init__(
+        self,
+        params: NemoParams | None = None,
+        verbose: bool = True,
+        *,
+        rng: np.random.Generator | None = None,
+        seed: int | None = None,
+    ):
+        if rng is not None and seed is not None:
+            raise ValueError("provide rng or seed, not both")
         self.params = params or NemoParams(n=10000)  # k = sqrt(n) = 100
         self.verbose = verbose
+        self.rng = rng if rng is not None else np.random.default_rng(seed)
         
         # Create NEMO learner
         self.learner = NemoLanguageLearner(self.params, verbose=verbose)
@@ -379,18 +389,18 @@ class IntegratedNemoTrainer:
             if role == 'SUBJ':
                 # Prefer animate subjects
                 if animate_subject and animate_nouns:
-                    word = np.random.choice(animate_nouns)
+                    word = str(self.rng.choice(animate_nouns))
                 elif self.registered_nouns:
-                    word = np.random.choice(list(self.registered_nouns))
+                    word = str(self.rng.choice(list(self.registered_nouns)))
                 else:
                     continue
                 sentence.append(word)
                 
             elif role == 'VERB':
                 if action_verbs:
-                    word = np.random.choice(action_verbs)
+                    word = str(self.rng.choice(action_verbs))
                 elif self.registered_verbs:
-                    word = np.random.choice(list(self.registered_verbs))
+                    word = str(self.rng.choice(list(self.registered_verbs)))
                 else:
                     continue
                 sentence.append(word)
@@ -401,7 +411,7 @@ class IntegratedNemoTrainer:
                 if not available:
                     available = [n for n in self.registered_nouns if n not in sentence]
                 if available:
-                    word = np.random.choice(available)
+                    word = str(self.rng.choice(available))
                     sentence.append(word)
         
         return sentence
