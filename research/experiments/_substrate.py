@@ -486,7 +486,8 @@ def assert_machine_idle(threshold: float = 40.0) -> None:
     nothing when psutil is unavailable.
     """
     try:
-        import psutil  # pyright: ignore[reportMissingImports]
+        import importlib
+        psutil = importlib.import_module("psutil")
     except ImportError:
         return
     load = psutil.cpu_percent(interval=0.3)
