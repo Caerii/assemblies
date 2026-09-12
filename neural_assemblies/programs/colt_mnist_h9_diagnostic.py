@@ -136,12 +136,15 @@ def run_h9_diagnostic(
     from neural_assemblies.programs.patch_merge import run_grid_patch_merge_mnist
 
     clear_ventral_bundle_cache()
-    kw = dict(seed=seed, n_examples=n_examples, k=k, use_cache=False)
-    train_kw = {k: v for k, v in kw.items() if k != "use_cache"}
-
-    recurrent = load_recurrent_bundle(**kw)
-    ventral = load_ventral_bundle(**kw)
-    multiscale = load_multiscale_spatial_bundle(**kw)
+    recurrent = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
+    ventral = load_ventral_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
+    multiscale = load_multiscale_spatial_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
 
     def _acc(bundle) -> float:
         from neural_assemblies.programs.colt_mnist_advanced_util import wire_class_from_prototypes
@@ -177,7 +180,9 @@ def run_h9_diagnostic(
         ),
     ]
 
-    merge = run_merge_halves_mnist(bundle=ventral, **train_kw)
+    merge = run_merge_halves_mnist(
+        bundle=ventral, seed=seed, n_examples=n_examples, k=k,
+    )
     merge_proto = merge.extra.get("prototypes")
     if merge_proto is not None:
         streams.append(stream_geometry(
@@ -188,7 +193,10 @@ def run_h9_diagnostic(
             extra={"routing_fidelity": merge.extra.get("routing_fidelity")},
         ))
 
-    grid = run_grid_patch_merge_mnist(bundle=ventral, grid=2, merge_mode="chain", **train_kw)
+    grid = run_grid_patch_merge_mnist(
+        bundle=ventral, grid=2, merge_mode="chain",
+        seed=seed, n_examples=n_examples, k=k,
+    )
     grid_proto = grid.extra.get("prototypes")
     if grid_proto is not None:
         streams.append(stream_geometry(
