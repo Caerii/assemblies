@@ -35,7 +35,7 @@ fibers and compares the drive every projection).
 """
 from __future__ import annotations
 
-from typing import Dict, List, Sequence
+from typing import Any, Dict, List, Sequence, cast
 
 import torch
 
@@ -50,6 +50,11 @@ class StackedStimuli:
     `StimulusFiber`'s arithmetic exactly -- base * gain[pot], clip, / d_j --
     on tensors [V, B, n]; `widx` [B] picks each brain's word, -1 idles it.
     """
+
+    base: Any
+    dj: Any
+    pot: Any
+    gain: Any
 
     def __init__(self, brain_seeds, names, size, n_post, p, *, beta, w_max,
                  norm_init, max_rounds, device, zero_or_size=True):
@@ -229,6 +234,8 @@ class HashedTransducer:
         self.features = list(features) if features else []
         self.reg = None
         if self.features:
+            if feature_of is None:
+                raise ValueError("feature_of is required when features are configured")
             self.reg_area = f"{prefix}_reg"
             self.reg = area(self.reg_area, n)
             self.F = StackedStimuli(S, [f"{prefix}_f_{f}" for f in self.features], k, n,
@@ -288,13 +295,14 @@ class HashedTransducer:
         others leave it. Ungated (FR-4): the write is the word's own feature
         for every word that has one, which is the same table -- gating is
         expressed in `feature_of` (nouns -1 gated, their number ungated)."""
+        assert self.reg is not None and self.F is not None
         f = self.feature_of[widx.clamp_min(0)]
         f = torch.where(widx >= 0, f, torch.full_like(f, -1))
         if self.reg_blind or not bool((f >= 0).any()):
             return
         old = self.reg.winners
         self.F.set_words(f)
-        new = self.reg.project(1, [self.F], freeze=freeze)
+        new = cast(torch.Tensor, self.reg.project(1, [self.F], freeze=freeze))
         if old.shape[1] == new.shape[1]:
             keep = (f < 0).view(-1, 1)
             self.reg.winners = torch.where(keep, old, new)
@@ -330,6 +338,7 @@ class HashedTransducer:
         if self.reg is not None:
             self._write_register(widx, freeze)
             if self.reg.winners.shape[1]:
+                assert self.reg_arc is not None
                 fibers.append(self.reg_arc)
                 rows[id(self.reg_arc)] = self.reg.winners
         bonus = self._predicted_bonus()
@@ -367,9 +376,10 @@ class HashedTransducer:
         if self.state_mode == "copy":
             out = self.out.project(1, [self.arc_out], rows_for=self._rows(), freeze=True)
             self.state.winners = self.arc.winners.clone()
-            return out
+            return cast(torch.Tensor, out)
         self.core.advance(freeze=True)
-        return self.out.project(1, [self.arc_out], rows_for=self._rows(), freeze=True)
+        return cast(torch.Tensor, self.out.project(
+            1, [self.arc_out], rows_for=self._rows(), freeze=True))
 
     # -- readout --------------------------------------------------------------
     def overlaps(self, emitted: torch.Tensor) -> torch.Tensor:

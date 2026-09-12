@@ -725,7 +725,8 @@ class DenseOrganFiber:
     dj: Any
     invdj: Any
 
-    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, w_max=20.0,
+    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1,
+                 w_max: float | None = 20.0,
                  norm_init=True, max_rounds=4096, device="cuda"):
         self.mod = _fused_cuda.load()
         if self.mod is None:

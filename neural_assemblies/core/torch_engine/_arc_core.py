@@ -29,7 +29,8 @@ from ._hashed_aligner import pair_seeds
 class HashedArcCore:
     def __init__(self, brain_seeds, *, prefix: str, n_arc: int, n_state: int, k: int,
                  p: float, beta: float, refracted_strength: float,
-                 state_refracted_strength: float = 0.0, w_max: float = 20.0,
+                 state_refracted_strength: float = 0.0,
+                 w_max: float | None = 20.0,
                  norm_init: bool = True, max_potentiations: int = 4096,
                  tie_jitter: float = 0.0, device: str = "cuda"):
         S = [int(s) for s in brain_seeds]
