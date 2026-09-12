@@ -5635,3 +5635,10 @@ Application agreement and all five primitive parameter exploration scripts now
 use the canonical immutable writer for their timestamped artifacts. The
 migration also removed stale JSON-only imports and latent unused code exposed
 by linting. Ruff, compilation, result-writer ratchets, and diff checks pass.
+
+### CHILDES metadata writer migration (2026-09-12)
+
+The cite-only CHILDES fetch now publishes its metadata sidecar through the
+canonical exclusive writer. The streaming JSONL acquisition path remains
+unchanged, while fixed metadata reruns now fail safely instead of replacing
+provenance. Ruff, compilation, result-writer ratchets, and diff checks pass.

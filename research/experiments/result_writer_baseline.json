@@ -1,6 +1,4 @@
 {
-  "direct_json_dump_sites": {
-    "research/experiments/fetch_childes_brown.py": 1
-  },
+  "direct_json_dump_sites": {},
   "direct_json_write_text_sites": {}
 }

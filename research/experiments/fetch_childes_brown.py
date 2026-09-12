@@ -27,7 +27,10 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import urllib.request
+
+from research.json_documents import write_new_document
 
 import pymysql
 import pymysql.cursors
@@ -112,8 +115,7 @@ def main():
         "utterances_without_full_pos": n_no_pos,
         "by_role": by_role,
     }
-    with open(OUT_META, "w", encoding="utf-8") as f:
-        json.dump(meta, f, indent=2)
+    write_new_document(Path(OUT_META), meta)
     print(json.dumps(meta, indent=2))
 
 
