@@ -5149,3 +5149,14 @@ The contract decorator is now a generic callable protocol carrying its
 `OperationContract`, so metadata remains visible to static callers without
 weakening decorated function signatures. The contract module is Pyright-clean
 and its focused suite passes: **163 passed**.
+
+### Emergent consolidation nullability boundary (2026-09-11)
+
+The emergent pathway builders previously relied on truthiness to imply that a
+grounding context was present before dereferencing `dominant_modality`. They
+now require the context and both mapped words explicitly before constructing a
+replay step, and likewise guard patient contexts. `GroundedSentence.roles`
+records its constructor shorthand (`None`) at the declaration boundary while
+normalizing to a full aligned role vector in `__post_init__`. The two pathway
+builders and sentence substrate are Pyright-clean; consolidation tests pass:
+**12 passed**.

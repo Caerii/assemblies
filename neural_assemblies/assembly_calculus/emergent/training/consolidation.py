@@ -87,7 +87,10 @@ def build_vp_pathway_protocol(
             elif role == "patient":
                 obj_word, obj_ctx = word, ctx
 
-        if not (subj_word and verb_word and subj_word in parser.stim_map):
+        if not (
+            subj_word and verb_word and subj_ctx is not None
+            and subj_word in parser.stim_map and verb_word in parser.stim_map
+        ):
             continue
 
         subj_core = GROUNDING_TO_CORE[subj_ctx.dominant_modality]
@@ -102,7 +105,7 @@ def build_vp_pathway_protocol(
             )
         )
 
-        if obj_word and obj_word in parser.stim_map:
+        if obj_word and obj_ctx is not None and obj_word in parser.stim_map:
             obj_core = GROUNDING_TO_CORE[obj_ctx.dominant_modality]
             steps.append(
                 PathwayReplay(
@@ -167,7 +170,10 @@ def build_number_vp_pathway_protocol(
             elif role == "patient":
                 obj_word, obj_ctx = word, ctx
 
-        if not (subj_word and verb_word and subj_word in parser.stim_map):
+        if not (
+            subj_word and verb_word and subj_ctx is not None
+            and subj_word in parser.stim_map and verb_word in parser.stim_map
+        ):
             continue
 
         subj_core = GROUNDING_TO_CORE[subj_ctx.dominant_modality]
@@ -185,7 +191,7 @@ def build_number_vp_pathway_protocol(
             )
         )
 
-        if obj_word and obj_word in parser.stim_map:
+        if obj_word and obj_ctx is not None and obj_word in parser.stim_map:
             obj_core = GROUNDING_TO_CORE[obj_ctx.dominant_modality]
             steps.append(
                 PathwayReplay(

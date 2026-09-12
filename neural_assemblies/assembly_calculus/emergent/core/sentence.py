@@ -33,7 +33,7 @@ class GroundedSentence:
     """
     words: List[str]
     contexts: List[GroundingContext]
-    roles: List[Optional[str]] = None
+    roles: List[Optional[str]] = None  # pyright: ignore[reportAssignmentType]
     mood: str = "declarative"
     #: PERCEIVED event structure, when the corpus supplies it. Unlike `roles`,
     #: this IS part of the experience: it says who acted on whom, with
@@ -45,7 +45,10 @@ class GroundedSentence:
 
     def __post_init__(self):
         if self.roles is None:
-            self.roles = [None] * len(self.words)
+            # ``None`` is the constructor shorthand for an unannotated
+            # sentence; after normalization every instance carries the full
+            # positional role vector required by the aligned-record contract.
+            self.roles = [None] * len(self.words)  # pyright: ignore[reportAssignmentType]
         assert len(self.words) == len(self.contexts), (
             f"words ({len(self.words)}) != contexts ({len(self.contexts)})"
         )
