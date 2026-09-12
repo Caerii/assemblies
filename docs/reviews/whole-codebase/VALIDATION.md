@@ -7148,3 +7148,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Removed ambiguous shared-dictionary expansion from recurrent, ventral, multiscale, merge, and grid diagnostic calls.
 - H9 now passes only explicit typed configuration to each loader and runner, preserving the registered radii and cache policy.
 - `uv run pyright neural_assemblies/programs/colt_mnist_h9_diagnostic.py`: 0 errors.
+
+
+## 2026-09-12 ? arc Markov state boundaries
+
+- Arc Markov construction now requires a typed sequence of string states and typed transition triples.
+- Branch selection validates the configured coin at the point of use and raises if a branching state lacks its policy/coin pair.
+- `uv run pyright neural_assemblies/programs/arc_markov.py`: 0 errors.
