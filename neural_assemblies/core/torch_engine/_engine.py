@@ -958,6 +958,9 @@ class TorchSparseEngine(ComputeEngine):
             all_inputs = potential_new
 
         # --- Snapshot raw prev_winner_inputs before penalties ---
+        _raw_prev_t = None
+        _pre_kwta_snapshot = None
+        _pre_kwta_total_val = None
         if record_activation:
             _raw_prev_t = prev_winner_inputs.clone()
 
@@ -1114,6 +1117,9 @@ class TorchSparseEngine(ComputeEngine):
             num_ever_fired=new_w,
             total_activation=total_act)
         if record_activation:
+            assert (_pre_kwta_snapshot is not None
+                    and _raw_prev_t is not None
+                    and _pre_kwta_total_val is not None)
             result.pre_kwta_inputs = _pre_kwta_snapshot
             result.pre_kwta_prev_only = _raw_prev_t.cpu().numpy().astype(
                 np.float32)
