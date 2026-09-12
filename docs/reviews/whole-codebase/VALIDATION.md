@@ -6525,3 +6525,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Distributional evidence capability gate (2026-09-12)
 
 `DistributionalMixin` now declares its raw-text evidence store, grounding/stimulus maps, assembly stores, category cache, and registration capabilities. Calls into acquisition and compiled topology helpers explicitly witness the composed parser; category transitions and optional frame categories are narrowed before indexing, and score selection uses typed key functions. Pyright reports **0 diagnostics**; classification, observation, and word-order tests pass **47 tests with 2 existing xfails**.
+
+### Incremental state-machine capability gate (2026-09-12)
+
+`IncrementalMixin` now declares its parser state, neural stores, lexical lookup, and cross-stage readout/detection capabilities. Engine-private area access is isolated behind an explicit dynamic boundary, and optional phrase/passive signatures are declared at their actual call shape. Pyright reports **0 diagnostics**; parser-fork, parse-error, and temporal observation tests pass **78 tests with GPU cases excluded**. The GPU cases remain blocked in this shell because the Visual Studio `cl` compiler is unavailable; the failure is environmental and was not hidden.

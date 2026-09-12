@@ -43,8 +43,9 @@ under-measured capacity permanently prevents CONTEXT from telling prefixes
 apart.
 """
 
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Tuple, TYPE_CHECKING, cast
 
+from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.assembly_calculus.consolidation import accumulate_context_step
 from neural_assemblies.assembly_calculus.ops import (
@@ -61,6 +62,7 @@ from ..core.areas import (
     CONTEXT, DEP_CLAUSE,
     ALL_AREAS,
 )
+from ..core.grounding import GroundingContext
 
 if TYPE_CHECKING:
     from ..curriculum.data import GroundedSentence
@@ -68,6 +70,26 @@ if TYPE_CHECKING:
 
 class IncrementalMixin:
     """Incremental word-by-word parsing and recursive clause handling."""
+
+    brain: Brain
+    k: int
+    rounds: int
+    inference_rounds: int
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, GroundingContext]
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    word_order_type: str
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
+        def classify_word_cached(self, word: str, grounding: Optional[GroundingContext] = None) -> Tuple[str, Any]: ...
+        def _bootstrap_prediction_connectivity(self) -> None: ...
+        def parse_roles_by_reconstruction(self, words: List[str], **kwargs: Any) -> Tuple[Dict[str, Optional[str]], Dict[str, Any]]: ...
+        def _identify_phrases(self, words: List[str], categories: Dict[str, str]) -> Dict[str, Any]: ...
+        def _detect_passive(self, words: List[str], categories: Dict[str, str]) -> bool: ...
+        def detect_tense(self, words: List[str]) -> str: ...
+        def detect_mood(self, words: List[str]) -> str: ...
+        def detect_polarity(self, words: List[str]) -> str: ...
 
     _context_ring_capacity: int = 0
     _context_ring_capacity_cols: int = 0
@@ -121,8 +143,8 @@ class IncrementalMixin:
             engine = self.brain._engine_for(self.brain.areas[area_name])
             if not hasattr(engine, "_areas"):
                 continue
-            if area_name in engine._areas:
-                engine._areas[area_name]._freeze_connectome_growth = enabled
+            if area_name in cast(Any, engine)._areas:
+                cast(Any, engine)._areas[area_name]._freeze_connectome_growth = enabled
 
     def _set_compiled_topology_mode(
         self, area_names, *, enabled: bool,
@@ -132,25 +154,25 @@ class IncrementalMixin:
             engine = self.brain._engine_for(self.brain.areas[area_name])
             if not hasattr(engine, "_areas"):
                 continue
-            if area_name in engine._areas:
-                engine._areas[area_name]._plasticity_only_mode = enabled
+            if area_name in cast(Any, engine)._areas:
+                cast(Any, engine)._areas[area_name]._plasticity_only_mode = enabled
 
     def _enable_area_ring_mode(self, area_name: str, capacity_cols: int) -> None:
         """Reuse pregrown connectome columns during training (skip expand)."""
         if capacity_cols <= 0:
             return
         engine = self.brain._engine_for(self.brain.areas[area_name])
-        if not hasattr(engine, "_areas") or area_name not in engine._areas:
+        if not hasattr(engine, "_areas") or area_name not in cast(Any, engine)._areas:
             return
-        st = engine._areas[area_name]
+        st = cast(Any, engine)._areas[area_name]
         st._ring_mode = True
         st._ring_capacity_cols = capacity_cols
 
     def _disable_area_ring_mode(self, area_name: str) -> None:
         engine = self.brain._engine_for(self.brain.areas[area_name])
-        if not hasattr(engine, "_areas") or area_name not in engine._areas:
+        if not hasattr(engine, "_areas") or area_name not in cast(Any, engine)._areas:
             return
-        st = engine._areas[area_name]
+        st = cast(Any, engine)._areas[area_name]
         st._ring_mode = False
 
     def _enable_context_ring_mode(self, capacity_cols: int) -> None:
@@ -172,9 +194,9 @@ class IncrementalMixin:
     def _context_compiled_active(self) -> bool:
         """True when CONTEXT ring reuse is enabled for bridge training."""
         engine = self.brain._engine_for(self.brain.areas[CONTEXT])
-        if not hasattr(engine, "_areas") or CONTEXT not in engine._areas:
+        if not hasattr(engine, "_areas") or CONTEXT not in cast(Any, engine)._areas:
             return False
-        return bool(getattr(engine._areas[CONTEXT], "_ring_mode", False))
+        return bool(getattr(cast(Any, engine)._areas[CONTEXT], "_ring_mode", False))
 
     def _init_context_ring(self, capacity: int, words: Optional[List[str]] = None) -> None:
         """Reserve CONTEXT connectome depth for fixed-size sentence buffer."""
@@ -217,7 +239,7 @@ class IncrementalMixin:
                 self.brain.project({}, {core_area: [CONTEXT]})
 
         engine = self.brain._engine_for(self.brain.areas[CONTEXT])
-        if hasattr(engine, "_areas") and CONTEXT in engine._areas:
+        if hasattr(engine, "_areas") and CONTEXT in cast(Any, engine)._areas:
             # Size the ring by what the representation REQUIRES -- one
             # k-assembly per prefix position -- not merely by what pre-growth
             # happened to allocate. Ring mode is a hard cap on recruitment, so
@@ -226,7 +248,7 @@ class IncrementalMixin:
             required_cols = capacity * self.k
             self._context_ring_capacity_cols = max(
                 self._context_ring_capacity_cols,
-                int(engine._areas[CONTEXT].w),
+                int(cast(Any, engine)._areas[CONTEXT].w),
                 required_cols,
             )
         if self._context_ring_capacity_cols >= self.k:
