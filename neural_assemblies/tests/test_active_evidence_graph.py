@@ -4,10 +4,10 @@ from research.evidence import audit_history, validate_active_evidence_graph
 
 
 def test_tracked_runner_evidence_has_no_dangling_edges():
-    errors = validate_active_evidence_graph()
-    assert not errors, "\n".join(errors)
-
-
-def test_every_nonpending_preregistration_has_a_result_edge():
     audit = audit_history()
+    errors = validate_active_evidence_graph(audit=audit)
+    assert not errors, "\n".join(errors)
+    # Keep the preregistration assertion in the same audit pass. Both checks
+    # traverse the complete tracked repository; running them as separate tests
+    # paid the filesystem walk twice without adding independent coverage.
     assert audit['preregistrations_without_resolved_result_links'] == []

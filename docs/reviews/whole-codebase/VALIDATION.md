@@ -7342,3 +7342,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - `test_batched_next_token.py` now trains its identical CUDA language model once per worker session and clones the checkpoint for mutating assertions.
 - Focused validation: 3 passed with 2 expected PyTorch sparse warnings in 43.19s; the expensive training setup is paid once rather than once per assertion.
 - The clone preserves read-only and batched/sequential contracts while removing redundant GPU training from the fast-tier path.
+
+
+## 2026-09-12 evidence-audit reuse
+
+- `validate_active_evidence_graph` accepts an optional precomputed audit inventory while retaining a fresh default.
+- The active evidence test now performs both dangling-edge and preregistration assertions in one repository scan.
+- Focused validation: 1 passed in 24.11s; Pyright on `research/evidence.py` reports 0 errors.

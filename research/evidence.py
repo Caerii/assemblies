@@ -290,7 +290,9 @@ def audit_history(root: Path = ROOT) -> dict:
             'preregistrations_pending_results': pending}
 
 
-def validate_active_evidence_graph(root: Path = ROOT) -> list[str]:
+def validate_active_evidence_graph(
+    root: Path = ROOT, *, audit: dict | None = None,
+) -> list[str]:
     """Require every tracked shared-runner result to validate and link from its registration.
 
     This is the strict forward boundary. Legacy result files remain in the broader
@@ -300,7 +302,11 @@ def validate_active_evidence_graph(root: Path = ROOT) -> list[str]:
     files = subprocess.check_output(
         ['git', 'ls-files', 'research/results/runs/*/*/results.json'],
         cwd=root, text=True).splitlines()
-    audit = audit_history(root)
+    # Callers that already need the inventory (for example a test or report
+    # that renders both edges and errors) can supply it and avoid rescanning
+    # every tracked Markdown/Python file. The default remains fresh and
+    # backwards compatible for one-shot validation.
+    audit = audit if audit is not None else audit_history(root)
     edges = {(edge['from'], edge['to']) for edge in audit['resolved_edges']}
     errors = []
     for preregistration in audit['preregistrations_without_resolved_result_links']:
