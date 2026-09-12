@@ -6758,3 +6758,8 @@ CUDA temporal capture now skips with the concrete fused-extension build error wh
 ## Full non-slow integration sweep (2026-09-12)
 
 After standardizing exact-engine option admission, honoring the minimal continual-replay protocol, separating ERP effect bars from clipped descriptive quantities, and classifying fused-CUDA prerequisites correctly, the full non-slow package suite passes **3771 tests**, with **141 environment/optional skips**, **8 explicit scientific xfails**, **10 subtests**, and **275 warnings**.
+
+
+## Homeostasis Torch boundary cleanup (2026-09-12)
+
+Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead of importing Torch directly, and LRI validation canonicalizes the integral period before range checks. Homeostasis tests pass **10/10**; Pyright and Ruff report zero diagnostics for the module.
