@@ -6171,3 +6171,7 @@ The partitioned non-slow slice 1560:1700 passed **139 tests with 1 optional skip
 ### Literature goldens and IR brain slice (2026-09-12)
 
 The partitioned non-slow slice 1700:1840 passed **140 tests in 20.41 seconds**. It covers cross-language brain adapters, k-WTA pruning, and retracted-golden admission. Eleven sampled-recurrence warnings are intentional provenance guards.
+
+### Literature parity and materialization slice (2026-09-12)
+
+The partitioned non-slow slice 1840:1980 passed **136 tests, 2 optional skips, and 2 expected xfails in 71.46 seconds**. It covers literature goldens/parity, LRI, materialization, and metric kernels. Forty sampled-recurrence warnings are intentional provenance guards.
