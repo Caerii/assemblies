@@ -16,8 +16,10 @@ This is the core of emergent generation:
 - The settled pattern IS the response
 """
 
-from typing import Dict, List, Set, TYPE_CHECKING
-import cupy as cp
+import importlib
+from typing import Any, Dict, List, Set, TYPE_CHECKING
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 if TYPE_CHECKING:
     from ..brain import EmergentNemoBrain
@@ -57,8 +59,8 @@ class ActivationSpreader:
         # Track activation history for convergence detection
         self.history: Dict[Area, List[Set[int]]] = {}
     
-    def spread(self, seeds: Dict[Area, cp.ndarray],
-               max_rounds: int = 10) -> Dict[Area, cp.ndarray]:
+    def spread(self, seeds: Dict[Area, CpArray],
+               max_rounds: int = 10) -> Dict[Area, CpArray]:
         """
         Spread activation from seeds until convergence.
         
@@ -173,26 +175,30 @@ class ActivationSpreader:
         
         return connectivity.get(source_area, [])
     
-    def _get_current_state(self) -> Dict[Area, cp.ndarray]:
+    def _get_current_state(self) -> Dict[Area, CpArray]:
         """Get current activation state."""
-        return {
-            area: self.brain.current[area].copy() 
-            for area in self.spreading_areas
-            if self.brain.current[area] is not None
-        }
+        state: Dict[Area, CpArray] = {}
+        for area in self.spreading_areas:
+            current = self.brain.current[area]
+            if current is not None:
+                state[area] = current.copy()
+        return state
     
     def _record_state(self, area: Area):
         """Record current state for history."""
         if self.brain.current[area] is not None:
-            state = set(self.brain.current[area].get().tolist())
+            current = self.brain.current[area]
+            if current is None:
+                return
+            state = set(current.get().tolist())
             self.history[area].append(state)
     
     # =========================================================================
     # TARGETED SPREADING (for specific queries)
     # =========================================================================
     
-    def spread_from_verb(self, verb: str, 
-                         max_rounds: int = 5) -> Dict[Area, cp.ndarray]:
+    def spread_from_verb(self, verb: str,
+                         max_rounds: int = 5) -> Dict[Area, CpArray]:
         """
         Spread activation from a verb to find related subjects/objects.
         
@@ -210,7 +216,7 @@ class ActivationSpreader:
         return self.spread(seeds, max_rounds)
     
     def spread_from_noun(self, noun: str,
-                         max_rounds: int = 5) -> Dict[Area, cp.ndarray]:
+                         max_rounds: int = 5) -> Dict[Area, CpArray]:
         """
         Spread activation from a noun to find related verbs/properties.
         
@@ -232,7 +238,7 @@ class ActivationSpreader:
         return self.spread(seeds, max_rounds)
     
     def spread_from_vp(self, vp_key: str,
-                       max_rounds: int = 5) -> Dict[Area, cp.ndarray]:
+                       max_rounds: int = 5) -> Dict[Area, CpArray]:
         """
         Spread activation from a VP assembly.
         
@@ -251,9 +257,9 @@ class ActivationSpreader:
     # BIASED SPREADING (for question answering)
     # =========================================================================
     
-    def spread_with_bias(self, seeds: Dict[Area, cp.ndarray],
+    def spread_with_bias(self, seeds: Dict[Area, CpArray],
                          bias_area: Area,
-                         max_rounds: int = 5) -> Dict[Area, cp.ndarray]:
+                         max_rounds: int = 5) -> Dict[Area, CpArray]:
         """
         Spread activation with a bias toward a specific area.
         

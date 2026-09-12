@@ -6936,3 +6936,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Emergent learner now has explicit optional parameter/role contracts, local effective-role state, and deterministic typed max selectors; CuPy array boundary is explicit. Focused Pyright: 0 errors.
 - 2026-09-12: Emergent generator uses an explicit optional CuPy runtime boundary and typed array alias; focused Pyright: 0 errors.
 - 2026-09-12: Emergent parser core now exposes an explicit optional CuPy boundary and typed array return contract; focused Pyright: 0 errors.
+- 2026-09-12: Activation spreader now exposes typed assembly maps, explicit optional CuPy loading, and narrowed activation state before copying/readout. Focused Pyright: 0 errors.
