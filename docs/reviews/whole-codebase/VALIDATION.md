@@ -6638,3 +6638,8 @@ A Protocol-backed runtime alias for PyTorch was trialled and reverted: it preser
 ## Typed Torch operator boundary pilot (2026-09-12)
 
 The batched Torch engine now routes generated operators and dtypes through the explicit `torch_ops` protocol while leaving `torch` available for normal type semantics. Pyright and Ruff report zero diagnostics for the boundary and module; batched projection tests pass **16 tests** (6 expected skips), and Torch parity plus ePWTA GPU tests pass **32 tests**. The adapter is a runtime cast of the imported module, so this is an API/type boundary with no dispatch layer or numerical change.
+
+
+## Torch CSR boundary migration (2026-09-12)
+
+`_csr.py`, the shared sparse storage layer, now routes generated Torch factories and operators through `torch_ops` while retaining the same runtime module. Pyright and Ruff report zero diagnostics for the migrated module and boundary. CSR storage, batched projection, and Torch parity regressions pass **44 tests**.
