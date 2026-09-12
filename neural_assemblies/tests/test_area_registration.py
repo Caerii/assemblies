@@ -225,6 +225,24 @@ def test_runtime_policy_changes_dense_selection_and_can_be_reset(explicit):
     assert set(read_assembly(brain, 'A')) == {0, 1}
 
 
+def test_competition_policy_rejects_unknown_type_before_registration_or_mutation():
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse')
+    with pytest.raises(TypeError, match='competition policy'):
+        brain.add_area('bad', 4, 2, winner_policy=object())
+    assert 'bad' not in brain.areas
+    brain.add_area('A', 4, 2)
+    with pytest.raises(TypeError, match='competition policy'):
+        brain.set_competition_policy('A', object())
+    assert brain.areas['A'].winner_policy is None
+
+
+def test_competition_policy_cap_cannot_exceed_population():
+    from neural_assemblies import TopKPolicy
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse')
+    with pytest.raises(ValueError, match='population'):
+        brain.add_area('bad', 4, 2, winner_policy=TopKPolicy(k=5))
+
+
 @pytest.mark.parametrize('path', ['primary', 'auxiliary', 'direct'])
 def test_runtime_policy_cannot_bypass_slot_contract(path):
     from neural_assemblies import ThresholdPolicy

@@ -7007,3 +7007,6 @@ Added `validate_refraction_strength` to the homeostasis owner and applied it bef
 ## Masked-readout control validation (2026-09-12)
 
 `Brain.set_masked_readout` now rejects nonboolean flags before resolving backend state and stores the validated value without truthiness coercion. This prevents values such as `1` or `"false"` from silently selecting a different refraction readout protocol. Validation: refraction suite 12 passed; Pyright on Brain and homeostasis 0 errors/warnings/information.
+## Competition policy boundary validation (2026-09-12)
+
+Added a shared Brain-side validator for competition policies. Area registration and runtime updates now accept only the supported policy objects or `None`, and reject winner caps larger than the population before mutating Brain/backend state. Validation: area-registration plus winner-policy suites 235 passed; Pyright on Brain 0 errors/warnings/information.

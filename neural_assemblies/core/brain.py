@@ -532,6 +532,7 @@ class Brain:
         n, k = validate_area_registration(area_name, n, k, existing=self.areas, reserved=self.stimuli)
         input_noise_std = validate_input_noise(input_noise_std)
         refracted_strength = validate_refraction_strength(refracted_strength)
+        self._validate_competition_policy(n, winner_policy)
         if input_noise_std and (explicit or not self._engine.supports_input_noise):
             owner_name = "NumpyExplicitEngine" if explicit else type(self._engine).__name__
             raise NotImplementedError(f"{owner_name} does not implement input_noise_std")
@@ -1954,8 +1955,29 @@ class Brain:
         Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy
         """
         area = self.areas[area_name]
+        self._validate_competition_policy(area.n, policy)
         self._engine_for(area).set_competition_policy(area_name, policy)
         area.winner_policy = policy
+
+    @staticmethod
+    def _validate_competition_policy(population: int, policy) -> None:
+        """Validate a policy before either Brain or backend state changes."""
+        if policy is None:
+            return
+        from ..compute.winner_policies import (
+            EPercentPolicy, RelativeThresholdPolicy, ThresholdPolicy, TopKPolicy,
+        )
+        known = (TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, EPercentPolicy)
+        if not isinstance(policy, known):
+            raise TypeError(
+                "competition policy must be TopKPolicy, ThresholdPolicy, "
+                "RelativeThresholdPolicy, EPercentPolicy, or None"
+            )
+        capped = getattr(policy, "k", None)
+        if capped is None:
+            capped = getattr(policy, "max_winners", None)
+        if capped is not None and capped > population:
+            raise ValueError("competition policy winner cap cannot exceed area population")
 
     def set_input_noise(self, area_name: str, std: float) -> None:
         """Set Gaussian pre-selection noise on the executing owner.
