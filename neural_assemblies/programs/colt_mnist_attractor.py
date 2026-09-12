@@ -15,10 +15,12 @@ Protocol (per digit):
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import cast
 
 import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
+from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.ops import _snap, pattern_complete
 from neural_assemblies.programs.colt_mnist_absence import (
     ABSENCE_CURRICULUM_DIGITS,
@@ -416,7 +418,7 @@ def train_attractor_brain(
     digit3_center_passes: int = 4,
     enable_top_down_low: bool = True,
     top_down_rounds: int = 4,
-) -> tuple[object, np.ndarray, np.ndarray, np.ndarray, int, np.ndarray]:
+) -> tuple[Brain, np.ndarray, np.ndarray, np.ndarray, int, np.ndarray, np.ndarray]:
     """
     Extend the visual_advanced recurrent bundle with attractor strengthening.
 
@@ -443,6 +445,7 @@ def train_attractor_brain(
         class_passes=class_passes,
         class_beta=class_beta,
     )
+    brain = cast(Brain, brain)
     discriminative_high = high_outputs.copy()
 
     train_imgs, train_labels, _, _ = load_mnist_arrays(n_examples)
