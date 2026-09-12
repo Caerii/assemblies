@@ -548,8 +548,10 @@ AssemblyIR.Projection` independently checks the compiled declarations.
 `ExplicitRound` instructions. Its `then` operation is associative because it
 concatenates immutable round tuples; the empty program is the identity. The
 class validates every round at construction and exposes canonical documents
-only through fresh values. These are construction guarantees. Execution and
-backend refinement remain obligations of the selected lowering.
+only through fresh values. Its execution methods consume that same tuple in
+order and return the final observation (or `None` for the identity program).
+These are construction and ordering guarantees. Backend refinement remains an
+obligation of the selected lowering.
 
 
 <a id="contract-formal-round-wire"></a>

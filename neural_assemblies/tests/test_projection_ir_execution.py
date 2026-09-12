@@ -38,6 +38,23 @@ def test_program_rejects_mutable_or_mixed_round_inputs():
         ExplicitProgram().then(object())
 
 
+def test_program_execution_is_ordered_and_empty_program_is_identity(monkeypatch):
+    calls = []
+
+    def record(self, engine):
+        calls.append((self.target, self.plasticity))
+        return len(calls)
+
+    monkeypatch.setattr(ExplicitRound, "execute", record)
+    program = ExplicitProgram(
+        (ExplicitRound("first", (), False, (1,)),
+         ExplicitRound("second", (), True, (2,)))
+    )
+    assert program.execute(object()) == 2
+    assert calls == [("first", False), ("second", True)]
+    assert ExplicitProgram().execute(object()) is None
+
+
 @pytest.mark.parametrize("case", EXPLICIT_ROUND_CASES, ids=lambda case: case["name"])
 def test_shared_explicit_round_wire(case):
     if "raw_json" in case:

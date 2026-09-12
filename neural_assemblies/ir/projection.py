@@ -179,3 +179,17 @@ class ExplicitProgram:
         if not isinstance(documents, (tuple, list)):
             raise TypeError("program documents must be a sequence")
         return cls(tuple(ExplicitRound.from_document(document) for document in documents))
+
+    def execute(self, engine):
+        """Execute rounds in order and return the final round's observation."""
+        result = None
+        for round_ in self.rounds:
+            result = round_.execute(engine)
+        return result
+
+    def execute_on_brain(self, brain):
+        """Lower rounds in order through the coherent Brain boundary."""
+        result = None
+        for round_ in self.rounds:
+            result = round_.execute_on_brain(brain)
+        return result

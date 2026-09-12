@@ -7430,3 +7430,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added immutable `ExplicitProgram` composition for ordered `ExplicitRound` values, with associative `then`, identity, canonical document round-trip, and construction-time type validation.
 - Linked the implementation to `VERIFICATION.md#contract-explicit-program` and documented the backend-proof boundary in `ir/README.md`.
 - Validation: projection IR plus specification-link tests passed (51 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 shared IR program execution boundary
+
+- Added `ExplicitProgram.execute` and `execute_on_brain`, so composed rounds are executed by one ordered implementation rather than caller-written loops.
+- The empty program returns `None` as the identity; execution returns the final round observation.
+- Validation: projection IR tests passed (41 tests); Pyright reported 0 errors; `git diff --check` passed.

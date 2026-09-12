@@ -83,8 +83,9 @@ semantics, constructed controls, and the remaining Lean/backend bridge.
 Compose validated rounds with `ExplicitProgram`: `program.then(next_program)`
 preserves order and returns a new immutable program. Use
 `program.to_documents()` and `ExplicitProgram.from_documents(...)` for the
-canonical transport boundary; this composition layer does not itself claim a
-backend execution or numerical refinement proof.
+canonical transport boundary. `program.execute(engine)` and
+`program.execute_on_brain(brain)` use the same ordered rounds; numerical
+refinement across backends remains a separate proof obligation.
 
 For a Brain, call `instruction.execute_on_brain(brain)` instead of passing its
 private engine to `execute`. This uses normal projection synchronization and
