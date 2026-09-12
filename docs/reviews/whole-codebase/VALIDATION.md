@@ -5368,6 +5368,14 @@ and budget/seed keys remain unchanged, while raw `json.dump` publication is
 removed. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
 
+### Diverse-forms recall writer migration (2026-09-12)
+
+The registered diverse-forms recall study now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its corpus
+manipulation, cell organization, output shape, and reference comparisons are
+unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls
