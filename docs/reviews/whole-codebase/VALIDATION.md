@@ -6643,3 +6643,8 @@ The batched Torch engine now routes generated operators and dtypes through the e
 ## Torch CSR boundary migration (2026-09-12)
 
 `_csr.py`, the shared sparse storage layer, now routes generated Torch factories and operators through `torch_ops` while retaining the same runtime module. Pyright and Ruff report zero diagnostics for the migrated module and boundary. CSR storage, batched projection, and Torch parity regressions pass **44 tests**.
+
+
+## Torch hash boundary migration (2026-09-12)
+
+The deterministic hashed-connectome constructor `_hash.py` now routes generated Torch factories, dtypes, and mesh operations through `torch_ops`. Pyright and Ruff report zero diagnostics. Hash-finalizer and hashed substrate/aligner/transducer regression checks pass **8 tests with 24 expected skips**; no hashing or tie behavior was changed.
