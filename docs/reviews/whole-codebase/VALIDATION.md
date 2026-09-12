@@ -6552,3 +6552,8 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 
 - uv run pyright neural_assemblies/assembly_calculus/emergent — 0 diagnostics.
 - uv run pyright neural_assemblies/assembly_calculus — remaining diagnostics are isolated to optional Torch stubs in atched_next_token.py/atched_trainer.py and one existing NumPy overload in pfa.py; no emergent-package diagnostics. EPWTA's formation loop now asserts generated recurrent and stimulus matrices before mutation, making its runtime invariant explicit.
+
+## 2026-09-12 — batched performance input contracts
+
+- Batched inference now rejects empty prefixes and non-positive rounds/batch sizes with actionable ValueErrors; batched training rejects invalid 
+/k, empty vocabularies, and out-of-range connection probability before importing Torch. uv run pytest neural_assemblies/tests/test_batched_admission.py -q — 1 passed.

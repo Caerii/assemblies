@@ -32,6 +32,12 @@ class BatchedSeqTrainer:
     def __init__(self, n: int, k: int, vocab: Sequence[str], *, p: float = 0.01,
                  beta: float = 0.3, stim: float = 2.0, seed: int = 0,
                  device: str = "cuda"):
+        if n < 1 or k < 1 or k > n:
+            raise ValueError("require 1 <= k <= n for batched training")
+        if not vocab:
+            raise ValueError("vocab must contain at least one token")
+        if not 0.0 <= p <= 1.0:
+            raise ValueError("p must lie in [0, 1]")
         import torch
         self._torch = torch
         self.device = device

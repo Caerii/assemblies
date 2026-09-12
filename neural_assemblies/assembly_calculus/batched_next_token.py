@@ -109,6 +109,12 @@ class BatchedLM:
 
     def _scores(self, contexts: List[List[str]], rounds_per_token: int):
         """Return [B, V] overlap scores, replicating _predict_next_token_inner."""
+        if not contexts:
+            raise ValueError("contexts must contain at least one prefix")
+        if rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be positive")
+        if any(not context for context in contexts):
+            raise ValueError("contexts cannot contain empty prefixes")
         torch = self._torch
         B = len(contexts)
         n, K, dev = self.n, self.k, self.device
@@ -158,6 +164,10 @@ class BatchedLM:
         Enumerates every (sentence, position) prediction point and runs them in
         batches through the GPU; identical predictions to the sequential path.
         """
+        if batch_size < 1:
+            raise ValueError("batch_size must be positive")
+        if rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be positive")
         torch = self._torch
         contexts, actuals = [], []
         for s in corpus:
