@@ -480,8 +480,10 @@ class VirtualWeights:
         interleaving per column) reaches the same final state, and nothing
         reads the intermediate.
         """
+        if len(rows_list) != len(cols_list):
+            raise ValueError("rows_list and cols_list must have equal length")
         parts_r, parts_c = [], []
-        for rows, col in zip(rows_list, cols_list):
+        for rows, col in zip(rows_list, cols_list, strict=True):
             rows = np.asarray(rows, dtype=np.int64)
             if len(rows) == 0:
                 continue
@@ -498,7 +500,7 @@ class VirtualWeights:
         cuts = np.flatnonzero(np.diff(sr)) + 1
         starts = np.concatenate(([0], cuts))
         ends = np.concatenate((cuts, [len(sr)]))
-        for lo, hi in zip(starts.tolist(), ends.tolist()):
+        for lo, hi in zip(starts.tolist(), ends.tolist(), strict=True):
             r = int(sr[lo])
             cols_r = sc[lo:hi]
             entry = self._exp.get(r)
@@ -514,7 +516,7 @@ class VirtualWeights:
                     keep[pos[hit]] = False
                     self._exp[r] = [a[keep] for a in entry]
             d = self._ovr.setdefault(r, {})
-            for cc, vv in zip(cols_r.tolist(), sv[lo:hi].tolist()):
+            for cc, vv in zip(cols_r.tolist(), sv[lo:hi].tolist(), strict=True):
                 cc = int(cc)
                 was_new = cc not in d
                 d[cc] = float(vv)

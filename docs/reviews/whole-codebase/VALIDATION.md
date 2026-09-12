@@ -6077,3 +6077,6 @@ Candidate pricing now rejects mismatched `input_sizes`/`src_pops`, and pooled-bi
 ### Read-only seeded-stream gate (2026-09-12)
 
 `Brain.read_only` now applies strict generator/child-stream pairing only when a seed is supplied; the unseeded path correctly performs no stream installation. The initial blanket strict change exposed a real control-flow mismatch and was corrected before commit. Read-only and seeded-observation suites pass **23 tests**; B905/F is clean.
+### Virtual-weight batch alignment gate (2026-09-12)
+
+The virtual-weight override batch now rejects unequal row/column batch lists before constructing writes, and all grouped row/column/value loops are strict. The integration suite passes **3 tests plus 10 subtests**; the focused B905/F scan is clean.
