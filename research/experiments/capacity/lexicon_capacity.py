@@ -65,14 +65,15 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import time
-from dataclasses import dataclass, field
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 _REPO = Path(__file__).resolve().parents[3]
 if str(_REPO) not in sys.path:
@@ -81,7 +82,6 @@ if str(_REPO) not in sys.path:
 from neural_assemblies.core.brain import Brain  # noqa: E402
 from neural_assemblies.compute.winner_policies import (  # noqa: E402
     EPercentPolicy,
-    TopKPolicy,
 )
 
 
@@ -451,7 +451,7 @@ def main() -> int:
     out = Path(args.out) if args.out else (
         Path(__file__).parent / ("results_quick.json" if args.quick
                                  else "results_lexicon_capacity.json"))
-    out.write_text(json.dumps(results, indent=1, default=float))
+    write_new_document(out, results)
     print(f"wrote {out}")
     return 0
 

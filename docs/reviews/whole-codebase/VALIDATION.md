@@ -5334,6 +5334,15 @@ boundary instead of being silently coerced. The migration also removed an
 unused timing assignment and import exposed by Ruff. Compilation, Ruff, and
 both result-writer ratchets pass: **2 passed**.
 
+### Lexicon-capacity writer migration (2026-09-12)
+
+The one-shot lexicon-capacity sweep now publishes its JSON artifact through
+the canonical finite, exclusive writer. Its quick/full CLI modes, output path,
+and result structure are unchanged; permissive `default=float` serialization
+was removed so invalid numeric values fail at publication. The migration also
+removed two stale imports. Compilation, Ruff, and both result-writer ratchets
+pass: **2 passed**.
+
 ### A1 FSM parity writer migration (2026-09-12)
 
 The A1 FSM parity CLI now writes its configurable `--out` artifact through

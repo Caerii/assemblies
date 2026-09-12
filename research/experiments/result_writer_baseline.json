@@ -46,7 +46,6 @@
   },
   "direct_json_write_text_sites": {
     "research/experiments/capacity/confirm_beta_rec.py": 1,
-    "research/experiments/capacity/lexicon_capacity.py": 1,
     "research/experiments/capacity/norm_init_capacity.py": 1,
     "research/experiments/capacity/parser_recruitment.py": 1,
     "research/experiments/epwta_capacity/beta_control.py": 1,
