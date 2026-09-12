@@ -6768,3 +6768,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Pricing scalar/vector contract (2026-09-12)
 
 `candidate_divisor` now narrows scalar versus per-fiber probability inputs explicitly, preserving the same pricing law while removing ambiguous union arithmetic. Pricing tests pass **23/23**; Pyright and Ruff report zero diagnostics.
+
+
+## Optional CuPy backend import boundary (2026-09-12)
+
+`core/backend.py` now loads optional CuPy through `importlib` at capability-selection time, so static analysis and CPU-only imports do not require CuPy symbols while preserving backend selection semantics. Backend and isolation tests pass **16 tests, 3 optional skips**; Pyright and Ruff report zero diagnostics.
