@@ -5723,3 +5723,10 @@ module and operation documentation now show the explicit overloads that
 Pyright actually checks. This reduces the number of competing type patterns
 without changing runtime behavior. Pyright reports **0 errors** and the
 focused index-space suite passes: **8 passed**.
+
+### Overlap documentation reconciliation (2026-09-12)
+
+The overlap operation docstring now describes the explicit overloads that
+actually enforce same-space calls, removing the obsolete `SameSpace` TypeVar
+claim. This keeps source-level specification navigation consistent with the
+runtime and static implementation.
