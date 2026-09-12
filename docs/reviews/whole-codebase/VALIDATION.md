@@ -7184,3 +7184,11 @@ The attractor training protocol now declares its actual seven-value return contr
 - FSM construction now accepts explicit string sequences, rejects empty state/symbol domains, and validates a concrete initial state before allocating areas.
 - `uv run pyright neural_assemblies/programs/nemo_fsm.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_nemo_fsm.py -q`: 3 passed in 0.41s.
+
+
+## 2026-09-12 ? Markov transition typing
+
+- Unified Markov wrappers with the shared `TransitionLike` representation, including probabilistic four-tuples consumed by both PFA and arc-Markov paths.
+- Typed `SeedMixtureChoice.mode` as the validated `k_split | compete` literal.
+- `uv run pyright neural_assemblies/programs/markov_coin.py neural_assemblies/programs/arc_markov.py neural_assemblies/assembly_calculus/coin_config.py`: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_pfa_choice_contract.py neural_assemblies/tests/test_arc_markov_contract.py -q`: 62 passed in 22.54s.
