@@ -117,9 +117,9 @@ def assembly_overlap(a: NeuronIds, b: NeuronIds) -> float:
     number that reads as chance -- so read through `read_assembly`, never off
     `area.winners` directly.
     """
-    from neural_assemblies.assembly_calculus.assembly import overlap
-    return float(overlap(NeuronIds(np.asarray(a, dtype=np.int64)),
-                         NeuronIds(np.asarray(b, dtype=np.int64))))
+    from neural_assemblies.assembly_calculus.assembly import neuron_overlap
+    return float(neuron_overlap(NeuronIds(np.asarray(a, dtype=np.int64)),
+                                NeuronIds(np.asarray(b, dtype=np.int64))))
 
 
 def _spread(assemblies: Iterable) -> Measured:
