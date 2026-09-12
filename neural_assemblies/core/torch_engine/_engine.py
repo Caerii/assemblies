@@ -1510,7 +1510,7 @@ class TorchSparseEngine(ComputeEngine):
 
     # -- State accessors ----------------------------------------------------
 
-    def get_winners(self, area: str) -> np.ndarray:
+    def get_winners(self, area: str) -> CompactIdx:
         st = self._areas[area]
         return CompactIdx(st.winners.cpu().numpy().astype(np.uint32))
 

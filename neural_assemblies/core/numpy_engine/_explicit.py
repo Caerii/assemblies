@@ -362,7 +362,7 @@ class NumpyExplicitEngine(ComputeEngine):
             return winners
         return self._winner_sel.select_with_policy(drive, policy)
 
-    def get_winners(self, area: str) -> np.ndarray:
+    def get_winners(self, area: str) -> CompactIdx:
         st = self._areas[area]
         return CompactIdx(np.array(to_cpu(st.winners), dtype=np.uint32))
 

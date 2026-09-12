@@ -7049,3 +7049,6 @@ Public winner injection now checks the brand before converting to host arrays, a
 ## Backend winner getter branding (2026-09-12)
 
 All NumPy and Torch engine `get_winners` implementations now preserve the `CompactIdx` brand instead of returning an untyped ndarray. This keeps the engine read boundary aligned with `Area.winners`, so downstream code cannot lose index-space identity merely by reading through the backend API. Validation: winner-injection, index-space, engine-parity, and area-registration suites 310 passed; Pyright on all four backend modules 0 errors/warnings/information.
+## Typed engine winner getter interface (2026-09-12)
+
+The abstract `ComputeEngine.get_winners` contract and all NumPy/Torch implementations now advertise `CompactIdx`, matching the runtime brand returned by each getter. Static callers therefore retain index-space information when composing directly with an engine. Validation: winner-injection, engine-parity, and index-space suites 76 passed; Pyright on the engine interface and four implementations 0 errors/warnings/information.

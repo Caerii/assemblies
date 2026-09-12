@@ -56,6 +56,7 @@ from ..engine import (
 from ..registration import (validate_input_noise, validate_stimulus_registration,
                             validate_area_registration, validate_plasticity_rate)
 from ..activity import ActivityState
+from ..index_spaces import CompactIdx
 from .._pricing import inverse_indegree
 from ..semantics import (
     ArithmeticMode,
@@ -1113,8 +1114,7 @@ class NumpyExactEngine(ComputeEngine):
 
     # -- accessors ----------------------------------------------------------
 
-    def get_winners(self, area: str) -> np.ndarray:
-        from ..index_spaces import CompactIdx
+    def get_winners(self, area: str) -> CompactIdx:
         return CompactIdx(np.array(to_cpu(self._areas[area].winners), dtype=np.uint32))
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:

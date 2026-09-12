@@ -28,6 +28,8 @@ from typing import Any, Dict, List, Optional
 
 import numpy as np
 
+from .index_spaces import CompactIdx
+
 
 def validate_deterministic_allocation(engine_type, value) -> bool:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-deterministic-allocation"""
@@ -287,7 +289,7 @@ class ComputeEngine(ABC):
     # -- State accessors --
 
     @abstractmethod
-    def get_winners(self, area: str) -> np.ndarray:
+    def get_winners(self, area: str) -> CompactIdx:
         """Return current winners for *area* (CPU numpy uint32)."""
 
     @abstractmethod
