@@ -7397,3 +7397,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - `load`: 3,784 passed, 141 skipped, 5 xfailed, 10 subtests in 262.63s and 272.21s across two runs.
 - `loadfile`: recent runs ranged 276.67--283.82s. The scheduler switch is therefore adopted as a measured improvement with documented run variance, not as a fixed guarantee.
 - README and `scripts/verify_maintained.py` now use `--dist load`.
+
+
+## 2026-09-12 load scheduler gate fix
+
+- Fixed indentation in `scripts/verify_maintained.py` after switching to xdist `--dist load`.
+- `uv run python scripts/verify_maintained.py --skip-tests` passed; Pyright reported 0 errors across the maintained surface.

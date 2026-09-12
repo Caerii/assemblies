@@ -98,7 +98,7 @@ def main() -> int:
     if not args.skip_tests:
         test_command = ["uv", "run", "pytest", "neural_assemblies/tests", "-q", "-m", "not slow"]
         if not args.serial:
-        test_command[3:3] = ["-n", args.workers, "--dist", "load"]
+            test_command[3:3] = ["-n", args.workers, "--dist", "load"]
         tests = run(test_command)
         ok = ok and tests.returncode == 0
     return 0 if ok else 1
