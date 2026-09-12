@@ -7349,3 +7349,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - `validate_active_evidence_graph` accepts an optional precomputed audit inventory while retaining a fresh default.
 - The active evidence test now performs both dangling-edge and preregistration assertions in one repository scan.
 - Focused validation: 1 passed in 24.11s; Pyright on `research/evidence.py` reports 0 errors.
+
+
+## 2026-09-12 exploratory sweep isolation
+
+- The `TestBestParameterDemo` sequence parameter sweep is now centrally slow: it retrains nine aggressive configurations and is empirical evidence rather than a contract check.
+- Fast-tier collection is now 3,939 tests, with 183 empirical tests held for the slow tier. The sweep remains runnable through the full/slow command.

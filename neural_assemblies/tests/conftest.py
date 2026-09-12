@@ -82,6 +82,9 @@ _SLOW_NODEID_SUBSTRINGS = (
     "TestCurriculumLearning",
     "TestScaledVocabulary",
     "TestColtMultiAssembly",
+    # Exploratory parameter sweeps intentionally retrain the same sequence
+    # under many settings; they are scientific evidence, not contract smoke.
+    "TestBestParameterDemo",
 )
 
 
