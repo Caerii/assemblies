@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING, cast
 
 from ..session.dialogue_state import DialogueState
 from ..structured_io import InstructionFrame
@@ -11,6 +11,7 @@ from ..core.grounding import GroundingContext
 if TYPE_CHECKING:
     from ..curriculum.dialogue import DialoguePair
     from ..core.corpus_index import TransitionCache
+    from ..parser import EmergentParser
 
 
 class DialogueMixin:
@@ -57,7 +58,12 @@ class DialogueMixin:
         lex_targets = [w for w in qa_words if w in self.stim_map]
         self._ensure_prediction_lexicon(lex_targets)
 
-        dialogue_index = compile_dialogue_pairs(self, pairs)
+        # The compiler consumes capabilities supplied by the complete parser;
+        # this cast records the EmergentParser composition invariant at the
+        # boundary instead of weakening the compiler's contract.
+        dialogue_index = compile_dialogue_pairs(
+            cast("EmergentParser", self), pairs
+        )
         if not dialogue_index.transitions:
             return
 
@@ -149,7 +155,7 @@ class DialogueMixin:
                 from ..curriculum.data import create_instruction_sentences
 
                 inst = create_instruction_sentences()
-                idx = compile_corpus(self, inst)
+                idx = compile_corpus(cast("EmergentParser", self), inst)
                 self.train_next_token(
                     inst,
                     corpus_index=idx,
