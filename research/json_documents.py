@@ -40,6 +40,16 @@ def encode_document(value):
     return json.dumps(value, indent=2, allow_nan=False, sort_keys=True) + "\n"
 
 
+def snapshot_document(value):
+    """Return an independent, canonical JSON-safe snapshot of *value*.
+
+    The round trip deliberately goes through the same strict decoder used for
+    files, so in-memory run records and observations obey the file boundary's
+    finite-number and duplicate-key rules before a study can mutate state.
+    """
+    return decode_document(encode_document(value))
+
+
 def write_new_document(path, value):
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-evidence-json
 

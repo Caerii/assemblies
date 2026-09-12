@@ -5316,3 +5316,13 @@ the shared finite, exclusive `write_new_document` boundary. Its command-line
 surface, output path selection, and payload schema are unchanged; the final
 sequence-family direct-write ratchet exception is removed. Compilation, Ruff,
 and the result-writer ratchet pass: **1 passed**.
+
+### Canonical in-memory evidence snapshots (2026-09-12)
+
+The shared JSON boundary now exposes `snapshot_document`, which round-trips
+in-memory records through deterministic encoding and strict decoding. The
+experiment runner uses it for the immutable run record, the measurement input,
+and observations, removing three ad hoc `json.dumps`/`json.loads` copies while
+enforcing the same finite-number and duplicate-key rules before mutation or
+publication. Runner, contract, and storage checks pass: **147 passed**; Ruff
+and compilation are clean.

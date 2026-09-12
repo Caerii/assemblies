@@ -11,7 +11,6 @@ from datetime import datetime, timezone
 import gzip
 import hashlib
 import importlib
-import json
 from pathlib import Path
 import re
 import subprocess
@@ -24,7 +23,9 @@ from neural_assemblies.core.semantics import (
     ExecutionSemantics, ModelSemantics, NormalizationMode, ORGAN_ENGINE_KINDS,
     OrganSemantics, PlasticityRule, describe_brain_model,
 )
-from research.json_documents import encode_document, write_new_document as _write_new
+from research.json_documents import (
+    encode_document, snapshot_document, write_new_document as _write_new,
+)
 from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -264,7 +265,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                   mode='smoke' if smoke else 'study', scientific_status='VOID' if smoke else 'UNJUDGED',
                   started_utc=datetime.now(timezone.utc).isoformat(), **_source_identity())
     # Freeze nested caller-owned mappings/lists into a distinct JSON value.
-    record = json.loads(json.dumps(record, allow_nan=False))
+    record = snapshot_document(record)
     parent = (output_root or ROOT / 'research' / 'results' / 'runs') / protocol
     parent.mkdir(parents=True, exist_ok=True)
     directory = parent / tag
@@ -287,7 +288,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                                 'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest()}
     _write_new(directory / 'run.json', record)
     try:
-        measured = measure(json.loads(json.dumps(record)))
+        measured = measure(snapshot_document(record))
         if isinstance(measured, ExperimentOutput):
             observations = measured.observations
             attachments = _encode_attachments(measured.json_attachments)
@@ -296,7 +297,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         if not isinstance(observations, Mapping):
             raise ValueError('experiment must return an observations mapping')
         # Validate summaries before writing any attachment or completed record.
-        observations = json.loads(encode_document(dict(observations)))
+        observations = snapshot_document(dict(observations))
         if environment_record() != record['environment']:
             raise RuntimeError('repository environment changed during the run; observations cannot be adopted')
         if _source_identity() != {k: record[k] for k in ('git_commit', 'source_sha256')}:
