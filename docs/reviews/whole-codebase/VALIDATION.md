@@ -6943,3 +6943,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Neural decoder now exposes explicit optional CuPy assembly types and nullable object-pattern input; focused Pyright: 0 errors.
 - 2026-09-12: Emergent retrieval/generation helpers now use explicit array aliases, nullable pattern inputs, and `Any` for structured encoded payloads. Focused Pyright for both modules: 0 errors.
 - 2026-09-12: Package-level gate: `uv run pyright neural_assemblies/nemo/language/emergent/generation` analyzed 9 modules with 0 errors, 0 warnings, and 0 informational diagnostics after boundary cleanup.
+- 2026-09-12: Emergent parameter records now model unresolved k and optional sentence roles explicitly, with a runtime guard at max_learned. Focused Pyright: 0 errors.

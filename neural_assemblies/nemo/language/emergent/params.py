@@ -62,19 +62,19 @@ class GroundedSentence:
     """A sentence with full grounding information for training"""
     words: List[str]
     contexts: List[GroundingContext]
-    roles: List[str] = None  # 'agent', 'patient', 'action', None
+    roles: List[str | None] | None = None  # 'agent', 'patient', 'action', None
     mood: str = 'declarative'
     
     def __post_init__(self):
         if self.roles is None:
-            self.roles = [None] * len(self.words)
+            self.roles = [None for _ in self.words]
 
 
 @dataclass
 class EmergentParams:
     """Parameters for emergent NEMO brain and learner"""
     n: int = 10000         # Neurons per area
-    k: int = None          # Winners (sqrt(n) if None)
+    k: int | None = None   # Winners (sqrt(n) if None)
     p: float = 0.05        # Connection probability
     beta: float = 0.1      # Hebbian plasticity
     w_max: float = 10.0    # Weight saturation
@@ -92,5 +92,7 @@ class EmergentParams:
     
     @property
     def max_learned(self) -> int:
+        if self.k is None:
+            raise ValueError("EmergentParams.k must be resolved before use")
         return self.k * self.k * self.max_learned_factor
 
