@@ -21,7 +21,7 @@ from scipy import stats
 from research.json_documents import load_document, write_new_document
 from neural_assemblies.assembly_calculus.assembly import (
     chance_overlap as _canonical_chance_overlap,
-    overlap as _canonical_overlap,
+    neuron_overlap as _canonical_neuron_overlap,
 )
 from neural_assemblies.core.index_spaces import NeuronIds
 from neural_assemblies.assembly_calculus.metrics import jaccard_similarity
@@ -175,7 +175,9 @@ class ExperimentBase(ABC):
 
 def measure_overlap(winners_a: np.ndarray, winners_b: np.ndarray) -> float:
     """Compatibility name for the canonical assembly overlap measurement."""
-    return _canonical_overlap(NeuronIds(np.asarray(winners_a)), NeuronIds(np.asarray(winners_b)))
+    return _canonical_neuron_overlap(
+        NeuronIds(np.asarray(winners_a)), NeuronIds(np.asarray(winners_b))
+    )
 
 
 def measure_jaccard(winners_a: np.ndarray, winners_b: np.ndarray) -> float:

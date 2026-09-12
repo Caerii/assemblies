@@ -199,6 +199,16 @@ def overlap(a, b) -> float:
     return intersection / min_size if min_size > 0 else 0.0
 
 
+def neuron_overlap(a: NeuronIds, b: NeuronIds) -> float:
+    """Overlap for stable neuron-ID arrays; names the index space explicitly."""
+    return overlap(a, b)
+
+
+def compact_overlap(a: CompactIdx, b: CompactIdx) -> float:
+    """Overlap for compact engine-index arrays; names the index space explicitly."""
+    return overlap(a, b)
+
+
 def chance_overlap(k: int, n: int) -> float:
     """Expected overlap between two random k-subsets of [n].
 

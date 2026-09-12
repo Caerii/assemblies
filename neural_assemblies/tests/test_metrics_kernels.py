@@ -8,7 +8,8 @@ from neural_assemblies.assembly_calculus.metrics.instability import (
     mean_jaccard_instability,
 )
 from neural_assemblies.assembly_calculus.metrics.prediction import measure_n400
-from neural_assemblies.assembly_calculus.assembly import overlap
+from neural_assemblies.assembly_calculus.assembly import compact_overlap, neuron_overlap, overlap
+from neural_assemblies.core.index_spaces import CompactIdx, NeuronIds
 from research.experiments.base import measure_overlap
 
 
@@ -23,6 +24,14 @@ class TestMetricKernels:
         a = np.array([1, 2, 3], dtype=np.uint32)
         b = np.array([2, 3, 4], dtype=np.uint32)
         assert measure_overlap(a, b) == overlap(a, b)
+
+    def test_named_overlap_kernels_make_index_space_explicit(self):
+        neurons_a = NeuronIds(np.array([1, 2, 3], dtype=np.uint32))
+        neurons_b = NeuronIds(np.array([2, 3, 4], dtype=np.uint32))
+        compact_a = CompactIdx(np.array([1, 2, 3], dtype=np.uint32))
+        compact_b = CompactIdx(np.array([2, 3, 4], dtype=np.uint32))
+        assert neuron_overlap(neurons_a, neurons_b) == 2 / 3
+        assert compact_overlap(compact_a, compact_b) == 2 / 3
 
     def test_jaccard_instability_on_known_sequence(self):
         rounds = [{1, 2, 3}, {1, 2, 4}, {5, 6, 7}]

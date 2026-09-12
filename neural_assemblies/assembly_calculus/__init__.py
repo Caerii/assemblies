@@ -85,7 +85,14 @@ Control:
 """
 
 from .recovery import replace_neurons, observe_recovery, RecoveryObservation
-from .assembly import Assembly, overlap, chance_overlap, overlap_from_binary
+from .assembly import (
+    Assembly,
+    compact_overlap,
+    neuron_overlap,
+    overlap,
+    chance_overlap,
+    overlap_from_binary,
+)
 from .metrics import (
     compute_anchored_instability,
     compute_jaccard_instability,
@@ -193,7 +200,8 @@ __all__ = [
     "SEQUENCE_MEMORIZE_CONTRACT", "SEPARATION_CONTRACT",
     "ProjectionSweepConfig", "RecallSweepConfig", "ResponseDiagnostic",
     "ResponseTrace", "TraceStep", "Sequence", "Lexicon",
-    "overlap", "chance_overlap", "overlap_from_binary", "snapshot_area",
+    "overlap", "neuron_overlap", "compact_overlap", "chance_overlap",
+    "overlap_from_binary", "snapshot_area",
     "compute_anchored_instability", "compute_jaccard_instability",
     "mean_jaccard_instability", "measure_n400",
     # Operations
