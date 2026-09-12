@@ -6359,3 +6359,7 @@ The composed parser now declares its `_wobbly_fork` provenance flag alongside it
 ### ERP warm-frame circuit typing gate (2026-09-12)
 
 Warm ERP frame state now carries the concrete `FiberCircuit` type returned by the parser, so cached prefixes cannot pass an unconstrained object into incremental advancement. Pyright reports **0 diagnostics**; ERP probe tests pass **5 tests with 1 intentional sampled-recurrence warning**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### ERP gate import-boundary gate (2026-09-12)
+
+The ERP gates module now links its type-only parser import to the actual emergent parser package level. The previous relative import was unresolved to static tooling even though runtime paths did not exercise it. Pyright reports **0 diagnostics**; ERP protocol/probe tests pass **25 tests with 1 intentional sampled-recurrence warning**, and Ruff F/E9 plus `git diff --check` are clean.

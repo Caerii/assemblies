@@ -16,7 +16,7 @@ from dataclasses import dataclass
 from typing import List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..parser import EmergentParser
+    from ...parser import EmergentParser
 
 # Reference nulls from composed ERP (n=10000, k=100, multi-seed).
 REFERENCE_N400_GRAMMATICAL = 0.088
