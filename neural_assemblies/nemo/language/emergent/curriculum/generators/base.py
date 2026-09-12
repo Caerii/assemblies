@@ -5,7 +5,7 @@ Base Generator
 Base class and utilities for sentence generators.
 """
 
-from typing import List, Optional
+from typing import Any, List, Optional
 import random
 
 from ..vocabulary import get_vocabulary, WordInfo
@@ -159,7 +159,7 @@ class BaseGenerator:
             self._cache['self_pronouns'] = [p for p in self._cache['self_pronouns'] if p]
         return self._cache['self_pronouns']
     
-    def random_choice(self, items: List) -> Optional[any]:
+    def random_choice(self, items: List[Any]) -> Optional[Any]:
         """Safely choose random item from list."""
         if not items:
             return None
