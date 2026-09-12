@@ -51,16 +51,28 @@ from .params import (
     EmergentParams, GroundingContext, GroundingModality, GroundedSentence
 )
 
-from .brain import EmergentNemoBrain
+_LAZY_EXPORTS = {
+    "EmergentNemoBrain": (".brain", "EmergentNemoBrain"),
+    "EmergentLanguageLearner": (".learner", "EmergentLanguageLearner"),
+    "SentenceGenerator": (".generator", "SentenceGenerator"),
+    "create_training_data": (".training_data", "create_training_data"),
+    "create_simple_training_data": (".training_data", "create_simple_training_data"),
+    "SentenceParser": (".parser", "SentenceParser"),
+    "ParseResult": (".parser", "ParseResult"),
+    "QuestionAnswerer": (".parser", "QuestionAnswerer"),
+}
 
-from .learner import EmergentLanguageLearner
 
-from .generator import SentenceGenerator
+def __getattr__(name: str):
+    """Load GPU-backed language components only when explicitly requested."""
+    target = _LAZY_EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    from importlib import import_module
 
-from .training_data import create_training_data, create_simple_training_data
-
-# Parser submodule
-from .parser import SentenceParser, ParseResult, QuestionAnswerer
+    value = getattr(import_module(target[0], __name__), target[1])
+    globals()[name] = value
+    return value
 
 __all__ = [
     # Areas
