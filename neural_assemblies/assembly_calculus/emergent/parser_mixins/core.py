@@ -48,6 +48,12 @@ now: each stage is a module with an entry point, and what it must be true of
 when it returns can be stated there.
 """
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from ..train_progress import TrainProgress
+    from ..core.corpus_index import CorpusIndex
+
 from contextlib import contextmanager
 from typing import Dict, List, Optional
 

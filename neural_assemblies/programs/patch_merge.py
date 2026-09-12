@@ -131,8 +131,8 @@ def _patch_merge_chain_step(
     for i in range(n_bind):
         clear_area_winners(brain, bind_area_name(i))
 
-    for pid, field in zip(range(n), fields):
-        set_kcap_winners(brain, part_names[pid], field)
+    for pid, feature_field in zip(range(n), fields):
+        set_kcap_winners(brain, part_names[pid], feature_field)
 
     if merge_mode == "simultaneous" and len(scale0_ids) > 1:
         projections: dict[str, list[str]] = {MID: [MID]}
@@ -143,7 +143,7 @@ def _patch_merge_chain_step(
         for _ in range(merge_rounds):
             brain.project({}, projections)
     elif len(scale0_ids) == 1:
-        brain.project({}, {part_names[ids[0]]: [part_names[ids[0]], MID]})
+        brain.project({}, {part_names[scale0_ids[0]]: [part_names[scale0_ids[0]], MID]})
     elif len(scale0_ids) == 2:
         _merge_two_active(
             brain, part_names[scale0_ids[0]], part_names[scale0_ids[1]], MID,

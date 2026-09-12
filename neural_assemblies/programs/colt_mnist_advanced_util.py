@@ -5,6 +5,7 @@ from __future__ import annotations
 import numpy as np
 
 from neural_assemblies.core.backend import to_cpu
+from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.programs.colt_mnist_brain_util import (
     class_slot_neurons,
     renorm_connectome_columns,

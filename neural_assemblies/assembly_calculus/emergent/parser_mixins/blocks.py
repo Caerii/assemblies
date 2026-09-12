@@ -2,7 +2,11 @@
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import TYPE_CHECKING, List, Optional
+
+if TYPE_CHECKING:
+    from ..core.sentence import GroundedSentence
+    from ..train_progress import TrainProgress
 
 from ..blocks_bridge import is_blocks_command, normalize_blocks_command, parse_blocks_command
 from ..structured_io import InstructionFrame

@@ -17,6 +17,8 @@ from __future__ import annotations
 
 from typing import List, Optional
 
+from ..structured_io import ToolCall
+
 from ..structured_json import (
     StructuredRecord,
     compare_tool_calls,

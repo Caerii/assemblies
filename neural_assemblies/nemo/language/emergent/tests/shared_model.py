@@ -9,6 +9,8 @@ This dramatically speeds up test runs.
 import time
 from typing import Optional
 
+from neural_assemblies.nemo.language.emergent.learner import EmergentLanguageLearner
+
 # Global cached model
 _cached_learner: Optional['EmergentLanguageLearner'] = None
 _cached_data = None
