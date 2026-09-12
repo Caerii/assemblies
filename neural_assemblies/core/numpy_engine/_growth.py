@@ -315,7 +315,7 @@ class GrowthMixin:
                         continue
                     _, phys_cols = conn.weights.shape
                     self._write_area_expansion_edges(
-                        src_name, target, conn, inputs_names,
+                        src_name, conn, inputs_names,
                         new_indices, splits_per_new, prior_w, phys_cols,
                     )
                 return
@@ -736,7 +736,6 @@ class GrowthMixin:
     def _write_area_expansion_edges(
         self,
         src_name: str,
-        target: str,
         conn,
         inputs_names: list,
         new_indices: list,

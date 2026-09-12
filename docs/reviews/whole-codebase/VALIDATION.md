@@ -5897,3 +5897,9 @@ environment-dependent execution gate.
 `NumpyExplicitEngine.project_into` now populates the shared pre-k-WTA
 observation fields when requested, including the full candidate count and
 pre-penalty drive. A direct explicit-engine contract test passes.
+
+### Growth edge writer surface (2026-09-12)
+
+The sparse growth edge writer no longer receives the target name it never uses;
+the target remains represented by the already-selected connection object. CSR
+drive-cache tests pass **6 tests**, covering the expansion path.
