@@ -6658,3 +6658,8 @@ The deterministic hashed-connectome constructor `_hash.py` now routes generated 
 ## Torch hashed-aligner boundary migration (2026-09-12)
 
 `_hashed_aligner.py` now routes generated Torch allocation, gather, and scoring operations through `torch_ops`. Pyright and Ruff report zero diagnostics. Hashed aligner and substrate parity checks pass **2 tests with 22 expected skips**; the alignment and pinned-winner algorithms are unchanged.
+
+
+## Torch hashed-FSM boundary migration (2026-09-12)
+
+`_hashed_fsm.py` now keeps real Torch tensor annotations while routing generated factories, dtypes, and selection masks through `torch_ops`. Pyright and Ruff report zero diagnostics. Hashed transducer, Nemo arc, and transition contract regressions pass **60 tests with 2 expected skips**; assigned-state semantics are unchanged.
