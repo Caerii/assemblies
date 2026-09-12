@@ -1,4 +1,3 @@
-# pyright: reportAttributeAccessIssue=false
 """Batched next-token prediction on the GPU (scale up language inference).
 
 ``next_token.score_corpus`` runs one FROZEN prediction per corpus position, each
@@ -28,6 +27,8 @@ engine (CUDA). Build a ``BatchedLM`` once from a trained brain, then call
 
 from typing import Dict, List, Tuple
 
+from ..core.torch_engine._torch_ops import torch_ops
+
 
 class BatchedLM:
     """Frozen-connectome batched next-token predictor extracted from a trained
@@ -49,9 +50,7 @@ class BatchedLM:
             raise TypeError(
                 f"BatchedLM requires an engine with batched next-token support; "
                 f"{type(eng).__name__} does not provide that capability.")
-        import torch
-
-        self._torch = torch
+        self._torch = torch_ops
         self.area = area
         self.vocab = list(vocab)
         self.k = int(brain.areas[area].k)
@@ -74,13 +73,13 @@ class BatchedLM:
         if norm_init:
             deg = csr.column_indegree(n)
             unknown = max(n - int(csr._nrows), 0)
-            self.nscale = 1.0 / torch.clamp(deg + unknown * p, min=1.0)
+            self.nscale = 1.0 / torch_ops.clamp(deg + unknown * p, min=1.0)
         else:
-            self.nscale = torch.ones(n, device=dev)
+            self.nscale = torch_ops.ones(n, device=dev)
 
         # Per-word stimulus drive D[V, n], with the frozen stim norm scale.
         V = len(self.vocab)
-        self.D = torch.zeros(V, n, device=dev)
+        self.D = torch_ops.zeros(V, n, device=dev)
         for wi, w in enumerate(self.vocab):
             sc = eng._stim_conns[stimuli_map[w]][area]
             sw = sc.weights.float()
@@ -89,7 +88,7 @@ class BatchedLM:
                 ndb = getattr(sc, "_norm_deg_base", None)
                 base = ndb.float() if ndb is not None else sw
                 bm = int(base.numel())
-                ssc = 1.0 / torch.clamp(base + (n - self.k) * p, min=1.0)
+                ssc = 1.0 / torch_ops.clamp(base + (n - self.k) * p, min=1.0)
                 self.D[wi, :bm] = sw[:bm] * ssc
                 if m > bm:
                     self.D[wi, bm:m] = sw[bm:m] / max((n - self.k) * p, 1.0)
@@ -100,12 +99,12 @@ class BatchedLM:
         # STABLE neuron ids; map them back through compact_to_neuron_id).
         c2n = eng._areas[area].compact_to_neuron_id
         stable_to_compact = {int(s): c for c, s in enumerate(c2n)}
-        self.L = torch.zeros(V, n, device=dev)
+        self.L = torch_ops.zeros(V, n, device=dev)
         for wi, w in enumerate(self.vocab):
             comp = [stable_to_compact[int(s)] for s in lexicon[w].winners
                     if int(s) in stable_to_compact]
             if comp:
-                self.L[wi, torch.tensor(comp, device=dev, dtype=torch.long)] = 1.0
+                self.L[wi, torch_ops.tensor(comp, device=dev, dtype=torch_ops.long)] = 1.0
         self._word_of = {w: i for i, w in enumerate(self.vocab)}
 
     def _scores(self, contexts: List[List[str]], rounds_per_token: int):
@@ -116,26 +115,25 @@ class BatchedLM:
             raise ValueError("rounds_per_token must be positive")
         if any(not context for context in contexts):
             raise ValueError("contexts cannot contain empty prefixes")
-        torch = self._torch
         B = len(contexts)
         n, K, dev = self.n, self.k, self.device
         maxlen = max(len(c) for c in contexts)
-        act = torch.zeros(B, n, device=dev)
+        act = torch_ops.zeros(B, n, device=dev)
 
         def step(stim, active):
             nonlocal act
-            rec = torch.sparse.mm(self.Wt, act.t()).t() * self.nscale
+            rec = torch_ops.sparse.mm(self.Wt, act.t()).t() * self.nscale
             drive = stim + rec if stim is not None else rec
-            idx = torch.topk(drive, K, dim=1).indices
-            newact = torch.zeros_like(act).scatter_(1, idx, 1.0)
-            act = torch.where(active.view(B, 1), newact, act)
+            idx = torch_ops.topk(drive, K, dim=1).indices
+            newact = torch_ops.zeros_like(act).scatter_(1, idx, 1.0)
+            act = torch_ops.where(active.view(B, 1), newact, act)
 
         for t in range(maxlen):
-            wids = torch.tensor(
+            wids = torch_ops.tensor(
                 [self._word_of[c[t]] if t < len(c) else -1 for c in contexts],
                 device=dev)
             active = wids >= 0
-            stim = torch.zeros(B, n, device=dev)
+            stim = torch_ops.zeros(B, n, device=dev)
             stim[active] = self.D[wids[active].clamp(min=0)]
             # t==0: one stim-only start step (act is 0 so recurrence is a no-op);
             # then rounds_per_token-1 stim+recurrence steps, same as t>0.
@@ -144,7 +142,7 @@ class BatchedLM:
             for _ in range(rounds_per_token - 1):
                 step(stim, active)
         # autonomous prediction step (stimulus removed) for all items
-        step(None, torch.ones(B, dtype=torch.bool, device=dev))
+        step(None, torch_ops.ones(B, dtype=torch_ops.bool, device=dev))
         return act @ self.L.t()   # [B, V] intersection counts (== overlap rank)
 
     def predict(self, contexts: List[List[str]], rounds_per_token: int = 5,
@@ -169,7 +167,6 @@ class BatchedLM:
             raise ValueError("batch_size must be positive")
         if rounds_per_token < 1:
             raise ValueError("rounds_per_token must be positive")
-        torch = self._torch
         contexts, actuals = [], []
         for s in corpus:
             for pos in range(len(s) - 1):
@@ -181,7 +178,7 @@ class BatchedLM:
             chunk = contexts[i:i + batch_size]
             acts = actuals[i:i + batch_size]
             scores = self._scores(chunk, rounds_per_token)
-            order = torch.argsort(scores, dim=1, descending=True)  # [b, V]
+            order = torch_ops.argsort(scores, dim=1, descending=True)  # [b, V]
             for b, actual in enumerate(acts):
                 ranked = [self.vocab[int(j)] for j in order[b]]
                 if ranked and ranked[0] == actual:
