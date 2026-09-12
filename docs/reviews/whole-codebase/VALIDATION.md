@@ -6813,3 +6813,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Sparse simulation statistical boundary (2026-09-12)
 
 `compute/sparse_simulation.py` now resolves SciPy special functions dynamically, initializes distribution outputs with a concrete array type, and normalizes sampler results before rounding. Sparse simulation tests pass **20/20**; Pyright and Ruff report zero diagnostics.
+
+
+## Hyperdimensional calculus array contracts (2026-09-12)
+
+`compute/hyperdimensional.py` now normalizes decoded sequences and set-operation results through concrete NumPy arrays, removing ambiguous SciPy/NumPy union return types. Hyperdimensional tests pass **2/2**; Pyright and Ruff report zero diagnostics.
