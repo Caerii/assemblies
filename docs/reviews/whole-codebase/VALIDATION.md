@@ -6992,3 +6992,6 @@ Added `Brain.temporary_plasticity`, an exception-safe context manager that snaps
 ## Role overlay beta lookup unified (2026-09-12)
 
 `EmergentParser.role_bind_gain` now resolves base directed rates through `Brain.plasticity_rate` rather than reaching into the area-owning engine. This completes the parser's migration to the Brain-owned directed plasticity boundary while preserving its overlay cache. Validation: role-bind-gain tests 3 passed; Pyright 0 diagnostics.
+## Remaining parser beta ownership audit (2026-09-12)
+
+Searched maintained package paths for direct beta reads/writes. The only non-test engine lookup in the emergent parser was `role_bind_gain`; it now uses `Brain.plasticity_rate`. Remaining engine-level beta access is confined to the standalone explicit-round IR validator and backend internals, where the engine is intentionally the execution authority. Role-gain validation: 3 passed; Pyright clean.
