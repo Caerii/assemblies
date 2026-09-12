@@ -260,7 +260,7 @@ def _build_narrative(
         tag = "*" if d in CONFUSED_DIGITS else " "
         lines.append(f"  {tag} {d}: {per_digit[d]:.1%}")
     lines.extend(["", "Occlusion curve (fraction masked -> accuracy):"])
-    for f, a in zip(fracs, occ_accs):
+    for f, a in zip(fracs, occ_accs, strict=True):
         lines.append(f"  mask={f:.0%} -> {a:.1%}")
     lines.extend([
         "",

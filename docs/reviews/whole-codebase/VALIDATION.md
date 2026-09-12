@@ -6119,3 +6119,6 @@ Emergent NEMO learned-strength readout now uses strict destination/delta pairing
 ### NEMO positional-role coverage gate (2026-09-12)
 
 The legacy NEMO learner no longer truncates sentences longer than three words when default roles are synthesized. It now pads unannotated trailing tokens with `None`, requires supplied role vectors to match exactly, and strictly pairs every word with its role. Learned-edge strength readout is strict as well. B905/F is clean; runtime coverage remains optional-CuPy gated.
+### Curriculum and geometry pairing gate (2026-09-12)
+
+Curriculum structure scoring and the MNIST geometry panel now use strict pairing after their explicit equal-length/parallel-data conditions. The edit was reapplied with UTF-8-safe tooling after a verification pass caught and removed unrelated Unicode mojibake. `git diff --check` and focused B905/F scans are clean. Geometry runtime smoke exceeded the bounded window and was stopped; no runtime pass is claimed.
