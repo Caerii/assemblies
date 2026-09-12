@@ -5213,3 +5213,11 @@ and density calculation. `assembly_density` accepts both ordinary integer
 sequences and the NumPy winner arrays emitted by the formation loop. This
 keeps a missing matrix from becoming a plausible density result. The module is
 Pyright/Ruff-clean; E%-WTA conformance checks pass: **14 passed**.
+
+### Scaffold sequence state cleanup (2026-09-11)
+
+The scaffolded sequence operator now snapshots both recurrent beta values
+before the optional Phase-B boost, so cleanup remains defined even when the
+projection raises. Its returned snapshots are passed as an explicit tuple to
+the immutable `Sequence` record. `scaffold.py` is Pyright/Ruff-clean; sequence
+and beta-scope checks pass: **20 passed**.

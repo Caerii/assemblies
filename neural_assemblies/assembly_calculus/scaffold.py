@@ -164,10 +164,10 @@ def _train_scaffold_step(
     stim_rounds = max(1, rounds_per_step - recur_rounds)
     main = brain.areas[main_area]
     aux = brain.areas[scaffold_area]
+    main_beta, aux_beta = main.beta, aux.beta
     for _ in range(stim_rounds):
         brain.project({stim: [main_area]}, {})
     if beta_boost is not None:
-        main_beta, aux_beta = main.beta, aux.beta
         brain.update_plasticity(main_area, main_area, beta_boost)
         brain.update_plasticity(scaffold_area, scaffold_area, beta_boost)
     try:
@@ -273,4 +273,4 @@ def sequence_memorize_scaffold(
                 beta_boost=beta_boost,
             )
             assemblies.append(_snap(brain, main_area))
-    return Sequence(area=main_area, assemblies=assemblies)
+    return Sequence(area=main_area, assemblies=tuple(assemblies))
