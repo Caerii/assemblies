@@ -6949,3 +6949,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Interactive learner/response contracts now accept optional roles, write `GroundingContext.properties`, and call the actual emergent generator `generate` method. Focused Pyright: 0 errors.
 - 2026-09-12: Interactive package gate is now fully clean: 6 modules, 0 errors, 0 warnings, 0 informational diagnostics under Pyright.
 - 2026-09-12: Shared emergent curriculum generators gate is clean: 5 modules, 0 errors, 0 warnings. Fixed the lowercase `any` type contract in BaseGenerator.random_choice.
+- 2026-09-12: Curriculum grounding factory now models optional feature maps explicitly; focused Pyright: 0 errors.

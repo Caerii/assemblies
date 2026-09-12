@@ -15,7 +15,7 @@ This is the KEY mapping that determines emergent categories:
 - No grounding → FUNCTION WORD
 """
 
-from typing import Dict, List, Any
+from typing import Dict, List, Any, Optional
 
 from ...params import GroundingContext
 
@@ -65,7 +65,7 @@ DOMAIN_MODALITY_MAP = {
 
 
 def create_grounding_from_domains(domains: List[str], 
-                                   features: Dict[str, Any] = None) -> GroundingContext:
+                                   features: Optional[Dict[str, Any]] = None) -> GroundingContext:
     """
     Create grounding context from semantic domains and features.
     
