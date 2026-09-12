@@ -5125,3 +5125,7 @@ The scaled-feature and surprise-gain studies now share `curriculum_training.trai
 ### Stable-ID readout annotation (2026-09-11)
 
 `diagnostics.read_assembly` now returns the `NeuronIds` type at the public boundary, and `assembly_overlap` requires `NeuronIds` operands. The runtime values are unchanged, but static callers can no longer treat the sanctioned stable-ID readout as an untyped array. Index-space and ratchet checks pass: **9 passed**; Ruff and diff checks are clean.
+
+### Pyright stable-ID boundary check (2026-09-11)
+
+The checker audit found four diagnostics in `Arbitration.ratio`: its arm container was typed as `object` even though the protocol intentionally accepts scalar or sequence metrics. Changing it to `Any` documents that heterogeneous boundary without weakening the index-space types. Pyright now reports zero errors for `index_spaces`, `Assembly`, and `diagnostics`; Assembly Calculus and area registration checks pass: **230 passed**; Ruff and diff checks are clean.

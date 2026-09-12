@@ -1239,7 +1239,10 @@ def arm_spec(name: str) -> Arm:
 class Arbitration:
     """One protocol, measured on each arm with ONE extractor."""
     label: str
-    by_arm: Dict[str, object]
+    # Arms may be scalar metrics or per-item sequences; the extractor owns
+    # that protocol choice, so keep the container honest rather than forcing
+    # an incorrect homogeneous numeric type here.
+    by_arm: Dict[str, Any]
 
     def ratio(self, arm: str = "sampled", truth: str = "explicit"):
         """`arm / truth`, elementwise for sequences, else scalar."""
