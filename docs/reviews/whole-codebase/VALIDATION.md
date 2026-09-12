@@ -6668,3 +6668,8 @@ The deterministic hashed-connectome constructor `_hash.py` now routes generated 
 ## Torch hashed-transducer boundary migration (2026-09-12)
 
 `_hashed_transducer.py` now separates real Torch tensor annotations from generated runtime operators via `torch_ops`. Pyright and Ruff report zero diagnostics. Hashed transducer, FSM, and sequence contract tests pass **15 tests with 2 expected skips**. The temporal capture pair remains blocked before execution because this shell lacks `cl.exe` and `ninja`; `scripts/check_cuda_toolchain.py` reports those exact missing tools.
+
+
+## Torch scheduled-aligner boundary migration (2026-09-12)
+
+`_scheduled_aligner.py` now separates real Torch tensor annotations and CUDA lifecycle calls from generated factories, dtypes, and scoring operators via `torch_ops`. Pyright and Ruff report zero diagnostics. Aligner/substrate and word-capacity runner regressions pass **30 tests with 22 expected skips**; schedule batching and kernel behavior are unchanged.
