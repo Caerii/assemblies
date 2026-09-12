@@ -27,7 +27,7 @@ from ..core import Brain, BrainParams
 class LearnerParams:
     """Parameters for language learning."""
     n: int = 10000
-    k: int = None
+    k: int | None = None
     p: float = 0.1
     
     def __post_init__(self):
@@ -56,13 +56,15 @@ class LanguageLearner:
     # Standard areas - but their function emerges from learning
     AREAS = ['PHON', 'LEX', 'ROLE1', 'ROLE2', 'ROLE3', 'SEQ']
     
-    def __init__(self, params: LearnerParams = None, verbose: bool = True):
+    def __init__(self, params: LearnerParams | None = None, verbose: bool = True):
         self.params = params or LearnerParams()
+        k = self.params.k
+        assert k is not None
         
         # Core brain
         brain_params = BrainParams(
             n=self.params.n,
-            k=self.params.k,
+            k=k,
             p=self.params.p
         )
         self.brain = Brain(brain_params)

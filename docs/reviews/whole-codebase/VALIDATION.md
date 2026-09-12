@@ -6923,3 +6923,8 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 ## Lazy optional Nemo language imports (2026-09-12)
 
 `nemo/language/__init__.py` now resolves public symbols lazily, so CPU-safe `SentenceGenerator` and `Curriculum` imports do not eagerly load the CuPy-backed learner. The generator and curriculum modules import learner types only under `TYPE_CHECKING` and load the learner locally when construction requires it. Pyright reports zero diagnostics; docs-example smoke tests pass **4/4** active tests with **1** expected optional-backend skip.
+
+
+## Nemo learner nullable parameter contract (2026-09-12)
+
+`nemo/language/learner.py` now models optional `k` and optional learner parameters accurately, narrows the derived `k` before constructing `BrainParams`, and removes its two Pyright errors. Pyright and Ruff report zero diagnostics; compilation passes.
