@@ -5317,6 +5317,14 @@ was previously invisible and could silently overwrite evidence. Existing
 legacy sites are inventoried explicitly; new or increased sites fail until
 migrated or deliberately dispositioned. Both ratchet checks pass: **2 passed**.
 
+### Developmental ablation writer migration (2026-09-12)
+
+The developmental ablation study now publishes its JSON evidence through the
+shared finite, exclusive writer while retaining its independent CSV export.
+The output schema and CLI paths are unchanged; the JSON artifact can no longer
+be silently overwritten. Compilation, Ruff, and both result-writer ratchets
+pass: **2 passed**.
+
 ### A1 FSM parity writer migration (2026-09-12)
 
 The A1 FSM parity CLI now writes its configurable `--out` artifact through

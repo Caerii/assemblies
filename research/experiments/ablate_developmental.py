@@ -11,11 +11,12 @@ from __future__ import annotations
 
 import argparse
 import csv
-import json
 import os
 import time
 from pathlib import Path
 from typing import Dict, List
+
+from research.json_documents import write_new_document
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["EMERGENT_DEV_CURRICULUM"] = "1"
@@ -123,7 +124,7 @@ def main() -> int:
             )
 
     args.output.parent.mkdir(parents=True, exist_ok=True)
-    args.output.write_text(json.dumps({"rows": rows}, indent=2), encoding="utf-8")
+    write_new_document(args.output, {"rows": rows})
 
     fieldnames = list(rows[0].keys()) if rows else []
     with args.csv.open("w", newline="", encoding="utf-8") as f:
