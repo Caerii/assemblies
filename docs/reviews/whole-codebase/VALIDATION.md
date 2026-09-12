@@ -6107,3 +6107,6 @@ Sequence training in both the public and hashed transducers now uses an explicit
 ### Sequence tracing prefix contract (2026-09-12)
 
 The sequence sweep now compares recalled and memorized assemblies over their explicit common prefix. A terminal novel recall step is intentionally excluded, and the prior truncating zip is gone. Trace and sequence-recall suites pass **25 tests**; sampled recurrence warnings remain intentional provenance guards and B905/F is clean.
+### Patch merge field cardinality gate (2026-09-12)
+
+Patch merge now requires exactly one feature field per graph patch before mutating any area winners. This prevents extra fields from being ignored and missing fields from producing partial merges. The reinforcement contract suite passes **23 tests**; the grid smoke exceeded the bounded test window and was stopped, so no pass is claimed for it. Focused B905/F scan is clean.

@@ -118,6 +118,8 @@ def _patch_merge_chain_step(
 ) -> None:
     """Merge patch fields (balanced tree, linear chain, or simultaneous), then MID → HIGH."""
     n = len(graph.patches)
+    if len(fields) != n:
+        raise ValueError("fields must contain one feature field per patch")
     part_names = [part_area_name(p.patch_id) for p in graph.patches]
     scale0_ids = [p.patch_id for p in graph.patches if p.scale == 0]
     if not scale0_ids:
@@ -131,7 +133,7 @@ def _patch_merge_chain_step(
     for i in range(n_bind):
         clear_area_winners(brain, bind_area_name(i))
 
-    for pid, feature_field in zip(range(n), fields):
+    for pid, feature_field in zip(range(n), fields, strict=True):
         set_kcap_winners(brain, part_names[pid], feature_field)
 
     if merge_mode == "simultaneous" and len(scale0_ids) > 1:
