@@ -7282,3 +7282,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Slow-tier collection contains 149 tests, including the five moved duration-profiled gates.
 - Targeted moved-gate run: 4 passed, 1 xfailed, 4,118 deselected in 128.49s; the xfail remains an explicitly retained empirical failure.
+
+
+## 2026-09-12 ? parser/conversation fast-tier scheduling
+
+- Added the measured 40?80 second emergent parser and conversation setup nodes to the central slow tier.
+- Collection now reports 3,965 fast tests and 158 slow tests; all moved nodes remain selectable via `-m slow`.
+- This changes scheduling only; no test body or empirical threshold changed.
