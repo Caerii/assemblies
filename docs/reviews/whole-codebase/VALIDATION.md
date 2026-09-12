@@ -6291,3 +6291,7 @@ The scheduled-aligner parity tests no longer depend on `torch.testing.assert_clo
 ### CUDA tensor assertion portability gate (2026-09-12)
 
 The fused CUDA tests and hashed-transducer parity test now use local `torch.allclose`/`torch.equal` assertions instead of `torch.testing.assert_close`, eliminating an undeclared SymPy/`torch.distributed` import from the backend gate while preserving each test's exact or tolerance contract. The fused/hashed CUDA set passes **47 tests with 1 expected hash-overflow warning** in the prepared developer shell.
+
+### Lean assembly IR proof gate (2026-09-12)
+
+The formal bridge compiles cleanly with Lean **v4.30.0**: `lake env lean AssemblyIR.lean` and `lake env lean CheckWireCases.lean` both exit successfully from `formal/`. The initial repository-root invocation correctly failed on module search path, so the recorded command uses the project directory explicitly.
