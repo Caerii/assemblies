@@ -36,7 +36,7 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
-from typing import Dict, List, Mapping, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Callable, Dict, List, Mapping, Optional, Set, Tuple, TYPE_CHECKING, cast
 
 from ..core.areas import ADV_CORE, CORE_TO_CATEGORY, GROUNDING_TO_CORE, FUNC_SUBCAT_TO_CORE
 
@@ -245,9 +245,11 @@ def _frame_pos_scores(
     word: str,
 ) -> Dict[str, float]:
     """Map frame classifier output to open-class POS scores."""
-    if not hasattr(parser, "classify_by_frame"):
+    classifier = getattr(parser, "classify_by_frame", None)
+    if not callable(classifier):
         return {}
-    frame_cat, frame_conf = parser.classify_by_frame(word)
+    classify = cast(Callable[[str], Tuple[Optional[str], float]], classifier)
+    frame_cat, frame_conf = classify(word)
     if not frame_cat or frame_conf <= 0:
         return {}
 
@@ -559,9 +561,14 @@ def decompose_word_classification(
     neural_cat = evidence.category if evidence and evidence.source == "neural" else "UNKNOWN"
     neural_by_cat = evidence.category_scores() if evidence and evidence.source == "neural" else {}
 
-    dist_cat, dist_scores = (
-        parser.classify_distributional(word) if dist_n > 0 else ("UNKNOWN", {})
-    )
+    dist_classifier = getattr(parser, "classify_distributional", None)
+    if dist_n > 0 and callable(dist_classifier):
+        classify_dist = cast(
+            Callable[[str], Tuple[str, Dict[str, float]]], dist_classifier
+        )
+        dist_cat, dist_scores = classify_dist(word)
+    else:
+        dist_cat, dist_scores = "UNKNOWN", {}
     ground_scores = grounding_evidence_scores(ctx)
     prior_cat = max(ground_scores, key=lambda key: ground_scores[key]) if ground_scores else "UNKNOWN"
     boot_cat, boot_scores = classify_word_bootstrapped(parser, word, ctx)

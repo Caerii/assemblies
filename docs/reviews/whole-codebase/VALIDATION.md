@@ -6453,3 +6453,7 @@ POS inference now selects maxima through explicit value lambdas across grounding
 ### Bootstrap evidence score/provenance boundary gate (2026-09-12)
 
 Bootstrap classification now names its compatibility result as `BootstrapScores`, whose values may be numeric category scores or string provenance metadata. The new `numeric_category_scores` projection is the only input to confidence and rounded score summaries, so provenance can no longer enter score arithmetic accidentally. The focused module diagnostics dropped from **22 to 14**; classification evidence tests pass **23 tests**, and `git diff --check` is clean.
+
+### Optional frame and distributional classifier gates (2026-09-12)
+
+POS inference now treats frame and distributional classifiers as optional capabilities. It validates callability once, narrows their return shape, and falls back to empty evidence when the composed parser omits either surface. This removes direct hidden MRO access and the possible `None` category key. Pyright diagnostics dropped from **14 to 12**; classification evidence tests pass **23 tests**, and `git diff --check` is clean.
