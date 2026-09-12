@@ -15,6 +15,7 @@ from pathlib import Path
 
 from research.experiments.capacity import lexicon_capacity as lc
 from research.experiments.capacity import norm_init_capacity as ni
+from research.json_documents import write_checkpoint_document
 
 HERE = Path(__file__).parent
 OUT = HERE / "results_confirm_beta_rec.json"
@@ -42,7 +43,7 @@ def main() -> int:
                     continue
                 res = ni.run_cell(n, beta, MODE, True, s, VOCAB, CPS)
                 results.append(res)
-                OUT.write_text(json.dumps(results, default=float))
+                write_checkpoint_document(OUT, results)
                 print(f"  n={n:>6} beta={beta:<5} seed={s} "
                       f"V*={res['vstar']:>3} (censored={res['vstar_censored']}) "
                       f"vstar_recruit={res['vstar_recruit']:>3} "

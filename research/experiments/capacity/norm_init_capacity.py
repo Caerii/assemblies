@@ -21,7 +21,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import time
@@ -31,11 +30,12 @@ os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 os.environ.setdefault("ASSEMBLIES_BACKBONE_CACHE", "0")
 
+from research.json_documents import write_checkpoint_document
+
 _REPO = Path(__file__).resolve().parents[3]
 if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
-import numpy as np  # noqa: E402
 from neural_assemblies.core.brain import Brain  # noqa: E402
 from research.experiments.capacity import lexicon_capacity as lc  # noqa: E402
 from research.experiments.capacity.analyze import recruit_horizon  # noqa: E402
@@ -93,7 +93,7 @@ def sweep(cells, seeds, vocab_max, checkpoints, out_path, verbose=True):
                       f"{f'EXH@{ex}' if ex is not None else ''} "
                       f"({res['wall_seconds']:.1f}s)", flush=True)
             # incremental save so a crash never loses everything
-            Path(out_path).write_text(json.dumps(results, default=float))
+            write_checkpoint_document(Path(out_path), results)
     print(f"sweep done in {time.perf_counter()-t0:.1f}s -> {out_path}",
           flush=True)
     return results

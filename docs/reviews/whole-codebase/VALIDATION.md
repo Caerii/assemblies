@@ -5341,6 +5341,16 @@ and output schema are unchanged; reruns cannot silently replace the regime
 evidence. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
 
+### Resumable checkpoint writer (2026-09-12)
+
+Resumable capacity and recruitment studies now use an explicit
+`write_checkpoint_document` boundary. It canonicalizes values before any
+mutation, writes a flushed temporary sibling, and atomically replaces the
+checkpoint, preserving resume-after-cell behavior without raw JSON text
+writes. The immutable result writer remains separate and exclusive. Capacity,
+recruitment, storage, and ratchet checks pass: **35 passed**; Ruff and
+compilation are clean.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls

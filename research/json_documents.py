@@ -1,6 +1,8 @@
 """One loss-aware JSON boundary for run records and evidence comparison."""
 import json
 import math
+import os
+import tempfile
 
 
 def unique_pairs(pairs):
@@ -60,3 +62,34 @@ def write_new_document(path, value):
     with path.open('x', encoding='utf-8') as stream:
         stream.write(text)
         stream.flush()
+
+
+def write_checkpoint_document(path, value):
+    """Atomically replace a resumable study checkpoint.
+
+    Checkpoints are mutable by protocol: a study may persist after each cell
+    and resume from the latest complete list. The explicit name keeps that
+    exception separate from immutable result publication. Encoding happens
+    before filesystem mutation; the temporary sibling is flushed and
+    atomically replaced so readers observe either the old or new document.
+    """
+    text = encode_document(value)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    temporary = None
+    try:
+        with tempfile.NamedTemporaryFile(
+            mode='w', encoding='utf-8', dir=path.parent,
+            prefix=f'.{path.name}.', suffix='.tmp', delete=False,
+        ) as stream:
+            temporary = stream.name
+            stream.write(text)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.replace(temporary, path)
+        temporary = None
+    finally:
+        if temporary is not None:
+            try:
+                os.unlink(temporary)
+            except FileNotFoundError:
+                pass

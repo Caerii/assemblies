@@ -55,7 +55,6 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import sys
 import time
 from dataclasses import dataclass
@@ -63,6 +62,8 @@ from pathlib import Path
 from typing import Dict, List, Optional, Sequence, Tuple
 
 import numpy as np
+
+from research.json_documents import write_checkpoint_document
 
 _REPO = Path(__file__).resolve().parents[3]
 if str(_REPO) not in sys.path:
@@ -297,7 +298,7 @@ def sweep(cells: Sequence[Dict], seeds: Sequence[int], base: Config,
         # Checkpoint after every cell: this machine is heavily contended and a
         # killed sweep must not lose hours of completed runs.
         if out_path is not None:
-            out_path.write_text(json.dumps(out, indent=1, default=float))
+            write_checkpoint_document(out_path, out)
     return out
 
 
@@ -345,7 +346,7 @@ def main() -> int:
     results = sweep(cells, seeds, base, cps, out_path=out)
     print(f"done in {time.perf_counter()-t0:.1f}s")
 
-    out.write_text(json.dumps(results, indent=1, default=float))
+    write_checkpoint_document(out, results)
     print(f"wrote {out}")
     return 0
 

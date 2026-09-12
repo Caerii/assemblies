@@ -44,9 +44,5 @@
     "research/experiments/wmax_census.py": 1,
     "research/experiments/zipf_synthesis.py": 1
   },
-  "direct_json_write_text_sites": {
-    "research/experiments/capacity/confirm_beta_rec.py": 1,
-    "research/experiments/capacity/norm_init_capacity.py": 1,
-    "research/experiments/recruitment/recruitment_mechanisms.py": 2
-  }
+  "direct_json_write_text_sites": {}
 }

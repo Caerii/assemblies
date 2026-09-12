@@ -5,13 +5,23 @@ import numpy as np
 import pytest
 from research.experiments import base
 from research.experiments.stability.test_noise_robustness import NoiseRobustnessExperiment
-from research.json_documents import write_new_document
+from research.json_documents import write_checkpoint_document, write_new_document
 from research import runner
 
 
 def test_old_and_new_runners_share_the_exclusive_writer():
     assert runner._write_new is write_new_document
     assert base.write_new_document is write_new_document
+
+
+def test_checkpoint_writer_replaces_atomically_and_validates_before_mutation(tmp_path):
+    path = tmp_path / 'nested' / 'checkpoint.json'
+    write_checkpoint_document(path, {'cells': [1]})
+    write_checkpoint_document(path, {'cells': [1, 2]})
+    assert json.loads(path.read_text()) == {'cells': [1, 2]}
+    with pytest.raises(ValueError):
+        write_checkpoint_document(path.parent / 'invalid.json', {'value': float('nan')})
+    assert not (path.parent / 'invalid.json').exists()
 
 
 def test_legacy_save_roundtrip_and_overwrite_refusal(tmp_path):
