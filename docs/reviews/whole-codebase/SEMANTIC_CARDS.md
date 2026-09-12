@@ -24,6 +24,19 @@ REFRACTION-CANCELS-CONVERGENCE; the FSM card to SEQ-EXACT-RECOVERY and
 SEQ-REGIME-CLIFF; the transducer card to SEQ-TEMPORAL-CARRY. Those entries'
 preconditions and provenance caveats remain part of any claim made from a run.
 
+<a id="contract-dialogue"></a>
+
+## Q: dialogue training and turn presentation
+
+Code: `emergent/parser_mixins/dialogue.py:train_dialogue`, `present_turn`, and `parse_instruction_with_context`.
+
+- **Reads:** the composed parser's stimulus map, grounding map, prediction lexicon, incremental parser, instruction parser, and transition-learning parameters; optional `DialogueState` supplies pronoun resolution and recent context.
+- **Schedule:** `train_dialogue` compiles question-to-answer transitions and trains next-token bridges with duplicate sentences disabled. `present_turn` parses known words incrementally, optionally ingests each known word, then builds the instruction frame. Context parsing resolves words before parsing and presents up to the previous eight context words afterward.
+- **Mutates:** prediction lexicon and learned bridge state during training; incremental activity and raw exposure during a learned turn; the returned frame receives the caller's speaker label. A supplied `DialogueState` itself is read only by this mixin.
+- **Readout:** `InstructionFrame` for a turn, or a `CorpusIndex` consumed by next-token training. No dialogue metric is produced by these methods.
+- **Failure conditions:** empty or out-of-vocabulary pairs produce no bridge; an empty compiled transition set returns without training. `speaker` must be a nonempty string. These are operational guards, not evidence that dialogue understanding succeeded.
+
+The implementation depends on methods supplied by other parser mixins and compiler helpers typed against `CoreParserMixin`. That dependency is currently implicit in the Python MRO; a future operation contract must replace it with a minimal protocol or shared parser service before this surface is treated as independently composable. Focused dialogue tests are the behavioral gate for that refactor.
 <a id="contract-assembly-attention"></a>
 
 ## D: typed assembly attention (snapshot readout implemented; learned path is a design target)
