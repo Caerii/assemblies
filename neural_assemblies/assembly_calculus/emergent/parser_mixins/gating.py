@@ -274,11 +274,15 @@ class GatingMixin:
 
         Args:
             words: Sentence word list.
-            categories: Pre-classified {word: category}.
-
         Returns:
             (role_order_default, is_passive).
         """
+        missing = [word for word in words if word not in categories]
+        if missing:
+            raise ValueError(
+                "categories must classify every word before role ordering; "
+                f"missing {sorted(set(missing))}"
+            )
         # Stage 0: unmarked ranking from the inferred constituent order.
         base_order = self.constituent_role_order()
 

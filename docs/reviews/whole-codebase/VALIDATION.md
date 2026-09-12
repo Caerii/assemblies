@@ -5833,3 +5833,10 @@ and a signature test protects the reduced surface.
 The cached-prefix ERP probe no longer accepts the baseline object it never
 reads; baseline remains explicit only on the non-cached probe that computes
 excess values. The frame module passes Ruff and compilation checks.
+
+### Role-order category admission (2026-09-12)
+
+The shared role-order hook retains its categories argument for subclass and
+test-harness compatibility, but now validates that every sentence word is
+classified before gating. Passive-voice and role-observation suites pass **15
+tests**, including the missing-category true negative.

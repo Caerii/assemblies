@@ -196,3 +196,7 @@ class TestTheParserLearnsAndAppliesIt:
         roles, _diag = trained.parse_roles_by_reconstruction(words)
         assert roles.get(agent) == "AGENT", roles
         assert roles.get(patient) == "PATIENT", roles
+
+    def test_role_order_rejects_unclassified_words(self, trained):
+        with pytest.raises(ValueError, match="classify every word"):
+            trained._determine_role_order(["dog"], {})

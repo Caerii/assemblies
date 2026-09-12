@@ -439,8 +439,7 @@ class RoleBindingMixin:
             inhibited.add(role_area)
 
         # Determine role order: learned gating (Stage 1) or rules (Stage 2)
-        role_order_default, is_passive = self._determine_role_order(
-            words, categories)
+        role_order_default, is_passive = self._determine_role_order(words, categories)
 
         # A role MARKER (the "by" of a passive) signals that the noun after it
         # takes the reversed role. The marker is identified by its learned
