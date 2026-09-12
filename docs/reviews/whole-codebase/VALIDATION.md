@@ -7233,3 +7233,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Replaced truthiness-based optional RNG selection with an explicit generator in the digit-3 absence curriculum.
 - `uv run pyright neural_assemblies/programs/colt_mnist_absence.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_synthesis.py -q`: 3 passed in 31.23s.
+
+
+## 2026-09-12 ? two-layer protocol null state
+
+- Initialized the high-layer assembly explicitly so the registered zero-round/null protocol is defined and no variable is conditionally unbound.
+- `uv run pyright neural_assemblies/programs/colt_mnist_protocol.py`: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_colt_mnist_protocol.py -q`: 2 passed, 1 skipped in 100.73s.
