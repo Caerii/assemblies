@@ -48,7 +48,7 @@ from typing import Any, Dict, List, Set
 def jaccard_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
     """Return set Jaccard similarity, with the empty/empty identity of 1.
 
-    Specification: ``neural_assemblies/ir/VERIFICATION.md#contract-set-metrics``
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-set-metrics
     """
     left, right = set(a), set(b)
     union = left | right
@@ -58,7 +58,7 @@ def jaccard_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
 def cosine_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
     """Return set cosine overlap ``|A ∩ B| / sqrt(|A||B|)``.
 
-    Specification: ``neural_assemblies/ir/VERIFICATION.md#contract-set-metrics``
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-set-metrics
     """
     left, right = set(a), set(b)
     if not left or not right:
@@ -69,7 +69,7 @@ def cosine_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
 def recall_fraction(observed: Iterable[Hashable], reference: Iterable[Hashable]) -> float:
     """Return the fraction of a reference set recovered by an observation.
 
-    Specification: ``neural_assemblies/ir/VERIFICATION.md#contract-set-metrics``
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-set-metrics
     """
     expected = set(reference)
     if not expected:
