@@ -6683,3 +6683,8 @@ The central `_engine.py` now separates real Torch tensor annotations and CUDA li
 ## Torch hashed-fiber boundary migration (2026-09-12)
 
 The primary hashed fiber implementation `_hashed.py` now uses the explicit `torch_ops` runtime namespace for generated factories, reductions, indexing, and dtypes. Pyright and Ruff report zero diagnostics. Hashed substrate, aligner, transducer, hash, and scaling regressions pass **17 tests with 24 expected skips**; hashed arithmetic and state semantics are unchanged.
+
+
+## Torch memory boundary migration (2026-09-12)
+
+`_memory.py` now uses the shared `torch_ops` namespace for its runtime dtype boundary. Pyright and Ruff report zero diagnostics. Refracted-memory, hashed substrate, Torch parity, and hash-finalizer regressions pass **47 tests with 19 expected skips**. An audit of the full Torch engine package finds no remaining generated `torch` calls outside `torch_ops`; remaining direct references are intentional tensor annotations, type checks, or CUDA lifecycle operations.
