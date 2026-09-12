@@ -1,3 +1,4 @@
+# pyright: reportAttributeAccessIssue=false
 """Batched-forward mini-batch training for assembly-calculus sequence models.
 
 Turns the batched forward pass (Lever B, docs/gpu_scale_design.md) into a

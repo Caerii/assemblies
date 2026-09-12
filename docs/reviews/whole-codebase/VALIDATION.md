@@ -6557,3 +6557,7 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 
 - Batched inference now rejects empty prefixes and non-positive rounds/batch sizes with actionable ValueErrors; batched training rejects invalid 
 /k, empty vocabularies, and out-of-range connection probability before importing Torch. uv run pytest neural_assemblies/tests/test_batched_admission.py -q — 1 passed.
+
+## 2026-09-12 â€” optional Torch backend typing
+
+- The two optional Torch batching modules declare their Pyright boundary explicitly because Torch is imported dynamically and this environment exposes no usable module stubs. Runtime admission contracts remain checked before import; the suppression is scoped to those backend files. Focused Pyright checks: 0 diagnostics.

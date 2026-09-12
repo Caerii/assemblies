@@ -1,3 +1,4 @@
+# pyright: reportAttributeAccessIssue=false
 """Batched next-token prediction on the GPU (scale up language inference).
 
 ``next_token.score_corpus`` runs one FROZEN prediction per corpus position, each
