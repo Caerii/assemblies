@@ -47,7 +47,7 @@ is *arithmetic* is here, and both engines call it.
 
 from __future__ import annotations
 
-from typing import Optional, Sequence, Tuple, Union
+from typing import Optional, Sequence, Tuple, Union, cast
 
 __all__ = [
     "candidate_divisor",
@@ -113,8 +113,15 @@ def candidate_divisor(
     ``sum_f a_f * p_f``.  With every ``p_f`` equal this is the same expression,
     which is what keeps homogeneous brains bit-identical.
     """
-    per_fiber = not isinstance(p, (int, float))
-    ps = list(p) if per_fiber else None
+    per_fiber = isinstance(p, Sequence) and not isinstance(p, (str, bytes))
+    if per_fiber:
+        ps: list[float] | None = [
+            float(value) for value in cast(Sequence[float], p)
+        ]
+        scalar_p: float | None = None
+    else:
+        ps = None
+        scalar_p = float(cast(float, p))
     if input_sizes is not None and src_pops is not None and len(input_sizes) != len(src_pops):
         raise ValueError("input_sizes and src_pops must have equal length")
     if input_sizes and src_pops and len(input_sizes) == len(src_pops):
@@ -129,11 +136,20 @@ def candidate_divisor(
             pop = float(pop)
             if size <= 0.0 or pop <= 0.0:
                 continue
-            total_weighted_p += size * (ps[i] if ps is not None else float(p))
+            if ps is None:
+                assert scalar_p is not None
+                fiber_p = scalar_p
+            else:
+                fiber_p = ps[i]
+            total_weighted_p += size * fiber_p
             weighted += size / pop
         if total_weighted_p > 0.0 and weighted > 0.0:
             return max(total_weighted_p / weighted, 1e-12)
-    flat = (sum(ps) / len(ps)) if ps else float(p)
+    if ps:
+        flat = sum(ps) / len(ps)
+    else:
+        assert scalar_p is not None
+        flat = scalar_p
     return max(float(tgt_n) * flat, 1e-12)
 
 
