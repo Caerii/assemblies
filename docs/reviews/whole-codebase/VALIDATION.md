@@ -7332,3 +7332,6 @@ The attractor training protocol now declares its actual seven-value return contr
 - Same run with 16 workers: 3,800 passed, 135 skipped, 7 xfailed, 10 subtests in 251.74s (4:11). More workers are slower on this 16-logical-core host because native numerical thread pools and worker teardown contend.
 - `scripts/verify_maintained.py` now defaults to `min(12, logical CPUs)`; `ASSEMBLIES_TEST_WORKERS` and `--workers` remain explicit overrides.
 - README commands and performance table now use the measured 12-worker fast path and document the tuning override.
+
+
+- Post-change maintained static gate: `scripts/verify_maintained.py --skip-tests` passed; Pyright analyzed 286 files with 0 errors.
