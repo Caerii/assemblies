@@ -5657,5 +5657,6 @@ direct winner replacement, pickle round-trips, and old-checkpoint fallback:
 so their semantic identity survives at runtime without abandoning NumPy array
 operations or device-compatible validation. `overlap` rejects mixed branded
 spaces before calculating a meaningless score, while unbranded arrays retain
-the compatibility path. Static Pyright checks plus runtime true-negative and\nassembly-calculus tests pass: **34 passed**. Ruff and diff checks pass.
+the compatibility path. Static Pyright checks plus runtime true-negative and
+assembly-calculus tests pass: **34 passed**. Ruff and diff checks pass.
 
