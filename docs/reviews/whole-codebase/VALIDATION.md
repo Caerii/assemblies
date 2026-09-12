@@ -7204,3 +7204,11 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Made the dynamically returned spatial brain explicit at the generative capture and plasticity mutation boundary.
 - `uv run pyright neural_assemblies/programs/fashion_ventral.py`: 0 errors.
+
+
+## 2026-09-12 ? FSM transition input boundaries
+
+- Unified `FSMNetwork` and `NemoArcFSM` on covariant `Sequence` inputs for states, symbols, and shared `TransitionLike` transitions.
+- This removes list-invariance friction for ordinary tuple/list transition tables while preserving symbolic validation.
+- `uv run pyright` on FSM and dependent program modules: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_fsm.py neural_assemblies/tests/test_transitions.py neural_assemblies/tests/test_transition_contract.py -q`: 65 passed in 2.17s.
