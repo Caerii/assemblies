@@ -267,6 +267,13 @@ class TestRefractionRule(unittest.TestCase):
         b.add_area("A", N, K, BETA, refracted=False)   # must not raise
         self.assertIn("A", b.areas)
 
+    def test_masked_readout_requires_an_actual_boolean(self):
+        b = _make_brain()
+        b.add_stimulus("s", K)
+        b.add_area("A", N, K, BETA, refracted=True, refracted_strength=0.1)
+        with self.assertRaises(TypeError):
+            b.set_masked_readout("A", 1)
+
 
 if __name__ == '__main__':
     unittest.main()

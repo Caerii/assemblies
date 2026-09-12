@@ -1483,13 +1483,15 @@ class Brain:
         """
         if area_name not in self.areas:
             raise KeyError(f"unknown area {area_name!r}")
+        if type(enabled) is not bool:
+            raise TypeError("masked readout enabled flag must be a bool")
         owner = self._engine_for(self.areas[area_name])
         st = getattr(owner, "_areas", {}).get(area_name)
         if st is None:
             raise NotImplementedError(
                 f"{type(owner).__name__} does not expose masked readout state"
             )
-        st.masked_readout = bool(enabled)
+        st.masked_readout = enabled
 
     def materialize_area(self, area_name: str, storage: str = "csr") -> int:
         """Bring all ``n`` neurons into existence AND resync the descriptor.

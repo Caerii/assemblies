@@ -7004,3 +7004,6 @@ Centralized directed-fiber endpoint validation in `Brain._validate_fiber_endpoin
 ## Refraction-strength validation (2026-09-12)
 
 Added `validate_refraction_strength` to the homeostasis owner and applied it before Brain area registration and runtime refraction mutation. Invalid negative, nonfinite, and boolean strengths now fail before descriptor/backend state changes. Validation: homeostasis suite 12 passed; Pyright on homeostasis and Brain 0 errors/warnings/information.
+## Masked-readout control validation (2026-09-12)
+
+`Brain.set_masked_readout` now rejects nonboolean flags before resolving backend state and stores the validated value without truthiness coercion. This prevents values such as `1` or `"false"` from silently selecting a different refraction readout protocol. Validation: refraction suite 12 passed; Pyright on Brain and homeostasis 0 errors/warnings/information.
