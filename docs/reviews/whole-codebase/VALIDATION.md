@@ -5606,3 +5606,10 @@ studies now publish through the canonical exclusive writer. Their registered
 arms and output schemas are unchanged; reruns fail rather than replacing
 prior evidence. Ruff, compilation, the result-writer ratchets, and diff checks
 pass.
+
+### Coin fairness artifact protection (2026-09-12)
+
+The finite-size/null ladder and trained coin outputs now use the canonical
+exclusive writer. Simulation, replot loading, and figure generation are
+unchanged; reruns cannot silently replace either evidence file. Ruff,
+compilation, result-writer ratchets, and diff checks pass.

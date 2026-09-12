@@ -79,11 +79,14 @@ import argparse
 import json
 import os
 import sys
+from pathlib import Path
 from dataclasses import dataclass, asdict
 
 import time as _time
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 sys.path.insert(0, ROOT)
@@ -600,9 +603,8 @@ def null_ladder(rungs=((500, 50, 40, 400), (2000, 200, 32, 400),
         # fair, not that the measurement is insensitive.
         print(f"binomial sd floor at {nf} flips: {np.sqrt(0.25/nf):.4f}")
     path = os.path.join(OUT_DATA, "coin_null_ladder.json")
-    with open(path, "w") as fh:
-        json.dump({"rungs": [list(r) for r in rungs],
-                   "cells": [asdict(c) for c in cells]}, fh, indent=2)
+    write_new_document(Path(path), {"rungs": [list(r) for r in rungs],
+                                    "cells": [asdict(c) for c in cells]})
     print(f"data -> {path}")
     return cells
 
@@ -715,8 +717,7 @@ def main():
         "settle": [asdict(c) for c in st],
         "cap_density": [asdict(c) for c in kn],
     }
-    with open(os.path.join(OUT_DATA, "coin_fairness.json"), "w") as fh:
-        json.dump(payload, fh, indent=2)
+    write_new_document(Path(OUT_DATA) / "coin_fairness.json", payload)
 
     write_figures(fs, null, st, kn, trained)
     print(f"\nfigures -> {OUT_FIG}\ndata    -> {OUT_DATA}")

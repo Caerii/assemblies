@@ -3,7 +3,6 @@
     "research/experiments/applications/explore_agreement_params.py": 1,
     "research/experiments/childes_graduation.py": 1,
     "research/experiments/childes_phase1_recipe.py": 1,
-    "research/experiments/coin_fairness_study.py": 2,
     "research/experiments/competition_dynamics.py": 1,
     "research/experiments/dead_fiber_hunt.py": 1,
     "research/experiments/fetch_childes_brown.py": 1,
