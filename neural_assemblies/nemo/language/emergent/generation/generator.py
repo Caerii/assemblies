@@ -14,8 +14,10 @@ The VP assembly is the unit of meaning. To generate:
 3. The response EMERGES from activation patterns
 """
 
-from typing import List, Dict, Optional, TYPE_CHECKING
-import cupy as cp
+import importlib
+from typing import Any, List, Dict, Optional, TYPE_CHECKING
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
@@ -315,7 +317,7 @@ class EmergentGenerator:
     # ASSEMBLY-BASED DECODING
     # =========================================================================
     
-    def _decode_words_from_activation(self, assembly: cp.ndarray,
+    def _decode_words_from_activation(self, assembly: CpArray,
                                        area: Area,
                                        max_words: int = 5) -> List[str]:
         """
@@ -338,7 +340,7 @@ class EmergentGenerator:
     # FULL EMERGENT GENERATION (experimental)
     # =========================================================================
     
-    def generate_emergent(self, seeds: Dict[Area, cp.ndarray],
+    def generate_emergent(self, seeds: Dict[Area, CpArray],
                           max_words: int = 10) -> str:
         """
         Generate a response through pure activation spreading.
