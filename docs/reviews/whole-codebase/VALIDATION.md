@@ -5562,3 +5562,10 @@ observations through `write_checkpoint_document`. Its corpus/budget arms,
 cross-architecture references, and analysis remain unchanged, while raw JSON
 overwrite is replaced by atomic checkpoint publication. Compilation, Ruff,
 and both result-writer ratchets pass: **2 passed**.
+### Variation-buys writer migration (2026-09-12)
+
+The registered corpus-variation study now publishes its fixed result artifact
+through the canonical finite, exclusive writer. Its default/ablation/null
+arms, feature readouts, and output schema are unchanged; reruns cannot
+silently replace the evidence. Compilation, Ruff, and both result-writer
+ratchets pass: **2 passed**.

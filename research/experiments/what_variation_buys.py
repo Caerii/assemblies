@@ -97,16 +97,18 @@ passive-participle-only.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 from collections import defaultdict
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 SEEDS = [42, 43, 44, 45, 46]
 ARMS = ("DEFAULT", "ABLATE", "NO_VARIATION")
@@ -216,9 +218,10 @@ def main():
                   f"sep={number['_image_separation']})",
                   flush=True)
 
-    with open(OUT_PATH, "w") as f:
-        json.dump({a: {str(s): v for s, v in by.items()}
-                   for a, by in results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        a: {str(s): v for s, v in by.items()}
+        for a, by in results.items()
+    })
     print(f"\nwrote {OUT_PATH}")
 
     # Registered-prediction summary. Seed summaries go through
