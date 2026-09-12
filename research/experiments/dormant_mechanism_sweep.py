@@ -122,8 +122,11 @@ import os
 import sys
 import weakref
 from collections import Counter, defaultdict
+from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 sys.path.insert(0, os.path.dirname(os.path.dirname(
     os.path.dirname(os.path.abspath(__file__)))))
@@ -356,7 +359,7 @@ def install():
     def _project_impl(self, areas_by_stim, dst_areas_by_src_area,
                       verbose=0, external_drive=None):
         TRACER.impl_calls += 1
-        bid = TRACER.note_brain(self)
+        TRACER.note_brain(self)
 
         targets = set()
         for areas in (areas_by_stim or {}).values():
@@ -854,14 +857,11 @@ def dump_json(path):
     this job: its workers are separate processes and the tracer state lives in
     whichever process ran the test.
     """
-    import json
-
     def ckeys(counter):
         return {" | ".join(str(x) for x in k) if isinstance(k, tuple) else str(k): v
                 for k, v in counter.items()}
 
-    with open(path, "w") as fh:
-        json.dump({
+    write_new_document(Path(path), {
             "project_calls": TRACER.project_calls,
             "impl_calls": TRACER.impl_calls,
             "into_calls": TRACER.into_calls,
@@ -892,7 +892,7 @@ def dump_json(path):
             "census_dead_into_live": TRACER.census_dead_into_live,
             "census_dead_undriven": TRACER.census_dead_undriven,
             "census_dead_driven": ckeys(TRACER.census_dead_driven),
-        }, fh, indent=1)
+        })
 
 
 def main():

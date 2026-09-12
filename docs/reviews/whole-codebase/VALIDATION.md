@@ -5457,3 +5457,11 @@ through `write_checkpoint_document`. Its arm/budget keys and analysis remain
 unchanged, while raw JSON overwrite is replaced by atomic checkpoint
 publication. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
+
+### Dormant-mechanism sweep writer migration (2026-09-12)
+
+The shardable dormant-mechanism census now publishes its optional
+`--sweep-json` counter artifact through the canonical finite, exclusive writer.
+Shard paths and additive aggregation semantics are unchanged, while direct
+JSON overwrite is removed. A stale tracer assignment was also simplified.
+Compilation, Ruff, and both result-writer ratchets pass: **2 passed**.
