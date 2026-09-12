@@ -14,9 +14,12 @@ This tests if the learned representations support generation.
 """
 
 import numpy as np
-from typing import List, Tuple, Optional
+from typing import TYPE_CHECKING, List, Tuple, Optional, Any
 
-from .learner import LanguageLearner
+if TYPE_CHECKING:
+    from .learner import LanguageLearner
+else:
+    LanguageLearner = Any
 
 
 class SentenceGenerator:

@@ -24,12 +24,15 @@ Scientific Value:
 """
 
 import numpy as np
-from typing import Callable, List, Dict, Tuple
+from typing import TYPE_CHECKING, Callable, List, Dict, Tuple, Any
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from collections import defaultdict
 
-from .learner import LanguageLearner
+if TYPE_CHECKING:
+    from .learner import LanguageLearner
+else:
+    LanguageLearner = Any
 
 
 class StructureType(Enum):
@@ -224,7 +227,10 @@ class CurriculumLearner:
     """
     
     def __init__(self, learner: LanguageLearner | None = None, verbose: bool = True):
-        self.learner = learner or LanguageLearner(verbose=False)
+        if learner is None:
+            from .learner import LanguageLearner as _LanguageLearner
+            learner = _LanguageLearner(verbose=False)
+        self.learner = learner
         self.curriculum = Curriculum()
         self.verbose = verbose
         

@@ -27,34 +27,39 @@ Curriculum stages are modeled after child language acquisition:
 4. Full sentences - 30-36 months
 """
 
-from .learner import LanguageLearner
-from .generator import SentenceGenerator
-from .curriculum import Curriculum, CurriculumLearner, StructureType, StructureDetector
-from .nemo_learner import (
-    NemoLanguageLearner, NemoBrain, NemoParams,
-    GroundedContext, GroundingType, SpeechAct, Area
-)
-from .integrated_trainer import IntegratedNemoTrainer, TrainingStats
+from importlib import import_module
 
-__all__ = [
-    # NEMO (neurobiologically plausible)
-    'NemoLanguageLearner',
-    'NemoBrain', 
-    'NemoParams',
-    'GroundedContext',
-    'GroundingType',
-    'SpeechAct',
-    'Area',
-    # Integrated trainer (with lexicon + curriculum)
-    'IntegratedNemoTrainer',
-    'TrainingStats',
-    # Simple statistical
-    'LanguageLearner', 
-    'SentenceGenerator',
-    # Curriculum
-    'Curriculum',
-    'CurriculumLearner',
-    'StructureType',
-    'StructureDetector',
-]
+# Keep the package itself CPU-importable.  The statistical utilities and the
+# curriculum definitions do not need the legacy CuPy learner; resolve every
+# public symbol only when requested, and let the requested optional backend
+# report its own dependency error.
+_LAZY_SYMBOLS = {
+    'LanguageLearner': ('.learner', 'LanguageLearner'),
+    'SentenceGenerator': ('.generator', 'SentenceGenerator'),
+    'Curriculum': ('.curriculum', 'Curriculum'),
+    'CurriculumLearner': ('.curriculum', 'CurriculumLearner'),
+    'StructureType': ('.curriculum', 'StructureType'),
+    'StructureDetector': ('.curriculum', 'StructureDetector'),
+    'NemoLanguageLearner': ('.nemo_learner', 'NemoLanguageLearner'),
+    'NemoBrain': ('.nemo_learner', 'NemoBrain'),
+    'NemoParams': ('.nemo_learner', 'NemoParams'),
+    'GroundedContext': ('.nemo_learner', 'GroundedContext'),
+    'GroundingType': ('.nemo_learner', 'GroundingType'),
+    'SpeechAct': ('.nemo_learner', 'SpeechAct'),
+    'Area': ('.nemo_learner', 'Area'),
+    'IntegratedNemoTrainer': ('.integrated_trainer', 'IntegratedNemoTrainer'),
+    'TrainingStats': ('.integrated_trainer', 'TrainingStats'),
+}
+
+
+def __getattr__(name: str):
+    try:
+        module_name, symbol = _LAZY_SYMBOLS[name]
+    except KeyError:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
+    value = getattr(import_module(module_name, __name__), symbol)
+    globals()[name] = value
+    return value
+
+__all__ = list(_LAZY_SYMBOLS)  # pyright: ignore[reportUnsupportedDunderAll]
 

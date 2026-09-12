@@ -6918,3 +6918,8 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 ## Instance-owned grounded corpus randomness (2026-09-12)
 
 `lexicon/curriculum/grounded_training.py` now accepts either an injected `random.Random` instance or a seed and routes adjective, action, and batch sampling through it. Seeded grounded-example determinism and global-RNG isolation probes pass; sentence/lexicon tests pass **11/11**, with Pyright and Ruff clean.
+
+
+## Lazy optional Nemo language imports (2026-09-12)
+
+`nemo/language/__init__.py` now resolves public symbols lazily, so CPU-safe `SentenceGenerator` and `Curriculum` imports do not eagerly load the CuPy-backed learner. The generator and curriculum modules import learner types only under `TYPE_CHECKING` and load the learner locally when construction requires it. Pyright reports zero diagnostics; docs-example smoke tests pass **4/4** active tests with **1** expected optional-backend skip.
