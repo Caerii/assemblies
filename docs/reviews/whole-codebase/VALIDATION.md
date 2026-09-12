@@ -7450,3 +7450,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Centralized the repeated contract-plan execution loop in `_execute_schedule`; plan-specific preflight remains local while step interpretation has one implementation.
 - Validation: operation contract suite passed (169 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 canonical chance-overlap null
+
+- Removed duplicate chance-overlap formulas from parser error detection and the research experiment base helper.
+- Both now delegate to `assembly.chance_overlap(k, n)`; the parser adapter preserves its legacy `(n, k)` signature and degenerate boundary behavior.
+- Added a cross-module formula invariant. Validation: parse-error plus assembly calculus tests passed (53 tests); Pyright reported 0 errors; `git diff --check` passed.

@@ -19,6 +19,7 @@ import numpy as np
 from scipy import stats
 
 from research.json_documents import load_document, write_new_document
+from neural_assemblies.assembly_calculus.assembly import chance_overlap as _canonical_chance_overlap
 
 
 def _validate_execution_success(value):
@@ -264,7 +265,7 @@ def chance_overlap(k: int, n: int) -> float:
     If A and B are independent uniform random k-subsets, then
     E[|A ∩ B|] / k = k / n  (hypergeometric mean / k).
     """
-    return k / n
+    return _canonical_chance_overlap(k, n)
 
 
 def summarize(values: List[float]) -> Dict[str, float]:

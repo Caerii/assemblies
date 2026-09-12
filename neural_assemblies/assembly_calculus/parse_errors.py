@@ -52,7 +52,7 @@ from typing import Dict, List, Optional, Tuple
 
 import numpy as np
 
-from .assembly import Assembly, overlap
+from .assembly import Assembly, chance_overlap as _canonical_chance_overlap, overlap
 
 __all__ = [
     "Stability",
@@ -83,9 +83,13 @@ def chance_overlap(n: int, k: int) -> float:
     This is the null a readout must beat, and it is a property of the AREA, not
     of any measurement.
     """
+    # Preserve the parser detector's degenerate null convention while sharing
+    # the canonical k/n implementation for the valid population regime.
     if n <= 0 or k <= 0:
         return 0.0
-    return min(1.0, float(k) / float(n))
+    if k >= n:
+        return 1.0
+    return _canonical_chance_overlap(k, n)
 
 
 def overlap_sd(n: int, k: int) -> float:

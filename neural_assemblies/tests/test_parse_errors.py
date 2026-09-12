@@ -26,6 +26,13 @@ from neural_assemblies.assembly_calculus.parse_errors import (
     nonsense_threshold,
     overlap_sd,
 )
+
+
+def test_parser_and_library_nulls_share_one_canonical_formula():
+    from neural_assemblies.assembly_calculus.assembly import chance_overlap as library_chance
+
+    for n, k in ((3000, 30), (1000, 50), (30, 30)):
+        assert chance_overlap(n, k) == pytest.approx(library_chance(k, n))
 from neural_assemblies.core.inhibition import (
     DISINHIBIT,
     InhibitionState,
