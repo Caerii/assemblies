@@ -14,16 +14,16 @@ The system must LEARN everything from:
 Key question: Can grammatical categories EMERGE from this?
 """
 
-import torch
-import numpy as np
 import time
-from typing import Dict, List, Tuple
 from collections import defaultdict
+from typing import Any, Dict, List, Tuple
 
-# Check CUDA
-assert torch.cuda.is_available(), "CUDA required"
-DEVICE = torch.device('cuda')
-print(f"Using GPU: {torch.cuda.get_device_name()}")
+import numpy as np
+from neural_assemblies.core._torch_ops import torch_ops
+
+assert torch_ops.cuda.is_available(), "CUDA required"
+DEVICE = torch_ops.device("cuda")
+print(f"Using GPU: {torch_ops.cuda.get_device_name()}")
 
 
 class TrueAssemblyBrain:
@@ -53,16 +53,16 @@ class TrueAssemblyBrain:
         
         # ALL areas connect to ALL areas (including self)
         # Learning will determine which connections are meaningful
-        self.W: Dict[Tuple[str, str], torch.Tensor] = {}
+        self.W: Dict[Tuple[str, str], Any] = {}
         for src in self.areas:
             for dst in self.areas:
-                self.W[(src, dst)] = torch.randn(n, n, device=DEVICE) * 0.01
+                self.W[(src, dst)] = torch_ops.randn(n, n, device=DEVICE) * 0.01
         
         # Current activations
-        self.activations: Dict[str, torch.Tensor] = {}
+        self.activations: Dict[str, Any] = {}
         
         # Word representations - will be LEARNED, not assigned
-        self.word_to_indices: Dict[str, torch.Tensor] = {}
+        self.word_to_indices: Dict[str, Any] = {}
         
         # Statistics for analysis (not used in learning!)
         self.word_contexts: Dict[str, List[List[str]]] = defaultdict(list)
@@ -74,20 +74,20 @@ class TrueAssemblyBrain:
             print(f"  Areas: {self.areas}")
             print(f"  Connections: {n_connections} ({mem_mb:.1f} MB)")
     
-    def get_word_assembly(self, word: str) -> torch.Tensor:
+    def get_word_assembly(self, word: str) -> Any:
         """Get or create assembly for a word"""
         if word not in self.word_to_indices:
             # Random initial assembly
-            self.word_to_indices[word] = torch.randperm(self.n, device=DEVICE)[:self.k]
+            self.word_to_indices[word] = torch_ops.randperm(self.n, device=DEVICE)[:self.k]
         return self.word_to_indices[word]
     
-    def activate(self, area: str, indices: torch.Tensor):
+    def activate(self, area: str, indices: Any):
         """Activate specific neurons in an area"""
-        act = torch.zeros(self.n, device=DEVICE)
+        act = torch_ops.zeros(self.n, device=DEVICE)
         act[indices] = 1.0
         self.activations[area] = act
     
-    def project_all(self, src_area: str, learn: bool = True) -> Dict[str, torch.Tensor]:
+    def project_all(self, src_area: str, learn: bool = True) -> Dict[str, Any]:
         """
         Project from src to ALL other areas simultaneously.
         Each area competes internally (winner-take-all).
@@ -116,14 +116,14 @@ class TrueAssemblyBrain:
             
             area_inputs[dst_area] = input_to_dst
             # Response = sum of top-k activations
-            top_vals, _ = torch.topk(input_to_dst, self.k)
+            top_vals, _ = torch_ops.topk(input_to_dst, self.k)
             area_responses[dst_area] = top_vals.sum().item()
         
         # Find winning area (excluding LEX and SEQ)
         cat_areas = [a for a in self.areas if a.startswith('CAT')]
         if cat_areas:
             cat_responses = {a: area_responses[a] for a in cat_areas}
-            winning_cat = max(cat_responses, key=cat_responses.get)
+            winning_cat = max(cat_responses, key=lambda name: cat_responses[name])
         else:
             winning_cat = None
         
@@ -132,10 +132,10 @@ class TrueAssemblyBrain:
             input_to_dst = area_inputs[dst_area]
             
             # Winner-take-all within area
-            _, winners = torch.topk(input_to_dst, self.k)
+            _, winners = torch_ops.topk(input_to_dst, self.k)
             
             # Update activation
-            new_act = torch.zeros(self.n, device=DEVICE)
+            new_act = torch_ops.zeros(self.n, device=DEVICE)
             new_act[winners] = 1.0
             self.activations[dst_area] = new_act
             
@@ -308,7 +308,7 @@ class TrueLanguageLearner:
         
         for epoch in range(n_epochs):
             sentences = self.corpus.copy()
-            np.random.shuffle(sentences)
+            getattr(np.random, "shuffle")(sentences)
             
             for sentence in sentences:
                 self.process_sentence(sentence, learn=True)
@@ -544,7 +544,7 @@ def main():
     print(f"  Words learned: {len(learner.brain.word_to_indices)}")
     print(f"  Sentences seen: {learner.sentences_seen}")
     
-    mem = torch.cuda.memory_allocated() / 1e6
+    mem = torch_ops.cuda.memory_allocated() / 1e6
     print(f"  GPU memory: {mem:.1f} MB")
     
     print("\n  KEY QUESTION: Did grammatical categories EMERGE?")
