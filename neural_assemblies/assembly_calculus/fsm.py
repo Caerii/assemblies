@@ -47,7 +47,7 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import Dict, List
+from typing import Dict, List, Sequence
 
 from .readout import Lexicon
 from .ops import project
@@ -80,9 +80,9 @@ class FSMNetwork:
     def __init__(
         self,
         brain,
-        states: List[str],
-        symbols: List[str],
-        transitions: List[TransitionLike],
+        states: Sequence[str],
+        symbols: Sequence[str],
+        transitions: Sequence[TransitionLike],
         initial_state: str,
         n: int = 10000,
         k: int = 100,

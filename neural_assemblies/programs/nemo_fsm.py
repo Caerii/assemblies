@@ -68,7 +68,7 @@ class NemoArcFSM:
         brain: Any,
         states: Sequence[str],
         symbols: Sequence[str],
-        transitions: List[TransitionLike],
+        transitions: Sequence[TransitionLike],
         *,
         n: int = 5000,
         k: int = 80,
