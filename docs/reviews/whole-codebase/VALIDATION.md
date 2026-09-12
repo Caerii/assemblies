@@ -6803,3 +6803,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Winner-selection type boundary (2026-09-12)
 
 `compute/winner_selection.py` now declares optional thresholds explicitly and canonicalizes NumPy index scalars to Python `int` before remapping winners. Winner selection and policy tests pass **42/42**; Pyright and Ruff report zero diagnostics.
+
+
+## Statistical sampler array boundary (2026-09-12)
+
+`compute/statistics.py` now normalizes SciPy sampler output through `np.asarray` before rounding, making the scalar/array contract explicit. Statistics tests pass **35/35**; Pyright and Ruff report zero diagnostics.
