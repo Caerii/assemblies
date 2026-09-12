@@ -6059,3 +6059,6 @@ Winner-margin certification and readout parity now use strict pairing after thei
 ### Role and morphology alignment gate (2026-09-12)
 
 Distributional role inference, CHILDES morphology alignment, and learned gating now use strict word-to-label pairing. Missing annotations fail at the boundary instead of silently discarding trailing tokens. Nemo-rule, arc-contract, and CHILDES reader suites pass **35 tests**; focused B905/F scans are clean.
+### Hashed transducer sequence pairing gate (2026-09-12)
+
+The batched transducer's sentence training loop now declares strict adjacent-token pairing, keeping malformed sequence iterables from silently shortening training. The parity test module remains environment-skipped here because the optional fused backend is unavailable; the B905/F scan is clean.
