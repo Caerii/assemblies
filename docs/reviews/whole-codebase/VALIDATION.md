@@ -6299,3 +6299,7 @@ The formal bridge compiles cleanly with Lean **v4.30.0**: `lake env lean Assembl
 ### Rust assembly-IR bridge gate (2026-09-12)
 
 The Rust workspace and the packaged Python IR crate compile and test against the shared v1 wire corpus. `cargo test --manifest-path neural_assemblies/ir/Cargo.toml` passes **4 Rust tests plus doc-tests**, and `cargo test --manifest-path crates/Cargo.toml` passes **4 assembly-IR tests, 0 na-kernels tests, and doc-tests**.
+
+### Cross-language formatting and Lean build gate (2026-09-12)
+
+`cargo fmt --check` passes for both Rust IR manifests, and `lake build` completes all **10 Lean jobs**. Lean reports theorem axiom dependencies explicitly (for example `propext`, `Quot.sound`, and selected classical principles), preserving proof provenance while confirming the full formal project builds.
