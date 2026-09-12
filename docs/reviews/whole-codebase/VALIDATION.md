@@ -6335,3 +6335,7 @@ The adaptive remediation path now makes its optional role vector's type explicit
 ### Continual-acquisition metric and replay typing gate (2026-09-12)
 
 The continual-learning stability boundary now validates evaluation metrics as real numbers and constructs the declared `GroundedSentence` objects before invoking next-token training during replay. Previously the replay path passed raw word lists to an API contracted for grounded sentences, while metric values were treated as unconstrained objects. Pyright reports **0 diagnostics**; focused stability/adaptive tests pass **4 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Acquisition stage-gate metric boundary (2026-09-12)
+
+Stage-gate evaluation now validates every externally produced metric before threshold comparison, covering novel composition, holdout bootstrap, and bridge top-five scores. This removes implicit `object` to `float` coercion at a scientific decision boundary. Pyright reports **0 diagnostics**; focused gate tests pass **4 tests**, and Ruff F/E9 plus `git diff --check` are clean.

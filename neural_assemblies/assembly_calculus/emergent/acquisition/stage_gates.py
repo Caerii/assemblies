@@ -3,7 +3,8 @@
 from __future__ import annotations
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
+from numbers import Real
+from typing import Dict, List, Mapping, Optional, Set, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..curriculum import StageResult
@@ -43,6 +44,15 @@ class StageGateResult:
     checks: Dict[str, bool] = field(default_factory=dict)
     metrics: Dict[str, float] = field(default_factory=dict)
     failures: List[str] = field(default_factory=list)
+
+
+def _metric_float(metrics: Mapping[str, object], key: str,
+                  default: float = 0.0) -> float:
+    """Validate an evaluation metric before applying a stage threshold."""
+    value = metrics.get(key, default)
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"stage metric {key!r} must be a real number")
+    return float(value)
 
 
 def evaluate_stage_gate(
@@ -111,7 +121,7 @@ def evaluate_stage_gate(
 
         suite = EvaluationSuite(parser)
         novel = suite.evaluate_roles(NOVEL_COMPOSITION_PROBES)
-        novel_acc = float(novel["accuracy"])
+        novel_acc = _metric_float(novel, "accuracy")
         metrics["novel_composition"] = novel_acc
         novel_min = gate_floors.get("novel_composition_min", 0.33)
         checks["novel_composition"] = novel_acc >= novel_min
@@ -121,7 +131,7 @@ def evaluate_stage_gate(
             )
 
         decomp = decompose_holdout_classification(parser, holdout_map)
-        boot = float(decomp.get("accuracy_bootstrapped", 0.0))
+        boot = _metric_float(decomp, "accuracy_bootstrapped")
         metrics["holdout_bootstrap"] = boot
         boot_min = gate_floors.get("holdout_bootstrap_min", 0.50)
         checks["holdout_bootstrap"] = boot >= boot_min
@@ -150,7 +160,7 @@ def evaluate_stage_gate(
             bridge_oov = score_next_token_probes(
                 parser, oov_prefixes, oov_expected,
             )
-            bridge_top5 = float(bridge_oov["top5"])
+            bridge_top5 = _metric_float(bridge_oov, "top5")
             metrics["bridge_oov_top5"] = bridge_top5
             # Soft metric for now — hard gate once bridge training is stable.
 
