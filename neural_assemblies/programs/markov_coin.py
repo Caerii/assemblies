@@ -11,6 +11,7 @@ from typing import Dict, List, Sequence, Tuple
 
 from neural_assemblies.assembly_calculus.pfa import FlipMode, PFANetwork
 from neural_assemblies.assembly_calculus.coin_config import SeedMixtureChoice
+from neural_assemblies.assembly_calculus.transitions import TransitionLike
 from neural_assemblies.compute import EPercentPolicy
 
 
@@ -29,7 +30,7 @@ TransitionTrace = Tuple[str, str, str]
 
 def train_markov_from_sequences(
     traces: Sequence[TransitionTrace],
-) -> List[Tuple[str, str, str, float]]:
+) -> List[TransitionLike]:
     """Estimate probabilistic transitions from ``(state, symbol, next)`` traces."""
     counts: Dict[Tuple[str, str], Counter] = defaultdict(Counter)
     for state, symbol, nxt in traces:

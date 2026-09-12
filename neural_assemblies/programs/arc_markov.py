@@ -8,6 +8,7 @@ from typing import Any, Sequence
 
 from neural_assemblies.assembly_calculus.coin_config import SeedMixtureChoice
 from neural_assemblies.assembly_calculus.transitions import TransitionMap
+from neural_assemblies.assembly_calculus.transitions import TransitionLike
 from neural_assemblies.core.registration import validate_area_registration
 from .nemo_fsm import NemoArcFSM
 
@@ -52,7 +53,7 @@ class ArcMarkovNetwork:
     Target weights parameterize seed mixtures, not calibrated probabilities.
     Each step observes inside a probe, then retains only the decoded state label.
     """
-    def __init__(self, brain: Any, states: Sequence[str], transitions: Sequence[tuple[str, str, str]], initial_state: str, *,
+    def __init__(self, brain: Any, states: Sequence[str], transitions: Sequence[TransitionLike], initial_state: str, *,
                  protocol: ArcMarkovProtocol, choice: SeedMixtureChoice | None = None,
                  symbol='flip', prefix='_arc_markov'):
         if not isinstance(protocol, ArcMarkovProtocol):

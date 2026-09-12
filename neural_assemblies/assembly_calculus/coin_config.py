@@ -2,6 +2,7 @@
 from dataclasses import dataclass
 import math
 from numbers import Integral, Real
+from typing import Literal
 
 from ..core.registration import validate_area_registration, validate_round_count
 
@@ -51,7 +52,7 @@ class SeedMixtureChoice(AttractorConfig):
     Zero fires/rounds permit mechanism-disabled and seed-only controls.
     """
     rounds: int = 10
-    mode: str = 'k_split'
+    mode: Literal['k_split', 'compete'] = 'k_split'
 
     def __post_init__(self):
         super().__post_init__()
