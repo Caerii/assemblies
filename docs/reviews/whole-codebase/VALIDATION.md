@@ -7269,3 +7269,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Full non-slow suite with `uv run pytest neural_assemblies/tests -q -m "not slow" -n 8 --dist loadfile`: 3,830 passed, 141 skipped, 8 xfailed, 10 subtests in 414.50s (6:54.50).
 - Duration profiling identifies the dominant costs as dual-metric learnability (121.43s), ERP calibration (104.53s), separation calibration (100.40s), and holdout bootstrap (97.08s); these are empirical gates and must not be shortened without protocol amendments.
 - `--dist loadscope` was slower (429.41s) and exposed a parity harness contradiction; the contradiction was repaired separately and `loadfile` remains the measured default.
+
+
+## 2026-09-12 ? fast versus empirical test tiers
+
+- Added five duration-profiled empirical node IDs to the existing central `slow` tier: dual-metric learnability, ERP calibration/separation, and holdout bootstrap.
+- Full non-slow suite after scheduling change: 3,826 passed, 141 skipped, 7 xfailed, 10 subtests in 386.61s (6:26.61) with `-n 8 --dist loadfile`.
+- Slow collection retains the moved gates; no protocol or assertion was removed.
