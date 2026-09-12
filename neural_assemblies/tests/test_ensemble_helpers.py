@@ -5,8 +5,9 @@ that never ran. These tests exist so the guards cannot be quietly removed.
 """
 import pytest
 
+from neural_assemblies.core.brain import Brain
 from neural_assemblies.diagnostics import (compare_arms, ensemble,
-                                           paired_delta)
+                                           paired_delta, recurrence_audit)
 
 SEEDS = list(range(42, 52))
 
@@ -283,3 +284,9 @@ def test_load_audit_rejects_invalid_threshold():
     from neural_assemblies.diagnostics import load_audit
     with pytest.raises(ValueError, match="finite nonnegative"):
         load_audit({}, threshold=-1)
+
+
+def test_recurrence_audit_rejects_unknown_area_names():
+    brain = Brain(engine="numpy_sparse", seed=1)
+    with pytest.raises(KeyError, match="unknown"):
+        recurrence_audit(brain, areas=["MISSING"])

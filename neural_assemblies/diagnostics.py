@@ -501,11 +501,11 @@ def recurrence_audit(brain, areas: Optional[Sequence[str]] = None
     """  # noqa: D208
     out: List[Verdict] = []
     names = list(areas) if areas is not None else list(brain.areas)
+    unknown = sorted(set(names) - set(brain.areas))
+    if unknown:
+        raise KeyError(f"recurrence_audit areas are unknown: {unknown}")
     for a in names:
-        try:
-            eng = brain._engine_for(brain.areas[a])
-        except Exception:
-            continue
+        eng = brain._engine_for(brain.areas[a])
         conn = getattr(eng, "_area_conns", {}).get(a, {}).get(a)
         w = getattr(conn, "weights", None)
         if w is None or getattr(w, "shape", (0, 0))[0] == 0:

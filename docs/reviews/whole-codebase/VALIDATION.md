@@ -6219,3 +6219,7 @@ The explicit language vocabulary exposed one latent production defect: `EnglishP
 ### Language fa?ade import minimization (2026-09-12)
 
 The parser now imports only the language-area symbols it actually uses; the full language package has no F401/F403/F405/F821 findings. Parser tests pass **9 tests** after the import minimization.
+
+### Recurrence-audit admission gate (2026-09-12)
+
+`diagnostics.recurrence_audit` now rejects unknown area names before attempting engine access; an invalid audit scope can no longer disappear as an empty report. The regression and ensemble-helper suite passes **28 tests** with three intentional sampled-recurrence warnings.
