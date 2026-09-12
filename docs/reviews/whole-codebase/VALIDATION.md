@@ -5113,3 +5113,7 @@ The shared SVO and matched-ERP generators now use explicit named loops rather th
 ### Remove misleading runtime index-space heuristic (2026-09-11)
 
 `core.index_spaces.same_space` was unused and could only compare numeric ranges; it could return `True` for arrays from different semantic spaces. That made its name stronger than its evidence. The heuristic is removed, and the canonical refactor note now states the sound boundary: static `CompactIdx`/`NeuronIds` types plus explicit `to_neuron_ids` conversion. Index-space, overlap-admission, and public-boundary checks pass: **119 passed**; Ruff and diff checks are clean.
+
+### Diagnostic readout source link (2026-09-11)
+
+`readout_all` now links directly to the readout semantic card, which explicitly distinguishes its deterministic score table from thresholded lexical decoding and from a probability distribution. This closes a code-to-spec navigation gap without adding a second operation contract or changing behavior. Readout/NEMO checks pass: **15 passed**; Ruff and specification validation are clean.

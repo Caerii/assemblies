@@ -88,6 +88,8 @@ def readout_all(assembly: Assembly,
                 lexicon: Lexicon) -> List[Tuple[str, float]]:
     """Return all words with their overlaps, sorted descending.
 
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-readout
+
     Useful for diagnostics and debugging readout quality.
 
     Args:

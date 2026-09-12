@@ -615,6 +615,11 @@ instrument, not a neural learning result: it cannot establish that the brain
 itself represented a symbolic label. Invalid decoder configuration fails
 before any overlap measurement.
 
+`readout_all` is the diagnostic companion: it uses the same validated snapshot
+and lexicon domain, but returns every label's overlap in deterministic order
+instead of applying a confidence threshold. It is a score table, not a second
+neural operation or a probability distribution.
+
 <a id="contract-fiber-materialization"></a>
 
 ## Fiber materialization
