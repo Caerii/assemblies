@@ -5935,3 +5935,11 @@ shared arguments deliberately. Ruff's ARG scan is clean across `core` and
 The module-level CSR availability probe now imports the canonical `get_xp`
 resolver instead of relying on an accidental global. Its fallback path has a
 focused regression test, and the materialization suite passes **8 tests**.
+
+### Undefined-name boundary sweep (2026-09-12)
+
+The package-wide F821 scan is clean. Missing type-only imports were made
+explicit, the MNIST helper now imports `Assembly`, and the patch-merge singleton
+branch uses its declared `scale0_ids` variable instead of an undefined `ids`.
+The affected parser, materialization, and structured-agent tests pass **49 tests**.
+Importing the legacy `nemo` test helper still requires its optional CuPy runtime.
