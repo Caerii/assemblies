@@ -7368,3 +7368,11 @@ The attractor training protocol now declares its actual seven-value return contr
 - Tested `ASSEMBLIES_TEST_NATIVE_THREADS=1` across the full fast tier: 3,787 passed, 138 skipped, 5 xfailed, 10 subtests in 362.47s (6:02), versus the untuned 12-worker baseline of 283.82s (4:43).
 - The one-thread setting is therefore not a safe default. The harness now leaves native library defaults unchanged and supports the variable only as an explicit benchmark override.
 - Focused backend and CUDA next-token checks after reverting the default: 6 passed, 3 skipped, 2 expected warnings in 66.42s.
+
+
+## 2026-09-12 whole-suite native-thread falsification and empirical isolation
+
+- Full fast tier with forced one-native-thread workers regressed to 362.47s; the setting is now opt-in only.
+- After empirical class isolation, a normal 12-worker fast run completed 3,787 passed, 138 skipped, 5 xfailed, 10 subtests in 276.67s (4:36) before thread-setting rollback; the current untuned baseline remains 283.82s (4:43) due run variance.
+- Newly identified dominant costs were ERP/parser diagnostics at 130--140s each; they are now slow-tier classes, preserving their scientific checks while removing them from the contract loop.
+- Direct README example execution completes in 7.37s on this host; the larger in-suite duration reflects xdist contention rather than a 49s intrinsic example cost.
