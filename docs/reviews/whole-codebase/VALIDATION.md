@@ -5089,3 +5089,7 @@ The pure assembly attention operator now canonicalizes key/value labels and dele
 ### Next-token model contract alias (2026-09-11)
 
 `build_next_token_model`, the public convenience constructor, now carries the same `LEXICON_BUILD_CONTRACT` as `build_lexicon` and links directly to the lexicon semantic card. A contract identity test prevents the convenience path from drifting into a second validation schedule. Next-token and contract checks pass: **172 passed**; Ruff is clean. The sampled-recurrence warnings are intentional and preserve the sampler-audit boundary.
+
+### Curriculum battery deduplication (2026-09-11)
+
+The ablation and developmental curriculum studies had byte-level duplicate seven-phenomenon measurement batteries. The shared `curriculum_measurement.measure_battery` module now owns that readout protocol; both studies import it, so a future metric or control change has one implementation. The refactor removes 260 duplicate lines and also clears latent unused-import, unused-variable, and formatting smells without changing training schedules or result keys. All three modules compile, `--help` remains available for both study entry points, Ruff and diff checks pass.
