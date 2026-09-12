@@ -7074,3 +7074,7 @@ A bounded eight-worker run also completed cleanly: 3,829 passed, 141 skipped, 8 
 ## Public backend composition boundary (2026-09-12)
 
 Brain.engine now exposes the active ComputeEngine without requiring callers to depend on the private _engine storage slot. The batched next-token, context-choice, and morphosyntax paths use the public boundary; engine ownership and behavior are unchanged. Validation: backend suite 14 passed; Pyright on Brain and the three migrated callers reports 0 diagnostics.
+
+## Private backend read cleanup (2026-09-12)
+
+Remaining direct primary-engine reads in batched next-token and morphosyntax callers now use Brain.engine; area-specific ownership remains explicit through the existing owner resolver. No compute behavior changed. Validation: Pyright on both migrated modules reports 0 diagnostics; backend and context-choice tests remain green.
