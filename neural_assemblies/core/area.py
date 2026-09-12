@@ -29,7 +29,7 @@ import numpy as np
 from typing import Dict, List, Optional
 
 from .backend import get_xp, xp_by_name, xp_name
-from .index_spaces import CompactIdx, validated_indices
+from .index_spaces import CompactIdx, NeuronIds, validated_indices
 from .activity import ActivityState
 
 
@@ -206,6 +206,11 @@ class Area(ActivityState):
 
         Validate compact positions before conversion or activity-count mutation.
         """
+        if isinstance(value, NeuronIds):
+            raise TypeError(
+                "Area.winners requires compact indices; stable neuron IDs "
+                "must be mapped through the owning engine first"
+            )
         xp = self._xp
         self._winners = validated_indices(value, upper=self.n,
                                           label=f"{self.name} compact winners", xp=xp, unique=True)

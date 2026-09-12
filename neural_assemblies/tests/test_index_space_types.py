@@ -90,6 +90,13 @@ def test_assembly_brands_raw_ids_and_rejects_compact_indices():
         Assembly("A", CompactIdx(np.array([1, 2], dtype=np.uint32)))
 
 
+def test_area_rejects_stable_ids_at_compact_winner_boundary():
+    from neural_assemblies.core.area import Area
+    area = Area("A", 8, 2, 0.1)
+    with pytest.raises(TypeError, match="compact indices"):
+        area.winners = NeuronIds(np.array([1, 2], dtype=np.uint32))
+
+
 def _pyright_error_lines(source: str) -> set:
     """Run pyright on *source* placed inside the repo, return 1-based lines."""
     fd, path = tempfile.mkstemp(suffix=".py", dir=REPO, prefix="_idxspace_probe_")

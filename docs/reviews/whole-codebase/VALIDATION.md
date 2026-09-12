@@ -7040,3 +7040,6 @@ The evidence graph now treats a non-pending `PREREG_*.md` without a resolved res
 ## Snapshot conversion parity for explicit areas (2026-09-12)
 
 The stricter `Assembly` index-space admission exposed one internal escape: `_snap` passed an explicit area's `CompactIdx` accessor directly into the stable snapshot constructor. Explicit areas now relabel that identity mapping as `NeuronIds` at the snapshot boundary. Validation: public-boundary, readout, next-token, noise, and sequence suites 181 passed; Pyright on `ops.py` and `assembly.py` 0 errors/warnings/information.
+## Compact winner boundary admission (2026-09-12)
+
+`Area.winners` now rejects stable `NeuronIds` before updating live activity, preserving the compact-index contract in the opposite direction from `Assembly`. Stable IDs must be converted by the owning engine rather than assigned as positions. Validation: index-space, winner-injection, Area, and public-boundary suites 184 passed; Pyright on Area and index-space modules 0 errors/warnings/information.
