@@ -459,7 +459,7 @@ class EmergentNemoBrain:
         delta_arr = self.l_delta[area_idx][:num_learned].get()
         
         winners_set = set(winners.get().tolist())
-        strength = sum(1.0 + delta for dst, delta in zip(dst_arr, delta_arr) if dst in winners_set)
+        strength = sum(1.0 + delta for dst, delta in zip(dst_arr, delta_arr, strict=True) if dst in winners_set)
         
         return strength
     
@@ -477,9 +477,9 @@ class EmergentNemoBrain:
         - The resulting assembly represents the combined phrase
         
         Example:
-            merge_to_area(NP, "the")  → NP has assembly for "the"
-            merge_to_area(NP, "big")  → NP has merged assembly for "the big"
-            merge_to_area(NP, "dog")  → NP has merged assembly for "the big dog"
+            merge_to_area(NP, "the")  â†’ NP has assembly for "the"
+            merge_to_area(NP, "big")  â†’ NP has merged assembly for "the big"
+            merge_to_area(NP, "dog")  â†’ NP has merged assembly for "the big dog"
         """
         if self._is_inhibited(target_area):
             return None
@@ -524,7 +524,7 @@ class EmergentNemoBrain:
     # measurement is how the two get fixed separately.
 
     def project_backwards(self, from_area: Area, to_area: Area) -> Optional[cp.ndarray]:
-        """Project backwards for generation (SENT → VP → NP → LEX)."""
+        """Project backwards for generation (SENT â†’ VP â†’ NP â†’ LEX)."""
         if self.current[from_area] is None:
             return None
         

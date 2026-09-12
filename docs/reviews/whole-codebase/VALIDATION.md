@@ -6113,3 +6113,6 @@ Patch merge now requires exactly one feature field per graph patch before mutati
 ### NEMO learner input-contract gate (2026-09-12)
 
 NEMO grounded sentence presentation now rejects word/context or word/role cardinality mismatches before clearing or mutating brain state. Noun-phrase construction and integrated role filtering use strict pairing. Focused B905/F scans are clean; runtime NEMO tests remain environment-gated because CuPy is unavailable, so no GPU pass is claimed.
+### NEMO learned-strength alignment gate (2026-09-12)
+
+Emergent NEMO learned-strength readout now uses strict destination/delta pairing for the active learned edge range. Corrupt storage lengths cannot silently undercount connection strength. Focused B905/F scan is clean; runtime coverage remains optional-CuPy gated.
