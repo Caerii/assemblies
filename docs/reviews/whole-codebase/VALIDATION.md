@@ -5075,3 +5075,7 @@ Prediction and scoring now require a nonempty lexicon in addition to area
 identity and stimulus validation. An empty vocabulary cannot yield a meaningful
 ranked observation and is rejected before brain activity. Focused plan/registry
 and next-token negative controls pass: **164 passed**; Ruff is clean.
+
+### Maintained suite rerun (2026-09-11)
+
+The authoritative `pytest neural_assemblies/tests -q -m "not slow"` run completed with 369? passed and the pre-existing ERP scientific failures plus two CUDA compiler-environment failures. The only regression introduced by the contract hardening was `test_prediction_rejects_nonpositive_rounds`: validation checked an empty lexicon before the explicitly invalid schedule. `NextTokenPredictionPlan` now validates `rounds_per_token` first; the focused test and Ruff pass. The ERP failures remain registered measurement defects (metric direction/calibration), and CUDA temporal failures require the Visual Studio developer shell (`where cl` failed); neither is suppressed or weakened.

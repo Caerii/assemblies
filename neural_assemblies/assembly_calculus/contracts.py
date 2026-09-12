@@ -315,6 +315,8 @@ class NextTokenPredictionPlan:
         if any(not isinstance(self.stimuli_map[word], str) or not self.stimuli_map[word]
                for word in self.context):
             raise ValueError("prediction stimuli must be nonempty names")
+        if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be a positive integer")
         if not isinstance(self.lexicon, Mapping):
             raise TypeError("prediction lexicon must map labels to Assembly snapshots")
         if not self.lexicon:
@@ -323,8 +325,6 @@ class NextTokenPredictionPlan:
             raise TypeError("prediction lexicon must map labels to Assembly snapshots")
         if any(value.area != self.area for value in self.lexicon.values()):
             raise ValueError("prediction lexicon snapshots must belong to the prediction area")
-        if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
-            raise ValueError("rounds_per_token must be a positive integer")
         _explicit_bool("adapt", self.adapt)
         object.__setattr__(self, "rounds_per_token", int(self.rounds_per_token))
 
