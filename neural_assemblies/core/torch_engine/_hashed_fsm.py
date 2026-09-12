@@ -26,9 +26,7 @@ bias charged -- so one step cannot alter the next through refraction.
 """
 from __future__ import annotations
 
-from typing import Dict, Sequence, Tuple
-
-import torch
+from typing import Any, Dict, Sequence, Tuple
 
 from ._torch_ops import torch_ops
 
@@ -103,7 +101,7 @@ class HashedArcFSM:
         [B] indices) -- `activate_assembly` + `fix_assembly`."""
         self.state.winners = self.blocks[self._idx(state, self.state_index)]
 
-    def read_state(self) -> torch.Tensor:
+    def read_state(self) -> Any:
         """[B] index of the block STATE's current winners overlap most."""
         w = self.state.winners
         hit = (w.unsqueeze(1) // self.k).eq(
@@ -128,7 +126,7 @@ class HashedArcFSM:
                 self.train_transition(sym, fr, to)
 
     # -- running ------------------------------------------------------------------
-    def step(self, symbol, freeze: bool = True) -> torch.Tensor:
+    def step(self, symbol, freeze: bool = True) -> Any:
         """Advance one symbol ([B] indices or a name) from whatever STATE
         holds; returns [B] state indices read out of the assembly."""
         self.sym.set_words(self._idx(symbol, self.symbol_index))
@@ -136,7 +134,7 @@ class HashedArcFSM:
         self.core.advance(freeze=freeze)
         return self.read_state()
 
-    def run(self, symbols: torch.Tensor, start_state) -> torch.Tensor:
+    def run(self, symbols: Any, start_state) -> Any:
         """`symbols` [B, L] symbol indices (-1 = idle); returns [B, L] state
         indices, -1 where idle. Frozen throughout, from an inhibited arc."""
         self.arc.inhibit()

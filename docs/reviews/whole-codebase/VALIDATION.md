@@ -6858,3 +6858,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Torch engine registration boundary (2026-09-12)
 
 `core/torch_engine/__init__.py` now discovers CUDA through the shared lazy Torch operator protocol before registering the optional engine, removing the package initializer's direct Torch capability probe. Specification-link tests pass **11/11**; Pyright and Ruff report zero diagnostics.
+
+
+## Hashed sequence API import boundary (2026-09-12)
+
+`_hashed_fsm.py` and `_hashed_transducer.py` no longer import Torch at runtime solely to annotate tensors; their public tensor values remain capability-provided by the hashed engine. Pyright and Ruff report zero diagnostics, and the parity modules collect with **4** expected CUDA skips.

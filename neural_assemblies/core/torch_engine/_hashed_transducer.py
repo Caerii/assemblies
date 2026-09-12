@@ -37,8 +37,6 @@ from __future__ import annotations
 
 from typing import Any, Dict, List, Sequence, cast
 
-import torch
-
 from ._torch_ops import torch_ops
 
 from ._arc_core import HashedArcCore
@@ -253,10 +251,10 @@ class HashedTransducer:
         self.arc_out = fiber(self.arc_area, self.out_area, self.n_arc, n)
         self.reg_arc = (fiber(self.reg_area, self.arc_area, n, self.n_arc)
                         if self.reg is not None else None)
-        self.out_signature: Dict[str, torch.Tensor] = {}
+        self.out_signature: Dict[str, Any] = {}
 
     # -- words as tensors -----------------------------------------------------
-    def _widx(self, word) -> torch.Tensor:
+    def _widx(self, word) -> Any:
         if isinstance(word, str):
             return torch_ops.full((self.B,), self.word_index[word], dtype=torch_ops.int64,
                               device=self.device)
@@ -304,7 +302,7 @@ class HashedTransducer:
             return
         old = self.reg.winners
         self.F.set_words(f)
-        new = cast(torch.Tensor, self.reg.project(1, [self.F], freeze=freeze))
+        new = cast(Any, self.reg.project(1, [self.F], freeze=freeze))
         if old.shape[1] == new.shape[1]:
             keep = (f < 0).view(-1, 1)
             self.reg.winners = torch_ops.where(keep, old, new)
@@ -373,18 +371,18 @@ class HashedTransducer:
         if self.state_mode == "copy":
             self.state.winners = self.arc.winners.clone()
 
-    def emit(self) -> torch.Tensor:
+    def emit(self) -> Any:
         """Update the state and read OUT with no teacher, FROZEN."""
         if self.state_mode == "copy":
             out = self.out.project(1, [self.arc_out], rows_for=self._rows(), freeze=True)
             self.state.winners = self.arc.winners.clone()
-            return cast(torch.Tensor, out)
+            return cast(Any, out)
         self.core.advance(freeze=True)
-        return cast(torch.Tensor, self.out.project(
+        return cast(Any, self.out.project(
             1, [self.arc_out], rows_for=self._rows(), freeze=True))
 
     # -- readout --------------------------------------------------------------
-    def overlaps(self, emitted: torch.Tensor) -> torch.Tensor:
+    def overlaps(self, emitted: Any) -> Any:
         """[B, V] overlap of `emitted` with each word's OUT signature."""
         B, V = self.B, len(self.vocab)
         A = torch_ops.zeros(B, self.n, device=self.device)
@@ -394,7 +392,7 @@ class HashedTransducer:
             out[:, i] = A.gather(1, self.out_signature[w]).sum(1) / self.k
         return out
 
-    def rank(self, emitted: torch.Tensor, rng) -> List[List[str]]:
+    def rank(self, emitted: Any, rng) -> List[List[str]]:
         """Per brain, the vocabulary ranked by overlap, ties broken randomly
         (the numpy organ's rule: vocabulary order is not neutral)."""
         ov = self.overlaps(emitted).cpu().numpy()
