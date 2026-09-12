@@ -7262,3 +7262,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Typed `ActivitySnapshot` ownership as the `ActivityState` protocol boundary while preserving heterogeneous mutable field buffers.
 - `uv run pyright neural_assemblies/core/activity.py`: 0 errors.
+
+
+## 2026-09-12 ? maintained suite duration baseline
+
+- Full non-slow suite with `uv run pytest neural_assemblies/tests -q -m "not slow" -n 8 --dist loadfile`: 3,830 passed, 141 skipped, 8 xfailed, 10 subtests in 414.50s (6:54.50).
+- Duration profiling identifies the dominant costs as dual-metric learnability (121.43s), ERP calibration (104.53s), separation calibration (100.40s), and holdout bootstrap (97.08s); these are empirical gates and must not be shortened without protocol amendments.
+- `--dist loadscope` was slower (429.41s) and exposed a parity harness contradiction; the contradiction was repaired separately and `loadfile` remains the measured default.
