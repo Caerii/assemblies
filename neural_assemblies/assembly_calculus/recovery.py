@@ -1,6 +1,7 @@
 """Explicit cue perturbations and state-preserving recurrent observations."""
 from dataclasses import dataclass
 import numpy as np
+from neural_assemblies.assembly_calculus.metrics import recall_fraction
 
 from ..core.index_spaces import NeuronIds, validated_indices
 from .assembly import Assembly
@@ -56,11 +57,11 @@ class RecoveryObservation:
 
     @property
     def cue_overlap(self):
-        return len(np.intersect1d(self.reference.neuron_ids, self.cue.neuron_ids)) / len(self.reference)
+        return recall_fraction(self.cue.neuron_ids, self.reference.neuron_ids)
 
     @property
     def recovered_overlap(self):
-        return len(np.intersect1d(self.reference.neuron_ids, self.recovered.neuron_ids)) / len(self.reference)
+        return recall_fraction(self.recovered.neuron_ids, self.reference.neuron_ids)
 
     @property
     def improvement(self):

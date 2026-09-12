@@ -11,6 +11,7 @@ from .instability import (
     compute_jaccard_instability,
     jaccard_similarity,
     mean_jaccard_instability,
+    recall_fraction,
 )
 from .prediction import measure_n400
 
@@ -21,4 +22,5 @@ __all__ = [
     "cosine_similarity",
     "mean_jaccard_instability",
     "measure_n400",
+    "recall_fraction",
 ]

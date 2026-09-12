@@ -60,6 +60,14 @@ def cosine_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
     return len(left & right) / (len(left) * len(right)) ** 0.5
 
 
+def recall_fraction(observed: Iterable[Hashable], reference: Iterable[Hashable]) -> float:
+    """Return the fraction of a reference set recovered by an observation."""
+    expected = set(reference)
+    if not expected:
+        return 1.0
+    return len(set(observed) & expected) / len(expected)
+
+
 def compute_jaccard_instability(round_winners: List[Set[int]]) -> float:
     """Sum of (1 - Jaccard) across consecutive winner sets."""
     instability = 0.0

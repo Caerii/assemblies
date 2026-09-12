@@ -5,6 +5,8 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import List, Set
 
+from neural_assemblies.assembly_calculus.metrics import recall_fraction
+
 
 @dataclass
 class TaclParserF1Result:
@@ -16,9 +18,7 @@ class TaclParserF1Result:
 
 
 def _role_recall(found: Set[str], expected: Set[str]) -> float:
-    if not expected:
-        return 1.0
-    return len(found & expected) / len(expected)
+    return recall_fraction(found, expected)
 
 
 def run_tacl_parser_f1_smoke(

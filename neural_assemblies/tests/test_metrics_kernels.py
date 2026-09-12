@@ -7,6 +7,7 @@ from neural_assemblies.assembly_calculus.metrics.instability import (
     compute_jaccard_instability,
     jaccard_similarity,
     mean_jaccard_instability,
+    recall_fraction,
 )
 from neural_assemblies.assembly_calculus.metrics.prediction import measure_n400
 from neural_assemblies.assembly_calculus.assembly import compact_overlap, neuron_overlap, overlap
@@ -57,6 +58,10 @@ class TestMetricKernels:
     def test_cosine_kernel_has_set_and_empty_laws(self):
         assert cosine_similarity([], [1]) == 0.0
         assert cosine_similarity([1, 1, 2], [2, 3]) == 0.5
+
+    def test_recall_kernel_names_reference_denominator(self):
+        assert recall_fraction([1, 2, 2], [2, 3]) == 0.5
+        assert recall_fraction([], []) == 1.0
 
     def test_research_jaccard_helper_is_the_package_kernel(self):
         from research.experiments.base import measure_jaccard
