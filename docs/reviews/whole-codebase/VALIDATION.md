@@ -5167,6 +5167,15 @@ and prevents a variadic tuple from being mistaken for an arbitrary score
 vector. The module is Pyright/Ruff-clean and context-choice tests pass:
 **41 passed**.
 
+### Branch-schedule numeric normalization (2026-09-11)
+
+`SeedMixtureChoice.select_index` now validates and normalizes every conditional
+weight to a finite Python float before checking the final fallback and entering
+the stochastic branch schedule. This makes the probability-like input contract
+explicit for NumPy scalar and integer callers and removes a checker ambiguity
+that could otherwise hide invalid numeric values. The configuration module is
+Pyright/Ruff-clean; PFA and context-choice checks pass: **59 passed**.
+
 ### Emergent consolidation nullability boundary (2026-09-11)
 
 The emergent pathway builders previously relied on truthiness to imply that a

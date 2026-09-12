@@ -27,10 +27,10 @@ class AttractorConfig:
     def __post_init__(self):
         n, k = validate_area_registration('coin', self.n, self.k)
         rounds_train = validate_round_count(self.rounds_train)
-        if (isinstance(self.beta, bool) or not isinstance(self.beta, Real)
-                or not math.isfinite(self.beta) or self.beta < 0):
+        beta = float(self.beta) if isinstance(self.beta, Real) and not isinstance(self.beta, bool) else None
+        if beta is None or not math.isfinite(beta) or beta < 0:
             raise ValueError('coin beta must be a finite nonnegative real number')
-        for name, value in (('n', n), ('k', k), ('beta', float(self.beta)),
+        for name, value in (('n', n), ('k', k), ('beta', beta),
                             ('rounds_train', rounds_train),
                             ('fires', _nonnegative_count(self.fires, 'coin fires'))):
             object.__setattr__(self, name, value)
@@ -67,10 +67,17 @@ class SeedMixtureChoice(AttractorConfig):
         attempted choice. Labels are neural observations, not calibrated draws.
         """
         import numpy as np
-        weights = tuple(conditional_weights)
-        if (not weights or weights[-1] != 1.0
-                or any(isinstance(w, bool) or not isinstance(w, Real)
-                       or not math.isfinite(w) or not 0 <= w <= 1 for w in weights)):
+        raw_weights = tuple(conditional_weights)
+        normalized_weights = []
+        for raw_weight in raw_weights:
+            if isinstance(raw_weight, bool) or not isinstance(raw_weight, Real):
+                raise ValueError('conditional weights must be finite in [0, 1] with a final fallback 1')
+            weight = float(raw_weight)
+            if not math.isfinite(weight) or not 0 <= weight <= 1:
+                raise ValueError('conditional weights must be finite in [0, 1] with a final fallback 1')
+            normalized_weights.append(weight)
+        weights = tuple(normalized_weights)
+        if not weights or weights[-1] != 1.0:
             raise ValueError('conditional weights must be finite in [0, 1] with a final fallback 1')
         rng = np.random.default_rng(seed) if len(weights) > 2 else None
         for index, weight in enumerate(weights[:-1]):
