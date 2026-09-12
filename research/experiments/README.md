@@ -25,6 +25,7 @@ them.
 | sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `python -m research.runner a1-horizon --tag UNIQUE` (20 seeds by default) |
 | sequence | `seq_a1_learning_null.py` | preregistered paired sensitivity control, beta/strength disabled | `python -m research.runner a1-learning-null --tag UNIQUE` |
 | sequence | `seq_temporal_positions.py` | corrected position-specific temporal representation with a state-blind negative | `python -m research.runner temporal-positions --tag UNIQUE` (fixed seeds 82..101); add `--smoke --seeds 1 2 3` only for VOID API checks |
+| sequence | `seq_tm_high_order.py` | induced-state, previous-arc-copy, and predicted-win controls on order-2 through order-10 chains | `python -m research.runner temporal-memory-high-order --tag UNIQUE` (20 seeds by default); add `--smoke --seeds 1 2 3` only for a VOID API check |
 | sequence | `seq_s5_soft_census_hashed.py` | soft transitions in the word-problem organs at width | `--seeds 100 --groups S5 --presentations 20`, ~6 min |
 | sequence | `seq_s5_arc_drift.py`, `seq_s5_arc_clip.py` | post hoc diagnostics: arc relocation across presentations, and its cause | ~1 min each |
 | sequence | `seq_a3_transducer.py --engine hashed` | the induced-state transducer at width (`--strength` for Amendment 2) | ~45 min |

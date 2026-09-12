@@ -358,6 +358,7 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'refraction-memory-numpy': 'research.experiments.refraction_memory_numpy',
                'a1-horizon': 'research.experiments.seq_a1_horizon_hashed',
                'temporal-positions': 'research.experiments.seq_temporal_positions',
+               'temporal-memory-high-order': 'research.experiments.seq_tm_high_order',
                'per-fiber-plasticity': 'research.experiments.per_fiber_plasticity',
                'capacity-scaling': 'research.experiments.seq_capacity_scaling'}
 
