@@ -5758,3 +5758,9 @@ The standalone scaffold comparator now rejects non-default `rounds_per_step` and
 `beta` values instead of accepting and ignoring them. Historical defaults remain
 compatible, while callers cannot silently believe they changed the reference
 protocol. Sequence tests pass: **19 passed**; Ruff and diff checks pass.
+
+### Backend materialization representation contract (2026-09-12)
+
+The torch sparse backend now rejects `storage="dense"` rather than silently
+using CSR. The operational throughput benchmark selects the representation
+implemented by the requested backend, and a contract test covers the mapping.

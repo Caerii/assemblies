@@ -42,6 +42,11 @@ def _git_commit() -> str | None:
         return None
 
 
+def _materialization_storage(engine: str) -> str:
+    """Return a representation the selected backend actually implements."""
+    return "csr" if engine == "torch_sparse" else "dense"
+
+
 def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
               seeds: list[int], materialize: bool = True,
               warmup: bool = True) -> dict:
@@ -53,12 +58,13 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
         raise ValueError("k and rounds must be positive integers")
     if type(warmup) is not bool:
         raise ValueError("warmup must be a boolean")
+    storage = _materialization_storage(engine)
     if warmup:
         warm = Brain(p=0.05, seed=0, engine=engine, save_winners=True)
         warm.add_stimulus("stimulus", k)
         warm.add_area("target", max(k, 40), k, beta=0.1)
         if materialize:
-            warm.materialize_area("target", storage="dense")
+            warm.materialize_area("target", storage=storage)
         project(warm, "stimulus", "target", rounds=1, recurrent=True)
     cells = []
     resolved_model = None
@@ -74,7 +80,7 @@ def benchmark(*, engine: str, sizes: list[int], k: int, rounds: int,
             brain.add_stimulus("stimulus", k)
             brain.add_area("target", n, k, beta=0.1)
             if materialize:
-                brain.materialize_area("target", storage="dense")
+                brain.materialize_area("target", storage=storage)
             started = time.perf_counter()
             project(brain, "stimulus", "target", rounds=rounds, recurrent=True)
             elapsed = time.perf_counter() - started

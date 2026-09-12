@@ -1283,13 +1283,17 @@ class TorchSparseEngine(ComputeEngine):
         materialized-all-at-once area has exactly the weights it would have
         had if the same neurons had been recruited one at a time.
 
-        ``storage`` is accepted for interface parity and ignored: CSR is
-        this engine's native representation (the numpy engine offers
-        dense/CSR because its callers index dense blocks in ways CSRWeights
-        refuses; nothing indexes a torch fiber that way).
+        This engine's native representation is CSR.  A dense request is
+        rejected instead of being silently accepted and stored as CSR; the
+        representation is part of a benchmark's protocol and must be real.
 
         Returns the number of neurons newly materialized.
         """
+        if storage != "csr":
+            raise ValueError(
+                "torch_sparse materialize_area supports storage='csr' only; "
+                f"got {storage!r}"
+            )
         tgt = self._areas[area]
         prior_w = int(tgt.w)
         n = int(tgt.n)

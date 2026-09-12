@@ -4,7 +4,17 @@ import json
 
 import pytest
 
-from neural_assemblies.benchmarks.throughput import benchmark, main
+from neural_assemblies.benchmarks.throughput import (
+    _materialization_storage,
+    benchmark,
+    main,
+)
+
+
+def test_throughput_selects_backend_supported_materialization():
+    assert _materialization_storage("numpy_exact") == "dense"
+    assert _materialization_storage("numpy_sparse") == "dense"
+    assert _materialization_storage("torch_sparse") == "csr"
 
 
 def test_throughput_reports_per_seed_quantiles():
