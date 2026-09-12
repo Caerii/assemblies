@@ -95,13 +95,20 @@ def support_bound(k: int, beta: float, b0: float) -> float:
     return k / x if x > 0 else float("inf")
 
 
-def _sample(core: np.ndarray, n: int, k: int, rng, r: float, q: float):
+def _sample(
+    core: np.ndarray,
+    n: int,
+    k: int,
+    rng: np.random.Generator,
+    r: float,
+    q: float,
+) -> np.ndarray:
     """Draw one stimulus from the class: i in S_A w.p. r, else w.p. qk/n."""
-    on = core[rng.random(core.size) < r]
+    on = np.asarray(core[rng.random(core.size) < r], dtype=np.int64)
     if q > 0:
         outside = rng.random(n) < (q * k / n)
         outside[core] = False
-        on = np.union1d(on, np.flatnonzero(outside))
+        on = np.asarray(np.union1d(on, np.flatnonzero(outside)), dtype=np.int64)
     return on.astype(np.int64)
 
 
@@ -143,11 +150,13 @@ def run_colt_multiassembly(
     q: float = 0.0,
     rounds: int = 10,
     alphas: Sequence[float] = (0.0, 0.25, 0.5),
-    seeds: Sequence[int] = (42, 7),
+    seeds: Sequence[int] = (42, 7, 19),
 ) -> MultiAssemblyResult:
     """Run the Theorem 1/3/4 protocol and return the measured quantities."""
     from neural_assemblies.core.brain import Brain
 
+    if len(seeds) < 3:
+        raise ValueError("colt22 multiassembly measurements require at least three seeds")
     recalls, ov, ch, sup = [], [], [], []
     for alpha in alphas:
         per_alpha_ov, per_alpha_ch, per_alpha_sup = [], [], []
