@@ -66,13 +66,24 @@ def run(command: list[str], *, capture_output: bool = False) -> subprocess.Compl
 
 
 def check_pyright() -> bool:
-    files = [
-        str(path.relative_to(ROOT))
-        for scope in MAINTAINED_SCOPES
-        for path in (ROOT / scope).rglob("*.py")
-        if "\\tests\\" not in str(path).lower()
-        and "\\archive\\" not in str(path).lower()
-    ]
+    files: list[str] = []
+    for scope in MAINTAINED_SCOPES:
+        scope_path = ROOT / scope
+        if not scope_path.is_dir():
+            raise FileNotFoundError(
+                f"maintained verification scope does not exist: {scope}"
+            )
+        files.extend(
+            str(path.relative_to(ROOT))
+            for path in scope_path.rglob("*.py")
+            if "\\tests\\" not in str(path).lower()
+            and "\\archive\\" not in str(path).lower()
+        )
+    for relative in MAINTAINED_FILES:
+        if not (ROOT / relative).is_file():
+            raise FileNotFoundError(
+                f"maintained verification file does not exist: {relative}"
+            )
     files.extend(MAINTAINED_FILES)
     files = sorted(set(files))
     result = run(["uv", "run", "pyright", *files, "--outputjson"], capture_output=True)
