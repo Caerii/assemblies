@@ -5,11 +5,13 @@ This module provides a Python interface to the C++ Brain implementation
 for much faster neural assembly simulations.
 """
 
-from typing import Dict, List
+import importlib
+from typing import Any, Dict, List
 
 # Try to import the C++ extension
+brain_cpp: Any = None
 try:
-    import brain_cpp
+    brain_cpp = importlib.import_module("brain_cpp")
     CPP_AVAILABLE = True
 except ImportError:
     CPP_AVAILABLE = False
