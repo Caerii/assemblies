@@ -171,6 +171,11 @@ class CoreParserMixin(
         #: historical behaviour exactly. See `add_phon_stimulus`.
         self.phon_weight = phon_weight
         self.seed = seed
+        # Optional corpus memory used by generation novelty scoring.  Keep it
+        # on each parser instance so interactive sessions cannot leak corpus
+        # state across parsers and the session contract is explicit.
+        self._corpus_sentence_set: set[tuple[str, ...]] = set()
+        self._corpus_bigram_set: set[tuple[str, str]] = set()
         self.rounds = train_r
         self.inference_rounds = infer_r
         self.bridge_rounds = bridge_r
@@ -192,7 +197,8 @@ class CoreParserMixin(
         # Homeostatic scaling, forwarded verbatim: False (default), True
         # (every area -- carries the documented attractor-cancellation
         # hazard), or a collection of TARGET area names. The scoped form is
-        # for stimulus-anchored feature areas, e.g. {TENSE, NUMBER} -- see
+        # for stimulus-anchored feature areas, e.g. the TENSE and NUMBER
+        # areas -- see
         # NumpySparseEngine._normalize_area_columns and task #130.
         if synaptic_scaling:
             brain_kwargs["synaptic_scaling"] = synaptic_scaling

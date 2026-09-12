@@ -26,10 +26,10 @@ def register_corpus_memory(
     sentences: list,
 ) -> None:
     """Store training sentences for novelty scoring at generation time."""
-    parser._corpus_sentence_set: Set[Tuple[str, ...]] = {
+    parser._corpus_sentence_set = {
         tuple(s.words) for s in sentences
     }
-    parser._corpus_bigram_set: Set[Tuple[str, str]] = set()
+    parser._corpus_bigram_set = set()
     for s in sentences:
         ws = s.words
         for i in range(len(ws) - 1):

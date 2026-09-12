@@ -6545,3 +6545,5 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 ## 2026-09-12 — interactive session boundary
 
 - uv run pyright neural_assemblies/assembly_calculus/emergent/session/interactive.py neural_assemblies/assembly_calculus/emergent/parser_mixins/blocks.py — 0 diagnostics. EmergentSession.parser now names the composed EmergentParser surface, and the Blocks training protocol mirrors the concrete 	rain signature so method binding is checked instead of erased behind object. uv run pytest neural_assemblies/tests/test_emergent_agent.py neural_assemblies/tests/test_conversation_curriculum.py -q -m 'not slow' — running; completion recorded below.
+
+- uv run pyright neural_assemblies/assembly_calculus/emergent — 0 diagnostics after making novel-chat corpus memory instance state explicit on CoreParserMixin; uv run pytest neural_assemblies/tests/test_emergent_agent.py neural_assemblies/tests/test_conversation_curriculum.py -q -m 'not slow' — 41 passed, 5 expected sampled-engine warnings in 114.19s.
