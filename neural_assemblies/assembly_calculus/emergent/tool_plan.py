@@ -174,7 +174,6 @@ def build_bfs_plan(executor: BlocksLanguageExecutor, goal_text: str) -> Optional
 def execute_tool_plan(
     executor: BlocksLanguageExecutor,
     plan: ToolPlan,
-    registry=None,
 ) -> ToolPlanResult:
     """Run each step sequentially on the blocks executor."""
     results: List[str] = []

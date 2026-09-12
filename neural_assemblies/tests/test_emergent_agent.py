@@ -117,6 +117,16 @@ class TestStructuredIO:
         assert data["patient"] == "book"
 
 
+def test_tool_plan_executor_has_no_ignored_registry_argument():
+    import inspect
+
+    from neural_assemblies.assembly_calculus.emergent.tool_plan import (
+        execute_tool_plan,
+    )
+
+    assert "registry" not in inspect.signature(execute_tool_plan).parameters
+
+
 class TestDialoguePhase2:
     def test_dialogue_state_pronoun_resolution(self):
         from neural_assemblies.assembly_calculus.emergent import DialogueState

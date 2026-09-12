@@ -5860,3 +5860,9 @@ gate.
 Parser forks now retain `_wobbly_fork` provenance while preserving deep-copy
 isolation. The flag remains available to higher-level episode replay instead of
 being silently discarded; the fork contract suite passes **21 tests**.
+
+### Tool plan execution surface (2026-09-12)
+
+`execute_tool_plan` no longer accepts an unused registry argument; tool validity
+is resolved by the plan conversion path before execution. A signature test
+protects the reduced API surface.
