@@ -5097,3 +5097,7 @@ The ablation and developmental curriculum studies had byte-level duplicate seven
 ### Primitive SVO generator deduplication (2026-09-11)
 
 Five primitive ERP studies carried the same SVO sampling loop, with only their declared noun/verb lists differing. `svo_generators.py` now owns the shared generator; each study retains a small wrapper that passes its local vocabulary, preserving its protocol surface. The shared helper validates the nonnegative draw count and the minimum vocabulary needed to exclude self-patient pairs. All six modules compile; 100-draw and empty-draw invariants pass; Ruff and diff checks are clean. Ruff also removed 25 latent formatting/import smells exposed in the touched studies.
+
+### Matched ERP triple deduplication (2026-09-11)
+
+Three primitive ERP studies carried the same deterministic matched-triple constructor. `matched_stimuli.py` now owns the protocol, while each study passes its declared noun, verb, and novel-noun inventories through a compatibility wrapper. The helper explicitly preserves seed-independent indexing, rejects invalid counts, and enforces the no-self-patient invariant. Three duplicate implementations were removed; latent unused-variable and formatting smells in the touched incremental study were cleared. Invariants and compilation pass; Ruff and diff checks are clean.

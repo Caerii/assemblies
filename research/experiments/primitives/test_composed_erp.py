@@ -89,26 +89,12 @@ def generate_svo_sentences(n_sentences: int, rng: np.random.Generator) -> List[T
     return _generate_svo_sentences(n_sentences, rng, NOUNS, VERBS)
 
 
-def generate_test_triples(
-    rng: np.random.Generator,
-    n_triples: int = 5,
-) -> List[Tuple[str, str, str, str, str]]:
-    """Generate matched test triples: (agent, verb, gram_obj, catviol_obj, novel_obj)."""
-    triples = []
-    nouns = list(NOUNS)
-    verbs = list(VERBS)
-    novels = list(NOVEL_NOUNS)
+from research.experiments.primitives.matched_stimuli import generate_test_triples as _generate_test_triples
 
-    for i in range(n_triples):
-        agent = nouns[i % len(nouns)]
-        verb = verbs[i % len(verbs)]
-        remaining = [n for n in nouns if n != agent]
-        gram_obj = remaining[i % len(remaining)]
-        catviol_obj = verbs[(i + 1) % len(verbs)]
-        novel_obj = novels[i % len(novels)]
-        triples.append((agent, verb, gram_obj, catviol_obj, novel_obj))
+def generate_test_triples(rng: np.random.Generator, n_triples: int = 5) -> List[Tuple[str, str, str, str, str]]:
+    """Generate matched triples using this study's declared vocabularies."""
+    return _generate_test_triples(rng, n_triples, NOUNS, VERBS, NOVEL_NOUNS)
 
-    return triples
 
 
 def _activate_word(brain: Brain, stim_name: str, area: str, rounds: int):

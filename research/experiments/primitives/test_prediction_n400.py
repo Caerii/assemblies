@@ -89,32 +89,12 @@ def _activate_word(brain: Brain, stim_name: str, area: str, rounds: int):
         brain.project({stim_name: [area]}, {area: [area]})
 
 
-def generate_test_triples(
-    rng: np.random.Generator,
-    n_triples: int = 5,
-) -> List[Tuple[str, str, str, str, str]]:
-    """Generate matched test triples: (agent, verb, gram_obj, catviol_obj, novel_obj).
+from research.experiments.primitives.matched_stimuli import generate_test_triples as _generate_test_triples
 
-    Each triple shares context (agent + verb) and varies only the critical word.
-    """
-    triples = []
-    nouns = list(NOUNS)
-    verbs = list(VERBS)
-    novels = list(NOVEL_NOUNS)
+def generate_test_triples(rng: np.random.Generator, n_triples: int = 5) -> List[Tuple[str, str, str, str, str]]:
+    """Generate matched triples using this study's declared vocabularies."""
+    return _generate_test_triples(rng, n_triples, NOUNS, VERBS, NOVEL_NOUNS)
 
-    for i in range(n_triples):
-        agent = nouns[i % len(nouns)]
-        verb = verbs[i % len(verbs)]
-        # Grammatical object: a trained noun different from agent
-        remaining = [n for n in nouns if n != agent]
-        gram_obj = remaining[i % len(remaining)]
-        # Category violation: a verb in the object slot
-        catviol_obj = verbs[(i + 1) % len(verbs)]
-        # Novel object: an untrained noun
-        novel_obj = novels[i % len(novels)]
-        triples.append((agent, verb, gram_obj, catviol_obj, novel_obj))
-
-    return triples
 
 
 def run_trial(

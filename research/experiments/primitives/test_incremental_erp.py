@@ -126,26 +126,12 @@ def generate_sentence_pool(
     return sentences
 
 
-def generate_test_triples(
-    rng: np.random.Generator,
-    n_triples: int = 5,
-) -> List[Tuple[str, str, str, str, str]]:
-    """Generate matched test triples: (agent, verb, gram_obj, catviol_obj, novel_obj)."""
-    triples = []
-    nouns = list(NOUNS)
-    verbs = list(VERBS)
-    novels = list(NOVEL_NOUNS)
+from research.experiments.primitives.matched_stimuli import generate_test_triples as _generate_test_triples
 
-    for i in range(n_triples):
-        agent = nouns[i % len(nouns)]
-        verb = verbs[i % len(verbs)]
-        remaining = [n for n in nouns if n != agent]
-        gram_obj = remaining[i % len(remaining)]
-        catviol_obj = verbs[(i + 1) % len(verbs)]
-        novel_obj = novels[i % len(novels)]
-        triples.append((agent, verb, gram_obj, catviol_obj, novel_obj))
+def generate_test_triples(rng: np.random.Generator, n_triples: int = 5) -> List[Tuple[str, str, str, str, str]]:
+    """Generate matched triples using this study's declared vocabularies."""
+    return _generate_test_triples(rng, n_triples, NOUNS, VERBS, NOVEL_NOUNS)
 
-    return triples
 
 
 def _train_sentence(brain: Brain, cfg: IncrementalConfig,
@@ -219,8 +205,6 @@ def _measure_erps(
     Plasticity must be OFF before calling.
     Returns mean N400 and P600 for gram, catviol, and novel conditions.
     """
-    noun_refs = [lexicon[n] for n in NOUNS]
-
     n400_gram, n400_catviol, n400_novel = [], [], []
     p600_gram, p600_catviol, p600_novel = [], [], []
 
@@ -427,7 +411,7 @@ class IncrementalERPExperiment(ExperimentBase):
         novel_n400_first = all_curves[first_cp]["n400_novel"]
         novel_n400_last = all_curves[last_cp]["n400_novel"]
         learning_test = paired_ttest(novel_n400_first, novel_n400_last)
-        self.log(f"\n  Learning effect (novel N400 decrease):")
+        self.log("\n  Learning effect (novel N400 decrease):")
         self.log(f"    First ({first_cp}): {np.mean(novel_n400_first):.4f}")
         self.log(f"    Last ({last_cp}):  {np.mean(novel_n400_last):.4f}")
         self.log(f"    d={learning_test['d']:.2f}, p={learning_test['p']:.4f}")
@@ -514,7 +498,7 @@ def main():
 
     m = result.metrics
 
-    print(f"\nLearning curves (mean across seeds):")
+    print("\nLearning curves (mean across seeds):")
     print(f"  {'Sent':>5}  "
           f"{'N400_g':>7}{'N400_c':>7}{'N400_n':>7} | "
           f"{'P600_g':>7}{'P600_c':>7}{'P600_n':>7}")
@@ -533,7 +517,7 @@ def main():
               f"{cv['p600_novel']['mean']:>7.3f}")
 
     ft = m["final_tests"]
-    print(f"\nFinal checkpoint tests:")
+    print("\nFinal checkpoint tests:")
     print(f"  H1 Novel N400 > Gram:     d={ft['h1_novel_n400_vs_gram']['d']:.2f}, "
           f"p={ft['h1_novel_n400_vs_gram']['p']:.4f}")
     print(f"  H2 CatViol N400 > Gram:   d={ft['h2_catviol_n400_vs_gram']['d']:.2f}, "
@@ -544,7 +528,7 @@ def main():
           f"p={ft['h4_catviol_p600_vs_gram']['p']:.4f}")
 
     le = m["learning_effect"]
-    print(f"\nLearning effect (novel N400):")
+    print("\nLearning effect (novel N400):")
     print(f"  First: {le['novel_n400_first']:.4f}")
     print(f"  Last:  {le['novel_n400_last']:.4f}")
     print(f"  d={le['test']['d']:.2f}, p={le['test']['p']:.4f}")
