@@ -6401,3 +6401,7 @@ The plan mixin now declares the minimal protocol it requires from the composed p
 ### Structured mixin composed-surface gate (2026-09-12)
 
 Structured conversion now declares the parser protocol it consumes: instruction parsing, tool-call conversion, structured conversion, and JSON tokenization. This replaces implicit cross-mixin self access with an explicit compositional boundary and removes the stale unresolved ToolCall annotation note. Pyright reports **0 diagnostics**; multi-tool plan tests pass **6 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Instruction mixin composed-surface gate (2026-09-12)
+
+Instruction parsing now declares the parser state and helper it consumes: the base parse operation, grounded vocabulary, and imperative frame constructor. This turns implicit MRO coupling into an explicit protocol while preserving frame behavior. Pyright reports **0 diagnostics**; instruction tests pass **4 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.

@@ -2,15 +2,32 @@
 
 from __future__ import annotations
 
-from typing import List
+from typing import Dict, List, Protocol
 
+from ..core.grounding import GroundingContext
 from ..structured_io import InstructionFrame
+
+
+class _InstructionSource(Protocol):
+    """The parser state required to derive an instruction frame."""
+
+    word_grounding: Dict[str, GroundingContext]
+
+    def parse(self, words: List[str]) -> dict: ...
+
+    def _instruction_frame_imperative(
+        self,
+        words: List[str],
+        parsed: dict,
+        categories: dict,
+        roles: dict,
+    ) -> InstructionFrame: ...
 
 
 class InstructionMixin:
     """Instruction following: semantic frames and agent training pipeline."""
 
-    def parse_instruction(self, words: List[str]) -> InstructionFrame:
+    def parse_instruction(self: _InstructionSource, words: List[str]) -> InstructionFrame:
         """Parse text into an actionable semantic frame.
 
         Wraps ``parse()`` and normalizes roles for imperatives (implicit
@@ -58,7 +75,7 @@ class InstructionMixin:
         )
 
     def _instruction_frame_imperative(
-        self,
+        self: _InstructionSource,
         words: List[str],
         parsed: dict,
         categories: dict,
