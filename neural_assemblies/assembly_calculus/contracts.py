@@ -1990,6 +1990,7 @@ def implements(
 ) -> Callable[[Callable[_P, _R_co]], ContractedOperation[_P, _R_co]]:
     """Attach the exact contract object to its public implementation."""
     def decorate(operation: Callable[_P, _R_co]) -> ContractedOperation[_P, _R_co]:
-        operation.operation_contract = contract
-        return cast(ContractedOperation[_P, _R_co], operation)
+        contracted = cast(ContractedOperation[_P, _R_co], operation)
+        contracted.operation_contract = contract
+        return contracted
     return decorate

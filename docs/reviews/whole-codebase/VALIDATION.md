@@ -6319,3 +6319,7 @@ The compact-to-stable conversion boundary now rejects an already-branded `Neuron
 ### Static index-space type gate (2026-09-12)
 
 The pyright probe for compact versus stable neuron indices is available and was executed against the current branch: **1 slow static test passed** (with the three non-slow runtime cases deselected). The checker reports errors for all constructed mixed-space calls and no errors for same-space calls, preserving the intended true-negative/true-positive split.
+
+### Contract decorator static boundary gate (2026-09-12)
+
+The `implements` decorator now casts to the callable-with-contract protocol before assigning `operation_contract`, so the runtime attachment and static declaration describe the same object. Pyright reports **0 diagnostics** for `contracts.py`; the operation-contract suite passes **163 tests**, and Ruff F/E9 plus `git diff --check` are clean. A package-wide scan remains noisy because emergent parser mixins are dynamically composed; that debt is tracked separately rather than hidden by suppressions.
