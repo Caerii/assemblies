@@ -335,7 +335,7 @@ def run_developmental_acquisition(
                         stage_words = trainer._get_stage_words("FIRST_WORDS")
                         lemmas = [w.lemma for w in stage_words[:16]]
                         if lemmas:
-                            register_early_fuzzy_variants(parser, lemmas, seed=seed)
+                            register_early_fuzzy_variants(parser, lemmas)
                     result = trainer.train_stage(stage_name)
                 else:
                     result = trainer.train_stage(stage_name)

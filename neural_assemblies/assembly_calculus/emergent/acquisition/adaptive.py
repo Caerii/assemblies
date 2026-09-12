@@ -348,7 +348,7 @@ def apply_adaptive_plan(
             if hasattr(w, "lemma")
         ]
         if lemmas:
-            register_early_fuzzy_variants(parser, lemmas, seed=seed)
+            register_early_fuzzy_variants(parser, lemmas)
             phases_run.append("fuzzy_surfaces")
 
     if plan.ingest_holdout_stats and holdout:

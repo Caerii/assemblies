@@ -117,7 +117,16 @@ def register_early_fuzzy_variants(
     *,
     seed: int = 0,
 ) -> Dict[str, List[str]]:
-    """Register child-like surface variants linked to canonical lemmas."""
+    """Register child-like surface variants linked to canonical lemmas.
+
+    Variant generation is deterministic and has never consumed ``seed``.
+    Keep the legacy keyword only for source compatibility, but reject a
+    nonzero value so callers cannot mistake it for an experimental factor.
+    """
+    if seed != 0:
+        raise ValueError(
+            "register_early_fuzzy_variants does not use seed; omit it or pass 0"
+        )
     from ..acquisition.phonology import EARLY_FUZZY_LEMMAS, fuzzy_variants
 
     if not hasattr(parser, "surface_to_canonical"):

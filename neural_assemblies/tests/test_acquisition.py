@@ -49,6 +49,7 @@ from neural_assemblies.assembly_calculus.emergent.acquisition import (
     run_developmental_acquisition,
 )
 from neural_assemblies.assembly_calculus.emergent.acquisition.babble import (
+    register_early_fuzzy_variants,
     train_babble_stage,
 )
 from neural_assemblies.assembly_calculus.emergent.curriculum import (
@@ -80,6 +81,10 @@ class TestPhonology:
 
 
 class TestBabble:
+    def test_fuzzy_registration_rejects_unused_seed(self):
+        with pytest.raises(ValueError, match="does not use seed"):
+            register_early_fuzzy_variants(object(), [], seed=1)
+
     def test_babble_stage_registers_forms(self):
         parser = EmergentParser(n=N, k=K, seed=1, fast_training=True)
         report = train_babble_stage(parser, n_forms=12, n_utterances=10, seed=1)
