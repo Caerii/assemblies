@@ -603,6 +603,18 @@ source returns `False` as an explicit inactive-source outcome. This is the
 named boundary between lazy sampled connectivity and a persistent materialized
 fiber, so absent traffic cannot be reported as successful allocation.
 
+<a id="contract-lexicon-build"></a>
+
+## Lexicon construction
+
+`readout.build_lexicon` compiles an ordered word/stimulus mapping into
+independent Assembly snapshots. `LexiconBuildPlan` validates unique labels,
+exact mapping keys, nonempty stimulus names, target topology, and positive
+rounds before the first projection. Each word is projected with the declared
+schedule, recorded, and then has the target recurrent connections reset before
+the next word. The result is a decoder lexicon; it is not evidence that the
+labels are represented without the separately specified readout instrument.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction

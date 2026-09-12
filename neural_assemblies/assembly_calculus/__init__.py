@@ -95,9 +95,9 @@ from .metrics import (
 from .sequence import Sequence
 from .contracts import (
     ASSOCIATION_CONTRACT, ATTENTION_CONTRACT, BINDING_CONTRACT, CONSOLIDATION_CONTRACT, COMPLETION_CONTRACT, CONVERGENCE_CONTRACT, MERGE_CONTRACT, SOURCE_BINDING_CONTRACT,
-    ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT, CONTEXT_STEP_CONTRACT, ACTIVATION_CONTRACT, READOUT_CONTRACT,
+    ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT, CONTEXT_STEP_CONTRACT, ACTIVATION_CONTRACT, READOUT_CONTRACT, LEXICON_BUILD_CONTRACT,
     OPERATION_CONTRACTS, PROJECTION_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT,
-    ActivationPlan, ReadoutPlan, FiberMaterializationPlan, AssociationPlan, AttentionPlan, BindingPlan, BindingReadPlan, BindingRecallPlan, BindingStrengthPlan, InputDrivePlan, SourceBindingPlan, ConsolidationPlan, ConsolidationProtocolPlan, ContextAccumulationPlan, ContextAccumulationStepPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
+    ActivationPlan, ReadoutPlan, FiberMaterializationPlan, LexiconBuildPlan, AssociationPlan, AttentionPlan, BindingPlan, BindingReadPlan, BindingRecallPlan, BindingStrengthPlan, InputDrivePlan, SourceBindingPlan, ConsolidationPlan, ConsolidationProtocolPlan, ContextAccumulationPlan, ContextAccumulationStepPlan, CompletionPlan, ConvergencePlan, MergePlan, OperationContract,
     PreparedCompletion, ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
     OrderedRecallPlan, SequenceMemorizePlan, SeparationPlan,
 )
@@ -175,13 +175,13 @@ __all__ = [
     # Data
     "Assembly", "AssemblyTrace", "PatternCompletionDiagnostic",
     "OperationContract", "ProjectionPlan", "ProjectionStep",
-    "ActivationPlan", "ReadoutPlan", "FiberMaterializationPlan", "AttentionPlan", "BindingPlan", "BindingReadPlan", "BindingRecallPlan", "BindingStrengthPlan", "InputDrivePlan", "SourceBindingPlan", "ConsolidationPlan", "ConsolidationProtocolPlan", "ContextAccumulationPlan", "ContextAccumulationStepPlan", "ConvergencePlan",
+    "ActivationPlan", "ReadoutPlan", "FiberMaterializationPlan", "LexiconBuildPlan", "AttentionPlan", "BindingPlan", "BindingReadPlan", "BindingRecallPlan", "BindingStrengthPlan", "InputDrivePlan", "SourceBindingPlan", "ConsolidationPlan", "ConsolidationProtocolPlan", "ContextAccumulationPlan", "ContextAccumulationStepPlan", "ConvergencePlan",
     "AssociationPlan", "CompletionPlan", "PreparedCompletion", "MergePlan",
     "ReciprocalProjectionPlan", "OrderedRecallPlan", "SequenceMemorizePlan",
     "SeparationPlan",
     "OPERATION_CONTRACTS", "ATTENTION_CONTRACT", "BINDING_CONTRACT", "CONSOLIDATION_CONTRACT", "PROJECTION_CONTRACT",
     "RECIPROCAL_PROJECTION_CONTRACT", "ASSOCIATION_CONTRACT", "MERGE_CONTRACT",
-    "COMPLETION_CONTRACT", "CONVERGENCE_CONTRACT", "SOURCE_BINDING_CONTRACT", "BINDING_RECALL_CONTRACT", "BINDING_READ_CONTRACT", "INPUT_DRIVE_CONTRACT", "BINDING_STRENGTH_CONTRACT", "CONSOLIDATION_PROTOCOL_CONTRACT", "CONTEXT_ACCUMULATION_CONTRACT", "CONTEXT_STEP_CONTRACT", "ACTIVATION_CONTRACT", "READOUT_CONTRACT", "FIBER_MATERIALIZATION_CONTRACT", "ORDERED_RECALL_CONTRACT",
+    "COMPLETION_CONTRACT", "CONVERGENCE_CONTRACT", "SOURCE_BINDING_CONTRACT", "BINDING_RECALL_CONTRACT", "BINDING_READ_CONTRACT", "INPUT_DRIVE_CONTRACT", "BINDING_STRENGTH_CONTRACT", "CONSOLIDATION_PROTOCOL_CONTRACT", "CONTEXT_ACCUMULATION_CONTRACT", "CONTEXT_STEP_CONTRACT", "ACTIVATION_CONTRACT", "READOUT_CONTRACT", "FIBER_MATERIALIZATION_CONTRACT", "LEXICON_BUILD_CONTRACT", "ORDERED_RECALL_CONTRACT",
     "SEQUENCE_MEMORIZE_CONTRACT", "SEPARATION_CONTRACT",
     "ProjectionSweepConfig", "RecallSweepConfig", "ResponseDiagnostic",
     "ResponseTrace", "TraceStep", "Sequence", "Lexicon",

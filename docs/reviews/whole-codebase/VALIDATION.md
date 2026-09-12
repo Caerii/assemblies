@@ -4986,3 +4986,12 @@ snapshot ownership before activation, distinguishes inactive source (`False`)
 from successful allocation (`True`), and documents the plasticity-off
 materialization schedule. Focused fiber/binding/registry tests pass: **170
 passed**; Ruff is clean.
+
+## Lexicon construction contract (2026-09-11)
+
+`build_lexicon` now consumes `LexiconBuildPlan` and is registered as
+`LEXICON_BUILD_CONTRACT`. Word uniqueness, exact stimulus-map keys, stimulus
+names, target topology, and rounds are validated before projection. The reset
+between word snapshots remains explicit protocol state. Source links, public
+exports, registry ratchets, and readout/computation controls pass: **198 passed**;
+Ruff and the evidence graph are clean.

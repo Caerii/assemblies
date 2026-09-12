@@ -31,12 +31,11 @@ Reference:
     arXiv:2306.15364.
 """
 
-from numbers import Integral
-from typing import Dict, List, Mapping, Optional, Tuple
+from typing import Dict, List, Optional, Tuple
 
 from .assembly import Assembly, overlap
 from .ops import project
-from .contracts import READOUT_CONTRACT, ReadoutPlan, implements
+from .contracts import LEXICON_BUILD_CONTRACT, READOUT_CONTRACT, LexiconBuildPlan, ReadoutPlan, implements
 
 
 # Type alias: word string → Assembly snapshot
@@ -106,6 +105,7 @@ def readout_all(assembly: Assembly,
     return results
 
 
+@implements(LEXICON_BUILD_CONTRACT)
 def build_lexicon(brain, area: str, words: List[str],
                   stimuli_map: Dict[str, str],
                   rounds: int = 10) -> Lexicon:
@@ -128,29 +128,12 @@ def build_lexicon(brain, area: str, words: List[str],
 
     Returns:
         Lexicon mapping each word to its Assembly snapshot.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-lexicon-build
     """
-    if area not in brain.areas:
-        raise ValueError(f"unknown lexicon area {area!r}")
-    if isinstance(rounds, bool) or not isinstance(rounds, Integral) or rounds < 1:
-        raise ValueError("lexicon rounds must be a positive integer")
-    if not isinstance(stimuli_map, Mapping):
-        raise TypeError("stimuli_map must be a mapping from words to stimuli")
-    words = tuple(words)
-    if any(not isinstance(word, str) or not word for word in words):
-        raise ValueError("lexicon words must be nonempty strings")
-    if len(set(words)) != len(words):
-        raise ValueError("lexicon words must be unique")
-    if set(stimuli_map) != set(words):
-        raise ValueError("stimuli_map keys must exactly match the lexicon words")
-    invalid_stimuli = [
-        stim for stim in stimuli_map.values()
-        if not isinstance(stim, str) or not stim
-    ]
-    if invalid_stimuli:
-        raise ValueError("lexicon stimuli must be nonempty strings")
-    missing = [stim for stim in stimuli_map.values() if stim not in brain.stimuli]
-    if missing:
-        raise ValueError(f"unknown lexicon stimuli: {sorted(set(missing))}")
+    plan = LexiconBuildPlan(area, tuple(words), stimuli_map, rounds)
+    plan.preflight(brain)
+    area, words, stimuli_map, rounds = plan.area, plan.words, plan.stimuli_map, plan.rounds
 
     lexicon: Lexicon = {}
 

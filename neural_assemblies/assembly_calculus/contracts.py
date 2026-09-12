@@ -117,6 +117,38 @@ class FiberMaterializationPlan:
 
 
 @dataclass(frozen=True)
+class LexiconBuildPlan:
+    """Validated independent stimulus-to-Assembly lexicon schedule."""
+
+    area: str
+    words: tuple[str, ...]
+    stimuli_map: Mapping[str, str]
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if not isinstance(self.words, tuple) or any(not isinstance(word, str) or not word for word in self.words):
+            raise ValueError("lexicon words must be nonempty strings")
+        if len(set(self.words)) != len(self.words):
+            raise ValueError("lexicon words must be unique")
+        if not isinstance(self.stimuli_map, Mapping):
+            raise TypeError("stimuli_map must be a mapping from words to stimuli")
+        if set(self.stimuli_map) != set(self.words):
+            raise ValueError("stimuli_map keys must exactly match the lexicon words")
+        if any(not isinstance(stimulus, str) or not stimulus for stimulus in self.stimuli_map.values()):
+            raise ValueError("lexicon stimuli must be nonempty strings")
+        object.__setattr__(self, "stimuli_map", MappingProxyType(dict(self.stimuli_map)))
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise ValueError(f"unknown lexicon area {self.area!r}")
+        missing = [stimulus for stimulus in self.stimuli_map.values() if stimulus not in brain.stimuli]
+        if missing:
+            raise ValueError(f"unknown lexicon stimuli: {sorted(set(missing))}")
+
+
+@dataclass(frozen=True)
 class ProjectionPlan:
     """Validated schedule for the named stimulus-to-area operation.
 
@@ -1119,6 +1151,25 @@ FIBER_MATERIALIZATION_CONTRACT = OperationContract(
 )
 
 
+LEXICON_BUILD_CONTRACT = OperationContract(
+    operation_id="lexicon-build-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-lexicon-build",
+    plan_type=LexiconBuildPlan,
+    inputs=("brain", "target area", "ordered word labels", "stimulus map", "rounds"),
+    reads=("phonological stimuli", "target area connectome"),
+    mutates=("target area activity", "target recurrent connections between words"),
+    regime=("unique words", "exact stimulus-map keys", "reset connections between words"),
+    observed_outcome=("word-to-Assembly lexicon",),
+    failure_conditions=("unknown area or stimulus", "duplicate/malformed labels", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_readout.py::test_build_lexicon_distinct",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_readout.py::test_build_lexicon_preflights_all_inputs",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1605,6 +1656,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "activate_assembly": ACTIVATION_CONTRACT,
     "fuzzy_readout": READOUT_CONTRACT,
     "materialize_fiber": FIBER_MATERIALIZATION_CONTRACT,
+    "build_lexicon": LEXICON_BUILD_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,
