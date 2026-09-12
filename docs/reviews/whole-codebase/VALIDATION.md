@@ -6599,3 +6599,5 @@ ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0
 
 - Aligned NumPy sparse and Torch engine 
 ormalize_weights overrides with the base Optional[str] source contract. Targeted core tests (model semantics, Brain, projection rounds) — 73 passed in 1.84s. Optional Torch diagnostics remain confined to untyped dynamic Torch symbols and nullable backend internals.
+
+- Capability-hook regression: materialization semantics, backend isolation, and engine availability — 27 passed, 3 skipped, 1 expected failure in 1.98s; sampled recurrence warnings remained visible.
