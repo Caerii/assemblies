@@ -7478,3 +7478,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added explicit `neuron_overlap` and `compact_overlap` APIs delegating to the shared overlap implementation.
 - Migrated research stable-ID measurements to `neuron_overlap`; compact-index callers retain a named compact boundary.
 - Validation: metric and index-space tests passed (16 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 sequence value boundary
+
+- Typed `Sequence.assemblies` as `tuple[Assembly, ...]` and reject one-shot iterables at construction.
+- Lists remain accepted and are canonicalized to tuples; generators no longer produce consumed, invalid sequence objects.
+- Validation: sequence tests passed (22 tests); Pyright reported 0 errors; `git diff --check` passed.

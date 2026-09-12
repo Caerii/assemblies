@@ -97,6 +97,11 @@ class TestSequenceDataclass(unittest.TestCase):
         seq = Sequence("A", asms)  # pass list
         self.assertIsInstance(seq.assemblies, tuple)
 
+    def test_one_shot_iterables_are_rejected_at_construction(self):
+        asms = self._make_assemblies(2)
+        with self.assertRaisesRegex(TypeError, "tuple or list"):
+            Sequence("A", (assembly for assembly in asms))
+
     def test_mixed_area_sequence_is_rejected(self):
         a = self._make_assemblies(1)[0]
         b = Assembly("B", np.arange(K, dtype=np.uint32))

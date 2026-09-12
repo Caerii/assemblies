@@ -47,11 +47,13 @@ class Sequence:
         assemblies: Ordered tuple of Assembly snapshots.
     """
     area: str
-    assemblies: tuple  # tuple[Assembly, ...]
+    assemblies: tuple[Assembly, ...]
 
     def __post_init__(self):
         if isinstance(self.assemblies, list):
             object.__setattr__(self, 'assemblies', tuple(self.assemblies))
+        if not isinstance(self.assemblies, tuple):
+            raise TypeError("sequence assemblies must be a tuple or list")
         if not isinstance(self.area, str) or not self.area:
             raise ValueError("sequence area must be a non-empty string")
         for index, assembly in enumerate(self.assemblies):
