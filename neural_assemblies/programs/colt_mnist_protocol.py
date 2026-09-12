@@ -185,6 +185,9 @@ def run_colt_mnist_two_layer_protocol(
     w_mh = mask_mh.astype(np.float64)
     w_mh /= np.maximum(w_mh.sum(axis=0, keepdims=True), 1e-12)
     bias_high = np.zeros(n_high, dtype=np.float64)
+    # Keep the zero-round null protocol well-defined: no presentation means
+    # no learned high assembly, but the post-loop bias update remains valid.
+    high = np.zeros(n_high, dtype=np.float64)
 
     for class_idx in range(10):
         for round_idx in range(n_rounds):
