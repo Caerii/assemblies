@@ -6883,3 +6883,8 @@ The evidence graph now recognizes committed `.log` and `.txt` study artifacts as
 ## Instance-owned curriculum randomness (2026-09-12)
 
 `nemo/language/curriculum.py` now accepts an optional seed, owns a per-instance NumPy generator, and routes every sentence choice through that generator. This prevents process-global RNG interference and makes curriculum generation composable and reproducible. A seeded two-instance determinism probe passes; Pyright, Ruff, compilation, and diff checks are clean. Full package import remains unavailable in this environment because the legacy Nemo learner requires optional CuPy.
+
+
+## Instance-owned sentence generation randomness (2026-09-12)
+
+`nemo/language/generator.py` now accepts either an injected NumPy generator or a seed (rejecting ambiguous use), and all weighted and fallback choices use that instance-owned source. A deterministic seeded generation probe and exclusive-configuration check pass; Pyright, Ruff, and compilation are clean. End-to-end Nemo import remains CuPy-gated as recorded above.

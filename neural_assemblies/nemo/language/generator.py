@@ -31,8 +31,17 @@ class SentenceGenerator:
     No hardcoded grammar - everything from learned statistics.
     """
     
-    def __init__(self, learner: LanguageLearner):
+    def __init__(
+        self,
+        learner: LanguageLearner,
+        *,
+        rng: np.random.Generator | None = None,
+        seed: int | None = None,
+    ):
+        if rng is not None and seed is not None:
+            raise ValueError("provide rng or seed, not both")
         self.learner = learner
+        self.rng = rng if rng is not None else np.random.default_rng(seed)
     
     def _sample_from_distribution(self, items: List[Tuple[str, float]]) -> Optional[str]:
         """Sample an item from a weighted distribution."""
@@ -43,13 +52,13 @@ class SentenceGenerator:
         weights = np.array(weights, dtype=np.float64)
         
         if weights.sum() == 0:
-            return np.random.choice(words)
+            return str(words[int(self.rng.integers(len(words)))])
         
         weights = weights / weights.sum()
-        return np.random.choice(words, p=weights)
+        return str(self.rng.choice(words, p=weights))
     
     def generate_word_at_position(self, position: int, 
-                                   exclude: List[str] = None) -> Optional[str]:
+                                   exclude: List[str] | None = None) -> Optional[str]:
         """
         Generate a word for a given position.
         
@@ -66,7 +75,7 @@ class SentenceGenerator:
         return self._sample_from_distribution(candidates)
     
     def generate_next_word(self, prev_word: str, 
-                           exclude: List[str] = None) -> Optional[str]:
+                           exclude: List[str] | None = None) -> Optional[str]:
         """
         Generate next word given previous word.
         
@@ -99,7 +108,7 @@ class SentenceGenerator:
             pattern_list, counts = zip(*patterns, strict=True)
             probs = np.array(counts, dtype=float)
             probs /= probs.sum()
-            pattern = pattern_list[np.random.choice(len(pattern_list), p=probs)]
+            pattern = pattern_list[int(self.rng.choice(len(pattern_list), p=probs))]
             
             return self._generate_from_pattern(pattern)
         
@@ -132,9 +141,9 @@ class SentenceGenerator:
                     words, scores = zip(*scored, strict=True)
                     probs = np.array(scores)
                     probs /= probs.sum()
-                    word = np.random.choice(words, p=probs)
+                    word = str(self.rng.choice(words, p=probs))
                 elif candidates:
-                    word = np.random.choice(candidates)
+                    word = str(candidates[int(self.rng.integers(len(candidates)))])
                 else:
                     word = self.generate_word_at_position(i, exclude=sentence)
             
@@ -184,7 +193,7 @@ class SentenceGenerator:
         best_pos = max(positions.keys(), key=lambda p: positions[p])
         
         # Generate around this constraint
-        sentence = [None] * length
+        sentence: List[str | None] = [None] * length
         sentence[best_pos] = must_include
         
         # Fill other positions
@@ -194,8 +203,10 @@ class SentenceGenerator:
             
             # Use bigram if possible
             if i > 0 and sentence[i-1] is not None:
+                previous = sentence[i - 1]
+                assert previous is not None
                 word = self.generate_next_word(
-                    sentence[i-1], 
+                    previous,
                     exclude=[w for w in sentence if w is not None]
                 )
             else:
