@@ -99,7 +99,7 @@ def test_two_moods_different_orders():
     p = EmergentParser(n=1000, k=50, p=0.05, beta=0.1, seed=42, rounds=10)
     p.train(create_training_sentences())
     held = transitive_sentences()[2]
-    hw = {r: w for w, r in zip(held.words, held.roles) if r}
+    hw = {r: w for w, r in zip(held.words, held.roles, strict=True) if r}
 
     for mood, order_name in moods.items():
         corpus = [x for x in

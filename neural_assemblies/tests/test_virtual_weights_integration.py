@@ -130,7 +130,7 @@ class TestDenseSanity(unittest.TestCase):
                 w_off, _d0, _ = _run("0", norm, p_fiber, mat)
                 w_on, _d1, _ = _run("1", norm, p_fiber, mat)
                 overlaps = [len(set(a) & set(b)) / 30.0
-                            for a, b in zip(w_off, w_on)]
+                            for a, b in zip(w_off, w_on, strict=True)]
                 self.assertGreater(float(np.mean(overlaps)), 0.8,
                                    f"{name}: {overlaps}")
 

@@ -137,7 +137,7 @@ def test_missing_execution_status_cannot_default_to_success(tmp_path, document):
 @pytest.mark.parametrize('left,right,reason', [([1.,1.,1.],[0.,0.,0.],'zero_variance'), ([1.,1.,1.],[1.,1.,1.],'at_null')])
 def test_paired_report_keeps_constant_effect_but_not_fake_test(left, right, reason):
     report = base.summarize_paired(left, right, seed_ids=[9,2,7])
-    assert report['values'] == [a-b for a,b in zip(left,right)]
+    assert report['values'] == [a-b for a,b in zip(left, right, strict=True)]
     assert report['summary']['mean'] == left[0]-right[0]
     assert report['test']['degenerate'] == reason
     assert report['test']['t'] is report['test']['p'] is report['test']['d'] is None

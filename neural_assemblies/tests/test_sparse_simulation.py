@@ -49,7 +49,7 @@ class TestSparseSimulationEngine(unittest.TestCase):
             self.assertEqual(len(dist), len(input_sizes))
 
         # Total connections should match input strength
-        for i, (dist, expected) in enumerate(zip(distributions, first_winner_inputs)):
+        for i, (dist, expected) in enumerate(zip(distributions, first_winner_inputs, strict=True)):
             total_connections = int(np.sum(dist))
             self.assertEqual(total_connections, int(expected))
 
@@ -240,7 +240,7 @@ class TestSparseSimulationEngine(unittest.TestCase):
         dist1 = engine1.calculate_input_distribution(input_sizes, first_winner_inputs)
         dist2 = engine2.calculate_input_distribution(input_sizes, first_winner_inputs)
 
-        for d1, d2 in zip(dist1, dist2):
+        for d1, d2 in zip(dist1, dist2, strict=True):
             np.testing.assert_array_equal(d1, d2)
 
     def test_algorithm_complexity(self):

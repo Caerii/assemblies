@@ -175,7 +175,7 @@ class TestWinnerPolicies:
         assert sizes != [K * (i + 1) for i in range(len(sizes))], (
             f"|F| is exactly k per round: {sizes} -- this is the recruitment "
             f"signature, not a selection")
-        assert not all(b > a for a, b in zip(sizes, sizes[1:])), (
+        assert not all(b > a for a, b in zip(sizes, sizes[1:], strict=False)), (
             f"|F| increases every single round: {sizes} -- consistent with "
             f"tracking a growing pool rather than the drive distribution")
         assert all(0 < s < N for s in sizes), f"degenerate sizes: {sizes}"

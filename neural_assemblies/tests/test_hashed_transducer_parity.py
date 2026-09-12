@@ -94,7 +94,7 @@ def test_hashed_transducer_reproduces_numpy_drive(mod):
             trace.append(proj(OUT, [t._g_stim[w]], []))
     for sent in SENTENCES:                                      # train
         b.inhibit_areas([LEX, ARC, ST, OUT])
-        for a, nxt in zip(sent, sent[1:]):
+        for a, nxt in zip(sent, sent[1:], strict=False):
             for _ in range(ROUNDS):
                 trace.append(proj(LEX, [t._s_stim[a]], []))
             trace.append(proj(ARC, [], [LEX, ST]))
@@ -166,7 +166,7 @@ def _schedule(sentences, wi, S):
     """One brain's (words, targets, starts) from its sentences, padded to S."""
     W, T, St = [], [], []
     for s in sentences:
-        for j, (a, nxt) in enumerate(zip(s, s[1:])):
+        for j, (a, nxt) in enumerate(zip(s, s[1:], strict=False)):
             W.append(wi[a]); T.append(wi[nxt]); St.append(j == 0)
     W += [-1] * (S - len(W)); T += [-1] * (S - len(T)); St += [False] * (S - len(St))
     return W, T, St

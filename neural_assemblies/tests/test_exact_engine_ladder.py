@@ -271,7 +271,7 @@ class TestL3GradedSimilarity:
             pat = ref[:shared] + disjoint[:K - shared]
             curve.append(len(self._read(e, pat, N) & base) / K)
         assert curve[-1] == 1.0, "identical inputs must give identical output"
-        assert all(x <= y + 1e-9 for x, y in zip(curve, curve[1:])), (
+        assert all(x <= y + 1e-9 for x, y in zip(curve, curve[1:], strict=False)), (
             f"similarity is not monotone in shared fraction: {curve}")
         assert curve[-2] > curve[0] + 0.1, (
             f"curve is flat, so nothing is graded: {curve}")

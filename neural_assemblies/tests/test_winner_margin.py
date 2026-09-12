@@ -31,7 +31,7 @@ def test_strict_bound_and_constructed_equality_counterexample():
 def test_exact_units_survive_overflow_subnormal_and_large_integer_inputs(ref, got):
     result = compare_winner_selection(ref, got, 1)
     expected = max(abs(Fraction(a.item() if isinstance(a, np.generic) else a) -
-                       Fraction(b.item() if isinstance(b, np.generic) else b)) for a,b in zip(ref,got))
+                       Fraction(b.item() if isinstance(b, np.generic) else b)) for a,b in zip(ref, got, strict=True))
     assert Fraction(result.max_error_units, 2**result.scale_exponent) == expected
     assert not result.margin_certified or result.winners_agree
 

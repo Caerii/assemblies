@@ -4,7 +4,7 @@ from research.experiments.seq_a1_learning_null import BARS, score_pair
 
 def rows(accuracy, exact):
     return [{"seed": i+1, "accuracy": a, "exact_fraction": e}
-            for i,(a,e) in enumerate(zip(accuracy,exact))]
+            for i,(a,e) in enumerate(zip(accuracy, exact, strict=True))]
 
 
 def test_perfect_null_fails_instrument_sensitivity():

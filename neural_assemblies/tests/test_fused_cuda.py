@@ -725,7 +725,7 @@ def test_stop_when_stable_equals_ungated_prefix(mod):
     used = st_g["area"].rounds_used.tolist()
     assert min(used) >= 2 and max(used) <= 8
     assert any(u < 8 for u in used), "no brain converged before T_max; vacuous"
-    for b, u in zip(brains, used):
+    for b, u in zip(brains, used, strict=True):
         win_u, st_u = run([b], u, False)
         assert torch.equal(win_u[0], win_g[b])
         assert torch.equal(st_u["fiber"].C[0], st_g["fiber"].C[b])

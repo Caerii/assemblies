@@ -488,7 +488,7 @@ class TestColt2022Halfspace:
 
     def test_every_seed_separates_not_just_the_mean(self, result):
         k = result.parameters["cap_size"]
-        for i, (p, n) in enumerate(zip(result.per_seed_pos, result.per_seed_neg)):
+        for i, (p, n) in enumerate(zip(result.per_seed_pos, result.per_seed_neg, strict=True)):
             assert p >= 0.75 * k and n <= 0.25 * k, (
                 f"seed index {i} does not separate: D+ {p:.2f}, D- {n:.2f}"
             )
@@ -589,7 +589,7 @@ class TestColtMultiAssembly:
         """
         offenders = [
             (a, o) for a, o, c in zip(result.alphas, result.overlaps,
-                                      result.chance)
+                                      result.chance, strict=True)
             if a >= 0.25 and (o - c) > a
         ]
         assert offenders, (
@@ -619,5 +619,5 @@ class TestColtMultiAssembly:
         golden = json.loads(golden_path.read_text(encoding="utf-8"))
         assert result.recall == pytest.approx(
             golden["metrics"]["recall"], abs=0.02)
-        for got, want in zip(result.overlaps, golden["metrics"]["overlaps"]):
+        for got, want in zip(result.overlaps, golden["metrics"]["overlaps"], strict=True):
             assert got == pytest.approx(want, abs=0.05)

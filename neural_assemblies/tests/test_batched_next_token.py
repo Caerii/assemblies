@@ -73,7 +73,7 @@ def test_batched_matches_sequential_top1():
     # (scatter_add / SpMM use atomic adds in arbitrary order, so a few topk
     # near-ties flip run-to-run) -- not a systematic error. For corpus scoring
     # the aggregate metrics are unaffected.
-    agree = sum(a == c for a, c in zip(seq_top1, bat_top1)) / len(seq_top1)
+    agree = sum(a == c for a, c in zip(seq_top1, bat_top1, strict=True)) / len(seq_top1)
     assert agree >= 0.9, f"top-1 agreement {agree:.2%} (expected ~100%)"
 
 

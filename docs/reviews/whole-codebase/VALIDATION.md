@@ -6203,3 +6203,7 @@ Added `neural_assemblies.ir.write_json_document` and exported it from the IR pac
 ### Canonical CLI writer integration gate (2026-09-12)
 
 The ventral evidence integration suite, covering the four migrated MNIST/profile programs, passed **17 tests with 2 optional skips in 574.03 seconds**. This confirms the serialization import path and program construction remain compatible; skips are dependency-gated.
+
+### Test-fixture strict-pairing gate (2026-09-12)
+
+All remaining B905 sites in maintained tests now declare their cardinality law: equal-length comparisons use `strict=True`, while intentionally offset adjacent-sequence comparisons explicitly use `strict=False`. The focused horizon, pricing, sequence, and winner-margin suites pass **57 tests**; the full repository B905 scan is clean.

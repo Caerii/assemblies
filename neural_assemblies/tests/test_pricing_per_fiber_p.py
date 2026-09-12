@@ -28,7 +28,7 @@ class TestEffectiveBinomial(unittest.TestCase):
     def test_matches_the_first_two_moments(self):
         sizes, ps = [70, 70], [0.05, 0.4]
         n_eff, p_eff = effective_binomial(sizes, ps)
-        mu = sum(a * q for a, q in zip(sizes, ps))
+        mu = sum(a * q for a, q in zip(sizes, ps, strict=True))
         # integer rounding of n_eff costs a little; the mean must still land
         self.assertAlmostEqual(n_eff * p_eff, mu, delta=0.5)
         self.assertGreater(p_eff, min(ps))

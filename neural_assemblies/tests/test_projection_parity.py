@@ -100,7 +100,7 @@ class TestProjectionParity(unittest.TestCase):
         # input distribution
         ext_inputs_by_first = self.sparse.calculate_input_distribution(input_sizes, ext_first_inputs)
         self.assertEqual(len(ext_inputs_by_first), len(root_inputs_by_first))
-        for e, r in zip(ext_inputs_by_first, root_inputs_by_first):
+        for e, r in zip(ext_inputs_by_first, root_inputs_by_first, strict=True):
             np.testing.assert_array_equal(e, r)
         # plasticity scaling
         ext_vec_scaled = self.plastic.scale_stimulus_to_area(vec, ext_new_winners, beta=0.3)
@@ -188,7 +188,7 @@ class TestProjectionParity(unittest.TestCase):
             self.assertEqual(ext_num_first, num_first)
             np.testing.assert_array_equal(np.array(ext_first_inputs), np.array(root_first_inputs))
             ext_inputs_by_first = self.sparse.calculate_input_distribution(input_sizes, ext_first_inputs)
-            for e, r in zip(ext_inputs_by_first, root_inputs_by_first):
+            for e, r in zip(ext_inputs_by_first, root_inputs_by_first, strict=True):
                 np.testing.assert_array_equal(e, r)
             # Apply extracted plasticity
             ext_vec = self.plastic.scale_stimulus_to_area(ext_vec, ext_new_winners, beta=0.2)
@@ -292,7 +292,7 @@ class TestProjectIntoParityFull(unittest.TestCase):
         # Set sparse RNG to the same dedicated generator for parity
         sparse.rng = np.random.default_rng(seed + 12345)
         ext_inputs_by_first = sparse.calculate_input_distribution(input_sizes, ext_first_inputs)
-        for e, r in zip(ext_inputs_by_first, root_inputs_by_first):
+        for e, r in zip(ext_inputs_by_first, root_inputs_by_first, strict=True):
             diff_alloc = np.abs(np.array(e) - np.array(r))
             if diff_alloc.size > 0 and float(np.max(diff_alloc)) > 3:
                 warnings.warn(

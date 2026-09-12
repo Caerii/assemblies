@@ -714,7 +714,7 @@ class TestTrainingPerf:
             parser = train(use_lexicon=use_lexicon)
             preds = [parser.predict_next(words)[0][0] for words in probes]
             # Every prediction must be a real vocabulary word...
-            for words, pred in zip(probes, preds):
+            for words, pred in zip(probes, preds, strict=True):
                 assert pred and pred != "<NON-WORD>", (
                     f"{'lexicon' if use_lexicon else 'phon'}-core predicted "
                     f"{pred!r} for {words!r}"

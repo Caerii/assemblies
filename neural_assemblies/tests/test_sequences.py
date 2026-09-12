@@ -65,7 +65,7 @@ class TestSequenceDataclass(unittest.TestCase):
         seq = Sequence("A", asms)
         collected = list(seq)
         self.assertEqual(len(collected), 3)
-        for a, b in zip(collected, asms):
+        for a, b in zip(collected, asms, strict=True):
             self.assertEqual(a, b)
 
     def test_pairwise_overlaps(self):
