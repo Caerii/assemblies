@@ -72,6 +72,7 @@ from .contracts import (
     SEQUENCE_MEMORIZE_CONTRACT,
     implements,
 )
+from ..core.engine import resolve_area_engine
 from ..core.index_spaces import NeuronIds, to_neuron_ids, validated_indices
 
 
@@ -113,7 +114,7 @@ def _snap(brain, area_name) -> Assembly:
         # still branded CompactIdx. Relabel it at this boundary rather than
         # letting the internal coordinate space escape into a snapshot.
         return Assembly(area_name, NeuronIds(winners.copy()))
-    engine = brain.engine_for(area_name)
+    engine = resolve_area_engine(brain, area_name)
     mapping = engine.get_neuron_id_mapping(area_name) if hasattr(
         engine, "get_neuron_id_mapping",
     ) else None
@@ -218,9 +219,9 @@ def activate_assembly(brain, assembly: Assembly) -> None:
     neuron_ids = validated_indices(neuron_ids, upper=area.n, label='assembly neuron IDs')
     if area.explicit:
         area.winners = neuron_ids.copy()
-        brain.engine_for(area_name).set_winners(area_name, neuron_ids)
+        resolve_area_engine(brain, area_name).set_winners(area_name, neuron_ids)
         return
-    engine = brain.engine_for(area_name)
+    engine = resolve_area_engine(brain, area_name)
     neuron_to_compact = _compact_index(engine, area_name)
     if neuron_to_compact is not None:
         try:
@@ -258,7 +259,7 @@ def assembly_is_current(brain, assembly) -> bool:
     area = brain.areas[area_name]
     if area.explicit:
         return True
-    engine = brain.engine_for(area_name)
+    engine = resolve_area_engine(brain, area_name)
     neuron_to_compact = _compact_index(engine, area_name)
     if neuron_to_compact is None:
         # No mapping yet: activate_assembly injects real IDs verbatim, so
@@ -332,12 +333,12 @@ def learn_assembly_from_pattern(
     for epoch in range(1, max_epochs + 1):
         brain.areas[dst_area].unfix_assembly()
         brain.areas[dst_area].winners = np.array([], dtype=np.uint32)
-        brain.engine_for(dst_area).set_winners(
+        resolve_area_engine(brain, dst_area).set_winners(
             dst_area, np.array([], dtype=np.uint32),
         )
         brain.areas[src_area].unfix_assembly()
         brain.areas[src_area].winners = src_winners
-        brain.engine_for(src_area).set_winners(src_area, src_winners)
+        resolve_area_engine(brain, src_area).set_winners(src_area, src_winners)
         projections = {src_area: [dst_area]}
         if recurrent:
             projections[dst_area] = [dst_area]
@@ -402,7 +403,7 @@ def _unfix(brain, *area_names):
 def _fixed_sources(brain, *names):
     """Borrow source clamps; restore facade and engine state even on error."""
     saved = [(name, brain.areas[name].fixed_assembly,
-              brain.engine_for(name).is_fixed(name)) for name in names]
+              resolve_area_engine(brain, name).is_fixed(name)) for name in names]
     try:
         _fix(brain, *names)
         yield
@@ -410,7 +411,7 @@ def _fixed_sources(brain, *names):
         for name, fixed, engine_fixed in saved:
             area = brain.areas[name]
             area.fixed_assembly = fixed
-            engine = brain.engine_for(name)
+            engine = resolve_area_engine(brain, name)
             (engine.fix_assembly if engine_fixed else engine.unfix_assembly)(name)
 
 

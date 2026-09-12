@@ -43,6 +43,7 @@ import math
 from numbers import Integral, Real
 
 from ..core.registration import validate_round_count
+from ..core.engine import resolve_area_engine
 from ..core.index_spaces import validated_indices
 
 import numpy as np
@@ -237,7 +238,7 @@ class RandomChoiceArea:
         """
         brain = self.brain
         area = brain.areas[self.area_name]
-        engine = brain.engine_for(self.area_name)
+        engine = resolve_area_engine(brain, self.area_name)
 
         materialize = getattr(engine, "materialize_area", None)
         if materialize is None:
@@ -341,7 +342,7 @@ class RandomChoiceArea:
 
     def _seed_uniform(self, rng) -> None:
         area = self.brain.areas[self.area_name]
-        engine = self.brain.engine_for(self.area_name)
+        engine = resolve_area_engine(self.brain, self.area_name)
         count = engine.materialized_count(self.area_name)
         if count is not None and count != area.n:
             raise ValueError("uniform coin seeding requires the complete materialized population")

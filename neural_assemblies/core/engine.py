@@ -24,7 +24,7 @@ Usage::
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Any, Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import numpy as np
 
@@ -49,6 +49,23 @@ def validate_engine_boolean_option(engine_type, option, value, capability) -> bo
     if not getattr(engine_type, capability, False):
         raise ValueError(f"{engine_type.__name__} does not support {option}")
     return value
+
+
+def resolve_area_engine(brain: Any, area_name: str) -> "ComputeEngine":
+    """Resolve an area's owner for Brain-like composition objects.
+
+    ``Brain.engine_for`` is authoritative. The narrow fallback keeps
+    lightweight legacy adapters working while they migrate away from the
+    private Area-based resolver.
+    """
+    resolver = getattr(brain, "engine_for", None)
+    if callable(resolver):
+        return cast(ComputeEngine, resolver(area_name))
+    legacy = getattr(brain, "_engine_for", None)
+    areas = getattr(brain, "areas", None)
+    if callable(legacy) and areas is not None:
+        return cast(ComputeEngine, legacy(areas[area_name]))
+    raise TypeError("brain must expose engine_for(area_name)")
 
 
 @dataclass
