@@ -256,9 +256,12 @@ def run_synthesis_audit(
     )
 
     clear_ventral_bundle_cache()
-    kw = dict(seed=seed, n_examples=n_examples, k=k, use_cache=False)
-    rec = load_recurrent_bundle(**kw)
-    attr = load_attractor_bundle(**kw)
+    rec = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
+    attr = load_attractor_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
     return {
         "recurrent": audit_bundle(rec, label="recurrent", seed=seed),
         "attractor": audit_bundle(attr, label="attractor", seed=seed),
