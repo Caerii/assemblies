@@ -27,10 +27,11 @@ Architecture:
 """
 
 from collections import namedtuple, defaultdict
-from typing import Dict, Set, Optional
+import importlib
+from typing import Any, Dict, Set, Optional
 import numpy as np
 
-import brain
+brain: Any = importlib.import_module("brain")
 
 # =============================================================================
 # BRAIN AREAS
@@ -511,20 +512,21 @@ class GrammaticalBrain(brain.Brain):
         return {"dependencies": dependencies}
     
     def generate_sentence(self, structure: str = "SVO", 
-                         subject: str = None,
-                         verb: str = None,
-                         obj: str = None) -> str:
+                         subject: Optional[str] = None,
+                         verb: Optional[str] = None,
+                         obj: Optional[str] = None) -> str:
         """Generate a sentence with given structure"""
         # Get random words if not specified
         nouns = [w for w, l in self.lexeme_dict.items() if l.get("type") == "NOUN"]
         verbs = [w for w, l in self.lexeme_dict.items() if l.get("type") == "VERB"]
+        choice = getattr(np.random, "choice")
         
         if subject is None:
-            subject = np.random.choice(nouns)
+            subject = str(choice(nouns))
         if verb is None:
-            verb = np.random.choice(verbs)
+            verb = str(choice(verbs))
         if obj is None:
-            obj = np.random.choice([n for n in nouns if n != subject])
+            obj = str(choice([n for n in nouns if n != subject]))
         
         # Build sentence based on structure
         if structure == "SVO":

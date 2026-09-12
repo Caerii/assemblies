@@ -15,11 +15,13 @@ can perform meaningful text generation.
 """
 
 import numpy as np
+import importlib
+from typing import Any
 from typing import List, Dict, Set, Optional, Tuple
 from dataclasses import dataclass
 
 try:
-    import brain as b
+    b: Any = importlib.import_module("brain")
 except ImportError:
     print("Warning: brain.py not found, using mock implementation")
     b = None

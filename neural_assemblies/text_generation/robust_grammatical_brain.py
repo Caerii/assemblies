@@ -17,11 +17,12 @@ Based on parser.py, recursive_parser.py, learner.py, and language_brain_simulati
 
 from collections import namedtuple, defaultdict
 from enum import Enum
-from typing import List, Dict, Optional, Tuple
+import importlib
+from typing import Any, List, Dict, Optional, Tuple
 import numpy as np
 import random
 
-import brain
+brain: Any = importlib.import_module("brain")
 
 # =============================================================================
 # BRAIN AREAS - Comprehensive Architecture
@@ -123,10 +124,11 @@ FiberRule = namedtuple("FiberRule", ["action", "area1", "area2", "index"])
 # =============================================================================
 
 def create_word_entry(index: int, word_type: str, 
-                      context_area: str = None,
-                      context_index: int = None,
-                      features: Dict = None) -> Dict:
+                      context_area: Optional[str] = None,
+                      context_index: Optional[int] = None,
+                      features: Optional[Dict] = None) -> Dict:
     """Create a lexicon entry with full features"""
+    features = features or {}
     entry = {
         "index": index,
         "type": word_type,
