@@ -6034,3 +6034,9 @@ corpus observations, and the parser uses explicit length checks for role data.
 The full operation-contract suite passes **163 tests**. New regression files are
 normalized to BOM-free UTF-8 so the repository AST validator can inspect every
 Python file.
+
+### Image conversion exception provenance (2026-09-12)
+
+`preprocess_image` now chains conversion failures when it raises its public
+`TypeError`, preserving the underlying cause for diagnosis. The image
+activation suite passes **6 tests** and the B904 scan is clean.

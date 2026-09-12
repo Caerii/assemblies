@@ -43,6 +43,16 @@ class TestImageActivation(unittest.TestCase):
         # Normalization is monotonic; top-k preserved
         np.testing.assert_array_equal(np.sort(area.winners), np.sort(expected_topk))
 
+    def test_unsupported_image_preserves_conversion_cause(self):
+        class BrokenImage:
+            def __array__(self):
+                raise RuntimeError("conversion failed")
+
+        with self.assertRaisesRegex(TypeError, "Unsupported image type") as ctx:
+            from neural_assemblies.compute.image_activation import preprocess_image
+            preprocess_image(BrokenImage(), 8)
+        self.assertIsInstance(ctx.exception.__cause__, RuntimeError)
+
     def test_torch_tensor_input_supported(self):
         try:
             import torch  # noqa: F401

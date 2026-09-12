@@ -86,8 +86,8 @@ def preprocess_image(image, target_n):
         try:
             image_flat = np.asarray(image).flatten()
             image_size = image_flat.size
-        except Exception:
-            raise TypeError(f"Unsupported image type: {type(image)}")
+        except Exception as exc:
+            raise TypeError(f"Unsupported image type: {type(image)}") from exc
 
     if image_size > target_n:
         image_flat = image_flat[:target_n]
