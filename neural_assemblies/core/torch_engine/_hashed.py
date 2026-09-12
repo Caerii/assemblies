@@ -38,6 +38,7 @@ training length and a study's cost quadratic in it.
 from __future__ import annotations
 
 import torch
+from typing import Any
 
 from . import _fused_cuda
 from .._homeostasis import column_scale, scaling_setpoint
@@ -142,7 +143,10 @@ class RunStore:
 
     def __init__(self, device):
         self.device = device
-        self.keys = self.cnts = None
+        # Allocated lazily on the first episode; Any preserves the tensor
+        # device/dtype while making the lifecycle explicit to static checks.
+        self.keys: Any = None
+        self.cnts: Any = None
         self.used = 0
         self.offs = [0]
         #: the largest per-cell count held anywhere in the store. A fiber's
@@ -220,6 +224,20 @@ class AreaFiber:
     """
 
     MAX_EPISODE_ROUNDS = 64
+
+    # Runtime-owned CUDA tensors and the compiled module are established by
+    # __init__ (some are intentionally lazy).  These declarations describe
+    # that state machine without erasing the Tensor annotations at call sites.
+    mod: Any
+    dj: Any
+    scale: Any
+    rel: Any
+    cmax: Any
+    _rowmask: Any
+    _colmask: Any
+    _scratch: Any
+    _cscratch: Any
+    _colmap: Any
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.0, w_max=None,
                  norm_init=False, synaptic_scaling=False, max_rounds=64,
@@ -551,6 +569,14 @@ class PresentFiber:
 
     MAX_BYTES = 4 << 30
     MAX_COUNT = 32767
+    mod: Any
+    _nnz_of: Any
+    rel: Any
+    cmax: Any
+    dj: Any
+    invdj: Any
+    mass: Any
+    scale: Any
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, norm_init=False,
                  synaptic_scaling=True, w_max=None, max_rounds=4096,
@@ -694,6 +720,10 @@ class DenseOrganFiber:
     #: the matrix is half the size it was at int16 -- twice the brains per
     #: launch at n = 10,000.
     MAX_COUNT = 127
+    mod: Any
+    pres: Any
+    dj: Any
+    invdj: Any
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, w_max=20.0,
                  norm_init=True, max_rounds=4096, device="cuda"):
@@ -783,6 +813,13 @@ class StimulusFiber:
       starts near ``stim_size * p``, not at 1. The cap is
       ``w_max * max(1, stim_size * p)``.
     """
+
+    mod: Any
+    base: Any
+    pot: Any
+    gain: Any
+    dj: Any
+    _const: Any
 
     def __init__(self, seeds, size, n_post, p, *, beta=0.0, w_max=None,
                  norm_init=False, max_rounds=64, device="cuda",
@@ -885,6 +922,8 @@ class HashedArea:
     those live in the fiber that owns them, which is why adding an input is
     adding a fiber rather than a flag.
     """
+
+    mod: Any
 
     def __init__(self, n, k, seeds, device="cuda", refracted_strength=0.0,
                  tie_jitter=0.0):
