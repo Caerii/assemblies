@@ -4646,7 +4646,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 
 ## Exception-safe sequence plasticity (2026-09-11)
 
-`sequence_memorize` now restores a temporary `beta_boost` in a `finally` block. A backend failure during recurrent training can no longer contaminate the Brain’s later plasticity state. The injected-failure regression plus sequence suites pass **26 tests**.
+`sequence_memorize` now restores a temporary `beta_boost` in a `finally` block. A backend failure during recurrent training can no longer contaminate the Brainâ€™s later plasticity state. The injected-failure regression plus sequence suites pass **26 tests**.
 
 ## Active-source input-drive admission (2026-09-11)
 
@@ -4662,7 +4662,7 @@ The legacy `assembly_calculus.binding.bind` now rejects unknown area names and n
 
 ## Inspectable ordered-recall plan (2026-09-11)
 
-Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ordered_recall` through it. The sequence protocol’s validated parameters and topology preflight are now reusable data rather than execution-local checks. The ordered-recall, sequence, and operation-contract suites pass **173 tests**; Ruff is clean.
+Added frozen `OrderedRecallPlan` to the operation-contract layer and routed `ordered_recall` through it. The sequence protocolâ€™s validated parameters and topology preflight are now reusable data rather than execution-local checks. The ordered-recall, sequence, and operation-contract suites pass **173 tests**; Ruff is clean.
 
 ## Shared traced recall contract (2026-09-11)
 
@@ -4710,7 +4710,7 @@ All maintained traced calculus entry points now carry explicit `Specification:` 
 
 ## Scaffold primitive admission (2026-09-11)
 
-`_train_scaffold_step`, the primitive used by `ScaffoldNetwork.train`, now validates stimulus, both areas, round count, Phase-B ratio, and beta boost itself. Single-item training can no longer bypass the bulk wrapper’s contract. Scaffold and sequence tests pass **25 tests**.
+`_train_scaffold_step`, the primitive used by `ScaffoldNetwork.train`, now validates stimulus, both areas, round count, Phase-B ratio, and beta boost itself. Single-item training can no longer bypass the bulk wrapperâ€™s contract. Scaffold and sequence tests pass **25 tests**.
 
 ## Shared scaffold admission helper (2026-09-11)
 
@@ -6143,3 +6143,7 @@ The next partitioned non-slow slice, covering cross-repository parity and early 
 ### Emergent parser and overlap slice gate (2026-09-12)
 
 The next partitioned non-slow slice passed **136 tests, 3 optional skips, and 1 expected xfail in 240.98 seconds**. It covers central emergent parser behavior, sequence parameter contracts, curriculum learning, and engine overlap checks. Twenty-three sampled-recurrence warnings are intentional provenance guards; no unexpected failures occurred.
+
+### Semantic contract and slice-4 gate (2026-09-12)
+
+The semantic-card, operation-contract, specification-link, model-semantics, and materialization-semantic suites pass **230 tests with 1 expected xfail**. The partitioned non-slow slice 1000:1140 reached **87 passes and 1 failure in 95.69 seconds**; the failure is the existing ERP calibration direction assertion (`test_calibration_separates_category_violation_from_grammatical`), where the clipped P600-excess median is 0.0000 for category violations versus 0.00015 for grammatical items. Repeated isolated runs reproduce the same result, so this is a deterministic scientific-bar failure, not a runner flake; no pass is claimed for that slice.
