@@ -7355,3 +7355,9 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - The `TestBestParameterDemo` sequence parameter sweep is now centrally slow: it retrains nine aggressive configurations and is empirical evidence rather than a contract check.
 - Fast-tier collection is now 3,939 tests, with 183 empirical tests held for the slow tier. The sweep remains runnable through the full/slow command.
+
+
+## 2026-09-12 refreshed fast-tier baseline
+
+- After moving the exploratory sequence sweep, the 12-worker fast tier completed with 3,791 passed, 141 skipped, 7 xfailed, 10 subtests in 283.82s (4:43).
+- Runtime variance is material (243--284s across matched runs); the suite remains bounded by a small number of 20--37s tests and native numerical scheduling. This is recorded as a baseline, not treated as a claimed regression or improvement.
