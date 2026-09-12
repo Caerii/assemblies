@@ -7256,3 +7256,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Replaced strict pairing with matched-prefix comparison and retained explicit warnings for permitted count differences.
 - Focused parity test: 1 passed in 1.83s.
 - Full `-n 8 --dist loadscope` run reached 3,829 passed before this repair; its failure was the harness contradiction above, not an engine failure.
+
+
+## 2026-09-12 ? activity snapshot ownership
+
+- Typed `ActivitySnapshot` ownership as the `ActivityState` protocol boundary while preserving heterogeneous mutable field buffers.
+- `uv run pyright neural_assemblies/core/activity.py`: 0 errors.
