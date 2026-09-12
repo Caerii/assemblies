@@ -6848,3 +6848,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## GPU assembly learner operator boundary (2026-09-12)
 
 `lexicon/gpu_assembly_learner.py` now routes Torch construction, random generation, top-k selection, and CUDA synchronization through the shared lazy operator protocol, removes global NumPy RNG mutation, and keeps tensor annotations runtime-safe for the optional CUDA dependency. The module compiles; Pyright and Ruff report zero diagnostics. Runtime validation remains CUDA-gated by the prototype's explicit availability assertion.
+
+
+## Scheduled hashed engine Torch boundary (2026-09-12)
+
+`torch_engine/_scheduled_aligner.py` now routes CUDA cache and synchronization calls through the shared lazy Torch operator protocol, and `_arc_core.py` no longer imports Torch solely for a tensor annotation. Scheduled-aligner and organ-semantics tests pass **18/18** with **4** expected CUDA skips; Pyright and Ruff report zero diagnostics.

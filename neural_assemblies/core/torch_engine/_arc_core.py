@@ -20,7 +20,7 @@ organ passes its own ordered list, so its measured tables do not move.
 """
 from __future__ import annotations
 
-import torch
+from typing import Any
 
 from ._hashed import DenseOrganFiber, HashedArea
 from ._hashed_aligner import pair_seeds
@@ -69,7 +69,7 @@ class HashedArcCore:
         """Recompute STATE from ARC, one round, feed-forward."""
         return self.state.project(1, [self.arc_state], rows_for=self.rows(), freeze=freeze)
 
-    def teach(self, target: torch.Tensor) -> None:
+    def teach(self, target: Any) -> None:
         """The machine's teacher-forced write: ARC -> STATE onto a PINNED
         `target` [B, k]; no drive is computed (the engine's fixed-target
         plasticity)."""

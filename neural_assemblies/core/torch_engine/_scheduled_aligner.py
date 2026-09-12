@@ -26,8 +26,6 @@ which for a cross round includes the cross fiber.
 """
 from __future__ import annotations
 
-import torch
-
 from ._torch_ops import torch_ops
 from typing import Any
 
@@ -214,7 +212,7 @@ class ScheduledAligner:
         # FEAT they were most of the card
         del consts, idx, fseeds, salt
         self.phon, self.featf, self.jit_anchor = None, None, None
-        torch.cuda.empty_cache()
+        torch_ops.cuda.empty_cache()
         self._prepared = True
 
     # -- training ------------------------------------------------------------
@@ -242,7 +240,7 @@ class ScheduledAligner:
                 cf.invdj, cf.rel, float(cf.setpoint), self.rounds_word,
                 self.feat_k, cf.err, nsh, nnz, self._warps_per_block(),
                 1 if cf.absolute else 0)
-            torch.cuda.synchronize()
+            torch_ops.cuda.synchronize()
             cf.check()
             return
         ar = torch_ops.arange(B, device=dev)
