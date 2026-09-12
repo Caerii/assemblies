@@ -7,7 +7,11 @@ import json
 from pathlib import Path
 from typing import Any
 
-from neural_assemblies.ir.protocol import export_protocol_document, load_protocol_document
+from neural_assemblies.ir.protocol import (
+    export_protocol_document,
+    load_protocol_document,
+    write_json_document,
+)
 
 
 def _repo_root() -> Path:
@@ -68,7 +72,7 @@ def export_pnas_scaling_ir(path: Path | None = None) -> dict[str, Any]:
         notes="Cross-language golden for PNAS 2020 scaling (ci_parity regime).",
     )
     if path is not None:
-        path.write_text(json.dumps(doc, indent=2) + "\n", encoding="utf-8")
+        write_json_document(path, doc)
     return doc
 
 

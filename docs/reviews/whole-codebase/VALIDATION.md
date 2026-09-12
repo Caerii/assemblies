@@ -6235,3 +6235,7 @@ The partitioned non-slow slice 1980:2120 passed **139 tests with 1 expected xfai
 ### Canonical generic JSON writer gate (2026-09-12)
 
 `neural_assemblies.ir.protocol.write_json_document` now has a repository regression covering canonical sorted UTF-8 output, finite-JSON rejection before file creation, and create-only overwrite refusal. The protocol wire suite passes **52 tests**; focused Ruff F/E9 checks and `git diff --check` are clean.
+
+### Cross-language export create-only gate (2026-09-12)
+
+The cross-language PNAS scaling exporter now uses the canonical create-only IR writer. Its regression stubs the executor, validates the exported document, asserts deterministic finite JSON bytes, and proves a second export cannot overwrite the artifact. The combined IR/wire gate passes **58 tests with 1 expected Julia skip**; focused Ruff F/E9 checks are clean.

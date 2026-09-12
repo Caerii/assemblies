@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
 
 import numpy as np
@@ -41,6 +42,20 @@ def test_cross_lang_runner_pnas_scaling():
 
     ok, diffs = run_protocol("cross_lang.pnas_scaling")
     assert ok, diffs
+
+
+def test_cross_lang_export_is_create_only_and_canonical(tmp_path, monkeypatch):
+    import research.literature.cross_lang.runner as runner
+
+    monkeypatch.setattr(runner, "run_python_pnas_scaling", lambda: {"ci_parity": {"x": 1}})
+    path = tmp_path / "cross-lang.json"
+    document = runner.export_pnas_scaling_ir(path)
+    assert load_protocol_document(path) == document
+    assert path.read_text(encoding="utf-8") == (
+        json.dumps(document, indent=2, ensure_ascii=False, allow_nan=False, sort_keys=True) + "\n"
+    )
+    with pytest.raises(FileExistsError):
+        runner.export_pnas_scaling_ir(path)
 
 
 def test_julia_pnas_scaling_when_available():
