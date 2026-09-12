@@ -41,14 +41,32 @@ Changelog:
 __version__ = "2.0.0"
 __author__ = "Assembly Calculus Project"
 
-# Core components
-from .core import Brain, BrainParams, Area, AreaParams
+# NEMO has an optional CuPy implementation. Keep the package namespace
+# importable on CPU-only installations; resolve GPU-backed symbols only when
+# a caller asks for them. This preserves the public API while making the
+# dependency boundary explicit and avoiding an eager CuPy import that also
+# interferes with the NumPy/Torch engines.
+from importlib import import_module
 
-# Language components  
-from .language import LanguageLearner, SentenceGenerator
+_LAZY_SYMBOLS = {
+    "Brain": (".core", "Brain"),
+    "BrainParams": (".core", "BrainParams"),
+    "Area": (".core", "Area"),
+    "AreaParams": (".core", "AreaParams"),
+    "LanguageLearner": (".language", "LanguageLearner"),
+    "SentenceGenerator": (".language", "SentenceGenerator"),
+}
 
-__all__ = [
-    'Brain', 'BrainParams', 
-    'Area', 'AreaParams',
-    'LanguageLearner', 'SentenceGenerator',
-]
+
+def __getattr__(name: str):
+    try:
+        module_name, symbol = _LAZY_SYMBOLS[name]
+    except KeyError:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}") from None
+    value = getattr(import_module(module_name, __name__), symbol)
+    globals()[name] = value
+    return value
+
+
+__all__ = list(_LAZY_SYMBOLS)
+

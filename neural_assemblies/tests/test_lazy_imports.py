@@ -164,3 +164,11 @@ def test_cupy_installation_flag_is_set_without_importing_cupy():
     assert ok == "True", "CUPY_INSTALLED is not a bool"
     assert compatibility_alias == "True", "legacy GPU_AVAILABLE alias drifted"
     assert cupy_loaded == "False", "package import loaded CuPy -- this breaks torch"
+
+
+def test_nemo_namespace_does_not_eagerly_require_cupy():
+    out = _in_fresh_process(
+        "import sys, neural_assemblies.nemo;"
+        "print('cupy' in sys.modules)"
+    )
+    assert out == "False"
