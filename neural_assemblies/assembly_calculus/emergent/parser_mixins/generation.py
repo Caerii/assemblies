@@ -33,18 +33,39 @@ walking the slot sequence of ``self.word_order_type``; see
 them is inferred from the corpus, and the concatenation itself is symbolic.
 """
 
-from typing import Dict, List, Optional, Set
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
 
 from neural_assemblies.assembly_calculus.ops import bind, project, _snap
+from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.assembly_calculus.readout import readout_all
 
 from ..core.areas import (
     VERB_CORE, ROLE_AGENT, ROLE_PATIENT,
 )
+from ..core.grounding import GroundingContext
+
+if TYPE_CHECKING:
+    from neural_assemblies.core.brain import Brain
+    from ..acquisition.pos_inference import BootstrapScores
 
 
 class GenerationMixin:
     """Language production / generation from semantic representations."""
+
+    brain: "Brain"
+    rounds: int
+    stim_map: Dict[str, str]
+    word_order_type: str
+    word_grounding: Dict[str, GroundingContext]
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    role_lexicons: Dict[str, Dict[str, Assembly]]
+    _corpus_sentence_set: Set[Tuple[str, ...]]
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
+        def _ensure_prediction_lexicon(self) -> None: ...
+        def predict_next(self, words: List[str]) -> List[Tuple[str, float]]: ...
+        def classify_word_cached(self, word: str) -> Tuple[str, "BootstrapScores"]: ...
 
     def _decode_role_to_word(self, role_area: str,
                              core_area: str) -> Optional[str]:

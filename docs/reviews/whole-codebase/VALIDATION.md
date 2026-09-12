@@ -6501,3 +6501,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Role binding capability gate (2026-09-12)
 
 `RoleBindingMixin` now declares its neural state, lexical stores, grounding map, and sibling operations for evidence collection, gating, classification, and role ordering. Assembly-valued stores use the concrete `Assembly` type, preventing arbitrary metadata from crossing into overlap and readout operations. Pyright reports **0 diagnostics**; parser composition tests pass **13 tests**, with the intentional sampled-recurrence warnings preserved.
+
+### Generation capability gate (2026-09-12)
+
+`GenerationMixin` now declares the neural state, lexical and role assembly stores, grounding and ordering metadata, and prediction/classification capabilities it consumes. This makes the comprehension-to-production boundary inspectable while retaining the existing symbolic ordering and neural reconstruction behavior. Pyright reports **0 diagnostics**; trained-order generation tests pass **5 tests**, with the intentional sampled-recurrence warnings preserved.
