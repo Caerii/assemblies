@@ -5006,3 +5006,13 @@ default; online adaptation must be named. The ranked overlap output is recorded
 as a decoder observation rather than a probability or long-context claim.
 Next-token, batched, and operation-contract tests pass: **171 passed**; Ruff is
 clean.
+
+## Next-token corpus training contract (2026-09-11)
+
+`train_on_corpus` now consumes `NextTokenTrainingPlan` and is registered as
+`NEXT_TOKEN_TRAINING_CONTRACT`. Corpus sentences, token/stimulus coverage,
+topology, rounds, and repetitions are validated before any Hebbian update, so a
+later unknown token cannot partially train an earlier sentence. The mutation
+schedule is explicitly separated from frozen prediction/readout. Next-token,
+batched, and registry validation passes: **172 passed**; Ruff and the evidence
+graph are clean.

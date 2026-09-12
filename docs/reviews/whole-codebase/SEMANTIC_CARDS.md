@@ -629,6 +629,19 @@ ranked overlap list, not a probability distribution or a proof of long-range
 temporal memory. Unknown context symbols and zero-round calls fail before a
 measurement can be produced.
 
+<a id="contract-next-token-training"></a>
+
+## Next-token corpus training
+
+`next_token.train_on_corpus` compiles a corpus into an ordered,
+teacher-forced sequence schedule. `NextTokenTrainingPlan` validates that every
+sentence and token is present, every stimulus is named, the area exists, and
+rounds/repetitions are positive before the first Hebbian update. Repetitions
+preserve corpus order and invoke the shared sequence operation per sentence.
+An unknown token in a later sentence therefore fails without partially training
+an earlier sentence. This operation mutates the recurrent connectome; its
+outputs must be evaluated under the separate frozen prediction contract.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction

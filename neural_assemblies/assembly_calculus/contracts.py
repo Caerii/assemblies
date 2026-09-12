@@ -117,6 +117,47 @@ class FiberMaterializationPlan:
 
 
 @dataclass(frozen=True)
+class NextTokenTrainingPlan:
+    """Validated ordered corpus schedule for Hebbian next-token training."""
+
+    area: str
+    corpus: tuple[tuple[str, ...], ...]
+    stimuli_map: Mapping[str, str]
+    rounds_per_token: int = 5
+    repetitions: int = 1
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if not isinstance(self.corpus, tuple) or not self.corpus or any(
+            not isinstance(sentence, tuple) or not sentence
+            or any(not isinstance(word, str) or not word for word in sentence)
+            for sentence in self.corpus
+        ):
+            raise ValueError("training corpus must be a nonempty tuple of nonempty word tuples")
+        if not isinstance(self.stimuli_map, Mapping):
+            raise TypeError("training stimuli_map must be a mapping")
+        words = {word for sentence in self.corpus for word in sentence}
+        if any(word not in self.stimuli_map for word in words):
+            raise KeyError("training corpus contains a word missing from stimuli_map")
+        if any(not isinstance(self.stimuli_map[word], str) or not self.stimuli_map[word] for word in words):
+            raise ValueError("training stimuli must be nonempty names")
+        if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be a positive integer")
+        if isinstance(self.repetitions, bool) or not isinstance(self.repetitions, Integral) or self.repetitions < 1:
+            raise ValueError("repetitions must be a positive integer")
+        object.__setattr__(self, "rounds_per_token", int(self.rounds_per_token))
+        object.__setattr__(self, "repetitions", int(self.repetitions))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise KeyError(f"training area is unknown: {self.area!r}")
+        words = {word for sentence in self.corpus for word in sentence}
+        missing = [self.stimuli_map[word] for word in words if self.stimuli_map[word] not in brain.stimuli]
+        if missing:
+            raise KeyError(f"training stimuli are unknown: {sorted(set(missing))}")
+
+
+@dataclass(frozen=True)
 class LexiconBuildPlan:
     """Validated independent stimulus-to-Assembly lexicon schedule."""
 
@@ -1223,6 +1264,25 @@ NEXT_TOKEN_PREDICTION_CONTRACT = OperationContract(
 )
 
 
+NEXT_TOKEN_TRAINING_CONTRACT = OperationContract(
+    operation_id="next-token-training-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-training",
+    plan_type=NextTokenTrainingPlan,
+    inputs=("brain", "area", "ordered corpus", "stimulus map", "rounds", "repetitions"),
+    reads=("corpus token stimuli", "recurrent area state"),
+    mutates=("area winners", "recurrent weights", "engine history"),
+    regime=("nonempty sentences", "positive rounds and repetitions", "ordered teacher-forced sequence"),
+    observed_outcome=("trained brain state",),
+    failure_conditions=("unknown words/stimuli/area", "malformed corpus", "invalid schedule"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_lexicon_is_built",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_training_rejects_unknown_word_before_mutation",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1711,6 +1771,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "materialize_fiber": FIBER_MATERIALIZATION_CONTRACT,
     "build_lexicon": LEXICON_BUILD_CONTRACT,
     "predict_next_token": NEXT_TOKEN_PREDICTION_CONTRACT,
+    "train_on_corpus": NEXT_TOKEN_TRAINING_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,

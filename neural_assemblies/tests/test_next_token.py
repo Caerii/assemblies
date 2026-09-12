@@ -100,6 +100,18 @@ def test_prediction_rejects_nonpositive_rounds():
         )
 
 
+def test_training_rejects_unknown_word_before_mutation(monkeypatch):
+    brain = _make_brain()
+    brain.add_area("LEX", N, K, BETA)
+    brain.add_stimulus("stim_the", K)
+    import neural_assemblies.assembly_calculus.next_token as module
+    monkeypatch.setattr(module, "sequence_memorize", lambda *args, **kwargs: pytest.fail("training started"))
+    with pytest.raises(KeyError, match="missing from stimuli_map"):
+        train_on_corpus(
+            brain, "LEX", [["the", "unknown"]], {"the": "stim_the"},
+        )
+
+
 class TestNextTokenPrediction:
     """End-to-end next-token prediction on a toy corpus."""
 

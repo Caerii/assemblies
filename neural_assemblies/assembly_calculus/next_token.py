@@ -57,7 +57,7 @@ from typing import Dict, List, Tuple
 
 from .readout import readout_all, build_lexicon, Lexicon
 from .ops import sequence_memorize, _snap
-from .contracts import NEXT_TOKEN_PREDICTION_CONTRACT, NextTokenPredictionPlan, implements
+from .contracts import NEXT_TOKEN_PREDICTION_CONTRACT, NEXT_TOKEN_TRAINING_CONTRACT, NextTokenPredictionPlan, NextTokenTrainingPlan, implements
 
 
 def build_next_token_model(brain, area: str, vocab: List[str],
@@ -81,6 +81,7 @@ def build_next_token_model(brain, area: str, vocab: List[str],
     return build_lexicon(brain, area, vocab, stimuli_map, rounds=rounds)
 
 
+@implements(NEXT_TOKEN_TRAINING_CONTRACT)
 def train_on_corpus(brain, area: str, corpus: List[List[str]],
                     stimuli_map: Dict[str, str],
                     rounds_per_token: int = 5,
@@ -99,13 +100,24 @@ def train_on_corpus(brain, area: str, corpus: List[List[str]],
         stimuli_map: Maps words to stimulus names.
         rounds_per_token: Projection rounds per token.
         repetitions: Number of corpus repetitions.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-training
     """
-    for _rep in range(repetitions):
+    plan = NextTokenTrainingPlan(
+        area=area,
+        corpus=tuple(tuple(sentence) for sentence in corpus),
+        stimuli_map=stimuli_map,
+        rounds_per_token=rounds_per_token,
+        repetitions=repetitions,
+    )
+    plan.preflight(brain)
+    area, corpus, stimuli_map = plan.area, plan.corpus, plan.stimuli_map
+    for _rep in range(plan.repetitions):
         for sentence in corpus:
             stim_sequence = [stimuli_map[w] for w in sentence]
             sequence_memorize(
                 brain, stim_sequence, area,
-                rounds_per_step=rounds_per_token,
+                rounds_per_step=plan.rounds_per_token,
                 repetitions=1,
             )
 
