@@ -31,6 +31,7 @@ class TorchOps(Protocol):
     sparse_csr_tensor: Callable[..., Any]
     sparse_coo_tensor: Callable[..., Any]
     tensor: Callable[..., Any]
+    from_numpy: Callable[..., Any]
     meshgrid: Callable[..., Any]
     gather: Callable[..., Any]
     einsum: Callable[..., Any]

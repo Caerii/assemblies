@@ -39,6 +39,8 @@ from typing import Any, Dict, List, Sequence, cast
 
 import torch
 
+from ._torch_ops import torch_ops
+
 from ._arc_core import HashedArcCore
 from ._hashed import DenseOrganFiber, HashedArea, StimulusFiber, _gain_table
 from ._hashed_aligner import pair_seeds
@@ -66,18 +68,18 @@ class StackedStimuli:
         self.V, self.B, self.n = len(fibers), len(brain_seeds), n_post
         # the area's tie-jitter salt XORs each afferent's per-brain seeds; a
         # stack salts by its first name, the same for a brain alone or batched
-        self.seeds = torch.as_tensor(pair_seeds(brain_seeds, names[0], names[0]),
-                                     dtype=torch.int32, device=device)
-        self.base = torch.stack([f.base for f in fibers])            # [V, B, n]
-        self.dj = (torch.stack([f.dj for f in fibers]) if norm_init else None)
+        self.seeds = torch_ops.as_tensor(pair_seeds(brain_seeds, names[0], names[0]),
+                                     dtype=torch_ops.int32, device=device)
+        self.base = torch_ops.stack([f.base for f in fibers])            # [V, B, n]
+        self.dj = (torch_ops.stack([f.dj for f in fibers]) if norm_init else None)
         self.learns = bool(beta)
-        self.pot = (torch.zeros(self.V, self.B, n_post, dtype=torch.int64, device=device)
+        self.pot = (torch_ops.zeros(self.V, self.B, n_post, dtype=torch_ops.int64, device=device)
                     if self.learns else None)
-        self.gain = torch.from_numpy(_gain_table(beta, max_rounds)).to(device)
+        self.gain = torch_ops.from_numpy(_gain_table(beta, max_rounds)).to(device)
         self.hi = fibers[0].hi
         self.device = device
-        self.widx = torch.zeros(self.B, dtype=torch.int64, device=device)
-        self._ar = torch.arange(self.B, device=device)
+        self.widx = torch_ops.zeros(self.B, dtype=torch_ops.int64, device=device)
+        self._ar = torch_ops.arange(self.B, device=device)
         del fibers
 
     def set_words(self, widx):
@@ -105,7 +107,7 @@ class StackedStimuli:
         live = (self.widx >= 0).view(-1, 1) & (new >= 0)
         rows = (self.widx.clamp_min(0) * self.B + self._ar).view(-1, 1)
         flat = (rows * self.n + new.clamp_min(0)).view(-1)
-        self.pot.view(-1).index_add_(0, flat, live.view(-1).to(torch.int64))
+        self.pot.view(-1).index_add_(0, flat, live.view(-1).to(torch_ops.int64))
 
     def end_episode(self):
         pass
@@ -243,7 +245,7 @@ class HashedTransducer:
                                     max_rounds=max_potentiations, device=device,
                                     zero_or_size=self.zero_or_size)
             fo = [int(feature_of.get(w, -1)) for w in self.vocab]
-            self.feature_of = torch.tensor(fo, dtype=torch.int64, device=device)
+            self.feature_of = torch_ops.tensor(fo, dtype=torch_ops.int64, device=device)
             self.reg_gate = True          # False: every word with a feature writes (FR-4)
             self.reg_blind = False        # True: REG held empty at test (FR-3)
         self.lex_arc = fiber(self.lex_area, self.arc_area, n, self.n_arc)
@@ -256,9 +258,9 @@ class HashedTransducer:
     # -- words as tensors -----------------------------------------------------
     def _widx(self, word) -> torch.Tensor:
         if isinstance(word, str):
-            return torch.full((self.B,), self.word_index[word], dtype=torch.int64,
+            return torch_ops.full((self.B,), self.word_index[word], dtype=torch_ops.int64,
                               device=self.device)
-        return torch.as_tensor(word, dtype=torch.int64, device=self.device)
+        return torch_ops.as_tensor(word, dtype=torch_ops.int64, device=self.device)
 
     # -- grounding ------------------------------------------------------------
     def ground(self, rounds: int = 5) -> None:
@@ -297,7 +299,7 @@ class HashedTransducer:
         expressed in `feature_of` (nouns -1 gated, their number ungated)."""
         assert self.reg is not None and self.F is not None
         f = self.feature_of[widx.clamp_min(0)]
-        f = torch.where(widx >= 0, f, torch.full_like(f, -1))
+        f = torch_ops.where(widx >= 0, f, torch_ops.full_like(f, -1))
         if self.reg_blind or not bool((f >= 0).any()):
             return
         old = self.reg.winners
@@ -305,7 +307,7 @@ class HashedTransducer:
         new = cast(torch.Tensor, self.reg.project(1, [self.F], freeze=freeze))
         if old.shape[1] == new.shape[1]:
             keep = (f < 0).view(-1, 1)
-            self.reg.winners = torch.where(keep, old, new)
+            self.reg.winners = torch_ops.where(keep, old, new)
         elif old.shape[1] == 0:
             # brains without a feature this tick and no register yet: a
             # register that means nothing is worse than none; blank them
@@ -317,11 +319,11 @@ class HashedTransducer:
         maximum). None when nothing is predicted (an empty state)."""
         if self.predict_gain <= 0 or self.state.winners.shape[1] == 0:
             return None
-        lat = torch.zeros(self.B, self.n_arc, device=self.device)
+        lat = torch_ops.zeros(self.B, self.n_arc, device=self.device)
         self.state_arc.contribute(lat, self.state.winners)
-        top = torch.topk(lat, self.k, dim=1)
+        top = torch_ops.topk(lat, self.k, dim=1)
         thresh = (0.5 * top.values[:, :1]).clamp_min(1e-12)
-        mask = torch.zeros_like(lat, dtype=torch.bool)
+        mask = torch_ops.zeros_like(lat, dtype=torch_ops.bool)
         mask.scatter_(1, top.indices, top.values >= thresh)
         raw = lat
         self.lex_arc.contribute(raw, self.lex.winners)     # lat + lex = full raw drive
@@ -385,9 +387,9 @@ class HashedTransducer:
     def overlaps(self, emitted: torch.Tensor) -> torch.Tensor:
         """[B, V] overlap of `emitted` with each word's OUT signature."""
         B, V = self.B, len(self.vocab)
-        A = torch.zeros(B, self.n, device=self.device)
+        A = torch_ops.zeros(B, self.n, device=self.device)
         A.scatter_(1, emitted.clamp_min(0), (emitted >= 0).float())
-        out = torch.zeros(B, V, device=self.device)
+        out = torch_ops.zeros(B, V, device=self.device)
         for i, w in enumerate(self.vocab):
             out[:, i] = A.gather(1, self.out_signature[w]).sum(1) / self.k
         return out
@@ -421,15 +423,15 @@ class HashedTransducer:
         ahead_all = None
         if self.horizon:
             # word s + j, or -1 when a sentence starts in (s, s + j]
-            ahead_all = torch.full((self.B, S_, self.horizon), -1, dtype=torch.int64,
+            ahead_all = torch_ops.full((self.B, S_, self.horizon), -1, dtype=torch_ops.int64,
                                    device=self.device)
             for j in range(1, self.horizon + 1):
                 if j >= S_:
                     break
-                blocked = torch.zeros(self.B, S_ - j, dtype=torch.bool, device=self.device)
+                blocked = torch_ops.zeros(self.B, S_ - j, dtype=torch_ops.bool, device=self.device)
                 for d in range(1, j + 1):
                     blocked |= starts[:, d:S_ - j + d]
-                ahead_all[:, :S_ - j, j - 1] = torch.where(blocked, torch.full_like(words[:, j:], -1),
+                ahead_all[:, :S_ - j, j - 1] = torch_ops.where(blocked, torch_ops.full_like(words[:, j:], -1),
                                                            words[:, j:])
         for s in range(S_):
             if not bool((words[:, s] >= 0).any()):
