@@ -41,7 +41,6 @@
     "research/experiments/scaled_feature_recall.py": 1,
     "research/experiments/seq_a1_fsm_parity.py": 1,
     "research/experiments/seq_s5_norm_init_intervention.py": 1,
-    "research/experiments/seq_s5_semantics_v2_invariance.py": 1,
     "research/experiments/seq_s5_substrate_c.py": 1,
     "research/experiments/seq_s5_theorem_regime.py": 1,
     "research/experiments/slow_homeostasis_recall.py": 1,

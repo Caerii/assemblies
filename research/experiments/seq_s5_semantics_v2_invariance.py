@@ -11,14 +11,17 @@ from __future__ import annotations
 
 import json
 import os
+from pathlib import Path
 import sys
+
+from research.json_documents import write_new_document
 
 os.environ["ASSEMBLIES_VIRTUAL_WEIGHTS"] = "1"     # inherited by the pool
 
 _HERE = os.path.dirname(os.path.abspath(__file__))
 sys.path.insert(0, _HERE)
 from seq_s5_word_problem import (  # noqa: E402
-    GROUP_NAMES, LENGTHS, SEEDS, run_tiered, worker,
+    GROUP_NAMES, LENGTHS, SEEDS, run_tiered,
 )
 
 REGISTERED = os.path.join(_HERE, "seq_s5_word_problem_results.json")
@@ -69,8 +72,7 @@ def main():
     out = {"seeds": seeds, "table": table, "verdicts": v,
            "cells_moved": flips, "invariant": invariant}
     path = os.path.join(_HERE, "seq_s5_semantics_v2_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    write_new_document(Path(path), out)
     print(f"\nwrote {path}")
 
 

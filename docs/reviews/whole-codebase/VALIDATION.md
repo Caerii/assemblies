@@ -5275,3 +5275,11 @@ before the optional Phase-B boost, so cleanup remains defined even when the
 projection raises. Its returned snapshots are passed as an explicit tuple to
 the immutable `Sequence` record. `scaffold.py` is Pyright/Ruff-clean; sequence
 and beta-scope checks pass: **20 passed**.
+
+### S5 invariance writer migration (2026-09-12)
+
+The active S5 semantics-v2 invariance study now uses the shared finite,
+exclusive `write_new_document` boundary while retaining its existing result
+path and JSON payload. A latent unused `worker` import was removed at the same
+boundary. The study compiles, Ruff is clean, and the result-writer ratchet
+passes: **1 passed**.
