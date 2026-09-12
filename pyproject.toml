@@ -148,15 +148,16 @@ norecursedirs = [".worktrees"]
 # scipy.stats and eager scipy.sparse left the import path -- see
 # docs/RUST_KERNELS.md and `_csr_weights.scipy_sparse`.)
 #
-# Full suite:   pytest -n 4 --dist loadfile
+# Full suite:   pytest -n 8 --dist loadfile
 # Single file:  pytest neural_assemblies/tests/test_foo.py      (serial, fast)
 #
 # Use `--dist loadfile` rather than the default `load`: the session-scoped
 # parser fixtures in conftest.py are instantiated PER WORKER, so scattering one
 # file's tests across workers retrains its backbone once per worker. Verified
 # equivalent -- the four parser-heavy files give 166 passed both serially and
-# under `-n 4` (545s -> 424s).  Larger worker counts can oversubscribe native
-# numerical thread pools; the maintained gate therefore defaults to four.
+# under `-n 4` (545s -> 424s).  Eight workers is faster on the 16-core
+# development machine; larger counts can oversubscribe native numerical thread
+# pools and make teardown unreliable.
 markers = [
     "legacy: repo-root compatibility and historical experiment tests",
     "gpu: optional CUDA/C++/accelerator tests",

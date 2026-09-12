@@ -7066,3 +7066,7 @@ The repository-wide gate exposed three classes of fallout from stricter semantic
 
 The default worker count is now bounded at four. An unconstrained -n auto run reached 99% without finalizing on this Windows numerical workload; four workers completed reliably. The maintained gate exposes the same override via --workers and ASSEMBLIES_TEST_WORKERS, with --serial for diagnosis.
 Validation: 3,829 passed, 141 skipped, 8 xfailed, 10 subtests passed in 597.89s (9:57) using -n 4 --dist loadfile; the prior serial gate took 1,982.82s (33:03), a 69.9% wall-time reduction.
+
+## Eight-worker benchmark (2026-09-12)
+
+A bounded eight-worker run also completed cleanly: 3,829 passed, 141 skipped, 8 xfailed, and 10 subtests passed in 476.43s (7:56), improving the four-worker run by 20.2%. The default maintained gate is therefore capped at eight; callers can lower it with --workers or ASSEMBLIES_TEST_WORKERS.
