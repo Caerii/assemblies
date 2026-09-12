@@ -92,6 +92,14 @@ def _setup_model():
     return b, stim_map, lexicon
 
 
+def test_prediction_rejects_nonpositive_rounds():
+    with pytest.raises(ValueError, match="rounds_per_token"):
+        predict_next_token(
+            _make_brain(), "LEX", ["the"], {"the": "stim_the"}, {},
+            rounds_per_token=0,
+        )
+
+
 class TestNextTokenPrediction:
     """End-to-end next-token prediction on a toy corpus."""
 

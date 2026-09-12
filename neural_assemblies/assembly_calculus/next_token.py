@@ -57,6 +57,7 @@ from typing import Dict, List, Tuple
 
 from .readout import readout_all, build_lexicon, Lexicon
 from .ops import sequence_memorize, _snap
+from .contracts import NEXT_TOKEN_PREDICTION_CONTRACT, NextTokenPredictionPlan, implements
 
 
 def build_next_token_model(brain, area: str, vocab: List[str],
@@ -109,6 +110,7 @@ def train_on_corpus(brain, area: str, corpus: List[List[str]],
             )
 
 
+@implements(NEXT_TOKEN_PREDICTION_CONTRACT)
 def predict_next_token(brain, area: str, context: List[str],
                        stimuli_map: Dict[str, str],
                        lexicon: Lexicon,
@@ -129,7 +131,20 @@ def predict_next_token(brain, area: str, context: List[str],
 
     Returns:
         List of (word, overlap) sorted by overlap descending.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-prediction
     """
+    plan = NextTokenPredictionPlan(
+        area=area,
+        context=tuple(context),
+        stimuli_map=stimuli_map,
+        lexicon=lexicon,
+        rounds_per_token=rounds_per_token,
+        adapt=adapt,
+    )
+    plan.preflight(brain)
+    area, context, stimuli_map, lexicon = plan.area, plan.context, plan.stimuli_map, plan.lexicon
+    rounds_per_token, adapt = plan.rounds_per_token, plan.adapt
     # Prediction is a READ-OUT and must not train. Previously this ran at the
     # brain's default (plasticity ENABLED), so every predicted position
     # potentiated the very bridges it was about to measure. `score_corpus`

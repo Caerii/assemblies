@@ -4995,3 +4995,14 @@ names, target topology, and rounds are validated before projection. The reset
 between word snapshots remains explicit protocol state. Source links, public
 exports, registry ratchets, and readout/computation controls pass: **198 passed**;
 Ruff and the evidence graph are clean.
+
+## Next-token prediction contract (2026-09-11)
+
+`predict_next_token` now consumes `NextTokenPredictionPlan` and is registered as
+`NEXT_TOKEN_PREDICTION_CONTRACT`. The plan validates ordered nonempty context,
+stimulus coverage, target topology, lexicon snapshots, positive rounds, and an
+explicit `adapt` switch before driving the model. Frozen observation remains the
+default; online adaptation must be named. The ranked overlap output is recorded
+as a decoder observation rather than a probability or long-context claim.
+Next-token, batched, and operation-contract tests pass: **171 passed**; Ruff is
+clean.

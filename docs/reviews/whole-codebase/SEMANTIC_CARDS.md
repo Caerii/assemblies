@@ -615,6 +615,20 @@ schedule, recorded, and then has the target recurrent connections reset before
 the next word. The result is a decoder lexicon; it is not evidence that the
 labels are represented without the separately specified readout instrument.
 
+<a id="contract-next-token-prediction"></a>
+
+## Next-token prediction query
+
+`next_token.predict_next_token` is an ordered context observation over a
+trained area and lexicon. `NextTokenPredictionPlan` validates a nonempty
+context, stimulus map coverage, target topology, lexicon snapshots, positive
+rounds, and the explicit `adapt` switch before driving the area. Frozen mode
+is the default and scopes activity through the brain's nonlearning context;
+`adapt=True` is the deliberate online-learning variant. The output is a
+ranked overlap list, not a probability distribution or a proof of long-range
+temporal memory. Unknown context symbols and zero-round calls fail before a
+measurement can be produced.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction

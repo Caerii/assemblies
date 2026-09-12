@@ -149,6 +149,40 @@ class LexiconBuildPlan:
 
 
 @dataclass(frozen=True)
+class NextTokenPredictionPlan:
+    """Validated frozen or adapting next-token prediction query."""
+
+    area: str
+    context: tuple[str, ...]
+    stimuli_map: Mapping[str, str]
+    lexicon: Mapping[str, Assembly]
+    rounds_per_token: int = 5
+    adapt: bool = False
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if not isinstance(self.context, tuple) or not self.context or any(not isinstance(word, str) or not word for word in self.context):
+            raise ValueError("prediction context must be a nonempty tuple of words")
+        if not isinstance(self.stimuli_map, Mapping):
+            raise TypeError("prediction stimuli_map must be a mapping")
+        if any(word not in self.stimuli_map for word in self.context):
+            raise KeyError("prediction context contains a word missing from stimuli_map")
+        if not isinstance(self.lexicon, Mapping) or any(not isinstance(value, Assembly) for value in self.lexicon.values()):
+            raise TypeError("prediction lexicon must map labels to Assembly snapshots")
+        if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be a positive integer")
+        _explicit_bool("adapt", self.adapt)
+        object.__setattr__(self, "rounds_per_token", int(self.rounds_per_token))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise KeyError(f"prediction area is unknown: {self.area!r}")
+        missing = [self.stimuli_map[word] for word in self.context if self.stimuli_map[word] not in brain.stimuli]
+        if missing:
+            raise KeyError(f"prediction stimuli are unknown: {sorted(set(missing))}")
+
+
+@dataclass(frozen=True)
 class ProjectionPlan:
     """Validated schedule for the named stimulus-to-area operation.
 
@@ -1170,6 +1204,25 @@ LEXICON_BUILD_CONTRACT = OperationContract(
 )
 
 
+NEXT_TOKEN_PREDICTION_CONTRACT = OperationContract(
+    operation_id="next-token-prediction-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-prediction",
+    plan_type=NextTokenPredictionPlan,
+    inputs=("brain", "area", "ordered context", "stimulus map", "lexicon", "rounds", "adapt"),
+    reads=("context stimulus drives", "recurrent area state", "lexicon overlaps"),
+    mutates=("temporary activity; weights only when adapt=True",),
+    regime=("nonempty context", "positive rounds", "frozen by default", "ranked overlap readout"),
+    observed_outcome=("ordered label/overlap scores",),
+    failure_conditions=("unknown words/stimuli/area", "invalid rounds", "malformed lexicon", "empty context"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_next_token_after_the",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_prediction_rejects_nonpositive_rounds",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1657,6 +1710,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "fuzzy_readout": READOUT_CONTRACT,
     "materialize_fiber": FIBER_MATERIALIZATION_CONTRACT,
     "build_lexicon": LEXICON_BUILD_CONTRACT,
+    "predict_next_token": NEXT_TOKEN_PREDICTION_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,
