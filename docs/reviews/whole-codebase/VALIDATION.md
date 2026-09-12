@@ -6788,3 +6788,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Implicit CUDA kernel boundary cleanup (2026-09-12)
 
 `core/kernels/implicit.py` now uses the shared Torch operator boundary for top-k and buffer operations, dynamically loads CuPy, and exposes array arguments without pretending an untyped optional module is a static type. CUDA kernel tests remain **10 optional skips** without the extension; Pyright and Ruff report zero diagnostics.
+
+
+## Sparse CUDA kernel dependency boundary (2026-09-12)
+
+`core/kernels/sparse_ops.py` now loads CuPy through an explicit dynamic optional handle, eliminating the final static import leak in the CUDA kernel helpers. Kernel tests remain **10 optional skips** without the compiled extension; Pyright and Ruff report zero diagnostics.
