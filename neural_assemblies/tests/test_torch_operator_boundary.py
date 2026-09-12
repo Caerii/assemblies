@@ -1,7 +1,9 @@
 from pathlib import Path
 import ast
+import subprocess
+import sys
 
-from neural_assemblies.core.torch_engine._torch_ops import (
+from neural_assemblies.core._torch_ops import (
     TorchOps, _LazyTorchOps, torch_ops,
 )
 
@@ -48,9 +50,19 @@ def test_torch_operator_proxy_loads_once_on_first_use(monkeypatch):
         calls.append(name)
         return module
 
-    import neural_assemblies.core.torch_engine._torch_ops as boundary
+    import neural_assemblies.core._torch_ops as boundary
     monkeypatch.setattr(boundary, "import_module", fake_import)
     proxy = _LazyTorchOps()
     assert proxy.example is sentinel
     assert proxy.example is sentinel
     assert calls == ["torch"]
+
+
+def test_calculus_torch_boundary_imports_without_torch():
+    """CPU-only calculus imports must not execute the CUDA engine package."""
+    code = (
+        "import sys; sys.modules['torch'] = None; "
+        "import neural_assemblies.assembly_calculus.batched_trainer"
+    )
+    result = subprocess.run([sys.executable, "-c", code], capture_output=True, text=True)
+    assert result.returncode == 0, result.stderr

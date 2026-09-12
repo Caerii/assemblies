@@ -25,7 +25,7 @@ Requires PyTorch + CUDA.
 
 from typing import Dict, List, Sequence
 
-from ..core.torch_engine._torch_ops import torch_ops
+from ..core._torch_ops import torch_ops
 
 
 class BatchedSeqTrainer:

@@ -27,7 +27,7 @@ engine (CUDA). Build a ``BatchedLM`` once from a trained brain, then call
 
 from typing import Dict, List, Tuple
 
-from ..core.torch_engine._torch_ops import torch_ops
+from ..core._torch_ops import torch_ops
 
 
 class BatchedLM:
