@@ -5730,3 +5730,10 @@ The overlap operation docstring now describes the explicit overloads that
 actually enforce same-space calls, removing the obsolete `SameSpace` TypeVar
 claim. This keeps source-level specification navigation consistent with the
 runtime and static implementation.
+
+### Final index-module documentation cleanup (2026-09-12)
+
+The `core.index_spaces` module doc now uses explicit same-space overloads and
+no longer teaches the removed `SameSpace` alias. Specification-link and
+maintained evidence validators remain green; focused index tests pass: **8
+passed**. Pyright reports **0 errors**.

@@ -20,14 +20,16 @@ happened. Prose cannot fail a build. These branded ndarray subclasses preserve
 NumPy behavior and make the mistake both a checker error and a runtime error
 at boundaries that can observe the brand.
 
-HOW TO WRITE A FUNCTION OVER EITHER SPACE. Use `SameSpace`, not a union::
+HOW TO WRITE A FUNCTION OVER EITHER SPACE. Use explicit overloads for each
+legal pair::
 
-    def overlap(a: SameSpace, b: SameSpace) -> float: ...
+    @overload
+    def overlap(a: CompactIdx, b: CompactIdx) -> float: ...
+    @overload
+    def overlap(a: NeuronIds, b: NeuronIds) -> float: ...
 
-A value-restricted TypeVar binds to ONE member per call, so `overlap` accepts
-two NeuronIds or two CompactIdx and REJECTS one of each -- which is the actual
-rule. A union parameter would wrongly accept the mixed call, and `np.ndarray`
-on both accepts everything, which is where we started.
+A union parameter would wrongly accept one of each, and `np.ndarray` on both
+accepts everything, which is where we started.
 
 CONVERTING. `to_neuron_ids` is the one direction that is ever correct. There is
 deliberately no `to_compact`: compact indices are engine-internal and change
