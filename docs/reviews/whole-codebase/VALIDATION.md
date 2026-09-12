@@ -6818,3 +6818,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Hyperdimensional calculus array contracts (2026-09-12)
 
 `compute/hyperdimensional.py` now normalizes decoded sequences and set-operation results through concrete NumPy arrays, removing ambiguous SciPy/NumPy union return types. Hyperdimensional tests pass **2/2**; Pyright and Ruff report zero diagnostics.
+
+
+## Visualization plotting API boundary (2026-09-12)
+
+Visualization helpers now use compatible tick-label calls and normalize subplot arrays explicitly, removing Matplotlib stub ambiguity while preserving rendered plots. Viz tests pass **6/6**; Pyright and Ruff report zero diagnostics for the package.
