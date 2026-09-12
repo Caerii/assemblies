@@ -97,14 +97,14 @@ class PatchGraph:
         if patch_ids is None:
             raise ValueError(f"Unknown patch absence protocol: {protocol!r}")
         out = np.asarray(pattern, dtype=pattern.dtype).copy()
-        rng = rng or np.random.default_rng(0)
+        generator = rng if rng is not None else np.random.default_rng(0)
         for pid in patch_ids:
             spec = self.patches[pid]
             idx = self.patch_indices(spec)
             if mode == AbsenceMode.ZERO:
                 out[idx] = 0
             else:
-                out[idx] = rng.random(idx.size)
+                out[idx] = generator.random(idx.size)
         return out
 
     def split_patch_fields(
