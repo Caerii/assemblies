@@ -17,7 +17,7 @@ from neural_assemblies.assembly_calculus.contracts import (
     AssociationPlan, BindingReadPlan, CompletionPlan, ConsolidationPlan, InputDrivePlan, MergePlan, OrderedRecallPlan,
     PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     SequenceMemorizePlan, SeparationPlan,
-    ProjectionPlan, ReciprocalProjectionPlan,
+    ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
 )
 from neural_assemblies.assembly_calculus.ops import (
     associate, merge, ordered_recall, pattern_complete, project,
@@ -457,6 +457,33 @@ def test_registry_and_public_callable_cannot_drift():
         assert contract.specification in (operation.__doc__ or ""), (
             f"{name} must link its registered specification at the source"
         )
+
+
+@pytest.mark.parametrize(
+    "plan",
+    [
+        ProjectionPlan("s", "T", rounds=2, recurrent=True),
+        ReciprocalProjectionPlan("A", "B", rounds=2),
+        AssociationPlan("A", "B", "T", rounds=2, cofire_rounds=1),
+        MergePlan("A", "B", "T", rounds=2),
+        CompletionPlan("T", rounds=2, seed=7, observation_mode="frozen"),
+    ],
+)
+def test_schedule_composition_is_a_closed_immutable_value(plan):
+    """Pure schedule composition is checked by construction, before a brain runs."""
+    steps = plan.steps
+    assert isinstance(steps, tuple) and steps
+    assert all(isinstance(step, ProjectionStep) for step in steps)
+    assert steps == plan.steps
+
+    # Public mapping views are fresh: callers cannot mutate a plan's schedule
+    # accidentally while constructing a larger program from its steps.
+    first = steps[0].stimuli_dict()
+    first.clear()
+    assert steps[0].stimuli_dict() != first or not steps[0].stimuli
+    first_fibers = steps[0].fibers_dict()
+    first_fibers.clear()
+    assert steps[0].fibers_dict() != first_fibers or not steps[0].fibers
 
 
 def test_next_token_model_alias_uses_lexicon_contract():

@@ -7403,3 +7403,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Fixed indentation in `scripts/verify_maintained.py` after switching to xdist `--dist load`.
 - `uv run python scripts/verify_maintained.py --skip-tests` passed; Pyright reported 0 errors across the maintained surface.
+
+
+## 2026-09-12 construction-level schedule invariants
+
+- Added a structural test covering projection, reciprocal projection, association, merge, and completion plans.
+- It verifies immutable typed step tuples, stable recomputation, and non-aliasing mapping views without running a brain or stochastic engine.
+- `uv run pytest neural_assemblies/tests/test_operation_contract_objects.py -q` passed: 168 tests.
