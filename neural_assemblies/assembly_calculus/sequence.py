@@ -74,6 +74,14 @@ class Sequence:
     def __iter__(self):
         return iter(self.assemblies)
 
+    def then(self, other: "Sequence") -> "Sequence":
+        """Concatenate two immutable sequences in order within one area."""
+        if not isinstance(other, Sequence):
+            raise TypeError("sequence composition requires another Sequence")
+        if self.area != other.area:
+            raise ValueError("sequence composition requires the same area")
+        return Sequence(self.area, self.assemblies + other.assemblies)
+
     def pairwise_overlaps(self) -> List[float]:
         """Overlap between consecutive assemblies: [ovlp(0,1), ovlp(1,2), ...]."""
         return [overlap(self.assemblies[i], self.assemblies[i + 1])

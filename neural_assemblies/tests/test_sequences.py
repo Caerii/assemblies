@@ -68,6 +68,17 @@ class TestSequenceDataclass(unittest.TestCase):
         for a, b in zip(collected, asms, strict=True):
             self.assertEqual(a, b)
 
+    def test_then_composes_sequences_without_aliasing_or_area_drift(self):
+        left = Sequence("A", self._make_assemblies(2))
+        right = Sequence("A", self._make_assemblies(1))
+        combined = left.then(right)
+        self.assertEqual(tuple(combined), left.assemblies + right.assemblies)
+        self.assertIsNot(combined.assemblies, left.assemblies)
+        with self.assertRaisesRegex(ValueError, "same area"):
+            left.then(Sequence("B", (Assembly("B", np.array([1], dtype=np.uint32)),)))
+        with self.assertRaisesRegex(TypeError, "another Sequence"):
+            left.then(object())
+
     def test_pairwise_overlaps(self):
         asms = self._make_assemblies(3)
         seq = Sequence("A", asms)
