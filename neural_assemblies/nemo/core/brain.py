@@ -12,19 +12,23 @@ The Brain class provides:
 No language-specific logic - that belongs in language modules.
 """
 
-import torch
+from typing import Any
 import numpy as np
 from dataclasses import dataclass
 from typing import Dict, Optional
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
 
 from .area import Area, AreaParams
+from neural_assemblies.core._torch_ops import torch_ops
 
 
 @dataclass  
 class BrainParams:
     """Parameters for the brain."""
     n: int = 10000          # Neurons per area
-    k: int = None           # Assembly size
+    k: int = None  # type: ignore[assignment]
     p: float = 0.1          # Connection probability
     
     def __post_init__(self):
@@ -48,7 +52,7 @@ class Brain:
         output = brain.project("LEX", input_assembly)
     """
     
-    def __init__(self, params: BrainParams = None):
+    def __init__(self, params: BrainParams | None = None):
         self.p = params or BrainParams()
         self.areas: Dict[str, Area] = {}
         self.assemblies: Dict[str, torch.Tensor] = {}
@@ -76,9 +80,9 @@ class Brain:
     
     def random_assembly(self) -> torch.Tensor:
         """Create a random assembly."""
-        return torch.randint(0, self.p.n, (self.p.k,), device='cuda')
+        return torch_ops.randint(0, self.p.n, (self.p.k,), device='cuda')
     
-    def store(self, name: str, assembly: torch.Tensor = None) -> torch.Tensor:
+    def store(self, name: str, assembly: Any = None) -> Any:
         """Store an assembly by name."""
         if assembly is None:
             assembly = self.random_assembly()
@@ -97,7 +101,7 @@ class Brain:
     
     def combine(self, *assemblies: torch.Tensor) -> torch.Tensor:
         """Combine multiple assemblies (union, then truncate to k)."""
-        combined = torch.unique(torch.cat(assemblies))
+        combined = torch_ops.unique(torch_ops.cat(assemblies))
         return combined[:self.p.k]
     
     def overlap(self, a: torch.Tensor, b: torch.Tensor) -> float:

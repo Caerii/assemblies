@@ -10,11 +10,16 @@ A single brain area that can:
 No language-specific logic here - just the neural mechanics.
 """
 
-import torch
-import cupy as cp
+import importlib
+from typing import Any
 import numpy as np
 from dataclasses import dataclass
 from typing import Optional
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    import torch
+from neural_assemblies.core._torch_ops import torch_ops
+cp: Any = importlib.import_module("cupy")
 
 from .kernel import projection_kernel
 
@@ -23,7 +28,7 @@ from .kernel import projection_kernel
 class AreaParams:
     """Parameters for a brain area."""
     n: int = 10000          # Number of neurons
-    k: int = None           # Assembly size (default: sqrt(n))
+    k: int = None  # type: ignore[assignment]  # default: sqrt(n)
     p: float = 0.1          # Connection probability
     seed: int = 0           # Random seed for this area
     
@@ -42,15 +47,15 @@ class Area:
     - No explicit weight storage (implicit connectivity)
     """
     
-    def __init__(self, params: AreaParams = None, name: str = "area"):
+    def __init__(self, params: AreaParams | None = None, name: str = "area"):
         self.p = params or AreaParams()
         self.name = name
         
         n, k = self.p.n, self.p.k
         
         # Pre-allocated buffers (on GPU)
-        self.active = torch.zeros(k, device='cuda', dtype=torch.int64)
-        self.result = torch.zeros(n, device='cuda', dtype=torch.float16)
+        self.active = torch_ops.zeros(k, device='cuda', dtype=torch_ops.int64)
+        self.result = torch_ops.zeros(n, device='cuda', dtype=torch_ops.float16)
         
         # CuPy views for kernel (zero-copy)
         self.active_cp = cp.from_dlpack(self.active)
@@ -93,7 +98,7 @@ class Area:
         )
         
         # Top-k selection
-        _, winners = torch.topk(self.result, self.p.k, sorted=False)
+        _, winners = torch_ops.topk(self.result, self.p.k, sorted=False)
         
         self.current = winners
         return winners
