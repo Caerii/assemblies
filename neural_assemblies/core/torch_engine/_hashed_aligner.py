@@ -36,7 +36,7 @@ overlap every cross-fiber round; the shortcut is exact only where it reads
 """
 from __future__ import annotations
 
-from typing import Any, List, cast
+from typing import Any, cast
 
 import torch
 

@@ -2,9 +2,8 @@
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Any, Optional
+from typing import Any
 
-import numpy as np
 import torch
 from ..activity import ActivityState
 
