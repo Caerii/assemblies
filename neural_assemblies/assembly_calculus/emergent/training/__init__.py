@@ -35,7 +35,14 @@ something and the number looks wrong, check which fidelity produced it first.
 """
 
 from .batch import BatchProjector
-from .compiled import CompiledTopologySpec, bridge_topology_spec, compiled_topology, lexicon_topology_spec, role_topology_spec
+from .compiled import (
+    CompiledTopologyParser,
+    CompiledTopologySpec,
+    bridge_topology_spec,
+    compiled_topology,
+    lexicon_topology_spec,
+    role_topology_spec,
+)
 from .compiler import (
     CompiledLexiconPlan,
     CompiledRolePlan,
@@ -84,6 +91,7 @@ __all__ = [
     "CompiledLexiconPlan",
     "CompiledRolePlan",
     "CompiledTopologySpec",
+    "CompiledTopologyParser",
     "CompiledTrainingPlan",
     "LexiconOp",
     "PRESET_VOCAB_SKIP_THRESHOLD",

@@ -6433,3 +6433,7 @@ Prediction operations now declare the runtime state initialized by the core pars
 ### Compiled topology capability protocol gate (2026-09-12)
 
 Compiled topology execution now depends on an explicit `CompiledTopologyParser` protocol: typed brain and `k`, connectome-freeze and compiled-mode toggles, and ring enable/disable operations. Topology sessions and spec builders consume that finite capability surface instead of requiring the entire emergent parser class, resolving the compiler/topology annotation mismatch without casts. Pyright reports **0 diagnostics** for compiled topology and compiler modules; topology tests pass **4 tests with expected sampled-recurrence warnings**, and `git diff --check` is clean.
+
+### Compiled topology protocol export gate (2026-09-12)
+
+The `CompiledTopologyParser` capability interface is now exported from the public emergent training package alongside topology specs and execution helpers. Consumers can compose or test compiled topology against the same typed boundary without importing an implementation-private module. Pyright reports **0 diagnostics**; the public import smoke check resolves the protocol successfully, and `git diff --check` is clean.
