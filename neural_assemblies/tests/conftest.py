@@ -35,7 +35,7 @@ N, K = DEFAULT_N, DEFAULT_K
 
 
 # --- Test tiering -----------------------------------------------------------
-# The fast dev loop is `pytest -m "not slow" -n auto --dist loadfile`. Profiling
+# The fast dev loop is `pytest -m "not slow" -n auto --dist load`. Profiling
 # the full suite showed a small set of heavy end-to-end research / diagnostic /
 # stress / MNIST files dominate the wall-clock (e.g. test_novel_chat ~746s,
 # test_h9_diagnostic ~633s, test_wobbly_stress ~214s per run) -- validation that

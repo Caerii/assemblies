@@ -7389,3 +7389,11 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Added process-local caching to the index-space and methodology ratchet inventories. Repeated assertions now share one immutable source scan per worker.
 - Combined ratchet validation: 14 passed in 19.29s; compact-index and `.w` scans remain active, and methodology seed/engine checks remain active.
+
+
+## 2026-09-12 xdist scheduler comparison
+
+- Compared 12-worker `--dist load` against the maintained `loadfile` path on the same fast-tier selection.
+- `load`: 3,784 passed, 141 skipped, 5 xfailed, 10 subtests in 262.63s and 272.21s across two runs.
+- `loadfile`: recent runs ranged 276.67--283.82s. The scheduler switch is therefore adopted as a measured improvement with documented run variance, not as a fixed guarantee.
+- README and `scripts/verify_maintained.py` now use `--dist load`.

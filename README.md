@@ -239,8 +239,8 @@ From a checkout:
 ```bash
 uv sync
 uv run pytest neural_assemblies/tests -q
-uv run pytest neural_assemblies/tests -q -m "not slow" -n 12 --dist loadfile
-uv run pytest neural_assemblies/tests -q -m slow -n 12 --dist loadfile
+uv run pytest neural_assemblies/tests -q -m "not slow" -n 12 --dist load
+uv run pytest neural_assemblies/tests -q -m slow -n 12 --dist load
 uv run python scripts/verify_maintained.py --skip-tests
 uv run python -m research.evidence check
 ```
@@ -251,7 +251,7 @@ infrastructure with Pyright while excluding archived and historical study tests;
 omit `--skip-tests` to run the non-slow package tests afterward.
 
 The default parallel developer gate uses twelve workers on machines with at
-least twelve logical CPUs and `--dist loadfile`; the current measured run is
+least twelve logical CPUs and `--dist load`; the current measured run is
 about four minutes for 3,794 fast-tier tests. Set `ASSEMBLIES_TEST_WORKERS` or
 use `scripts/verify_maintained.py --workers N` to tune smaller machines.
 Long empirical calibration, bootstrap, and curriculum gates are kept in the
