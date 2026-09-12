@@ -93,7 +93,7 @@ def build_shared_area(feats: Dict[str, Set[str]], *, n: int, k: int,
                       p: float, beta: float, rounds: int, seed: int
                       ) -> Dict[str, np.ndarray]:
     """Build every word in ONE area, feed-forward, and return its assembly."""
-    np.random.seed(seed)
+    np.random.seed(seed)  # pyright: ignore[reportAttributeAccessIssue]
     random.seed(seed)
 
     brain = Brain(p=p, seed=seed, save_winners=True, norm_init=True,
@@ -120,7 +120,8 @@ def build_shared_area(feats: Dict[str, Set[str]], *, n: int, k: int,
 
 # -------------------------------------------------------------- metrics
 
-def _overlap(a: np.ndarray, b: np.ndarray) -> float:
+def _reference_overlap(a: np.ndarray, b: np.ndarray) -> float:
+    """Fraction of the reference cap ``a`` retained by ``b`` (directional)."""
     return len(np.intersect1d(a, b, assume_unique=True)) / max(1, len(a))
 
 
@@ -132,7 +133,7 @@ def score(assemblies: Dict[str, np.ndarray], cats: Dict[str, str]
     ov = np.zeros((m, m))
     for i in range(m):
         for j in range(i + 1, m):
-            o = _overlap(assemblies[words[i]], assemblies[words[j]])
+            o = _reference_overlap(assemblies[words[i]], assemblies[words[j]])
             ov[i, j] = ov[j, i] = o
 
     correct = 0

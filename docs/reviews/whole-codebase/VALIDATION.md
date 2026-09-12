@@ -7570,3 +7570,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Migrated `task90_context_collapse_on_exact.py` to the named `neuron_overlap` kernel because its `_snap` outputs are stable neuron IDs.
 - Fixed the script's typed stdout reconfiguration boundary; Pyright now reports 0 errors.
 - Validation: direct helper check returned 0.5; `git diff --check` passed.
+
+
+## 2026-09-12 directional overlap naming
+
+- Renamed `shared_lexical_area._overlap` to `_reference_overlap` and documented its directional denominator (`|a ? b| / |a|`), avoiding a false equivalence with canonical symmetric overlap.
+- Added a precise Pyright suppression for NumPy's valid global seed API.
+- Validation: Pyright reported 0 errors; module compilation and `git diff --check` passed.
