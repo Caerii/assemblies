@@ -131,10 +131,10 @@ DIGIT3_CURRICULUM_PROTOCOLS: tuple[str, ...] = ("center_band", "top_half", "bott
 
 def digit3_curriculum_masks(pattern: np.ndarray, *, rng: np.random.Generator | None = None) -> list[np.ndarray]:
     """Structured absence variants for digit-3 training."""
-    rng = rng or np.random.default_rng(0)
+    generator = rng if rng is not None else np.random.default_rng(0)
     protocols = list(DIGIT3_CURRICULUM_PROTOCOLS)
-    rng.shuffle(protocols)
-    return [apply_absence_mask(pattern, p, rng=rng) for p in protocols]
+    generator.shuffle(protocols)
+    return [apply_absence_mask(pattern, p, rng=generator) for p in protocols]
 
 
 def digit3_absence_battery() -> tuple[str, ...]:
