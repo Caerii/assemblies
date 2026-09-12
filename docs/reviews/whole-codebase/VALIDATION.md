@@ -6728,3 +6728,8 @@ Moved the canonical lazy `torch_ops` protocol to `neural_assemblies.core._torch_
 ## Exact-engine option admission (2026-09-12)
 
 `NumpyExactEngine.add_area` now accepts unknown keyword options long enough to route them through the standardized admission error, instead of leaking Python's raw unexpected-keyword exception. Constructor-admission tests pass **5/5**; Ruff and Pyright report zero diagnostics.
+
+
+## Continual replay protocol boundary (2026-09-12)
+
+`replay_corpus_sample` now treats `word_grounding` as optional when a parser supplies the minimal replay contract, while still propagating training failures. The regression test passes **1/1**; Ruff and Pyright report zero diagnostics.
