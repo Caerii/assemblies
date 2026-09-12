@@ -6773,3 +6773,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Optional CuPy backend import boundary (2026-09-12)
 
 `core/backend.py` now loads optional CuPy through `importlib` at capability-selection time, so static analysis and CPU-only imports do not require CuPy symbols while preserving backend selection semantics. Backend and isolation tests pass **16 tests, 3 optional skips**; Pyright and Ruff report zero diagnostics.
+
+
+## CUDA engine optional dependency boundary (2026-09-12)
+
+`core/cuda_engine.py` now loads optional CuPy dynamically, keeps Torch availability typed through an explicit optional handle, and routes device-to-host conversion through the backend helper. The CUDA/backend isolation checks pass **3 tests, 13 optional skips**; Pyright and Ruff report zero diagnostics.
