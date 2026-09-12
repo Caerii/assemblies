@@ -6018,3 +6018,11 @@ constructor contract tests pass **9 tests**.
 The density and pattern-completion sweep helpers no longer expose mutable list
 defaults. Omitted beta/alpha grids are created as immutable tuples per call,
 preventing accidental cross-run mutation. The default-contract test passes.
+
+### Sequence-length contracts (2026-09-12)
+
+Core calculus and parser loops now use strict zips where paired data must align;
+`NemoParser.train_roles` also rejects sentences that are not exactly the
+agent/action/patient triple. This prevents silent truncation in attention,
+context training, batched accuracy, and role assignment. Focused suites pass
+**66 tests**.

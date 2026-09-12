@@ -88,12 +88,12 @@ class ContextAttractorChoice:
         areas = [brain.areas[self.context_area], brain.areas[self.outcome_area]]
         fixed = [area.fixed_assembly for area in areas]
         try:
-            for context, counts in zip(protocol.contexts, protocol.presentations):
+            for context, counts in zip(protocol.contexts, protocol.presentations, strict=True):
                 if not any(counts):
                     continue
                 activate_assembly(brain, self._contexts[context])
                 areas[0].fix_assembly()
-                for target, count in zip((self.attractors.asm0, self.attractors.asm1), counts):
+                for target, count in zip((self.attractors.asm0, self.attractors.asm1), counts, strict=True):
                     if not count:
                         continue
                     activate_assembly(brain, target)
@@ -101,7 +101,7 @@ class ContextAttractorChoice:
                     for _ in range(count):
                         brain.project({}, {self.context_area: [self.outcome_area]})
         finally:
-            for area, value in zip(areas, fixed):
+            for area, value in zip(areas, fixed, strict=True):
                 area.fixed_assembly = value
         brain.set_input_noise(self.outcome_area, protocol.noise_std)
 

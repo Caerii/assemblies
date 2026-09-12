@@ -253,7 +253,11 @@ class NemoParser:
         role_sequence = [ROLE_AGENT, ROLE_ACTION, ROLE_PATIENT]
 
         for sentence in sentences:
-            for word, role_area in zip(sentence, role_sequence):
+            if len(sentence) != len(role_sequence):
+                raise ValueError(
+                    "train_roles expects exactly agent, action, and patient words"
+                )
+            for word, role_area in zip(sentence, role_sequence, strict=True):
                 category = self.word_categories[word]
                 lex_area = "LEX_NOUN" if category == "noun" else "LEX_VERB"
 
@@ -420,7 +424,7 @@ class NemoParser:
                     nouns_seen += 1
                 else:
                     role_assignment.append(None)
-            for word, role in zip(words, role_assignment):
+            for word, role in zip(words, role_assignment, strict=True):
                 result["roles"][word] = role
         else:
             for word in words:

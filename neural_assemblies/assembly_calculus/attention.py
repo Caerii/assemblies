@@ -99,7 +99,7 @@ def attend(
     probabilities /= float(np.sum(probabilities))
     candidates = tuple(
         AttentionCandidate(label, float(score), float(weight))
-        for (label, score), weight in zip(scored, probabilities)
+        for (label, score), weight in zip(scored, probabilities, strict=True)
     )
     selected = candidates[:top_k]
 

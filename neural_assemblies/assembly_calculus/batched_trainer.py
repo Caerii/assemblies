@@ -154,7 +154,7 @@ class BatchedSeqTrainer:
         correct = 0
         for j in range(0, len(prefixes), batch_size):
             preds = self.predict(prefixes[j:j + batch_size])
-            for p, a in zip(preds, actuals[j:j + batch_size]):
+            for p, a in zip(preds, actuals[j:j + batch_size], strict=True):
                 correct += (p == a)
         return correct / max(len(prefixes), 1)
 
@@ -294,7 +294,7 @@ class SparseBatchedSeqTrainer:
             for i in range(1, len(s)):
                 prefixes.append(s[:i]); actuals.append(s[i])
         preds = self.predict(prefixes)
-        return sum(p == a for p, a in zip(preds, actuals)) / max(len(prefixes), 1)
+        return sum(p == a for p, a in zip(preds, actuals, strict=True)) / max(len(prefixes), 1)
 
     def nnz(self):
         return int(self.W._nnz())
