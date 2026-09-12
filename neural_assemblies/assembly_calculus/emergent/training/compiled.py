@@ -18,10 +18,31 @@ from __future__ import annotations
 
 from contextlib import contextmanager
 from dataclasses import dataclass, field
-from typing import TYPE_CHECKING, Dict, Iterator, Sequence, Tuple
+from typing import TYPE_CHECKING, Dict, Iterator, Protocol, Sequence, Tuple
+
+from neural_assemblies.core.brain import Brain
 
 if TYPE_CHECKING:
     from ..parser import EmergentParser
+
+
+class CompiledTopologyParser(Protocol):
+    """Minimal parser capability required by compiled topology execution."""
+
+    brain: Brain
+    k: int
+
+    def _set_freeze_connectome_growth(
+        self, area_names: Sequence[str], *, enabled: bool
+    ) -> None: ...
+
+    def _set_compiled_topology_mode(
+        self, area_names: Sequence[str], *, enabled: bool
+    ) -> None: ...
+
+    def _enable_area_ring_mode(self, area_name: str, capacity_cols: int) -> None: ...
+
+    def _disable_area_ring_mode(self, area_name: str) -> None: ...
 
 
 @dataclass(frozen=True)
@@ -39,7 +60,7 @@ class CompiledTopologySpec:
 class CompiledTopologySession:
     """Context manager: enable freeze + ring + compiled projection on areas."""
 
-    def __init__(self, parser: "EmergentParser", spec: CompiledTopologySpec):
+    def __init__(self, parser: CompiledTopologyParser, spec: CompiledTopologySpec):
         self._parser = parser
         self._spec = spec
         self._entered = False
@@ -76,7 +97,7 @@ class CompiledTopologySession:
 
 @contextmanager
 def compiled_topology(
-    parser: "EmergentParser",
+    parser: CompiledTopologyParser,
     spec: CompiledTopologySpec,
 ) -> Iterator[CompiledTopologySession]:
     """Functional wrapper around :class:`CompiledTopologySession`."""
@@ -85,7 +106,7 @@ def compiled_topology(
         yield session
 
 
-def prediction_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
+def prediction_topology_spec(parser: CompiledTopologyParser) -> CompiledTopologySpec:
     """Spec for PREDICTION lexicon build after pregrow."""
     from ..core.areas import PREDICTION
 
@@ -102,7 +123,7 @@ def prediction_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
     )
 
 
-def bridge_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
+def bridge_topology_spec(parser: CompiledTopologyParser) -> CompiledTopologySpec:
     """Spec for CONTEXT/PREDICTION bridge training after pregrow."""
     from ..core.areas import CONTEXT, PREDICTION
 
@@ -122,7 +143,7 @@ def bridge_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
     )
 
 
-def role_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
+def role_topology_spec(parser: CompiledTopologyParser) -> CompiledTopologySpec:
     """Spec for ROLE_AGENT / ROLE_PATIENT unsupervised training."""
     from ..core.areas import ROLE_AGENT, ROLE_PATIENT
 
@@ -137,7 +158,7 @@ def role_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
 
 
 def lexicon_topology_spec(
-    parser: "EmergentParser",
+    parser: CompiledTopologyParser,
     core_areas: Sequence[str],
 ) -> CompiledTopologySpec:
     """Spec for core-area lexicon training after pregrow."""

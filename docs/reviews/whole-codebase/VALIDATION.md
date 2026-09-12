@@ -6429,3 +6429,7 @@ Next-token inference now snapshots the optional prediction lexicon through `geta
 ### Prediction shared-state declaration gate (2026-09-12)
 
 Prediction operations now declare the runtime state initialized by the core parser: brain, stimulus map, training and inference rounds, fast-training policy, prediction lexicon, and bridge-topology status. This removes dynamic-state ambiguity and exposes the remaining method-capability/compiler seams to static tooling instead of conflating them with missing fields. The prediction parity test passes **1 test with 1 intentional sampled-recurrence warning**; the focused file's diagnostics dropped from **44 to 11**, and `git diff --check` is clean.
+
+### Compiled topology capability protocol gate (2026-09-12)
+
+Compiled topology execution now depends on an explicit `CompiledTopologyParser` protocol: typed brain and `k`, connectome-freeze and compiled-mode toggles, and ring enable/disable operations. Topology sessions and spec builders consume that finite capability surface instead of requiring the entire emergent parser class, resolving the compiler/topology annotation mismatch without casts. Pyright reports **0 diagnostics** for compiled topology and compiler modules; topology tests pass **4 tests with expected sampled-recurrence warnings**, and `git diff --check` is clean.
