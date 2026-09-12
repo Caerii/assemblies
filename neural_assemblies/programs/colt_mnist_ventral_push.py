@@ -85,9 +85,9 @@ def run_ventral_push_phase1(
     from neural_assemblies.programs.colt_mnist_tier_util import clear_ventral_bundle_cache, load_recurrent_bundle
 
     clear_ventral_bundle_cache()
-    kw = dict(seed=seed, n_examples=n_examples, k=k, use_cache=False)
-    train_kw = {key: val for key, val in kw.items() if key != "use_cache"}
-    bundle = load_recurrent_bundle(**kw)
+    bundle = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
 
     _, mean_acc, conf, other = evaluate_bundle_accuracy(bundle)
     rows = [
@@ -99,7 +99,7 @@ def run_ventral_push_phase1(
         ),
     ]
 
-    mp = run_multi_prototype_mnist(bundle=bundle, **train_kw)
+    mp = run_multi_prototype_mnist(bundle=bundle, seed=seed, n_examples=n_examples, k=k)
     mp_conf, mp_other = _split_acc(mp.per_class_accuracy)
     rows.append(VentralPushRow(
         name="multi_prototype_lexicon",
@@ -109,7 +109,7 @@ def run_ventral_push_phase1(
         details={"readout_best": mp.extra.get("readout_best")},
     ))
 
-    lri = run_lri_cascade_mnist(bundle=bundle, **train_kw)
+    lri = run_lri_cascade_mnist(bundle=bundle, seed=seed, n_examples=n_examples, k=k)
     lri_conf, lri_other = _split_acc(lri.per_class_accuracy)
     rows.append(VentralPushRow(
         name="lri_cascade_readout",
@@ -137,12 +137,14 @@ def run_ventral_push_phase2(
     from neural_assemblies.programs.colt_mnist_tier_util import clear_ventral_bundle_cache, load_recurrent_bundle
 
     clear_ventral_bundle_cache()
-    kw = dict(seed=seed, n_examples=n_examples, k=k, use_cache=False)
-
-    baseline = load_recurrent_bundle(**kw)
+    baseline = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
     rows = [_row_from_bundle("recurrent_baseline", baseline)]
 
-    pair_bundle = load_recurrent_bundle(**kw)
+    pair_bundle = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
     apply_pairwise_contrast_curriculum(
         pair_bundle.brain, pair_bundle, pair_passes=pair_passes,
     )
@@ -152,7 +154,9 @@ def run_ventral_push_phase2(
         pair_passes=pair_passes,
     ))
 
-    learn_bundle = load_recurrent_bundle(**kw)
+    learn_bundle = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
     la_stats = apply_learn_assembly_curriculum(
         learn_bundle.brain,
         learn_bundle.high_bias,
@@ -169,7 +173,9 @@ def run_ventral_push_phase2(
         **la_stats,
     ))
 
-    stack = load_recurrent_bundle(**kw)
+    stack = load_recurrent_bundle(
+        seed=seed, n_examples=n_examples, k=k, use_cache=False,
+    )
     stack_la = apply_learn_assembly_curriculum(
         stack.brain,
         stack.high_bias,
