@@ -975,7 +975,7 @@ class ContextAccumulationPlan:
             if self.core_assemblies is None and phon not in brain.stimuli:
                 raise KeyError(f"context accumulation stimulus is unknown: {phon!r}")
         if self.core_assemblies is not None:
-            for (_, core_area), assembly in zip(self.word_steps, self.core_assemblies):
+            for (_, core_area), assembly in zip(self.word_steps, self.core_assemblies, strict=True):
                 if assembly is not None and assembly.area != core_area:
                     raise ValueError("context accumulation core assembly belongs to another area")
 

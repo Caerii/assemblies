@@ -161,7 +161,7 @@ def _assign_noun_roles(
     order: str,
 ) -> List[Tuple[int, str, str]]:
     noun_positions = [
-        (idx, word) for idx, (word, cat) in enumerate(zip(words, categories))
+        (idx, word) for idx, (word, cat) in enumerate(zip(words, categories, strict=True))
         if cat in ("NOUN", "PRON")
     ]
     # Map the nouns onto the noun slots of the typology, split at the verb.
@@ -243,7 +243,7 @@ def compile_corpus(
             category_oracle(parser, w, parser.word_grounding.get(w))
             for w in words
         ]
-        parser._category_cache.update(zip(words, categories))
+        parser._category_cache.update(zip(words, categories, strict=True))
 
         verb_pos = None
         for idx, cat in enumerate(categories):
@@ -263,11 +263,11 @@ def compile_corpus(
         noun_roles: Tuple[Tuple[int, str, str], ...] = ()
         scene_roles = None
         if getattr(sent, "event", None) is not None:
-            kept = [r for w, r in zip(sent.words, sent.roles) if w in smap]
+            kept = [r for w, r in zip(sent.words, sent.roles, strict=True) if w in smap]
             if len(kept) == len(words):
                 scene_roles = [
                     (i, w, ROLE_LABEL_TO_AREA[r])
-                    for i, (w, r) in enumerate(zip(words, kept))
+                    for i, (w, r) in enumerate(zip(words, kept, strict=True))
                     if r in ROLE_LABEL_TO_AREA
                 ]
         if scene_roles is not None:

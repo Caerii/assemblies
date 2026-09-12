@@ -6026,3 +6026,11 @@ Core calculus and parser loops now use strict zips where paired data must align;
 agent/action/patient triple. This prevents silent truncation in attention,
 context training, batched accuracy, and role assignment. Focused suites pass
 **66 tests**.
+
+### Strict pairing and encoding gate (2026-09-12)
+
+The contract-layer zip audit now uses strict pairing for context assemblies and
+corpus observations, and the parser uses explicit length checks for role data.
+The full operation-contract suite passes **163 tests**. New regression files are
+normalized to BOM-free UTF-8 so the repository AST validator can inspect every
+Python file.

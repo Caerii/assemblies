@@ -1,4 +1,4 @@
-﻿from inspect import signature
+from inspect import signature
 
 from neural_assemblies.simulation.density_simulator import density_sim
 from neural_assemblies.simulation.pattern_completion import pattern_com_alphas
