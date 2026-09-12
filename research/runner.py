@@ -360,6 +360,7 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'a1-horizon': 'research.experiments.seq_a1_horizon_hashed',
                'temporal-positions': 'research.experiments.seq_temporal_positions',
                'temporal-memory-high-order': 'research.experiments.seq_tm_high_order',
+               's5-soft-census': 'research.experiments.seq_s5_soft_census_hashed',
                'per-fiber-plasticity': 'research.experiments.per_fiber_plasticity',
                'capacity-scaling': 'research.experiments.seq_capacity_scaling'}
 

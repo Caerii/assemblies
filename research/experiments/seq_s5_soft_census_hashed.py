@@ -13,29 +13,21 @@ the same four groups and ten seeds, brains batched per launch.
 """
 from __future__ import annotations
 
-import argparse
 import inspect
-import os
+import importlib
 import random
-import sys
 import time
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
-sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
-    os.path.abspath(__file__)))))
-_HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, _HERE)
-
-import torch                                                              # noqa: E402
-
-from neural_assemblies.core.brain import Brain                            # noqa: E402
-from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM  # noqa: E402
-from neural_assemblies.programs.word_problems import (                    # noqa: E402
+from neural_assemblies import describe_hashed_arc_fsm
+from neural_assemblies.programs.word_problems import (
     GROUPS, true_trajectory, word_problem_fsm)
-from seq_s5_word_problem import (                                         # noqa: E402
+from research.experiments.seq_s5_word_problem import (
     BETA, GROUP_NAMES, K, ORGAN_P, PRESENTATIONS, REFRACTED, SEEDS, sizes)
-from _results import write_result  # noqa: E402
+from research.runner import experiment_parser, run_experiment
 
 LONGEST = 500
 LAUNCH_BYTES = 5 << 30
@@ -47,6 +39,9 @@ def _bytes_per_brain(n_arc, n_state):
 
 def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATIONS,
                     strength=REFRACTED, norm_init=False):
+    torch: Any = importlib.import_module("torch")
+    from neural_assemblies.core.brain import Brain
+    from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
     group = GROUPS[group_name]()
     states, symbols, transitions = word_problem_fsm(group)
     n_arc, n_state = sizes(group, len(symbols))
@@ -104,8 +99,8 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
             ov = onblock(torch.full((B,), target, device="cuda", dtype=torch.int64))
             ov_all.append(ov)
             lab, ovc = label.cpu().numpy(), ov.cpu().numpy()
-            wins = None
-            drive = None
+            wins: Any = None
+            drive: Any = None
             for b in range(B):
                 if int(lab[b]) != target:
                     hard[b].append((st, sym))
@@ -198,92 +193,81 @@ def census_at_width(group_name, seeds, longest=LONGEST, presentations=PRESENTATI
     return rows
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--seeds", type=int, default=len(SEEDS))
-    ap.add_argument("--groups", type=str, default=",".join(GROUP_NAMES))
-    ap.add_argument("--tag", type=str, default="")
-    ap.add_argument("--presentations", type=int, default=PRESENTATIONS,
-                    help="Addendum 5: the potentiated gain (1 + beta)^P")
-    ap.add_argument("--norm-init", action="store_true",
-                    help="Addendum 7 N1: in-degree normalisation on the organ")
-    ap.add_argument("--strength", type=float, default=REFRACTED,
-                    help="Addendum 6: the arc's refraction strength (absolute; "
-                         "the registered organ is 0.1 = beta)")
-    ap.add_argument("--smoke", action="store_true")
-    args = ap.parse_args()
-    # seeds continue the registered ten (42..51) upward
-    seeds = list(range(SEEDS[0], SEEDS[0] + (2 if args.smoke else args.seeds)))
-    groups = args.groups.split(",")
-    longest = 20 if args.smoke else LONGEST
-    pres = 2 if args.smoke else args.presentations
-    if args.smoke:
-        print("*** SMOKE: API only. THESE NUMBERS ARE VOID. ***")
-    print("=== E7 at width: the soft census on the explicit substrate ===\n")
+def experiment(record):
+    parameters = record["parameters"]
+    seeds = record["seeds"]
+    groups = parameters["groups"]
+    longest = parameters["longest"]
+    pres = parameters["presentations"]
+    strength = parameters["strength"]
+    norm_init = parameters["norm_init"]
     out = []
     for g in groups:
         G = GROUPS[g]()
         n_arc, n_state = sizes(G, len(G.generators))
         per = max(1, LAUNCH_BYTES // _bytes_per_brain(n_arc, n_state))
         for i in range(0, len(seeds), per):
-            out += census_at_width(g, seeds[i:i + per], longest, pres, args.strength,
-                                   args.norm_init)
+            out += census_at_width(g, seeds[i:i + per], longest, pres, strength,
+                                   norm_init)
 
-    print(f"\n    {'group':7s} {'seed':>4s} {'first_bad':>9s} {'dev':>5s} "
-          f"{'pred_dev':>8s} {'V2':>3s} {'soft':>5s} {'hard':>5s} {'min_ov':>7s}")
     clean, v2, any_bad = 0, True, 0
     for v in out:
-        dev = "-" if v["first_dev"] is None else str(v["first_dev"])
-        pred = "-" if v["predicted_first_dev"] is None else str(v["predicted_first_dev"])
         v2 &= v["v2_exact"]
         nb = v["n_soft"] + v["n_hard"]
         any_bad += nb > 0
         clean += (nb == 0 and v["first_bad"] == longest)
-        print(f"    {v['group']:7s} {v['seed']:4d} {v['first_bad']:9d} {dev:>5s} "
-              f"{pred:>8s} {str(v['v2_exact'])[0]:>3s} {v['n_soft']:5d} "
-              f"{v['n_hard']:5d} {v['census_ov_min']:7.4f}", flush=True)
     n = len(out)
-    from collections import Counter
-    rel = Counter(r_ for v in out for x in v["relations"] for r_ in x["relation"])
-    per_group = {}
-    for v in out:
-        g_ = per_group.setdefault(v["group"], [0, 0, 0])
-        g_[0] += v["n_soft"] + v["n_hard"]; g_[1] += v["n_pairs"]
-        g_[2] += v["first_bad"] < longest
-    print("\n    per group: bad pairs / pairs (rate)   words derailing")
-    for g_, (nb, np_, nd) in per_group.items():
-        print(f"      {g_:7s} {nb:4d} / {np_:6d} ({100.0 * nb / np_:.3f}%)   {nd}")
-    print(f"    intruder relations: {dict(rel)}")
     xs_ = np.array([v["across_symbol"] for v in out]); xt_ = np.array([v["across_state"] for v in out])
-    print(f"    conjunction (strength {args.strength}): across-symbol overlap "
-          f"{xs_.mean():.3f} (max {xs_.max():.3f}), across-state {xt_.mean():.3f} "
-          f"(max {xt_.max():.3f}); P-CONJ both < 0.15: "
-          f"{'PASS' if xs_.mean() < 0.15 and xt_.mean() < 0.15 else 'FAIL'}")
+    p_conj = bool(xs_.mean() < 0.15 and xt_.mean() < 0.15)
     cs = [(x["c_o"], x["c_b"]) for v in out for x in v["relations"] if "c_o" in x]
+    tail_summary = None
     if cs:
         t3 = sum(1 for co, cb in cs if cb <= 14 and co >= 35)
-        print(f"    tails (presentations {pres}, gain {min((1 + BETA) ** pres, 20.0):.2f}): "
-              f"c_o (intruder) {sorted(round(c, 1) for c, _ in cs)}; "
-              f"c_b (weakest block member) {sorted(round(c, 1) for _, c in cs)}; "
-              f"T3 (c_b <= 14 and c_o >= 35): {t3}/{len(cs)}")
+        tail_summary = {"count": len(cs), "t3": t3,
+                        "gain": min((1 + BETA) ** pres, 20.0)}
     pairs = sum(v["n_pairs"] for v in out)
     n_soft = sum(v["n_soft"] for v in out)
     n_hard = sum(v["n_hard"] for v in out)
-    print("\n=== BARS (Addendum 3) ===")
-    print(f"  soft {n_soft} + hard {n_hard} of {pairs} pairs "
-          f"({100.0 * (n_soft + n_hard) / max(pairs, 1):.3f}%); "
-          f"organs with any bad pair: {any_bad}/{n}; clean organs (no bad pair, "
-          f"word runs {longest}): {clean}/{n}")
     w1 = clean >= int(0.9 * n)
-    print(f"  {'PASS' if w1 else 'FAIL'}  W1 the soft pairs were the sampler's "
-          f"(>= 90% of organs clean)")
-    print(f"  {'PASS' if v2 else 'FAIL'}  W2 first_dev == first true-path visit to "
-          f"a bad pair, every organ (vacuous where none)")
-    if not args.smoke:
-        path = write_result(
-            "sequence", f"seq_s5_soft_census_results_hashed{args.tag}.json", out,
-        )
-        print(f"\nwrote {path}")
+    return {"verdict": "VOID" if record["mode"] == "smoke" else (
+                "PASS" if w1 and v2 else "FAIL"),
+            "w1_clean_organs": clean, "w1_total_organs": n,
+            "w2_first_deviation_matches": bool(v2), "p_conj": p_conj,
+            "soft_pairs": n_soft, "hard_pairs": n_hard, "pairs": pairs,
+            "organs_with_bad_pair": any_bad, "rows": out,
+            "tail_summary": tail_summary,
+            "scope": "S5 soft census and first-deviation mechanism"}
+
+
+def main(argv=None):
+    parser = experiment_parser(
+        __doc__ or "S5 soft census", engines=("hashed_arc_fsm",),
+        default_seeds=tuple(SEEDS),
+    )
+    parser.add_argument("--groups", default=",".join(GROUP_NAMES))
+    parser.add_argument("--presentations", type=int, default=PRESENTATIONS)
+    parser.add_argument("--norm-init", action="store_true")
+    parser.add_argument("--strength", type=float, default=REFRACTED)
+    args = parser.parse_args(argv)
+    groups = args.groups.split(",")
+    unknown = sorted(set(groups) - set(GROUP_NAMES))
+    if unknown:
+        parser.error(f"unknown groups: {unknown}")
+    if args.presentations < 1:
+        parser.error("--presentations must be positive")
+    parameters = {"groups": groups, "longest": 20 if args.smoke else LONGEST,
+                  "presentations": 2 if args.smoke else args.presentations,
+                  "strength": args.strength, "norm_init": args.norm_init}
+    path = run_experiment(
+        script=Path(__file__), protocol="sequence.s5-soft-census",
+        protocol_version="2", registration="research/notes/sequence/PREREG_s5_cliff_anatomy.md",
+        engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
+        parameters=parameters, organ_semantics=describe_hashed_arc_fsm(
+            w_max=20.0, norm_init=args.norm_init,
+            refracted_strength=args.strength, zero_or_size=False,
+        ), measure=experiment,
+    )
+    print(path)
 
 
 if __name__ == "__main__":
