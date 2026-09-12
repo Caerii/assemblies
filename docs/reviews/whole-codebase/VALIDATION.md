@@ -6397,3 +6397,7 @@ Compiled topology sessions and topology-spec helpers now declare the fully compo
 
 The plan mixin now declares the minimal protocol it requires from the composed parser: words_to_tool_call. This makes its cross-mixin dependency explicit without inheriting a duplicate concrete base. Pyright reports 0 diagnostics; multi-tool plan tests pass 6 tests with 1 intentional sampled-recurrence warning; Ruff F/E9 and git diff --check are clean.
 
+
+### Structured mixin composed-surface gate (2026-09-12)
+
+Structured conversion now declares the parser protocol it consumes: instruction parsing, tool-call conversion, structured conversion, and JSON tokenization. This replaces implicit cross-mixin self access with an explicit compositional boundary and removes the stale unresolved ToolCall annotation note. Pyright reports **0 diagnostics**; multi-tool plan tests pass **6 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.

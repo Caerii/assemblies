@@ -6,18 +6,13 @@ conversion -- in short, everything graded.  A record says which role held
 which word; it cannot say how confidently, so parse-quality diagnostics must
 be taken before this layer.
 
-Known nit: ``words_to_tool_call`` annotates its return as ``Optional["ToolCall"]``
-but ``ToolCall`` is not imported here.  Harmless at runtime under
-``from __future__ import annotations`` (the annotation is never evaluated),
-but ``typing.get_type_hints`` on this method would raise.  Left alone since
-fixing it means touching imports for no behavioural gain.
 """
 
 from __future__ import annotations
 
-from typing import List, Optional
+from typing import List, Optional, Protocol
 
-from ..structured_io import ToolCall
+from ..structured_io import InstructionFrame, ToolCall
 
 from ..structured_json import (
     StructuredRecord,
@@ -28,14 +23,30 @@ from ..structured_json import (
 from ..tools import ToolRegistry
 
 
+class _InstructionParser(Protocol):
+    """The composed parser surface required by structured conversion."""
+
+    def parse_instruction(self, words: List[str]) -> InstructionFrame: ...
+
+    def words_to_tool_call(self, words: List[str]) -> Optional[ToolCall]: ...
+
+    def words_to_structured(self, words: List[str]) -> Optional[StructuredRecord]: ...
+
+    def json_to_words(self, text: str) -> List[str]: ...
+
+
 class StructuredMixin:
     """Emit and consume JSON tool/instruction records from language."""
 
-    def words_to_tool_call(self, words: List[str]) -> Optional["ToolCall"]:
+    def words_to_tool_call(
+        self: _InstructionParser, words: List[str]
+    ) -> Optional[ToolCall]:
         frame = self.parse_instruction(words)
         return ToolRegistry().dispatch(frame)
 
-    def words_to_structured(self, words: List[str]) -> Optional[StructuredRecord]:
+    def words_to_structured(
+        self: _InstructionParser, words: List[str]
+    ) -> Optional[StructuredRecord]:
         call = self.words_to_tool_call(words)
         if call is not None:
             return StructuredRecord.from_tool_call(call)
@@ -44,7 +55,7 @@ class StructuredMixin:
             return StructuredRecord.from_instruction_frame(frame)
         return None
 
-    def words_to_json(self, words: List[str]) -> Optional[str]:
+    def words_to_json(self: _InstructionParser, words: List[str]) -> Optional[str]:
         record = self.words_to_structured(words)
         if record is None:
             return None
@@ -57,7 +68,7 @@ class StructuredMixin:
         record = StructuredRecord.from_json(text, schema="tool_call")
         return structured_to_words(record)
 
-    def structured_roundtrip(self, words: List[str]) -> dict:
+    def structured_roundtrip(self: _InstructionParser, words: List[str]) -> dict:
         """Language → JSON → words → tool call; report match metrics."""
         call_a = self.words_to_tool_call(words)
         record = self.words_to_structured(words)
