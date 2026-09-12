@@ -28,7 +28,8 @@ would be uninformative.
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING
+from numbers import Real
+from typing import Dict, List, Mapping, Optional, Sequence, Set, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex
@@ -238,20 +239,34 @@ def compare_generalization_parity(
     seed: int = 42,
 ) -> Dict[str, object]:
     """Compare generalization metrics after exact vs compiled DIALOGUE training."""
-    kwargs = dict(
-        holdout_words=holdout_words,
-        corpus_index=corpus_index,
-        qa_pairs=qa_pairs,
-        max_bridge_probes=max_bridge_probes,
-        seed=seed,
+    exact = evaluate_generalization_metrics(
+        exact_parser, holdout_words=holdout_words, corpus_index=corpus_index,
+        qa_pairs=qa_pairs, max_bridge_probes=max_bridge_probes, seed=seed,
     )
-    exact = evaluate_generalization_metrics(exact_parser, **kwargs)
-    compiled = evaluate_generalization_metrics(compiled_parser, **kwargs)
+    compiled = evaluate_generalization_metrics(
+        compiled_parser, holdout_words=holdout_words, corpus_index=corpus_index,
+        qa_pairs=qa_pairs, max_bridge_probes=max_bridge_probes, seed=seed,
+    )
+
+    def _nested_metric(report: Mapping[str, object], key: str,
+                       field: str) -> float:
+        value = report.get(key)
+        if not isinstance(value, Mapping):
+            raise TypeError(f"generalization result {key!r} must be a mapping")
+        metric = value.get(field)
+        if isinstance(metric, bool) or not isinstance(metric, Real):
+            raise TypeError(f"generalization metric {key}.{field} must be real")
+        return float(metric)
+
+    def _scalar_metric(report: Mapping[str, object], key: str) -> float:
+        metric = report.get(key)
+        if isinstance(metric, bool) or not isinstance(metric, Real):
+            raise TypeError(f"generalization metric {key!r} must be real")
+        return float(metric)
 
     def _delta(key: str, field: str = "accuracy") -> float:
-        a = exact[key][field]  # type: ignore[index]
-        b = compiled[key][field]  # type: ignore[index]
-        return float(b) - float(a)
+        return (_nested_metric(compiled, key, field)
+                - _nested_metric(exact, key, field))
 
     return {
         "exact": exact,
@@ -262,7 +277,8 @@ def compare_generalization_parity(
         "bridge_oov_top5_delta": _delta("bridge_oov", "top5"),
         "bridge_seen_top5_delta": _delta("bridge_seen", "top5"),
         "dialogue_delta": _delta("dialogue"),
-        "composite_delta": float(compiled["composite"]) - float(exact["composite"]),
+        "composite_delta": (_scalar_metric(compiled, "composite")
+                            - _scalar_metric(exact, "composite")),
     }
 
 
@@ -502,7 +518,15 @@ def format_curriculum_sweep_table(sweep: Dict[str, object]) -> str:
     summary = sweep.get("summary")
     if summary is None:
         summary = summarize_curriculum_sweep(sweep)
-    rows: Dict[str, Dict[str, float]] = summary["rows"]  # type: ignore[assignment]
+    if not isinstance(summary, Mapping):
+        raise TypeError("curriculum sweep summary must be a mapping")
+    rows_value = summary.get("rows")
+    if not isinstance(rows_value, Mapping):
+        raise TypeError("curriculum sweep summary rows must be a mapping")
+    rows: Dict[str, Dict[str, float]] = {
+        str(depth): values for depth, values in rows_value.items()
+        if isinstance(depth, str) and isinstance(values, dict)
+    }
 
     headers = (
         "depth",
@@ -544,10 +568,10 @@ def format_curriculum_sweep_table(sweep: Dict[str, object]) -> str:
 
     lines.extend([
         "",
-        f"best novel composition: {summary['best_novel_composition']}",
-        f"best roles: {summary['best_roles']}",
-        f"best composite: {summary['best_composite']}",
-        f"novel monotonic with depth order: {summary['novel_composition_monotonic_with_depth']}",
+        f"best novel composition: {summary.get('best_novel_composition')}",
+        f"best roles: {summary.get('best_roles')}",
+        f"best composite: {summary.get('best_composite')}",
+        f"novel monotonic with depth order: {summary.get('novel_composition_monotonic_with_depth')}",
     ])
     return "\n".join(lines)
 

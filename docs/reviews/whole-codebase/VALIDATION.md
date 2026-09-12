@@ -6379,3 +6379,7 @@ The NEMO gating parser now declares its role score map and uses an explicit key 
 ### Parser sweep cache set contract gate (2026-09-12)
 
 The parser cache key now accepts any abstract set of holdout words and normalizes it once before calling the set-based resolver. Frozen cache identity and mutable caller inputs therefore share one explicit boundary. Pyright reports **0 diagnostics**; parser-cache identity tests pass **14 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Generalization parity and sweep typing gate (2026-09-12)
+
+Generalization parity now passes typed keyword arguments directly instead of constructing an unconstrained options dictionary. Its nested and scalar result metrics are validated before deltas or formatted sweep tables are computed, and sweep summaries validate their row mapping. Pyright reports **0 diagnostics** for the module; a synthetic table-format integration check passes, and Ruff F/E9 plus `git diff --check` are clean.
