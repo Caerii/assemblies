@@ -6,7 +6,7 @@ Wraps the maintained ``neural_assemblies.language`` implementation.
 
 from __future__ import annotations
 
-from typing import List, Tuple, Union
+from typing import Any, List, Tuple, Union
 
 from neural_assemblies.language import (
     EnglishParserBrain,
@@ -40,7 +40,7 @@ class RuleParser:
         self,
         sentence: str,
         readout: ReadoutMethod = ReadoutMethod.FIBER_READOUT,
-    ) -> Union[List[Tuple[str, str, str]], dict]:
+    ) -> Union[List[Tuple[str, str, str]], dict[str, Any], None]:
         return _parse(
             sentence=sentence,
             language=self.language,
@@ -59,7 +59,7 @@ def parse_sentence(
     language: str = "English",
     non_LEX_n: int = 1000,
     **kwargs,
-) -> Union[List[Tuple[str, str, str]], dict]:
+) -> Union[List[Tuple[str, str, str]], dict[str, Any], None]:
     """Parse a sentence with the TACL rule-based parser."""
     return RuleParser(language=language, non_LEX_n=non_LEX_n, **kwargs).parse(sentence)
 
