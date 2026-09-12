@@ -4,6 +4,7 @@ from __future__ import annotations
 from dataclasses import asdict, dataclass
 import math
 from numbers import Integral, Real
+from typing import Any, Sequence
 
 from neural_assemblies.assembly_calculus.coin_config import SeedMixtureChoice
 from neural_assemblies.assembly_calculus.transitions import TransitionMap
@@ -51,14 +52,14 @@ class ArcMarkovNetwork:
     Target weights parameterize seed mixtures, not calibrated probabilities.
     Each step observes inside a probe, then retains only the decoded state label.
     """
-    def __init__(self, brain, states, transitions, initial_state, *,
+    def __init__(self, brain: Any, states: Sequence[str], transitions: Sequence[tuple[str, str, str]], initial_state: str, *,
                  protocol: ArcMarkovProtocol, choice: SeedMixtureChoice | None = None,
                  symbol='flip', prefix='_arc_markov'):
         if not isinstance(protocol, ArcMarkovProtocol):
             raise ValueError('ArcMarkovNetwork requires an explicit ArcMarkovProtocol')
         if choice is not None and not isinstance(choice, SeedMixtureChoice):
             raise ValueError('choice must be an explicit SeedMixtureChoice')
-        states = states if isinstance(states, (str, bytes)) else tuple(states)
+        states = tuple(states)
         table = TransitionMap(transitions).validate_domain(states, [symbol], initial_state)
         table.validate_probability_mass()
         if set(table.keys()) != {(state, symbol) for state in states}:
@@ -68,7 +69,7 @@ class ArcMarkovNetwork:
         if branching and choice is None:
             raise ValueError('branching requires explicit SeedMixtureChoice; weights are not calibrated probabilities')
         branch_symbols = tuple(f'branch_{i}' for i in range(max(map(len, schedules.values()))))
-        training = [(branch_symbols[i], state, target)
+        training: list[tuple[str, str, str]] = [(branch_symbols[i], state, target)
                     for state, schedule in schedules.items()
                     for i, (target, _) in enumerate(schedule)]
         self._weights = {state: tuple(weight for _, weight in schedule)
@@ -85,7 +86,7 @@ class ArcMarkovNetwork:
         # Fixed population in both trained and zero-presentation controls.
         brain.materialize_area(self.transition_machine.arc_area)
         self.transition_machine.train_from_list(training, presentations=protocol.presentations)
-        self.coin = choice.build(brain, prefix=f'{prefix}_coin') if branching else None
+        self.coin = choice.build(brain, prefix=f'{prefix}_coin') if branching and choice is not None else None
 
     @property
     def protocol(self):
@@ -115,7 +116,14 @@ class ArcMarkovNetwork:
     def sample_step(self, seed=None):
         weights = self._weights[self._current]
         with self.brain.probe():
-            index = self.choice.select_index(self.coin, weights, seed=seed) if len(weights) > 1 else 0
+            choice = self._choice
+            if len(weights) > 1 and (choice is None or self.coin is None):
+                raise RuntimeError('branching arc state is missing its configured coin choice')
+            if len(weights) > 1:
+                assert choice is not None and self.coin is not None
+                index = choice.select_index(self.coin, weights, seed=seed)
+            else:
+                index = 0
             decoded = self.transition_machine.run([self._branch_symbols[index]], start_state=self._current)[0]
         self._current = decoded
         return decoded
