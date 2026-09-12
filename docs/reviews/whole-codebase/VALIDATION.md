@@ -5916,3 +5916,8 @@ The compatibility `fast` flag is now type-checked and recorded as
 `fast_requested` in `ErpCalibrationReport`, while the measurement protocol
 remains intentionally unchanged. Four calibration tests cover invalid values
 and report provenance.
+
+### ERP probe callback surface (2026-09-12)
+
+The calibration callback now names its intentionally ignored compatibility
+kwargs as private, making the fixed probe protocol explicit to static analysis.

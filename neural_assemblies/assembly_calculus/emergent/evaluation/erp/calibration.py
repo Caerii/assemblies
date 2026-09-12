@@ -386,7 +386,7 @@ def calibrate_erp_thresholds(
         list(words) for lbl, _d, words in frames if lbl == "grammatical"
     ]
     measure_fn = critical_probe_measure_fn(probe_depth, protocol=protocol) if sweep else (
-        lambda p, w, **kw: run_incremental_erp_probes(
+        lambda p, w, **_kw: run_incremental_erp_probes(
             p, w, apply_calibration=False, readiness=readiness,
             probe_depth=probe_depth, protocol=protocol,
         )
