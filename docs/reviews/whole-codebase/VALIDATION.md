@@ -6838,3 +6838,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## GPU lexicon operator boundary (2026-09-12)
 
 `lexicon/gpu_language_learner.py` now routes all Torch operations through the shared lazy operator protocol, keeps GPU-only device discovery explicit, and avoids global NumPy RNG mutation in its helper calls. The module compiles; Pyright and Ruff report zero diagnostics. Runtime validation remains CUDA-gated by the prototype's explicit availability assertion.
+
+
+## True assembly learner operator boundary (2026-09-12)
+
+`lexicon/true_assembly_learner.py` now uses the shared Torch operator protocol, explicit GPU capability discovery, and a typed category-response selector. The module compiles; Pyright and Ruff report zero diagnostics. Runtime remains intentionally CUDA-gated by this prototype.
