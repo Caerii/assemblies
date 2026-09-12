@@ -6167,3 +6167,7 @@ The partitioned non-slow slice 1420:1560 passed **140 tests in 17.66 seconds**. 
 ### IR, cross-language, and homeostasis slice (2026-09-12)
 
 The partitioned non-slow slice 1560:1700 passed **139 tests with 1 optional skip in 57.84 seconds**. It covers IR and cross-language adapters, historical validation, homeostasis, and engine scaling. One sampled-recurrence warning is intentional provenance enforcement.
+
+### Literature goldens and IR brain slice (2026-09-12)
+
+The partitioned non-slow slice 1700:1840 passed **140 tests in 20.41 seconds**. It covers cross-language brain adapters, k-WTA pruning, and retracted-golden admission. Eleven sampled-recurrence warnings are intentional provenance guards.
