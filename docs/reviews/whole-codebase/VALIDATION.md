@@ -6953,3 +6953,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: EmergentParams now exposes resolved k as an integer after construction while retaining the legacy None derivation input; brain and params focused Pyright: 0 errors.
 - 2026-09-12: Emergent package public export gate now passes with 0 errors and 0 warnings; TYPE_CHECKING imports document lazy symbols without loading GPU modules.
 - 2026-09-12: Emergent profiler now has explicit optional CuPy and Torch boundaries, nullable decorator names, and safe profiler exit handling. Focused Pyright: 0 errors.
+- 2026-09-12: Source-only emergent runtime gate (40 files excluding tests/studies): 0 errors, 0 warnings, 0 informational diagnostics. CPU-safe regressions: 6 passed, 1 expected optional-backend skip.
