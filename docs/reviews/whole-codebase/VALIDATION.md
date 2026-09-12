@@ -6678,3 +6678,8 @@ The deterministic hashed-connectome constructor `_hash.py` now routes generated 
 ## Torch engine boundary migration (2026-09-12)
 
 The central `_engine.py` now separates real Torch tensor annotations and CUDA lifecycle calls from generated factories, dtypes, sampling, and selection operators via `torch_ops`. Pyright and Ruff report zero diagnostics. Engine scaling, parity, saturation/densify, hash, and ePWTA regressions pass **53 tests**; numerical behavior and dispatch paths are unchanged.
+
+
+## Torch hashed-fiber boundary migration (2026-09-12)
+
+The primary hashed fiber implementation `_hashed.py` now uses the explicit `torch_ops` runtime namespace for generated factories, reductions, indexing, and dtypes. Pyright and Ruff report zero diagnostics. Hashed substrate, aligner, transducer, hash, and scaling regressions pass **17 tests with 24 expected skips**; hashed arithmetic and state semantics are unchanged.
