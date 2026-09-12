@@ -6413,3 +6413,7 @@ Blocks-world training now declares the composed parser state and operations it r
 ### Gating mixin composed-surface gate (2026-09-12)
 
 Learned word-order gating now declares its composed parser surface: brain and training parameters, stimulus and grounding maps, learned gating stores, category classification, function-word subcategory lookup, and constituent-order fallback. The implementation remains behaviorally unchanged while static tooling can now distinguish the gating algorithm from the state it requires. Pyright reports **0 diagnostics**; gating tests pass **8 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Optional distributional oracle boundary gate (2026-09-12)
+
+`category_oracle` now treats distributional categories, statistics, and the classifier as an optional parser capability. It reads those components through one guarded boundary and skips them when the composed parser does not provide them, rather than exposing hidden mandatory attributes after an `hasattr` check. Pyright reports **0 diagnostics**; dialogue tests pass **5 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.

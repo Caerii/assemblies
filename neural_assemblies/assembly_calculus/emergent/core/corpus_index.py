@@ -9,7 +9,7 @@ from __future__ import annotations
 
 from collections import defaultdict
 from dataclasses import dataclass
-from typing import TYPE_CHECKING, Dict, List, Optional, Set, Tuple
+from typing import TYPE_CHECKING, Callable, Dict, List, Optional, Set, Tuple, cast
 
 from .areas import (
     CORE_TO_CATEGORY, GROUNDING_TO_CORE, ROLE_ACTION, ROLE_AGENT, ROLE_PATIENT,
@@ -142,11 +142,23 @@ def category_oracle(
         core = GROUNDING_TO_CORE[ctx.dominant_modality]
         return CORE_TO_CATEGORY[core]
 
-    if hasattr(parser, "_dist_categories") and word in parser._dist_categories:
-        return parser._dist_categories[word]
+    # Distributional classification is an optional parser capability.  Keep
+    # the compiler usable with parsers that do not include that mixin instead
+    # of making a guarded attribute access look mandatory to callers and type
+    # checkers.
+    dist_categories = getattr(parser, "_dist_categories", {})
+    if isinstance(dist_categories, dict) and word in dist_categories:
+        return str(dist_categories[word])
 
-    if parser.dist_stats.word_count.get(word, 0) > 0:
-        cat, _ = parser.classify_distributional(word)
+    dist_stats = getattr(parser, "dist_stats", None)
+    classify_distributional = getattr(parser, "classify_distributional", None)
+    if (
+        dist_stats is not None
+        and callable(classify_distributional)
+        and dist_stats.word_count.get(word, 0) > 0
+    ):
+        classify = cast(Callable[[str], Tuple[str, float]], classify_distributional)
+        cat, _ = classify(word)
         if cat != "UNKNOWN":
             return cat
 
