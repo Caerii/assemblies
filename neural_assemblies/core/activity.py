@@ -8,6 +8,7 @@ from copy import deepcopy
 from dataclasses import dataclass
 import math
 from numbers import Integral, Real
+from typing import Any
 
 
 @dataclass(frozen=True)
@@ -53,8 +54,8 @@ class PreKwtaObservation:
 
 @dataclass
 class ActivitySnapshot:
-    owner: object
-    fields: dict
+    owner: "ActivityState"
+    fields: dict[str, tuple[Any, Any]]
 
     def restore(self):
         for name, (original, saved) in self.fields.items():
