@@ -6748,3 +6748,8 @@ Removed an unrelated above-chance assertion from the fast/full mode invariance t
 ## ERP metric range contract cleanup (2026-09-12)
 
 Removed a stale strict xfail after the raw P600 range test began passing on the current protocol. The clipped excess remains explicitly non-directional, and raw separation inversion remains an expected failed bar. Metric-range tests pass **3 tests, 1 expected failure**.
+
+
+## Temporal capture toolchain boundary (2026-09-12)
+
+CUDA temporal capture now skips with the concrete fused-extension build error when the developer toolchain is unavailable, matching the other parity gates; it no longer misreports an environment prerequisite as a kernel failure. The test module passes **32 tests, 2 environment skips**, with zero Pyright and Ruff diagnostics.
