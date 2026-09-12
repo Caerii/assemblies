@@ -7240,3 +7240,11 @@ The attractor training protocol now declares its actual seven-value return contr
 - Initialized the high-layer assembly explicitly so the registered zero-round/null protocol is defined and no variable is conditionally unbound.
 - `uv run pyright neural_assemblies/programs/colt_mnist_protocol.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_colt_mnist_protocol.py -q`: 2 passed, 1 skipped in 100.73s.
+
+
+## 2026-09-12 ? legacy protocol result boundaries
+
+- Made multiscale bundle generative capture use an explicit typed Brain boundary.
+- TACL F1 smoke now raises when parsing returns no role assignment instead of iterating `None`.
+- `uv run pyright neural_assemblies/programs/colt_mnist_tier_util.py neural_assemblies/programs/tacl_parser_f1.py`: 0 errors.
+- TACL F1 smoke completed with visible sampler warning and measured role recall 0.667; this remains an empirical limitation, not a hidden pass.
