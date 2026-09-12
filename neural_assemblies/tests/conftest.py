@@ -6,6 +6,20 @@ import os
 
 import pytest
 
+# xdist parallelizes at the test-process level, so native thread-pool tuning
+# is machine-dependent.  Leave library defaults untouched unless a benchmark
+# explicitly supplies ASSEMBLIES_TEST_NATIVE_THREADS; then apply that value
+# consistently before NumPy/Torch import.  A whole-suite measurement showed
+# that forcing one thread regresses parser/example tests even when it helps a
+# narrow CUDA test file.
+_NATIVE_THREADS = os.environ.get("ASSEMBLIES_TEST_NATIVE_THREADS")
+if _NATIVE_THREADS:
+    for _native_var in (
+        "OMP_NUM_THREADS", "MKL_NUM_THREADS", "OPENBLAS_NUM_THREADS",
+        "NUMEXPR_NUM_THREADS", "TORCH_NUM_THREADS", "TORCH_NUM_INTEROP_THREADS",
+    ):
+        os.environ.setdefault(_native_var, _NATIVE_THREADS)
+
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 os.environ.setdefault("EMERGENT_ERP_FAST", "1")
@@ -85,6 +99,13 @@ _SLOW_NODEID_SUBSTRINGS = (
     # Exploratory parameter sweeps intentionally retrain the same sequence
     # under many settings; they are scientific evidence, not contract smoke.
     "TestBestParameterDemo",
+    # ERP and parser-idempotence diagnostics currently perform full training
+    # and replay runs (130--140s each). Keep their complete classes together
+    # so class/module fixtures do not leak that cost into the contract loop.
+    "TestRawQuantityIsSaturated",
+    "TestTheProbedAreasAreReal",
+    "TestParseIsNotIdempotent",
+    "TestErpCalibration",
 )
 
 

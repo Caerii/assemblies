@@ -7361,3 +7361,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - After moving the exploratory sequence sweep, the 12-worker fast tier completed with 3,791 passed, 141 skipped, 7 xfailed, 10 subtests in 283.82s (4:43).
 - Runtime variance is material (243--284s across matched runs); the suite remains bounded by a small number of 20--37s tests and native numerical scheduling. This is recorded as a baseline, not treated as a claimed regression or improvement.
+
+
+## 2026-09-12 native-thread tuning falsification
+
+- Tested `ASSEMBLIES_TEST_NATIVE_THREADS=1` across the full fast tier: 3,787 passed, 138 skipped, 5 xfailed, 10 subtests in 362.47s (6:02), versus the untuned 12-worker baseline of 283.82s (4:43).
+- The one-thread setting is therefore not a safe default. The harness now leaves native library defaults unchanged and supports the variable only as an explicit benchmark override.
+- Focused backend and CUDA next-token checks after reverting the default: 6 passed, 3 skipped, 2 expected warnings in 66.42s.
