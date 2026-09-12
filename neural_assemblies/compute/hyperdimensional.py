@@ -165,31 +165,33 @@ class FinalFixedHyperdimensionalAssembly:
         full_sequence = metadata.get('full_sequence', [])
         
         # Return the stored sequence
-        return full_sequence
+        if not isinstance(full_sequence, list):
+            return []
+        return [np.asarray(assembly) for assembly in full_sequence]
     
     def _assembly_add(self, assembly_a: np.ndarray, assembly_b: np.ndarray) -> np.ndarray:
         """Add two assemblies (union of elements)."""
         # Union of the two assemblies
         combined = np.union1d(assembly_a, assembly_b)
-        return combined
+        return np.asarray(combined)
     
     def _assembly_subtract(self, assembly_a: np.ndarray, assembly_b: np.ndarray) -> np.ndarray:
         """Subtract assembly_b from assembly_a (set difference)."""
         # Set difference: elements in A but not in B
         result = np.setdiff1d(assembly_a, assembly_b)
-        return result
+        return np.asarray(result)
     
     def _assembly_multiply(self, assembly_a: np.ndarray, assembly_b: np.ndarray) -> np.ndarray:
         """Multiply two assemblies (intersection of elements)."""
         # Intersection of the two assemblies
         result = np.intersect1d(assembly_a, assembly_b)
-        return result
+        return np.asarray(result)
     
     def _assembly_divide(self, assembly_a: np.ndarray, assembly_b: np.ndarray) -> np.ndarray:
         """Divide assembly_a by assembly_b (symmetric difference)."""
         # Symmetric difference: elements in A or B but not both
         result = np.setxor1d(assembly_a, assembly_b)
-        return result
+        return np.asarray(result)
     
     @staticmethod
     def _validate_calculus_domain(function_assemblies, x_assemblies, minimum):
