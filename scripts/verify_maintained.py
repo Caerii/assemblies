@@ -24,6 +24,10 @@ MAINTAINED_SCOPES = (
     "neural_assemblies/lexicon",
     "neural_assemblies/text_generation",
     "neural_assemblies/visualization",
+    "neural_assemblies/language",
+    "neural_assemblies/programs",
+    "neural_assemblies/benchmarks",
+    "neural_assemblies/reference/nemo_numpy",
 )
 # Research infrastructure is part of the supported developer surface.  Keep
 # this list explicit while the historical experiment tree is being migrated;
