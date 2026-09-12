@@ -352,6 +352,7 @@ def _probe_at_critical_position(
     pos: int,
     *,
     readiness: ErpReadiness,
+    baseline: ErpBaseline,
     probe_depth: str,
     protocol: ErpProtocol,
 ):
