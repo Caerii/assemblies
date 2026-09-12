@@ -6713,3 +6713,8 @@ The Torch boundary ratchet now also checks that every member declared by `TorchO
 ## Assembly-calculus next-token boundary migration (2026-09-12)
 
 `assembly_calculus/batched_next_token.py` (`BatchedLM`) now uses the shared `torch_ops` boundary instead of direct generated Torch calls and a module-wide Pyright suppression. Its compatibility field remains available for composed callers. Pyright and Ruff report zero diagnostics; next-token, admission, and Torch parity tests pass **33 tests**.
+
+
+## Lazy Torch boundary and optional dependency safety (2026-09-12)
+
+`torch_ops` is now a lazy proxy: CPU-only imports do not import PyTorch until a generated operator is first accessed, while static tensor typing remains active under `TYPE_CHECKING`. Boundary tests pass **3/3**, and batched trainer, batched next-token, and Torch parity tests pass **38/38**. This prevents the GPU dependency from leaking into ordinary calculus imports.
