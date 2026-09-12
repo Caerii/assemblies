@@ -5044,3 +5044,12 @@ This prevents cross-area overlap from producing a plausible but meaningless
 next-token metric. Added a direct wrong-area true negative. Next-token and
 operation-contract tests pass: **171 passed**; Ruff and evidence checks are
 clean.
+
+## Cue replacement contract (2026-09-11)
+
+`replace_neurons` now consumes `CueReplacementPlan` and is registered as
+`CUE_REPLACEMENT_CONTRACT`. Reference/population containment and uniqueness,
+replacement bounds, and seed validity are checked before the deterministic cue
+draw. The pure perturbation constructor is now linked to the recovery protocol
+rather than remaining an untracked helper. Noise-robustness, contract, and
+lazy-import tests pass: **201 passed**; Ruff and the evidence graph are clean.

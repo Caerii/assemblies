@@ -569,6 +569,18 @@ of candidates over which the summed drive was measured.
 
 <a id="contract-cue-recovery"></a>
 
+<a id="contract-cue-replacement"></a>
+
+## Cue replacement construction
+
+`recovery.replace_neurons` constructs a deterministic partial cue by replacing
+exactly `count` reference members with distinct IDs from an explicit eligible
+population. `CueReplacementPlan` validates reference nonemptiness, population
+uniqueness and containment, replacement bounds, and seed before drawing. The
+operation is pure and preserves the reference area; it defines the perturbation
+used by the separate recovery observation and cannot silently sample outside
+the declared population.
+
 ## Cue recovery observation
 
 `recovery.observe_recovery` measures recovery of a stored reference Assembly

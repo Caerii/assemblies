@@ -228,6 +228,36 @@ class RecoveryPlan:
 
 
 @dataclass(frozen=True)
+class CueReplacementPlan:
+    """Validated deterministic replacement cue construction."""
+
+    reference: Assembly
+    population: object
+    count: int
+    seed: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reference, Assembly) or not len(self.reference):
+            raise ValueError("cue replacement requires a nonempty Assembly reference")
+        if isinstance(self.count, bool) or not isinstance(self.count, Integral) or self.count < 0:
+            raise ValueError("count must be a nonnegative integer")
+        if isinstance(self.seed, bool) or not isinstance(self.seed, Integral) or self.seed < 0:
+            raise ValueError("seed must be a nonnegative integer")
+        universe = np.asarray(self.population)
+        if universe.ndim != 1 or not np.issubdtype(universe.dtype, np.integer):
+            raise ValueError("population must be a one-dimensional integer array")
+        if len(np.unique(universe)) != len(universe):
+            raise ValueError("population must contain unique neuron IDs")
+        if not np.isin(self.reference.neuron_ids, universe).all():
+            raise ValueError("reference must be contained in population")
+        alternatives = len(universe) - len(self.reference)
+        if self.count > min(len(self.reference), alternatives):
+            raise ValueError("population cannot deliver the requested replacement count")
+        object.__setattr__(self, "count", int(self.count))
+        object.__setattr__(self, "seed", int(self.seed))
+
+
+@dataclass(frozen=True)
 class LexiconBuildPlan:
     """Validated independent stimulus-to-Assembly lexicon schedule."""
 
@@ -1396,6 +1426,25 @@ RECOVERY_CONTRACT = OperationContract(
 )
 
 
+CUE_REPLACEMENT_CONTRACT = OperationContract(
+    operation_id="cue-replacement-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-cue-replacement",
+    plan_type=CueReplacementPlan,
+    inputs=("reference Assembly", "eligible population", "replacement count", "seed"),
+    reads=("reference neuron IDs", "eligible population IDs"),
+    mutates=("nothing; pure deterministic cue construction",),
+    regime=("distinct alternatives", "count bounded by reference and complement", "seeded draw"),
+    observed_outcome=("cue Assembly with requested replacements",),
+    failure_conditions=("empty/malformed reference", "invalid population", "count overflow", "invalid seed"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_population_must_be_unique_and_contain_reference",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_population_must_be_unique_and_contain_reference",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1887,6 +1936,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "train_on_corpus": NEXT_TOKEN_TRAINING_CONTRACT,
     "score_corpus": NEXT_TOKEN_SCORE_CONTRACT,
     "observe_recovery": RECOVERY_CONTRACT,
+    "replace_neurons": CUE_REPLACEMENT_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,

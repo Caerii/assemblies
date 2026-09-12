@@ -422,6 +422,7 @@ def test_registry_and_public_callable_cannot_drift():
     from neural_assemblies.assembly_calculus.readout import build_lexicon, fuzzy_readout
     from neural_assemblies.assembly_calculus.next_token import predict_next_token, score_corpus, train_on_corpus
     from neural_assemblies.assembly_calculus.recovery import observe_recovery
+    from neural_assemblies.assembly_calculus.recovery import replace_neurons
     from neural_assemblies.assembly_calculus.binding import materialize_fiber
     from neural_assemblies.assembly_calculus.binding import bind as source_bind, binding_strength, input_drive, recall
     from neural_assemblies.assembly_calculus.consolidation import accumulate_context, accumulate_context_step, consolidate
@@ -433,7 +434,8 @@ def test_registry_and_public_callable_cannot_drift():
         "pattern_completion": "pattern_complete",
     }
     for name, contract in OPERATION_CONTRACTS.items():
-        operation = (observe_recovery if name == "observe_recovery" else
+        operation = (replace_neurons if name == "replace_neurons" else
+                     observe_recovery if name == "observe_recovery" else
                      score_corpus if name == "score_corpus" else
                      train_on_corpus if name == "train_on_corpus" else
                      predict_next_token if name == "predict_next_token" else
