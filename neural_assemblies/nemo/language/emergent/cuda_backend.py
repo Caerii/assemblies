@@ -15,7 +15,7 @@ Key Features:
 import ctypes
 import numpy as np
 from pathlib import Path
-from typing import Dict
+from typing import Any, Dict
 
 # Find the DLL directory
 DLL_DIR = Path(__file__).parent.parent.parent.parent.parent / "cpp" / "dlls"
@@ -39,8 +39,8 @@ class CUDAProjector:
         self.w_max = w_max
         self.seed = seed
         
-        self.dll = None
-        self.projector = None
+        self.dll: Any = None
+        self.projector: Any = None
         self.mode = "fallback"
         
         self._load_dll()
@@ -132,8 +132,8 @@ class CUDAProjector:
             print(f"Warning: CUDA initialization error: {e}")
             self.mode = "fallback"
     
-    def project(self, active: np.ndarray, learn: bool = True, 
-                area_seed: int = None) -> np.ndarray:
+    def project(self, active: np.ndarray, learn: bool = True,
+                area_seed: int | None = None) -> np.ndarray:
         """
         Project active assembly to get new winners.
         
@@ -151,7 +151,7 @@ class CUDAProjector:
         active = np.ascontiguousarray(active, dtype=np.uint32)
         winners = np.zeros(self.k, dtype=np.uint32)
         
-        if self.mode == "nemo_implicit" and self.projector:
+        if self.mode == "nemo_implicit" and self.projector is not None:
             # Use NEMO implicit connectivity kernels (fastest)
             active_ptr = active.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
             winners_ptr = winners.ctypes.data_as(ctypes.POINTER(ctypes.c_uint32))
@@ -183,13 +183,13 @@ class CUDAProjector:
     
     def get_num_learned(self) -> int:
         """Get the number of learned weight modifications."""
-        if self.mode == "nemo_implicit" and self.projector:
+        if self.mode == "nemo_implicit" and self.projector is not None:
             return self.dll.nemo_get_num_learned(self.projector)
         return 0
     
     def cleanup(self):
         """Free CUDA resources."""
-        if self.mode == "nemo_implicit" and self.projector:
+        if self.mode == "nemo_implicit" and self.projector is not None:
             self.dll.nemo_destroy_projector(self.projector)
             self.projector = None
     
@@ -251,7 +251,8 @@ if __name__ == "__main__":
         projector = CUDAProjector(n=10000, k=100)
         
         # Test projection
-        active = np.random.choice(10000, 100, replace=False).astype(np.uint32)
+        rng = np.random.default_rng(0)
+        active = rng.choice(10000, 100, replace=False).astype(np.uint32)
         
         # Warmup
         for _ in range(10):
@@ -261,15 +262,16 @@ if __name__ == "__main__":
         import time
         
         # Benchmark without learning
-        active = np.random.choice(10000, 100, replace=False).astype(np.uint32)
+        active = rng.choice(10000, 100, replace=False).astype(np.uint32)
         start = time.perf_counter()
+        winners = np.empty(100, dtype=np.uint32)
         for _ in range(100):
             winners = projector.project(active, learn=False)
             active = winners
         elapsed_no_learn = time.perf_counter() - start
         
         # Benchmark with learning
-        active = np.random.choice(10000, 100, replace=False).astype(np.uint32)
+        active = rng.choice(10000, 100, replace=False).astype(np.uint32)
         start = time.perf_counter()
         for _ in range(100):
             winners = projector.project(active, learn=True)
@@ -292,7 +294,7 @@ if __name__ == "__main__":
         fallback.mode = "fallback"
         fallback.projector = None
         
-        active = np.random.choice(10000, 100, replace=False).astype(np.uint32)
+        active = rng.choice(10000, 100, replace=False).astype(np.uint32)
         start = time.perf_counter()
         for _ in range(10):  # Fewer iterations (slower)
             winners_fb = fallback.project(active, learn=False)
