@@ -6673,3 +6673,8 @@ The deterministic hashed-connectome constructor `_hash.py` now routes generated 
 ## Torch scheduled-aligner boundary migration (2026-09-12)
 
 `_scheduled_aligner.py` now separates real Torch tensor annotations and CUDA lifecycle calls from generated factories, dtypes, and scoring operators via `torch_ops`. Pyright and Ruff report zero diagnostics. Aligner/substrate and word-capacity runner regressions pass **30 tests with 22 expected skips**; schedule batching and kernel behavior are unchanged.
+
+
+## Torch engine boundary migration (2026-09-12)
+
+The central `_engine.py` now separates real Torch tensor annotations and CUDA lifecycle calls from generated factories, dtypes, sampling, and selection operators via `torch_ops`. Pyright and Ruff report zero diagnostics. Engine scaling, parity, saturation/densify, hash, and ePWTA regressions pass **53 tests**; numerical behavior and dispatch paths are unchanged.
