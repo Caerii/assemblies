@@ -158,7 +158,7 @@ class HierarchicalNemoBrain:
         """Project multiple areas in parallel."""
         batch = len(areas)
         
-        for i, (a, inp) in enumerate(zip(areas, inputs)):
+        for i, (a, inp) in enumerate(zip(areas, inputs, strict=True)):
             self.active[a, :len(inp)] = inp[:min(len(inp), self.p.k)]
         
         packed_active = cp.stack([self.active[a] for a in areas])

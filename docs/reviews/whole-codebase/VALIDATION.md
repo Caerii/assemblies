@@ -6151,3 +6151,7 @@ The semantic-card, operation-contract, specification-link, model-semantics, and 
 ### ERP quantities and fiber contract slice (2026-09-12)
 
 The partitioned non-slow slice 1140:1280 passed **140 tests in 22.83 seconds** with one intentional sampled-recurrence provenance warning. It covers raw-versus-clipped ERP quantity readers, fiber learning contracts, and backend capability rejection.
+
+### Production strict-pairing cleanup (2026-09-12)
+
+The remaining maintained B905 sites were eliminated in reference NEMO area aggregation, plotting annotation, and archived GPU batch dispatch by making their parallel cardinality explicit (`strict=True`). Production `ruff check neural_assemblies --select B905` is now clean; only test fixtures retain intentional unspecified zip behavior. The four touched modules compile successfully.

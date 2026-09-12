@@ -46,7 +46,7 @@ def plot_project_sim(show=True, save="", show_legend=False, use_text_font=True):
     plt.xlabel(r'$t$')
 
     if not show_legend:
-        for line, name in zip(ax.lines, od.keys()):
+        for line, name in zip(ax.lines, od.keys(), strict=True):
             y = line.get_ydata()[-1]
             ax.annotate(name, xy=(1, y), xytext=(6, 0), color=line.get_color(), 
                         xycoords=ax.get_yaxis_transform(), textcoords="offset points",
@@ -88,7 +88,7 @@ def plot_merge_sim(show=True, save="", show_legend=False, use_text_font=True):
     plt.xlabel(r'$t$')
 
     if not show_legend:
-        for line, name in zip(ax.lines, od.keys()):
+        for line, name in zip(ax.lines, od.keys(), strict=True):
             y = line.get_ydata()[-1]
             ax.annotate(name, xy=(1, y), xytext=(6, 0), color=line.get_color(), 
                         xycoords=ax.get_yaxis_transform(), textcoords="offset points",

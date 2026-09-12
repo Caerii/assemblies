@@ -86,7 +86,7 @@ class FFArea:
     def get_total_input(self) -> np.ndarray:
         return sum(
             w[inp].sum(axis=0) if len(inp) else np.zeros(self.n_neurons)
-            for w, inp in zip(self.input_weights, self.inputs)
+            for w, inp in zip(self.input_weights, self.inputs, strict=True)
         )
 
     def step(self, update: bool = True) -> None:
@@ -108,7 +108,7 @@ class FFArea:
         self.step(update=update)
 
     def update(self, new_activations: np.ndarray) -> None:
-        for w, inp in zip(self.input_weights, self.inputs):
+        for w, inp in zip(self.input_weights, self.inputs, strict=True):
             if len(inp):
                 w[np.ix_(inp, new_activations)] *= 1 + self.plasticity
 
