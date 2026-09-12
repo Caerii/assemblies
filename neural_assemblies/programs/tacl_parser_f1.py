@@ -37,6 +37,8 @@ def run_tacl_parser_f1_smoke(
         lang = "Russian"
 
     result = parse_sentence(sentence, language=lang)
+    if result is None:
+        raise RuntimeError(f"parser returned no role assignment for {sentence!r}")
     roles = {role for _, _, role in result}
     recall = _role_recall(roles, expected)
     return TaclParserF1Result(

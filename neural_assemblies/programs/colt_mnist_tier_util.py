@@ -8,7 +8,7 @@ on the same seed / n_examples configuration.
 from __future__ import annotations
 
 from dataclasses import dataclass
-from typing import Any
+from typing import Any, cast
 
 import numpy as np
 
@@ -346,8 +346,10 @@ def load_multiscale_spatial_bundle(
             if patch_graph is not None
             else None,
         )
+        from neural_assemblies.core.brain import Brain
+        typed_brain = cast(Brain, brain)
         generative_prototypes = capture_generative_prototypes(
-            brain, high_bias, examples, n_examples, k, brain.areas["HIGH"].n,
+            typed_brain, high_bias, examples, n_examples, k, typed_brain.areas["HIGH"].n,
         )
 
     params = {
