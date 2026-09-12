@@ -6071,3 +6071,6 @@ Candidate pricing now rejects mismatched `input_sizes`/`src_pops`, and pooled-bi
 ### Grounded context alignment gate (2026-09-12)
 
 `GroundedCorpus.infer_context` now rejects unequal token and POS-tag sequences before deriving visual objects, properties, or actions, and all paired traversals are strict. A direct negative probe passes and the focused B905/F scan is clean. The broad emergent parser test was stopped after repeated non-termination observations; no green result is claimed for that suite.
+### Grounded sentence constructor contract (2026-09-12)
+
+`GroundedSentence` now enforces words/contexts/roles alignment with unconditional `ValueError`s rather than Python assertions, so optimized runs cannot disable the model's core aligned-record invariant. The focused sentence and NEMO arc suites pass **8 tests**; F/E scans are clean.

@@ -49,12 +49,14 @@ class GroundedSentence:
             # sentence; after normalization every instance carries the full
             # positional role vector required by the aligned-record contract.
             self.roles = [None] * len(self.words)  # pyright: ignore[reportAssignmentType]
-        assert len(self.words) == len(self.contexts), (
-            f"words ({len(self.words)}) != contexts ({len(self.contexts)})"
-        )
-        assert len(self.words) == len(self.roles), (
-            f"words ({len(self.words)}) != roles ({len(self.roles)})"
-        )
+        if len(self.words) != len(self.contexts):
+            raise ValueError(
+                f"words ({len(self.words)}) != contexts ({len(self.contexts)})"
+            )
+        if len(self.words) != len(self.roles):
+            raise ValueError(
+                f"words ({len(self.words)}) != roles ({len(self.roles)})"
+            )
 
 
 @dataclass
