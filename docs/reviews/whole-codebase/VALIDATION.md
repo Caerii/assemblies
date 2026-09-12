@@ -5777,3 +5777,9 @@ performance numbers identify the storage protocol they actually ran.
 its single-projection energy. `anchored_p600_live` rejects the retired
 `subject_core` and settling override rather than allowing callers to believe
 the measurement includes them.
+
+### ERP parameter true negatives (2026-09-12)
+
+Dedicated tests now prove that retired `phrase_stability` and
+`anchored_p600_live` controls fail before touching parser state. The guards are
+therefore protected against future compatibility regressions.
