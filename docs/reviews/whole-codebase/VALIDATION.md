@@ -6586,3 +6586,7 @@ ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0
 ## 2026-09-12 — Brain and engine shared state contracts
 
 - Declared engine connection registries and capability hooks on ComputeEngine; aligned Brain and HomeostasisConfig around the shared ScalingSpec; made semantic fallback casting explicit. This removes structural mismatches without changing backend dispatch. Targeted Pyright checks reduced Brain diagnostics from 26 to 18; model/area registration tests — 221 passed in 1.36s.
+
+## 2026-09-12 — Brain capability and fiber lookup contracts
+
+- Extended ComputeEngine.add_area with the winner-policy and input-noise options already used by concrete engines; declared shared connection registries and capability hooks; narrowed Brain dense-fiber lookups to real Connectome instances before reading weights. Brain Pyright diagnostics reduced from 18 to 12. Existing model/area registration tests remain 221 passed.

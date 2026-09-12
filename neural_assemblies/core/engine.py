@@ -234,7 +234,9 @@ class ComputeEngine(ABC):
     @abstractmethod
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
-                 inhibition_strength: float = 0.0) -> None:
+                 inhibition_strength: float = 0.0,
+                 winner_policy: Any = None,
+                 input_noise_std: float = 0.0) -> None:
         """Register a new area and initialise internal compute state.
 
         Parameters *refractory_period* and *inhibition_strength* control

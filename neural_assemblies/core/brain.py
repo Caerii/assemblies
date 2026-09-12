@@ -762,7 +762,7 @@ class Brain:
             if real_ids.size == 0:
                 continue
             conn = self.connectomes.get(src_name, {}).get(target_name)
-            if not is_dense_connectome(conn):
+            if not isinstance(conn, Connectome) or conn.sparse:
                 continue
             rows = validated_indices(real_ids, upper=conn.weights.shape[0],
                                      label=f"{src_name}->{target_name} neuron rows")
@@ -818,7 +818,7 @@ class Brain:
         if self.w_max is not None and (not np.isfinite(self.w_max) or self.w_max <= 0):
             raise ValueError("Weight clip must be finite and positive or None")
         conn = self.connectomes.get(src_area, {}).get(dst_area)
-        if not is_dense_connectome(conn) or not isinstance(conn.weights, np.ndarray):
+        if not isinstance(conn, Connectome) or conn.sparse or not isinstance(conn.weights, np.ndarray):
             raise NotImplementedError("Supervised reinforcement requires a dense NumPy fiber")
         w = conn.weights
         if w.shape != (src.n, dst.n) or w.dtype.kind != "f":
