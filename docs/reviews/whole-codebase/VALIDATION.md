@@ -6392,3 +6392,8 @@ Generalization parity now passes typed keyword arguments directly instead of con
 
 Compiled topology sessions and topology-spec helpers now declare the fully composed EmergentParser they actually invoke. The previous CoreParserMixin annotation omitted compiled-mode and ring-management methods supplied by the composed MRO, producing six false static failures. Pyright reports 0 diagnostics for the module; Ruff F/E9 and git diff --check are clean.
 
+
+### Plan mixin composed-surface gate (2026-09-12)
+
+The plan mixin now declares the minimal protocol it requires from the composed parser: words_to_tool_call. This makes its cross-mixin dependency explicit without inheriting a duplicate concrete base. Pyright reports 0 diagnostics; multi-tool plan tests pass 6 tests with 1 intentional sampled-recurrence warning; Ruff F/E9 and git diff --check are clean.
+

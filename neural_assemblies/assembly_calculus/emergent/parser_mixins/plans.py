@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Optional
+from typing import List, Optional, Protocol, TYPE_CHECKING
 
 from ..blocks_bridge import BlocksLanguageExecutor
 from ..tool_plan import (
@@ -16,12 +16,21 @@ from ..tool_plan import (
     tokenize_text,
 )
 
+if TYPE_CHECKING:
+    from ..tool_plan import ToolCall
+
+
+class _ToolCallParser(Protocol):
+    """The composed parser surface required by plan construction."""
+
+    def words_to_tool_call(self, words: List[str]) -> Optional["ToolCall"]: ...
+
 
 class PlansMixin:
     """Multi-step tool plans: explicit commands or blocks-world BFS."""
 
     def text_to_tool_plan(
-        self,
+        self: _ToolCallParser,
         text: str,
         executor: Optional[BlocksLanguageExecutor] = None,
     ) -> Optional[ToolPlan]:
