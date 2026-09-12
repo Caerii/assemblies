@@ -7086,3 +7086,7 @@ Brain.engine_for(name) now resolves the backend that owns a named area, preservi
 ## Calculus owner-routing migration (2026-09-12)
 
 Area-aware calculus, PFA, recovery, ERP, incremental parser, role traversal, and training compiler callers now resolve ownership through Brain.engine_for(name). The private Area-based resolver remains implementation-only, preserving mixed explicit/sparse backend routing while removing storage coupling from composition code. Validation: operation semantic-card, context-observation, and reciprocal-trace suites 33 passed; Pyright on 11 migrated modules reports 0 diagnostics.
+
+## Owner resolver migration repair (2026-09-12)
+
+The first IR migration passed an Area object to the new name-based resolver; the focused IR suite caught the type/semantic mismatch immediately. The caller now passes the registered area name, preserving the resolver's unspellable public contract. Validation: Brain IR execution suite 26 passed; Pyright on ir/projection.py reports 0 diagnostics.
