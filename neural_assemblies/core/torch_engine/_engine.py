@@ -1547,7 +1547,7 @@ class TorchSparseEngine(ComputeEngine):
         self._areas[area].winner_policy = policy
 
     def set_beta(self, target: str, source: str, beta: float) -> None:
-        self._areas[target].beta_by_source[source] = beta
+        self._areas[target].beta_by_source[source] = validate_plasticity_rate(beta)
 
     def get_beta(self, target: str, source: str) -> float:
         tgt = self._areas[target]

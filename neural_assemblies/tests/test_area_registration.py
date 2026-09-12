@@ -286,6 +286,23 @@ def test_direct_numpy_engines_validate_runtime_policy_before_mutation(engine_nam
     assert engine._areas['A'].winner_policy is None
 
 
+@pytest.mark.parametrize('engine_name', ['numpy_sparse', 'numpy_exact', 'numpy_explicit'])
+@pytest.mark.parametrize('beta', [-1.0, float('nan'), float('inf'), True, '0.1'])
+def test_direct_numpy_engines_validate_runtime_beta_before_mutation(engine_name, beta):
+    from neural_assemblies.core.numpy_engine import (
+        NumpyExactEngine, NumpyExplicitEngine, NumpySparseEngine,
+    )
+    engine = {
+        'numpy_sparse': NumpySparseEngine,
+        'numpy_exact': NumpyExactEngine,
+        'numpy_explicit': NumpyExplicitEngine,
+    }[engine_name](p=.1)
+    engine.add_area('A', 4, 2, .1)
+    with pytest.raises(ValueError):
+        engine.set_beta('A', 'source', beta)
+    assert 'source' not in engine._areas['A'].beta_by_source
+
+
 @pytest.mark.parametrize('path', ['primary', 'auxiliary', 'direct'])
 def test_runtime_policy_cannot_bypass_slot_contract(path):
     from neural_assemblies import ThresholdPolicy

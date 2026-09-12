@@ -7025,3 +7025,6 @@ Applied the shared refraction-strength validator and exact boolean check to the 
 ## Direct-engine competition policy parity (2026-09-12)
 
 Moved contextual competition-policy validation into `compute.winner_policies.validate_competition_policy` and routed Brain, NumPy sparse/exact/explicit, and Torch runtime setters through it. Direct backend calls now reject unknown policy objects and population-exceeding caps before state mutation, closing a bypass in which the facade and backend accepted different protocols. Validation: area-registration plus winner-policy suites 246 passed; Pyright on winner policies, Brain, and all four engine modules 0 errors/warnings/information; `git diff --check` clean.
+## Direct-engine beta mutation parity (2026-09-12)
+
+Runtime `set_beta` now canonicalizes through `validate_plasticity_rate` in NumPy sparse/exact/explicit and Torch engines before inserting a per-fiber override. Direct backend callers therefore share Brain's rejection of negative, nonfinite, boolean, and string rates and cannot leave a partial override. Validation: area-registration suite 231 passed; Pyright on all four engines 0 errors/warnings/information; `git diff --check` clean.
