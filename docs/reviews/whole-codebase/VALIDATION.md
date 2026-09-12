@@ -7276,3 +7276,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added five duration-profiled empirical node IDs to the existing central `slow` tier: dual-metric learnability, ERP calibration/separation, and holdout bootstrap.
 - Full non-slow suite after scheduling change: 3,826 passed, 141 skipped, 7 xfailed, 10 subtests in 386.61s (6:26.61) with `-n 8 --dist loadfile`.
 - Slow collection retains the moved gates; no protocol or assertion was removed.
+
+
+## 2026-09-12 ? empirical slow-tier execution
+
+- Slow-tier collection contains 149 tests, including the five moved duration-profiled gates.
+- Targeted moved-gate run: 4 passed, 1 xfailed, 4,118 deselected in 128.49s; the xfail remains an explicitly retained empirical failure.
