@@ -5,7 +5,8 @@ from pathlib import Path
 import pytest
 
 from neural_assemblies.ir.protocol import (
-    load_protocol_document, schema_path, validate_protocol_document, write_protocol_document,
+    load_protocol_document, schema_path, validate_protocol_document, write_json_document,
+    write_protocol_document,
 )
 
 CASES = json.loads(schema_path("protocol.cases.json").read_text(encoding="utf-8"))
@@ -44,6 +45,20 @@ def test_old_writer_cannot_overwrite_committed_evidence(tmp_path):
     with pytest.raises(FileExistsError):
         write_protocol_document(path, {**original, "metrics": {"x": 2}})
     assert path.read_bytes() == before
+
+
+def test_generic_json_writer_is_canonical_finite_and_create_only(tmp_path):
+    path = tmp_path / "report.json"
+    write_json_document(path, {"b": 1, "a": "\u03bb"})
+    assert path.read_text(encoding="utf-8") == '{\n  "a": "\u03bb",\n  "b": 1\n}\n'
+    with pytest.raises(FileExistsError):
+        write_json_document(path, {"a": 2})
+    assert path.read_text(encoding="utf-8").endswith('"b": 1\n}\n')
+
+    invalid = tmp_path / "invalid.json"
+    with pytest.raises(ValueError, match="finite JSON"):
+        write_json_document(invalid, {"value": float("nan")})
+    assert not invalid.exists()
 
 
 def test_committed_parity_documents_still_validate():

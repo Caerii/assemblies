@@ -6231,3 +6231,7 @@ The language parsing tests now use the same explicit area vocabulary as producti
 ### Metrics, NEMO patterns, and next-token slice (2026-09-12)
 
 The partitioned non-slow slice 1980:2120 passed **139 tests with 1 expected xfail in 83.03 seconds**. It covers metric kernels, NEMO pattern learning, next-token prediction, and noise/recovery input contracts. Ten sampled-recurrence warnings are intentional provenance guards.
+
+### Canonical generic JSON writer gate (2026-09-12)
+
+`neural_assemblies.ir.protocol.write_json_document` now has a repository regression covering canonical sorted UTF-8 output, finite-JSON rejection before file creation, and create-only overwrite refusal. The protocol wire suite passes **52 tests**; focused Ruff F/E9 checks and `git diff --check` are clean.
