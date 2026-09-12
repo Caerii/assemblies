@@ -2403,7 +2403,7 @@ mixed `Assembly`/raw-array calls were rejected, but they were accepted and
 scored. The runtime guard now rejects those ambiguous calls, with tests for the
 negative and valid Assembly-to-Assembly/raw-pair controls. The stronger
 compact-versus-neuron-ID distinction remains a static type-checker boundary;
-runtime-erased `NewType` arrays need a later branded-array migration.
+runtime-branded index arrays are now implemented and tested.
 
 I also closed the adjacent malformed-observation path. Duplicate or floating
 winner arrays were accepted by `overlap` and collapsed by its set arithmetic;

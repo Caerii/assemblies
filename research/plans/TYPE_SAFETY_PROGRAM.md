@@ -7,14 +7,13 @@ per class rather than a seventh ad-hoc fix.
 
 ## The constraint that decides the design
 
-    .venv has no pip; pyright and mypy cannot be installed
-    `NewType` appears 0 times in the codebase
-    ruff runs 6 pyflakes rules and no type rules
+    pyright and ruff are available in the maintained development environment
+    semantic index brands are runtime-checked at public boundaries
+    ratchets and true-negative tests guard migration paths
 
-**Static annotations currently enforce nothing here.** Adding `NewType` and
-`Protocol` would be decoration -- and worse, decoration that *reads* like a
-guarantee. So every mechanism below must be enforced by something that actually
-runs: Python's own attribute lookup, a runtime check, or a test.
+**Static annotations are paired with runtime checks here.** Branded ndarray
+subclasses preserve NumPy behavior while public boundaries reject mixed spaces;
+Pyright and true-negative tests verify that the static contract remains useful.
 
 This matches the repo's evidence. Every real defect on record was caught by
 MEASUREMENT, not by inspection, and the only guard family that has demonstrably

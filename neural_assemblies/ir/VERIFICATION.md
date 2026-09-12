@@ -2250,10 +2250,9 @@ establish a scientific result.
 
 `overlap` accepts two `Assembly` snapshots or two explicitly same-space winner
 arrays. Mixing an `Assembly` with a raw array is rejected at runtime because
-the raw array's compact-versus-neuron-ID space is otherwise unstated. Static
-`CompactIdx`/`NeuronIds` annotations provide the stronger check for two raw
-arrays; those `NewType` markers are erased at runtime and cannot certify a
-mixed pair by themselves. Cross-area `Assembly` overlap remains allowed when
+the raw array's compact-versus-neuron-ID space is otherwise unstated. Static `CompactIdx`/`NeuronIds` annotations provide the stronger check for two
+raw arrays, and the branded ndarray values also retain their space at runtime,
+so mixed branded pairs are rejected before scoring. Cross-area `Assembly` overlap remains allowed when
 the caller intentionally compares stable neuron IDs.
 
 Both `Assembly` snapshots and raw winner arrays must contain one-dimensional,

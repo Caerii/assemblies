@@ -102,12 +102,12 @@ is MIXING the two spaces, which needs dataflow analysis to detect properly."*
 **Types are that dataflow analysis.** The ratchet contains legacy sites; the
 types stop new ones. This EXTENDS the existing mechanism, it does not replace it.
 
-- `core/index_spaces.py`: `CompactIdx`, `NeuronIds` NewTypes; `SameSpace`
-  value-restricted TypeVar; and `to_neuron_ids`. There is deliberately no
-  runtime `same_space` heuristic: an array's values cannot prove its index
-  space, so the typed boundary and explicit conversion are the only reliable
-  routes.
-  **Done.**
+- `core/index_spaces.py`: branded `CompactIdx` and `NeuronIds` ndarray
+  subclasses, explicit same-space overloads, and `to_neuron_ids`. Runtime
+  branding rejects mixed branded pairs; unbranded arrays require an explicit
+  semantic annotation or conversion because values alone cannot prove space.
+  **Done.** Runtime branding and mixed-space admission are also covered by
+  true-negative tests; device arrays remain on their native backend.
 - Annotate the producers: `Area.winners -> CompactIdx`,
   `Assembly.winners: NeuronIds`, `Assembly.neuron_ids -> NeuronIds`,
   `diagnostics.read_assembly -> NeuronIds`.
@@ -116,9 +116,8 @@ types stop new ones. This EXTENDS the existing mechanism, it does not replace it
   bare `ndarray` accepts everything, which is the status quo.
 ### STATUS: done for the library; criterion moved, with the reason recorded.
 
-**The guard has verified power.** `test_index_space_types.py` shells out to
-pyright (a NewType is erased at runtime, so a test that does not run the checker
-would assert nothing) and asserts BOTH halves: the three mixed calls ARE flagged,
+**The guard has verified power.** `test_index_space_types.py` checks both
+Pyright diagnostics and runtime branded-array admission and asserts BOTH halves: the three mixed calls ARE flagged,
 the three same-space calls are NOT. Asserting only the first half would pass for
 a checker that rejects everything, which is a wall rather than a guard.
 

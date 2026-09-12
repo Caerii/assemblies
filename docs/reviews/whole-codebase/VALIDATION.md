@@ -5707,3 +5707,11 @@ The API guide now places compact/stable index semantics and active/recruited/
 materialized count meanings beside cue-recovery construction. It directs users
 to the branded conversion APIs and names `.w` as compatibility-only, aligning
 the ergonomic examples with the runtime safety boundary. Diff checks pass.
+
+### Stale semantic-plan reconciliation (2026-09-12)
+
+Authoritative type-safety, refactor, verification, and substrate plans now
+match the implemented branded index arrays, explicit overloads, invalid-index
+validation, and device-preserving conversion behavior. This removes obsolete
+claims that runtime types are erased or invalid indices are dropped, preventing
+future contributors from following superseded architecture guidance.

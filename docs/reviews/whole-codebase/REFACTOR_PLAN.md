@@ -157,9 +157,9 @@ Paths in this table are relative to `neural_assemblies/` unless otherwise stated
     timing measures that workload. `cpp/cuda_kernels/simple_cuda_brain.cu` is a
     GPU arithmetic smoke test returning empty activated-neuron lists. Neither
     should be presented as scale evidence for the maintained neural dynamics.
-12. `core/index_spaces.py` uses runtime-erased NewTypes and drops invalid indices.
-    `_snap` independently passes invalid indices through. Public runtime boundaries
-    still permit exactly the mistake the static types describe.
+12. `core/index_spaces.py` now uses branded ndarray subclasses and validates
+    indices before conversion. Mixed branded spaces are rejected by public overlap;
+    `_snap` and conversion paths reject invalid indices before returning data.
 
 `probes.py` captures the original CPU observations; after repairs it should be
 updated to report refusals rather than requiring the old defects to remain.
