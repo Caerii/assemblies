@@ -45,7 +45,7 @@ from ..engine import (
     validate_deterministic_allocation,
     validate_engine_boolean_option,
 )
-from ..index_spaces import NeuronIds, reserve_initial_neuron_ids
+from ..index_spaces import CompactIdx, NeuronIds, reserve_initial_neuron_ids
 from ..registration import (validate_input_noise, validate_stimulus_registration,
                             validate_area_registration, validate_plasticity_rate)
 from ..semantics import (
@@ -1512,7 +1512,7 @@ class TorchSparseEngine(ComputeEngine):
 
     def get_winners(self, area: str) -> np.ndarray:
         st = self._areas[area]
-        return st.winners.cpu().numpy().astype(np.uint32)
+        return CompactIdx(st.winners.cpu().numpy().astype(np.uint32))
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         if isinstance(winners, NeuronIds) and self.get_neuron_id_mapping(area):

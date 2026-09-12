@@ -7046,3 +7046,6 @@ The stricter `Assembly` index-space admission exposed one internal escape: `_sna
 ## Stable-ID rejection at sparse injection boundary (2026-09-12)
 
 Public winner injection now checks the brand before converting to host arrays, and sparse NumPy/Torch backends reject `NeuronIds` once a compact-to-neuron mapping exists. This closes a laundering path where stable IDs were stripped to plain arrays and accepted as compact positions. Validation: winner-injection, index-space, and public-boundary suites 180 passed; Pyright on Brain and sparse backends 0 errors/warnings/information.
+## Backend winner getter branding (2026-09-12)
+
+All NumPy and Torch engine `get_winners` implementations now preserve the `CompactIdx` brand instead of returning an untyped ndarray. This keeps the engine read boundary aligned with `Area.winners`, so downstream code cannot lose index-space identity merely by reading through the backend API. Validation: winner-injection, index-space, engine-parity, and area-registration suites 310 passed; Pyright on all four backend modules 0 errors/warnings/information.

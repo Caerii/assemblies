@@ -20,6 +20,7 @@ from ..registration import (validate_input_noise, validate_stimulus_registration
                             validate_plasticity_rate)
 from ..connectome import Connectome
 from ..index_spaces import validated_indices
+from ..index_spaces import CompactIdx
 from ..semantics import (
     ArithmeticMode, CandidateDomain, ConnectomeMode, ModelSemantics,
     NormalizationMode, PlasticityRule, StimulusDriveLaw, TieBreakRule,
@@ -363,7 +364,7 @@ class NumpyExplicitEngine(ComputeEngine):
 
     def get_winners(self, area: str) -> np.ndarray:
         st = self._areas[area]
-        return np.array(to_cpu(st.winners), dtype=np.uint32)
+        return CompactIdx(np.array(to_cpu(st.winners), dtype=np.uint32))
 
     def _validated_winners(self, area: str, winners):
         xp = get_xp()

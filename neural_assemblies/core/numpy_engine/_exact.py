@@ -1114,7 +1114,8 @@ class NumpyExactEngine(ComputeEngine):
     # -- accessors ----------------------------------------------------------
 
     def get_winners(self, area: str) -> np.ndarray:
-        return np.array(to_cpu(self._areas[area].winners), dtype=np.uint32)
+        from ..index_spaces import CompactIdx
+        return CompactIdx(np.array(to_cpu(self._areas[area].winners), dtype=np.uint32))
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs"""

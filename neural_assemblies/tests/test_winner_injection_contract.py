@@ -4,6 +4,7 @@ import pytest
 
 from neural_assemblies import Brain
 from neural_assemblies.core.index_spaces import NeuronIds
+from neural_assemblies.core.index_spaces import CompactIdx
 
 
 @pytest.fixture(params=["numpy_sparse", "numpy_exact", "numpy_explicit"])
@@ -52,6 +53,11 @@ def test_valid_injection_and_clear(brain):
     np.testing.assert_array_equal(brain._engine.get_winners("A"), [0, 1])
     brain.project(external_inputs={"A": []}, projections={})
     assert len(brain._engine.get_winners("A")) == 0
+
+
+def test_engine_winner_getters_preserve_compact_brand(brain):
+    brain.project(external_inputs={"A": [0, 1]}, projections={})
+    assert isinstance(brain._engine.get_winners("A"), CompactIdx)
 
 
 def test_stable_ids_cannot_be_laundered_through_public_sparse_injection():

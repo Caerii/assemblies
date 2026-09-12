@@ -10,7 +10,7 @@ import os
 import zlib
 
 import numpy as np
-from ..index_spaces import NeuronIds, validated_indices, reserve_initial_neuron_ids
+from ..index_spaces import CompactIdx, NeuronIds, validated_indices, reserve_initial_neuron_ids
 from typing import Any, Dict, List, Optional, Tuple, cast
 from collections import OrderedDict, defaultdict
 
@@ -2602,7 +2602,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     def get_winners(self, area: str) -> np.ndarray:
         st = self._areas[area]
-        return np.array(to_cpu(st.winners), dtype=np.uint32)
+        return CompactIdx(np.array(to_cpu(st.winners), dtype=np.uint32))
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs"""
