@@ -97,6 +97,13 @@ class TestSparseSimulationEngine(unittest.TestCase):
         self.assertEqual(updated_connectome[4, 0], 1)  # First source to second winner
         self.assertEqual(updated_connectome[4, 1], 2)  # Second source to second winner
 
+    def test_unsupported_background_probability_is_explicit(self):
+        with self.assertRaisesRegex(NotImplementedError, "does not sample"):
+            self.sparse_engine.assign_synaptic_connections(
+                np.zeros((2, 2)), [np.array([1.0, 0.0])], [0],
+                connection_probability=0.2,
+            )
+
     def test_first_time_winner_processing(self):
         """Test first-time winner processing."""
         all_potential_winners = [10.0, 5.0, 8.0, 12.0, 3.0]

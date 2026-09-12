@@ -5950,3 +5950,11 @@ Importing the legacy `nemo` test helper still requires its optional CuPy runtime
 implements the requested `heapq` path instead of silently running the argsort
 path for both values. Unknown methods fail before input processing; the winner
 selection suite passes **12 tests**.
+
+### Sparse initialization probability contract (2026-09-12)
+
+The legacy `assign_synaptic_connections` helper no longer advertises a working
+random-background mechanism it does not implement. The default compatibility
+value remains accepted; nondefault probabilities now fail explicitly and direct
+assignment no longer carries an unused processing counter. The sparse simulation
+suite passes **20 tests**.

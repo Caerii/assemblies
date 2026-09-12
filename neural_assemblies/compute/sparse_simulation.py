@@ -229,8 +229,14 @@ class SparseSimulationEngine:
             Direct assignment of connection strengths based on input distribution,
             with Bernoulli sampling for background connectivity.
         """
+        if not isinstance(connection_probability, (int, float)) or not 0.0 <= connection_probability <= 1.0:
+            raise ValueError("connection_probability must be a finite value in [0, 1]")
+        if connection_probability != 0.05:
+            raise NotImplementedError(
+                "assign_synaptic_connections does not sample background edges; "
+                "use the engine projection path for probabilistic initialization"
+            )
         updated_connectome = connectome.copy()
-        num_inputs_processed = 0
 
         # Process each winner's input distribution
         for winner_idx, input_distribution in zip(new_winner_indices, input_sources):
@@ -239,7 +245,6 @@ class SparseSimulationEngine:
                 # Direct connection strength assignment
                 updated_connectome[winner_idx, source_idx] = strength
 
-            num_inputs_processed += 1
 
         return updated_connectome
 
