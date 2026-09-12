@@ -7162,3 +7162,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Replaced shared untyped loader kwargs with explicit seed, example count, capacity, and cache arguments across recurrent, spatial, multiscale, and reference bundles.
 - `uv run pyright neural_assemblies/programs/patch_binding_panel.py`: 0 errors.
+
+
+## 2026-09-12 ? ventral push configuration
+
+- Replaced shared untyped loader dictionaries with explicit seed, example count, capacity, and cache arguments across both push phases.
+- `uv run pyright neural_assemblies/programs/colt_mnist_ventral_push.py`: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_ventral_push.py -q`: 2 passed in 40.78s.
