@@ -6823,3 +6823,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Visualization plotting API boundary (2026-09-12)
 
 Visualization helpers now use compatible tick-label calls and normalize subplot arrays explicitly, removing Matplotlib stub ambiguity while preserving rendered plots. Viz tests pass **6/6**; Pyright and Ruff report zero diagnostics for the package.
+
+
+## Text-generation compatibility boundaries (2026-09-12)
+
+Text-generation prototypes now load the optional legacy brain module dynamically, annotate nullable generation inputs, normalize NumPy choice results to strings, and default optional feature maps before use. All three modules compile; Pyright and Ruff report zero diagnostics.
