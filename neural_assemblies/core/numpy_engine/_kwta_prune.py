@@ -113,7 +113,7 @@ bound survives them.
 """
 from __future__ import annotations
 
-from typing import Dict, Iterable, List, Optional, Sequence, Tuple
+from typing import Any, Dict, Iterable, List, Optional, Sequence, Tuple, cast
 
 import numpy as np
 
@@ -186,7 +186,8 @@ class PotentiatedSupport:
         if pend is not None:
             have = self._rows.get(r)
             parts = pend if have is None else [have] + pend
-            self._rows[r] = np.unique(np.concatenate(parts))
+            self._rows[r] = np.asarray(cast(Any, np.unique(
+                np.concatenate(cast(Any, parts)))), dtype=np.int64)
         return self._rows.get(r)
 
     def clear(self) -> None:
@@ -243,7 +244,8 @@ class PotentiatedSupport:
             return empty
         cols, vals = cols[pot], vals[pot] - POTENTIATED
         corr = np.bincount(cols, weights=vals, minlength=n_cols)
-        return corr[:n_cols], np.unique(cols)
+        return (np.asarray(corr[:n_cols], dtype=np.float64),
+                np.asarray(np.unique(cols), dtype=np.int64))
 
 
 def evaluate_set(touched: np.ndarray, stim: Optional[np.ndarray], k: int,
@@ -264,7 +266,9 @@ def evaluate_set(touched: np.ndarray, stim: Optional[np.ndarray], k: int,
         m = min(int(k), len(stim))
         top = np.argpartition(np.asarray(stim, dtype=np.float64), -m)[-m:]
         parts.append(top.astype(np.int64))
-    out = np.unique(np.concatenate(parts)) if len(parts) > 1 else parts[0]
+    out = np.asarray(cast(Any, np.unique(
+        np.concatenate(cast(Any, parts)))) if len(parts) > 1 else parts[0],
+                   dtype=np.int64)
     return out[out < n_cols]
 
 
