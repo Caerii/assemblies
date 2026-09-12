@@ -46,7 +46,17 @@ _SLOW_FILE_STEMS = frozenset({
 # protocols alone sum ~300s on one xdist worker: 130s+58s+42s+41s+30s). They
 # appear across several files (test_parity_infrastructure parametrized ids,
 # test_literature_golden Colt2022Mnist* classes), so match them by nodeid.
-_SLOW_NODEID_SUBSTRINGS = ("colt2022_mnist", "Colt2022Mnist", "mnist")
+_SLOW_NODEID_SUBSTRINGS = (
+    "colt2022_mnist", "Colt2022Mnist", "mnist",
+    # Empirical calibration/learnability gates measured above one minute each
+    # in the maintained-suite duration profile. Keep them in the full suite,
+    # but out of the fast contract loop.
+    "test_dual_metric_learnability_gate",
+    "test_calibration_separates_category_violation_from_grammatical",
+    "test_calibration_mode_does_not_change_observations",
+    "test_calibration_reports_auc_and_span",
+    "test_sentences_depth_holdout_bootstrap_floor",
+)
 
 
 def pytest_collection_modifyitems(config, items):
