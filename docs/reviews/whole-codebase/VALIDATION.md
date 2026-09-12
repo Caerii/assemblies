@@ -5795,3 +5795,10 @@ callers no longer pass a misleading seed; the true-negative test passes.
 `ScaffoldNetwork` now rejects its unused legacy `prefix` override because area
 identities are explicit constructor inputs. The sequence suite covers this true
 negative and passes **21 tests**.
+
+### Holdout bridge cache contract (2026-09-12)
+
+`train_holdout_bridge_boost` no longer accepts an unused transition cache; the
+boost always retrains its focused bridges. A true-negative test rejects the
+removed argument, preventing callers from believing cached state controls this
+protocol.

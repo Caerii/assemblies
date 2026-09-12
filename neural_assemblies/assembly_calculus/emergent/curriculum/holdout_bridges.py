@@ -134,7 +134,6 @@ def train_holdout_bridge_boost(
     holdout_words: Set[str],
     *,
     stage_name: str = "SENTENCES",
-    transition_cache=None,  # unused — boost always retrains holdout bridges
 ) -> int:
     """Focused prediction pass on holdout-bridge transitions only."""
     from ..core.corpus_index import compile_corpus

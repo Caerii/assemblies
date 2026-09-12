@@ -2,6 +2,8 @@
 
 import time
 
+import pytest
+
 from neural_assemblies.assembly_calculus.emergent import (
     EmergentParser,
     build_vocabulary_preset,
@@ -24,6 +26,14 @@ N, K, ROUNDS = 3000, 30, 6
 
 
 class TestTrainingPerf:
+    def test_holdout_boost_rejects_removed_transition_cache(self):
+        from neural_assemblies.assembly_calculus.emergent.curriculum.holdout_bridges import (
+            train_holdout_bridge_boost,
+        )
+
+        with pytest.raises(TypeError, match="transition_cache"):
+            train_holdout_bridge_boost(object(), set(), transition_cache=None)
+
     def test_resolve_engine_returns_string(self):
         name = resolve_engine("auto", n_hint=10_000)
         assert isinstance(name, str)
