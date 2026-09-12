@@ -5500,3 +5500,10 @@ artifact through the canonical finite, exclusive writer. Its gain arms,
 paired comparisons, and output schema are unchanged; reruns cannot silently
 replace the evidence. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
+### N400 landing 2x2 writer migration (2026-09-12)
+
+The registered N400 landing comparison now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its paired arms,
+undefined-item handling, per-seed AUC summaries, and output schema are
+unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.

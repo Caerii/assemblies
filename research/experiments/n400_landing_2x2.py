@@ -69,9 +69,9 @@ os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 os.environ.setdefault("EMERGENT_ERP_FAST", "1")
 
-import json                                                             # noqa: E402
-
 import numpy as np                                                      # noqa: E402
+
+from research.json_documents import write_new_document                    # noqa: E402
 
 from neural_assemblies.assembly_calculus.emergent.evaluation.erp.adapters import (  # noqa: E402
     measure_lexical_surprise, prediction_landing_surprise,
@@ -210,8 +210,7 @@ def main():
                                 "per_seed": aucs}
         print(f"  {key:16s} AUC={m:.4f} sd={sd:.4f} n={len(aucs)}")
 
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_new_document(Path(OUT_PATH), out)
     print(f"-> {OUT_PATH}")
 
 
