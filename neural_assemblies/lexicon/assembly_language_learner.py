@@ -11,8 +11,7 @@ Uses explicit areas with full connectivity to enable proper Hebbian learning.
 import numpy as np
 from typing import Dict, List, Tuple
 
-# Import brain
-from brain import Brain
+from neural_assemblies.core import Brain
 
 # Import lexicon
 from neural_assemblies.lexicon.curriculum.grounded_training import (
@@ -64,10 +63,8 @@ class AssemblyLanguageLearner:
     def _get_or_create_stimulus(self, area_name: str, concept: str) -> np.ndarray:
         """Get or create a stimulus pattern for a concept"""
         # Use hash of concept to generate consistent random pattern
-        np.random.seed(hash(concept) % (2**32))
-        stimulus = np.random.choice(self.n, self.k, replace=False)
-        np.random.seed()  # Reset seed
-        return stimulus
+        rng = np.random.default_rng(hash(concept) % (2**32))
+        return rng.choice(self.n, self.k, replace=False)
     
     def learn_word(self, word: str, pos: str, grounding: List[str], n_rounds: int = 5):
         """
@@ -100,10 +97,10 @@ class AssemblyLanguageLearner:
             self.brain.areas['LEX'].fix_assembly()
             
             # 2. Project both to CORE (creates shared representation)
-            self.brain.project({}, {'VISUAL': ['CORE'], 'LEX': ['CORE']}, 0)
+            self.brain.project({}, {'VISUAL': ['CORE'], 'LEX': ['CORE']}, verbose=0)
             
             # 3. Project back from CORE to both areas (strengthens association)
-            self.brain.project({}, {'CORE': ['VISUAL', 'LEX']}, 0)
+            self.brain.project({}, {'CORE': ['VISUAL', 'LEX']}, verbose=0)
         
         # Store learned word
         self.word_assemblies[word] = word_stimulus
@@ -139,13 +136,13 @@ class AssemblyLanguageLearner:
         
         # Project VISUAL -> CORE
         try:
-            self.brain.project({}, {'VISUAL': ['CORE']}, 0)
+            self.brain.project({}, {'VISUAL': ['CORE']}, verbose=0)
         except (ValueError, IndexError):
             return False, 0.0
         
         # Project CORE -> LEX
         try:
-            self.brain.project({}, {'CORE': ['LEX']}, 0)
+            self.brain.project({}, {'CORE': ['LEX']}, verbose=0)
         except (ValueError, IndexError):
             return False, 0.0
         
