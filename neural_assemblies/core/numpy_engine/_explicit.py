@@ -315,12 +315,21 @@ class NumpyExplicitEngine(ComputeEngine):
         tgt.w = len(winners)
 
         total_act = float(to_cpu(prev_winner_inputs[winners]).sum())
+        pre_kwta = (
+            np.array(to_cpu(prev_winner_inputs), dtype=np.float32, copy=True)
+            if record_activation else None
+        )
 
         return ProjectionResult(
             winners=np.array(to_cpu(xp.asarray(winners, dtype=xp.uint32)), dtype=np.uint32),
             num_first_winners=0,
             num_ever_fired=tgt.num_ever_fired,
             total_activation=total_act,
+            pre_kwta_inputs=pre_kwta,
+            pre_kwta_prev_only=(pre_kwta.copy() if pre_kwta is not None else None),
+            pre_kwta_total=(float(to_cpu(prev_winner_inputs).sum())
+                            if record_activation else 0.0),
+            pre_kwta_count=tgt.n if record_activation else 0,
         )
 
     def _select_winners(self, drive, tgt):

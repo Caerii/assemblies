@@ -5891,3 +5891,9 @@ The legacy C++ wrapper now validates and emits the same basic projection
 diagnostic levels as the Python Brain wrapper, instead of discarding `verbose`.
 The wrapper passes Ruff and compilation checks; the extension remains an
 environment-dependent execution gate.
+
+### Explicit pre-k-WTA observation parity (2026-09-12)
+
+`NumpyExplicitEngine.project_into` now populates the shared pre-k-WTA
+observation fields when requested, including the full candidate count and
+pre-penalty drive. A direct explicit-engine contract test passes.

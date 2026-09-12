@@ -36,6 +36,16 @@ def test_rounds_preserve_every_history_entry_and_activation(engine):
     assert b.last_pre_kwta_counts == reference.last_pre_kwta_counts
 
 
+def test_explicit_engine_returns_pre_kwta_observation():
+    b = make_brain("numpy_explicit")
+    result = b._engine.project_into("T", ["s"], ["S"], record_activation=True)
+    assert result.pre_kwta_inputs is not None
+    assert result.pre_kwta_prev_only is not None
+    assert result.pre_kwta_inputs.shape == (100,)
+    assert result.pre_kwta_count == 100
+    assert result.pre_kwta_total == pytest.approx(float(result.pre_kwta_inputs.sum()))
+
+
 @pytest.mark.parametrize("closed", ["target", "source", "fiber"])
 def test_closed_schedule_does_not_execute_or_learn(closed):
     b = make_brain()
