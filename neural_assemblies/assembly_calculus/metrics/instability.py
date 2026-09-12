@@ -52,6 +52,14 @@ def jaccard_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
     return 1.0 if not union else len(left & right) / len(union)
 
 
+def cosine_similarity(a: Iterable[Hashable], b: Iterable[Hashable]) -> float:
+    """Return set cosine overlap ``|A ∩ B| / sqrt(|A||B|)``."""
+    left, right = set(a), set(b)
+    if not left or not right:
+        return 0.0
+    return len(left & right) / (len(left) * len(right)) ** 0.5
+
+
 def compute_jaccard_instability(round_winners: List[Set[int]]) -> float:
     """Sum of (1 - Jaccard) across consecutive winner sets."""
     instability = 0.0

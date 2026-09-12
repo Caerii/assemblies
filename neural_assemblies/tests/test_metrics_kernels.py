@@ -3,6 +3,7 @@
 import numpy as np
 
 from neural_assemblies.assembly_calculus.metrics.instability import (
+    cosine_similarity,
     compute_jaccard_instability,
     jaccard_similarity,
     mean_jaccard_instability,
@@ -52,6 +53,10 @@ class TestMetricKernels:
         assert jaccard_similarity([], []) == 1.0
         assert jaccard_similarity([1, 2], [3, 4]) == 0.0
         assert jaccard_similarity([1, 2], [2, 3]) == 1 / 3
+
+    def test_cosine_kernel_has_set_and_empty_laws(self):
+        assert cosine_similarity([], [1]) == 0.0
+        assert cosine_similarity([1, 1, 2], [2, 3]) == 0.5
 
     def test_research_jaccard_helper_is_the_package_kernel(self):
         from research.experiments.base import measure_jaccard

@@ -81,6 +81,7 @@ if str(_REPO) not in sys.path:
 
 from neural_assemblies.core.brain import Brain  # noqa: E402
 from neural_assemblies.assembly_calculus.assembly import compact_overlap  # noqa: E402
+from neural_assemblies.assembly_calculus.metrics import cosine_similarity  # noqa: E402
 from neural_assemblies.core.index_spaces import CompactIdx  # noqa: E402
 from neural_assemblies.compute.winner_policies import (  # noqa: E402
     EPercentPolicy,
@@ -133,10 +134,7 @@ def _overlap(a: np.ndarray, b: np.ndarray) -> float:
 
 def _cosine(a: np.ndarray, b: np.ndarray) -> float:
     """Set cosine |A n B| / sqrt(|A||B|) -- the identification score."""
-    if len(a) == 0 or len(b) == 0:
-        return 0.0
-    sa, sb = set(a.tolist()), set(b.tolist())
-    return len(sa & sb) / float(np.sqrt(len(sa) * len(sb)))
+    return cosine_similarity(a.tolist(), b.tolist())
 
 
 # ======================================================================

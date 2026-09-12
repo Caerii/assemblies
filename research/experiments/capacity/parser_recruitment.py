@@ -55,6 +55,7 @@ os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 from neural_assemblies.assembly_calculus.assembly import compact_overlap  # noqa: E402
+from neural_assemblies.assembly_calculus.metrics import cosine_similarity  # noqa: E402
 from neural_assemblies.core.index_spaces import CompactIdx  # noqa: E402
 
 
@@ -69,10 +70,7 @@ def _overlap(a, b) -> float:
 
 
 def _cosine(a, b) -> float:
-    sa, sb = set(_win(a).tolist()), set(_win(b).tolist())
-    if not sa or not sb:
-        return 0.0
-    return len(sa & sb) / float(np.sqrt(len(sa) * len(sb)))
+    return cosine_similarity(_win(a).tolist(), _win(b).tolist())
 
 
 def _quartile_means(values: Sequence[float]) -> List[float]:

@@ -6,6 +6,7 @@ Parser-specific readiness, baselines, and violation typing live in
 """
 
 from .instability import (
+    cosine_similarity,
     compute_anchored_instability,
     compute_jaccard_instability,
     jaccard_similarity,
@@ -17,6 +18,7 @@ __all__ = [
     "compute_anchored_instability",
     "compute_jaccard_instability",
     "jaccard_similarity",
+    "cosine_similarity",
     "mean_jaccard_instability",
     "measure_n400",
 ]

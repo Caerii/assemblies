@@ -20,6 +20,7 @@ the library's, not a re-implementation.  ``neural_assemblies/`` is read-only.
 from __future__ import annotations
 
 import sys
+from neural_assemblies.assembly_calculus.metrics import cosine_similarity
 from dataclasses import dataclass
 from pathlib import Path
 from typing import List, Optional
@@ -139,7 +140,5 @@ def retrieve(sub: Substrate, item: int, *, policy: str, k: int,
 
 
 def cosine_overlap(a: np.ndarray, b: np.ndarray) -> float:
-    if len(a) == 0 or len(b) == 0:
-        return 0.0
-    inter = len(np.intersect1d(a, b, assume_unique=False))
-    return inter / float(np.sqrt(len(a) * len(b)))
+    """Compatibility name for the canonical set cosine metric."""
+    return cosine_similarity(a.tolist(), b.tolist())
