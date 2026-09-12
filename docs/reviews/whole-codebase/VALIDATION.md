@@ -7289,3 +7289,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added the measured 40?80 second emergent parser and conversation setup nodes to the central slow tier.
 - Collection now reports 3,965 fast tests and 158 slow tests; all moved nodes remain selectable via `-m slow`.
 - This changes scheduling only; no test body or empirical threshold changed.
+
+
+## 2026-09-12 ? developer test command documentation
+
+- README now advertises the measured eight-worker `loadfile` fast gate, the explicit slow empirical gate, and their current fast-tier scale.
+- Command documentation matches the central marker scheduling in `tests/conftest.py`.
