@@ -177,6 +177,10 @@ def parseHelper(b, sentence, project_rounds, verbose, debug,
             b.reset_outer_lexeme_cache()
             # from saved_outer_start to saved_inner_start, go through, apply rules, project once w/o plasticity
             b.disable_plasticity = True
+            if saved_inner_start is None:
+                raise RuntimeError(
+                    "dependent-clause close reached without a saved inner start"
+                )
             for j in range(saved_outer_start, saved_inner_start):
                 word = sentence[j]
                 if verbose:
