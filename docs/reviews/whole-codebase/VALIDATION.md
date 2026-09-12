@@ -6343,3 +6343,7 @@ Stage-gate evaluation now validates every externally produced metric before thre
 ### Acquisition orchestrator reflection boundary (2026-09-12)
 
 Reflection and wobbly-bootstrap outputs now validate numeric metrics and mapping-shaped detail before using them in recommendations or evidence rows. This removes implicit object arithmetic and unchecked `.items()`/`len()` calls at the curriculum orchestration boundary. Pyright reports **0 diagnostics**; focused acquisition reflection/gate tests pass **7 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Wobbly hypothesis typing gate (2026-09-12)
+
+The wobbly POS hypothesis path now declares its parser integration cache and its `parse_prefix` circuit return type, so forced-category trials pass the declared `FiberCircuit` contract instead of an unconstrained object. Pyright reports **0 diagnostics**; the focused hypothesis test passes **1 test**, and Ruff F/E9 plus `git diff --check` are clean.

@@ -12,7 +12,7 @@ References:
     "Simulated Language Acquisition with Neural Assemblies."
 """
 
-from typing import TYPE_CHECKING, Optional
+from typing import TYPE_CHECKING, Dict, Optional
 
 from .core import CorpusIndex, compile_corpus
 from .curriculum import CurriculumTrainer, StageResult, _STAGE_CONFIG
@@ -92,6 +92,7 @@ class EmergentParser(
     _erp_thresholds: Optional["ErpThresholds"]
     _erp_baseline: Optional["ErpBaseline"]
     _erp_report: Optional["ErpCalibrationReport"]
+    _fresh_integration_cache: Dict[tuple[str, str], float]
 
 
 __all__ = [

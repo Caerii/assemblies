@@ -42,6 +42,7 @@ from ...evaluation.erp import (
 from ...evaluation.erp.protocol import ErpProtocol
 
 if TYPE_CHECKING:
+    from ....fiber import FiberCircuit
     from ...parser import EmergentParser
 
 _FALLBACK_POS_ALTERNATIVES: Dict[str, Tuple[str, ...]] = {
@@ -133,7 +134,7 @@ def parse_prefix(
     parser: "EmergentParser",
     words: List[str],
     end: int,
-) -> Tuple[dict, object, bool, int, Optional[str]]:
+) -> Tuple[Dict[str, Dict[str, str]], "FiberCircuit", bool, int, Optional[str]]:
     """Parse words[:end] with full FiberCircuit; return circuit + counters."""
     parser._reset_context_state()
     circuit = parser._get_incremental_circuit(reset=True)
