@@ -7082,3 +7082,7 @@ Remaining direct primary-engine reads in batched next-token and morphosyntax cal
 ## Public mixed-engine owner resolver (2026-09-12)
 
 Brain.engine_for(name) now resolves the backend that owns a named area, preserving the dedicated explicit NumPy owner while keeping sparse areas on the primary engine. Morph-feature and ERP evaluation callers use the boundary; unknown names fail before backend access. Validation: backend plus context-observation suites 21 passed; Pyright on Brain and migrated evaluation modules reports 0 diagnostics.
+
+## Calculus owner-routing migration (2026-09-12)
+
+Area-aware calculus, PFA, recovery, ERP, incremental parser, role traversal, and training compiler callers now resolve ownership through Brain.engine_for(name). The private Area-based resolver remains implementation-only, preserving mixed explicit/sparse backend routing while removing storage coupling from composition code. Validation: operation semantic-card, context-observation, and reciprocal-trace suites 33 passed; Pyright on 11 migrated modules reports 0 diagnostics.
