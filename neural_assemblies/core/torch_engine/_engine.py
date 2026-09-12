@@ -20,7 +20,7 @@ Requires: torch with CUDA support.
 import math
 import numpy as np
 from collections import defaultdict, deque
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional, cast
 
 import torch
 
@@ -75,6 +75,8 @@ from ._csr import (
 from ._state import (
     LAZY_ID_THRESHOLD, TorchAreaState, StimulusState, TorchConn,
 )
+
+TorchAreaConn = CSRConn | TorchDenseConn
 
 
 class TorchSparseEngine(ComputeEngine):
@@ -238,7 +240,7 @@ class TorchSparseEngine(ComputeEngine):
         # Connectivity: stim_name -> area_name -> TorchConn (1-D weights)
         self._stim_conns: Dict[str, Dict[str, TorchConn]] = defaultdict(dict)
         # Connectivity: src_area -> tgt_area -> CSRConn (2-D weights)
-        self._area_conns: Dict[str, Dict[str, CSRConn]] = defaultdict(dict)
+        self._area_conns: Dict[str, Dict[str, TorchAreaConn]] = defaultdict(dict)
         # Dense explicit→sparse edges (Connectome objects, not CSR)
         self._dense_area_conns: Dict[str, Dict[str, Connectome]] = defaultdict(dict)
 
@@ -293,6 +295,7 @@ class TorchSparseEngine(ComputeEngine):
             add = w[have:cols].detach().float()
             base = add if (base is None or have == 0) else torch.cat([base, add])
             conn._norm_deg_base = base
+        assert base is not None
         deg = base[:cols]
         return inverse_indegree(deg, n_pre, stim_size, self.p)
 
@@ -622,7 +625,8 @@ class TorchSparseEngine(ComputeEngine):
             act_cpu = act_cpu + rng.normal(
                 0.0, tgt.input_noise_std, size=act_cpu.shape,
             )
-        neuron_ids = self._winner_sel.select_with_policy(act_cpu, policy)
+        neuron_ids = self._winner_sel.select_with_policy(
+            act_cpu, cast(Any, policy))
         neuron_ids = [int(i) for i in neuron_ids]
         compact = list(range(len(neuron_ids)))
         pool = reserve_initial_neuron_ids(tgt.neuron_id_pool, neuron_ids, n=tgt.n)
@@ -940,7 +944,7 @@ class TorchSparseEngine(ComputeEngine):
                     input_sizes, tgt.n, tgt.w, tgt.k, input_ps)
             self._sparse_sim.rng = old_rng
             if hasattr(potential_new_np, 'get'):
-                potential_new_np = potential_new_np.get()
+                potential_new_np = cast(Any, potential_new_np).get()
             potential_new_np = np.asarray(potential_new_np, dtype=np.float32)
             potential_new = torch.from_numpy(potential_new_np).to(self._device)
 
