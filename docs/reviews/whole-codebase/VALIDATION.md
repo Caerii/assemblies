@@ -5548,3 +5548,10 @@ artifact through the canonical finite, exclusive writer. Its exact,
 materialized, and sparse arms, overlap deltas, and null controls are
 unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
 and both result-writer ratchets pass: **2 passed**.
+### Sampling-budget interaction checkpoint migration (2026-09-12)
+
+The analyze-later sampling-budget interaction study now persists its keyed
+observations through `write_checkpoint_document`. Its existing reference read,
+arm/budget keys, and interaction analysis remain unchanged, while raw JSON
+overwrite is replaced by atomic checkpoint publication. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.
