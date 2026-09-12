@@ -6693,3 +6693,8 @@ The primary hashed fiber implementation `_hashed.py` now uses the explicit `torc
 ## Torch operator protocol type strengthening (2026-09-12)
 
 The shared `TorchOps` protocol now distinguishes tensor-returning factories/operators from structured-return operations and polymorphic sampling calls. This preserves static tensor flow without pretending to model `topk`, `sort`, or `unique_consecutive` results. Pyright and Ruff report zero diagnostics; the combined Torch/hashed parity suite passes **40 tests with 24 expected skips**.
+
+
+## Torch operator boundary ratchet (2026-09-12)
+
+Added an AST-based regression test that rejects generated `torch.<op>` calls in migrated Torch modules. Only intentional tensor type anchors (`torch.Tensor`), CUDA lifecycle calls, and the fused C++ generator are allowed outside `torch_ops`. The ratchet plus Torch parity and hashed substrate tests pass **31 tests with 19 expected skips**; Ruff is clean.
