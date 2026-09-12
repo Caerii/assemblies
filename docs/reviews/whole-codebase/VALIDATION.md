@@ -5053,3 +5053,10 @@ replacement bounds, and seed validity are checked before the deterministic cue
 draw. The pure perturbation constructor is now linked to the recovery protocol
 rather than remaining an untracked helper. Noise-robustness, contract, and
 lazy-import tests pass: **201 passed**; Ruff and the evidence graph are clean.
+
+## Readout path convergence (2026-09-11)
+
+`readout_all` now reuses `ReadoutPlan` validation, so both decoder entry points
+reject malformed lexicons and snapshots consistently while retaining their
+ different outputs (all overlaps versus thresholded best label). Readout and
+computation-value tests pass: **25 passed**; Ruff is clean.

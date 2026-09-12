@@ -97,6 +97,8 @@ def readout_all(assembly: Assembly,
     Returns:
         List of (word, overlap) tuples sorted by overlap descending.
     """
+    plan = ReadoutPlan(assembly, lexicon, threshold=0.0)
+    assembly, lexicon = plan.assembly, plan.lexicon
     results = []
     for word, ref_assembly in lexicon.items():
         ov = overlap(assembly, ref_assembly)
