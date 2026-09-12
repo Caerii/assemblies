@@ -6207,3 +6207,7 @@ The ventral evidence integration suite, covering the four migrated MNIST/profile
 ### Test-fixture strict-pairing gate (2026-09-12)
 
 All remaining B905 sites in maintained tests now declare their cardinality law: equal-length comparisons use `strict=True`, while intentionally offset adjacent-sequence comparisons explicitly use `strict=False`. The focused horizon, pricing, sequence, and winner-margin suites pass **57 tests**; the full repository B905 scan is clean.
+
+### Explicit language vocabulary gate (2026-09-12)
+
+The legacy language grammar, readout, and debugger modules no longer use wildcard imports. `language_areas.__all__` defines the stable vocabulary and each consumer imports only the symbols it uses. Language parsing passes **9 tests**, reconstruction/readout passes **20 tests** with one intentional sampled-recurrence warning, and focused Ruff F plus bytecode compilation are clean.

@@ -7,7 +7,7 @@ allowing step-by-step inspection of the parsing process.
 
 import json
 from collections import defaultdict
-from .language_areas import *
+
 
 class ParserDebugger:
     """Debugger for step-by-step parser inspection."""

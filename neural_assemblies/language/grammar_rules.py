@@ -6,7 +6,23 @@ definitions for English and Russian language processing.
 """
 
 from collections import namedtuple
-from .language_areas import *
+from .language_areas import (
+    ACC,
+    ADJ,
+    ADVERB,
+    DAT,
+    DEP_CLAUSE,
+    DET,
+    DISINHIBIT,
+    INHIBIT,
+    LEX,
+    NOM,
+    OBJ,
+    PREP,
+    PREP_P,
+    SUBJ,
+    VERB,
+)
 
 # Rule definitions
 AreaRule = namedtuple('AreaRule', ['action', 'area', 'index'])

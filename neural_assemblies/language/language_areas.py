@@ -61,3 +61,34 @@ RUSSIAN_READOUT_RULES = {
     DAT: [LEX],
     LEX: [],
 }
+
+
+# Stable import surface for parser, grammar, and readout modules.
+__all__ = (
+    "LEX",
+    "DET",
+    "SUBJ",
+    "OBJ",
+    "VERB",
+    "PREP",
+    "PREP_P",
+    "ADJ",
+    "ADVERB",
+    "DEP_CLAUSE",
+    "NOM",
+    "ACC",
+    "DAT",
+    "LEX_SIZE",
+    "RUSSIAN_LEX_SIZE",
+    "DISINHIBIT",
+    "INHIBIT",
+    "ACTIVATE_ONLY",
+    "CLEAR_DET",
+    "AREAS",
+    "EXPLICIT_AREAS",
+    "RECURRENT_AREAS",
+    "RUSSIAN_AREAS",
+    "RUSSIAN_EXPLICIT_AREAS",
+    "ENGLISH_READOUT_RULES",
+    "RUSSIAN_READOUT_RULES",
+)

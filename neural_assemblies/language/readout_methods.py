@@ -10,7 +10,12 @@ try:
     import pptree
 except ImportError:
     pptree = None
-from .language_areas import *
+from .language_areas import (
+    DEP_CLAUSE,
+    LEX,
+    SUBJ,
+    VERB,
+)
 
 class ReadoutMethod(Enum):
     """Enumeration of available readout methods."""
