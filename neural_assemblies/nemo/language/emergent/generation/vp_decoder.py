@@ -11,8 +11,9 @@ The assembly itself can be used for compatibility checking.
 This is the bridge between neural representations and language output.
 """
 
-from typing import List, Tuple, Dict, TYPE_CHECKING
-import cupy as cp
+import importlib
+from typing import List, Tuple, Dict, Optional, TYPE_CHECKING, Any
+cp: Any = importlib.import_module("cupy")
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
@@ -40,7 +41,7 @@ class VPDecoder:
     # KEY-BASED DECODING (Fast path)
     # =========================================================================
     
-    def decode_vp_key(self, vp_key: str) -> Dict[str, str]:
+    def decode_vp_key(self, vp_key: str) -> Dict[str, Optional[str]]:
         """
         Decode a VP key to its component words.
         
@@ -52,7 +53,11 @@ class VPDecoder:
         """
         parts = vp_key.split('_')
         
-        result = {'subject': None, 'verb': None, 'object': None}
+        result: Dict[str, Optional[str]] = {
+            'subject': None,
+            'verb': None,
+            'object': None,
+        }
         
         if len(parts) >= 2:
             result['subject'] = parts[0]
@@ -102,7 +107,7 @@ class VPDecoder:
     # ASSEMBLY-BASED DECODING (Emergent path)
     # =========================================================================
     
-    def decode_vp_assembly(self, vp_assembly: cp.ndarray,
+    def decode_vp_assembly(self, vp_assembly: Any,
                            min_overlap: float = 0.1) -> Dict[str, List[Tuple[str, float]]]:
         """
         Decode a VP assembly by finding overlapping word assemblies.
@@ -146,7 +151,7 @@ class VPDecoder:
         
         return result
     
-    def _find_overlapping_words(self, target_assembly: cp.ndarray,
+    def _find_overlapping_words(self, target_assembly: Any,
                                  area: Area,
                                  min_overlap: float) -> List[Tuple[str, float]]:
         """Find words whose assemblies overlap with target."""
@@ -192,9 +197,9 @@ class VPDecoder:
                 matches.append(key)
         return matches
     
-    def find_vp_by_pattern(self, subject: str = None, 
-                           verb: str = None,
-                           obj: str = None) -> List[str]:
+    def find_vp_by_pattern(self, subject: Optional[str] = None,
+                           verb: Optional[str] = None,
+                           obj: Optional[str] = None) -> List[str]:
         """Find VP keys matching a pattern (None = wildcard)."""
         matches = []
         
@@ -225,7 +230,7 @@ class VPDecoder:
     # ASSEMBLY-BASED VP MATCHING
     # =========================================================================
     
-    def find_compatible_vps(self, seed_assembly: cp.ndarray,
+    def find_compatible_vps(self, seed_assembly: Any,
                             area: Area,
                             min_overlap: float = 0.05) -> List[Tuple[str, float]]:
         """
