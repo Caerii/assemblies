@@ -7031,3 +7031,6 @@ Runtime `set_beta` now canonicalizes through `validate_plasticity_rate` in NumPy
 ## Backend registration policy parity (2026-09-12)
 
 NumPy sparse/exact/explicit and Torch `add_area` now invoke the shared competition-policy validator before allocating or publishing area state. Direct engine registration therefore has the same policy contract as Brain. True negatives cover unknown policy objects and preserve an empty engine. Validation: area-registration plus winner-policy suites 264 passed; Pyright on affected engines 0 errors/warnings/information; `git diff --check` clean.
+## Preregistration result-edge enforcement (2026-09-12)
+
+The evidence graph now treats a non-pending `PREREG_*.md` without a resolved result artifact as a maintained-graph error. `PREREG_agreement_corpus.md` was repaired with a link to the retained gap-2 result JSON. Pending preregistrations remain explicit planned nodes. Validation: active-evidence and evidence-check tests 4 passed; Pyright on `research/evidence.py` and graph tests 0 errors/warnings/information; audit reports zero non-pending preregistrations without result links.
