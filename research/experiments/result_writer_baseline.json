@@ -18,7 +18,6 @@
     "research/experiments/primitives/explore_role_discovery_params.py": 1,
     "research/experiments/primitives/explore_self_org_params.py": 1,
     "research/experiments/readout_decision_rules.py": 1,
-    "research/experiments/repetition_recall.py": 1,
     "research/experiments/role_recipe_2x2.py": 1,
     "research/experiments/role_recipe_2x2_ext.py": 1,
     "research/experiments/sampler_overlap_amplification.py": 1,

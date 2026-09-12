@@ -5520,3 +5520,10 @@ The registered gain-max sweep now publishes its fixed result artifact through
 the canonical finite, exclusive writer. Its gain arms, paired comparisons,
 and output schema are unchanged; reruns cannot silently replace the evidence.
 Compilation, Ruff, and both result-writer ratchets pass: **2 passed**.
+### Repetition recall writer migration (2026-09-12)
+
+The registered repetition recall sweep now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its repetition arms,
+reference comparisons, and output schema are unchanged; reruns cannot
+silently replace the evidence. Compilation, Ruff, and both result-writer
+ratchets pass: **2 passed**.
