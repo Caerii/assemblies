@@ -10,11 +10,12 @@ from __future__ import annotations
 from neural_assemblies.ir.protocol import write_json_document
 
 from dataclasses import asdict, dataclass, field
-from typing import Any, Callable
+from typing import Any, Callable, cast
 
 import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import overlap
+from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.programs.colt_mnist_advanced_util import read_class_connectome_scores
 from neural_assemblies.programs.colt_mnist_brain_util import set_kcap_winners
@@ -164,7 +165,7 @@ def profile_cross_domain_hub(
     if hub is None:
         hub = _train_cross_domain_hub(seed=seed, n_examples=n_examples, k=k, **kwargs)
 
-    brain = hub.brain
+    brain = cast(Brain, hub.brain)
     bundle = hub.bundle
     seed = hub.seed
     n_lang = hub.n_lang

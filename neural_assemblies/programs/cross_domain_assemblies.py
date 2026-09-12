@@ -55,6 +55,7 @@ from neural_assemblies.programs.colt_mnist_tier_a import (
 from neural_assemblies.programs.colt_mnist_tier_util import (
     CONFUSED_DIGITS,
     CONFUSED_PAIRS,
+    VentralBundle,
     load_ventral_bundle,
 )
 
@@ -163,7 +164,7 @@ class TrainedCrossDomainHub:
     """Trained brain + lexicons for eval and profiling."""
 
     brain: object
-    bundle: object
+    bundle: VentralBundle
     semantic_anchors: dict[str, Assembly]
     semantic_lex: dict[str, Assembly]
     lang_lex: dict[str, Assembly]
@@ -175,7 +176,7 @@ class TrainedCrossDomainHub:
 
 def _build_semantic_lexicon_from_projections(
     brain,
-    bundle,
+    bundle: VentralBundle,
 ) -> dict[str, Assembly]:
     """Per-digit SEMANTIC assemblies from prototype projection (eval-aligned)."""
     lex: dict[str, Assembly] = {}
@@ -210,7 +211,7 @@ def _fuse_visual_prediction(
     use_semantic_tiebreak: bool = True,
     use_connectome_lri: bool = True,
     lri_margin_threshold: float = 0.04,
-) -> tuple[int, dict[str, int]]:
+) -> tuple[int, dict[str, int | float]]:
     """Fuse ventral routes; LRI cascade on low-margin connectome readout."""
     conn_pred, conn_margin, order = _connectome_margin(high_vec, brain, bundle.k)
     lri_cascades = 0
