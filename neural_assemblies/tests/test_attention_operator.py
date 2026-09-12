@@ -35,6 +35,24 @@ def test_attention_multi_key_output_is_deterministic_and_bounded():
     assert len(result.value) == 2
 
 
+def test_attention_is_invariant_to_mapping_insertion_order():
+    """The pure readout depends on labels and values, never dict insertion order."""
+    query = _assembly("Q", [1, 2])
+    keys = {"b": _assembly("Q", [1, 2]), "a": _assembly("Q", [1, 2])}
+    values = {"b": _assembly("V", [8, 9]), "a": _assembly("V", [7, 8])}
+    reordered = attend(
+        query,
+        {"a": keys["a"], "b": keys["b"]},
+        {"a": values["a"], "b": values["b"]},
+        top_k=2,
+        output_size=2,
+    )
+    original = attend(query, keys, values, top_k=2, output_size=2)
+    assert original.selected_labels == reordered.selected_labels
+    assert original.candidates == reordered.candidates
+    assert np.array_equal(original.value.neuron_ids, reordered.value.neuron_ids)
+
+
 def test_attention_is_pure_and_does_not_alias_inputs():
     query = _assembly("Q", [1, 2])
     keys = {"a": _assembly("Q", [1, 2])}

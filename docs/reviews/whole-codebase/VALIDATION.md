@@ -7410,3 +7410,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added a structural test covering projection, reciprocal projection, association, merge, and completion plans.
 - It verifies immutable typed step tuples, stable recomputation, and non-aliasing mapping views without running a brain or stochastic engine.
 - `uv run pytest neural_assemblies/tests/test_operation_contract_objects.py -q` passed: 168 tests.
+
+
+## 2026-09-12 pure attention algebraic invariant
+
+- Added a construction-level permutation invariant for the pure attention readout: insertion order of key/value mappings cannot change candidates, selected labels, or the aggregate assembly.
+- `uv run pytest neural_assemblies/tests/test_attention_operator.py -q` passed: 13 tests.
