@@ -7444,3 +7444,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added a registry-wide construction check that every operation contract resolves to an existing specification file and explicit anchor.
 - This catches deleted or renamed semantic cards before any runtime experiment.
 - `uv run pytest neural_assemblies/tests/test_operation_contract_objects.py -q -x` passed: 169 tests.
+
+
+## 2026-09-12 shared schedule interpreter
+
+- Centralized the repeated contract-plan execution loop in `_execute_schedule`; plan-specific preflight remains local while step interpretation has one implementation.
+- Validation: operation contract suite passed (169 tests); Pyright reported 0 errors; `git diff --check` passed.

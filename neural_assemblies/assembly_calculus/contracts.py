@@ -55,6 +55,12 @@ def _schedule(first: ProjectionStep, tail: ProjectionStep, rounds: int) -> tuple
     return (first,) + (tail,) * (rounds - 1)
 
 
+def _execute_schedule(steps: tuple[ProjectionStep, ...], brain) -> None:
+    """Interpret a validated schedule through the brain projection boundary."""
+    for step in steps:
+        brain.project(step.stimuli_dict(), step.fibers_dict())
+
+
 @dataclass(frozen=True)
 class ActivationPlan:
     """Validated injection of a stable-neuron Assembly snapshot."""
@@ -379,8 +385,7 @@ class ProjectionPlan:
             raise IndexError(f"Not in brain.stimuli: {self.stimulus}")
         if self.target not in brain.areas:
             raise IndexError(f"Not in brain.areas: {self.target}")
-        for step in self.steps:
-            brain.project(step.stimuli_dict(), step.fibers_dict())
+        _execute_schedule(self.steps, brain)
 
 
 @dataclass(frozen=True)
@@ -424,8 +429,7 @@ class ReciprocalProjectionPlan:
 
     def execute_steps(self, brain) -> None:
         self.preflight(brain)
-        for step in self.steps:
-            brain.project(step.stimuli_dict(), step.fibers_dict())
+        _execute_schedule(self.steps, brain)
 
 
 @dataclass(frozen=True)
@@ -536,8 +540,7 @@ class AssociationPlan:
 
     def execute_steps(self, brain) -> None:
         self.preflight(brain)
-        for step in self.steps:
-            brain.project(step.stimuli_dict(), step.fibers_dict())
+        _execute_schedule(self.steps, brain)
 
 
 _UNSTIMULATED_SOURCE_MODES = frozenset({"require-fixed", "fix-current", "evolving"})
@@ -664,8 +667,7 @@ class MergePlan:
 
     def execute_steps(self, brain) -> None:
         self.preflight(brain)
-        for step in self.steps:
-            brain.project(step.stimuli_dict(), step.fibers_dict())
+        _execute_schedule(self.steps, brain)
 
 
 @dataclass(frozen=True)
