@@ -6935,3 +6935,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Emergent language package exports are lazy; importing CPU-safe areas/params no longer imports CuPy-backed brain, learner, generator, or parser modules. Verified with a CuPy-free import smoke and focused brain Pyright (0 errors).
 - 2026-09-12: Emergent learner now has explicit optional parameter/role contracts, local effective-role state, and deterministic typed max selectors; CuPy array boundary is explicit. Focused Pyright: 0 errors.
 - 2026-09-12: Emergent generator uses an explicit optional CuPy runtime boundary and typed array alias; focused Pyright: 0 errors.
+- 2026-09-12: Emergent parser core now exposes an explicit optional CuPy boundary and typed array return contract; focused Pyright: 0 errors.

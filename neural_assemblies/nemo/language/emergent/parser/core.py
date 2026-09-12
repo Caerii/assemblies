@@ -14,8 +14,10 @@ Key insight from parser.py:
 """
 
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, TYPE_CHECKING
-import cupy as cp
+import importlib
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
@@ -286,7 +288,7 @@ class SentenceParser:
         
         return best_object
     
-    def _get_noun_assembly(self, word: str) -> Optional[cp.ndarray]:
+    def _get_noun_assembly(self, word: str) -> Optional[CpArray]:
         """Get noun assembly from NOUN_CORE or PRON_CORE."""
         assembly = self.brain.get_learned_assembly(Area.NOUN_CORE, word)
         if assembly is None:
