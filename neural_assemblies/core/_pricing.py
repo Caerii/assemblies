@@ -115,6 +115,8 @@ def candidate_divisor(
     """
     per_fiber = not isinstance(p, (int, float))
     ps = list(p) if per_fiber else None
+    if input_sizes is not None and src_pops is not None and len(input_sizes) != len(src_pops):
+        raise ValueError("input_sizes and src_pops must have equal length")
     if input_sizes and src_pops and len(input_sizes) == len(src_pops):
         if ps is not None and len(ps) != len(input_sizes):
             raise ValueError(
@@ -122,7 +124,7 @@ def candidate_divisor(
                 f"input sizes; they must be parallel")
         total_weighted_p = 0.0
         weighted = 0.0
-        for i, (size, pop) in enumerate(zip(input_sizes, src_pops)):
+        for i, (size, pop) in enumerate(zip(input_sizes, src_pops, strict=True)):
             size = float(size)
             pop = float(pop)
             if size <= 0.0 or pop <= 0.0:
@@ -159,6 +161,8 @@ def effective_binomial(input_sizes: Sequence[float],
     """
     sizes = [float(a) for a in input_sizes]
     probs = [float(q) for q in ps]
+    if len(sizes) != len(probs):
+        raise ValueError("input_sizes and ps must have equal length")
     # DISPATCH, not arithmetic that happens to agree. Evaluating 1 - var/mu on
     # a homogeneous input returns 0.19999999999999996 for p=0.2, and the
     # sampler's binomial-quantile cache is keyed on that float -- so deriving
@@ -167,11 +171,11 @@ def effective_binomial(input_sizes: Sequence[float],
     if not probs or all(q == probs[0] for q in probs):
         return int(round(sum(sizes))), (probs[0] if probs else 0.0)
 
-    mu = sum(a * q for a, q in zip(sizes, probs))
+    mu = sum(a * q for a, q in zip(sizes, probs, strict=True))
     if mu <= 0.0:
         return 0, 0.0
     var = sum(float(a) * float(q) * (1.0 - float(q))
-              for a, q in zip(input_sizes, ps))
+              for a, q in zip(input_sizes, ps, strict=True))
     p_eff = 1.0 - var / mu
     # Degenerate only if some p_f == 1 (var 0) or the match leaves the unit
     # interval; fall back to the activity-weighted mean, which is the same

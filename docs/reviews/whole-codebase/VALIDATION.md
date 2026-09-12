@@ -6065,3 +6065,6 @@ The batched transducer's sentence training loop now declares strict adjacent-tok
 ### Consolidation schedule alignment gate (2026-09-12)
 
 All emergent consolidation schedule builders now require each grounded sentence's words, contexts, and roles to have identical length. The prior loops could silently omit trailing annotations and build an incomplete replay protocol. Consolidation tests pass **12 tests**; the two sampled-engine warnings are intentional provenance guards, and the focused B905/F scan is clean.
+### Pricing vector alignment gate (2026-09-12)
+
+Candidate pricing now rejects mismatched `input_sizes`/`src_pops`, and pooled-binomial moment matching rejects mismatched sizes/probabilities. All arithmetic pairings are strict, preventing a partially priced fiber set from looking valid. Engine-pricing and per-fiber pricing suites pass **30 tests**; B905/F is clean.
