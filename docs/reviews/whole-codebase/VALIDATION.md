@@ -5486,3 +5486,10 @@ artifact through the canonical finite, exclusive writer. Its paired channels,
 per-seed AUC analysis, and output schema are unchanged; reruns cannot silently
 replace the evidence. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
+### Mass-readout adoption gate writer migration (2026-09-12)
+
+The registered mass-readout gate now publishes its fixed JSON artifact through
+the canonical finite, exclusive writer. Its paired Brown/synthetic analyses,
+per-seed AUC summaries, and output schema are unchanged; reruns cannot
+silently replace the evidence. Compilation, Ruff, and both result-writer
+ratchets pass: **2 passed**.

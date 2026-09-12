@@ -11,7 +11,6 @@
     "research/experiments/gain_max_sweep.py": 1,
     "research/experiments/imbalance_attribution.py": 1,
     "research/experiments/linear_gain_recall.py": 1,
-    "research/experiments/mass_readout_gate.py": 1,
     "research/experiments/n400_landing_2x2.py": 1,
     "research/experiments/overlap_ceiling.py": 1,
     "research/experiments/paper_regime_2x2.py": 1,
