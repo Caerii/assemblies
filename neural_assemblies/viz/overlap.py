@@ -6,6 +6,7 @@ from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import Any, cast
 from matplotlib.axes import Axes
 
 from neural_assemblies.assembly_calculus import Assembly, overlap
@@ -38,8 +39,11 @@ def plot_overlap_matrix(
     image = ax.imshow(matrix, vmin=0.0, vmax=1.0, cmap=cmap)
     ax.figure.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
     names = list(labels) if labels else [assembly.area for assembly in assemblies]
-    ax.set_xticks(range(len(names)), names, rotation=30, ha="right")
-    ax.set_yticks(range(len(names)), names)
+    axis = cast(Any, ax)
+    axis.set_xticks(range(len(names)))
+    axis.set_xticklabels(names, rotation=30, ha="right")
+    axis.set_yticks(range(len(names)))
+    axis.set_yticklabels(names)
     ax.set_title("Assembly overlap")
 
     for row in range(matrix.shape[0]):
@@ -73,10 +77,12 @@ def plot_recall_trace(
 
     image = ax.imshow(matrix, vmin=0.0, vmax=1.0, cmap="magma")
     ax.figure.colorbar(image, ax=ax, fraction=0.046, pad=0.04)
-    ax.set_xticks(range(len(known)), known_labels or [f"known {i}" for i in range(len(known))])
-    ax.set_yticks(
+    axis = cast(Any, ax)
+    axis.set_xticks(range(len(known)))
+    axis.set_xticklabels(known_labels or [f"known {i}" for i in range(len(known))])
+    axis.set_yticks(
         range(len(recalled)),
-        recalled_labels or [f"recall {i}" for i in range(len(recalled))],
     )
+    axis.set_yticklabels(recalled_labels or [f"recall {i}" for i in range(len(recalled))])
     ax.set_title("Recall-to-known overlap")
     return ax, matrix

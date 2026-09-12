@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from collections.abc import Sequence
+from typing import Any, cast
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -114,7 +115,7 @@ def plot_trace_metrics(
 
     fig.suptitle(title or f"{trace.operation} trace in {trace.target}", y=1.03)
     plt.tight_layout()
-    return fig, axes_array
+    return fig, np.asarray(axes_array)
 
 
 def plot_winner_turnover(
@@ -144,8 +145,10 @@ def plot_winner_turnover(
         _, ax = plt.subplots(figsize=(max(5.0, len(ordered_winners) * 0.08), 3.2))
 
     ax.imshow(matrix, aspect="auto", interpolation="nearest", cmap=cmap, vmin=0, vmax=1)
-    ax.set_yticks(range(len(trace)), [step.round_index for step in trace])
-    ax.set_xticks([])
+    axis = cast(Any, ax)
+    axis.set_yticks(range(len(trace)))
+    axis.set_yticklabels([step.round_index for step in trace])
+    axis.set_xticks([])
     ax.set_xlabel("winner IDs ordered by first appearance")
     ax.set_ylabel("round")
     ax.set_title(title or f"{trace.operation} winner turnover")
@@ -186,9 +189,10 @@ def animate_assembly_trace(
     ax.set_xlim(-1, side)
     ax.set_ylim(side, -1)
     ax.set_aspect("equal")
-    ax.set_xticks([])
-    ax.set_yticks([])
-    ax.set_facecolor("#f7f7f2")
+    axis = cast(Any, ax)
+    axis.set_xticks([])
+    axis.set_yticks([])
+    axis.set_facecolor("#f7f7f2")
 
     base_title = title or f"{trace.operation} trace in {trace.target}"
 

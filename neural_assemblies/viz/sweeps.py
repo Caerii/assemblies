@@ -6,6 +6,7 @@ from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import Any, cast
 from matplotlib.axes import Axes
 
 
@@ -35,8 +36,11 @@ def plot_parameter_heatmap(
     if cbar_label:
         cbar.set_label(cbar_label)
 
-    ax.set_xticks(range(len(x_labels)), [str(label) for label in x_labels])
-    ax.set_yticks(range(len(y_labels)), [str(label) for label in y_labels])
+    axis = cast(Any, ax)
+    axis.set_xticks(range(len(x_labels)))
+    axis.set_xticklabels([str(label) for label in x_labels])
+    axis.set_yticks(range(len(y_labels)))
+    axis.set_yticklabels([str(label) for label in y_labels])
     if title:
         ax.set_title(title)
 

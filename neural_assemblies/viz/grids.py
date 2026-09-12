@@ -7,6 +7,7 @@ from collections.abc import Sequence
 
 import matplotlib.pyplot as plt
 import numpy as np
+from typing import Any, cast
 from matplotlib.axes import Axes
 from matplotlib.figure import Figure
 
@@ -75,8 +76,9 @@ def plot_assembly(
     ax.set_xlim(-1, side)
     ax.set_ylim(side, -1)
     ax.set_aspect("equal")
-    ax.set_xticks([])
-    ax.set_yticks([])
+    axis = cast(Any, ax)
+    axis.set_xticks([])
+    axis.set_yticks([])
     ax.set_facecolor("#f7f7f2")
     return ax
 
@@ -117,4 +119,4 @@ def plot_assemblies(
         )
 
     plt.tight_layout()
-    return fig, axes_array
+    return fig, np.asarray(axes_array)
