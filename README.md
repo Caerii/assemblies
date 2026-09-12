@@ -239,8 +239,13 @@ From a checkout:
 ```bash
 uv sync
 uv run pytest neural_assemblies/tests -q
+uv run python scripts/verify_maintained.py --skip-tests
 uv run python -m research.evidence check
 ```
+
+`scripts/verify_maintained.py` is the single static contract gate. It checks all
+maintained runtime packages with Pyright while excluding archived and historical
+study tests; omit `--skip-tests` to run the non-slow package tests afterward.
 
 `research.evidence check` is the maintained-surface gate: it validates recorded
 run provenance and registration edges, comparison receipts, and every source
