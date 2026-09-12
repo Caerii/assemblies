@@ -85,8 +85,11 @@ class FFArea:
 
     def get_total_input(self) -> np.ndarray:
         return sum(
-            w[inp].sum(axis=0) if len(inp) else np.zeros(self.n_neurons)
-            for w, inp in zip(self.input_weights, self.inputs, strict=True)
+            (
+                w[inp].sum(axis=0) if len(inp) else np.zeros(self.n_neurons)
+                for w, inp in zip(self.input_weights, self.inputs, strict=True)
+            ),
+            start=np.zeros(self.n_neurons),
         )
 
     def step(self, update: bool = True) -> None:
