@@ -7110,3 +7110,4 @@ The full maintained gate exposed four contract-fixture failures after owner migr
 ## Stochastic parity gate repair (2026-09-12)
 
 The full xdist gate exposed a contradiction in 	est_projection_parity: it allowed a one-winner stochastic count difference, then required equal sequence lengths with strict zip. The assertion now compares matched winners while preserving the count tolerance. Validation: the seed-sweep parity test passed twice; the full-gate failure was isolated to this test and no engine code changed.
+\n## Full maintained gate after resolver repairs (2026-09-12)\n\nThe post-repair maintained gate is green: 3,830 passed, 141 skipped, 8 xfailed, and 10 subtests passed in 457.60s (7:37) with eight workers. This confirms the owner-boundary migrations and stochastic parity repair together under the complete maintained scope.\n
