@@ -9,14 +9,21 @@ import numpy as np
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.core.backend import to_cpu, resolve_mixed_engine
 from collections import defaultdict
+from typing import Optional, Dict, List
 
-from .language_areas import *
+from .language_areas import (
+    LEX, DET, SUBJ, OBJ, VERB, PREP, PREP_P, ADJ, ADVERB, DEP_CLAUSE, NOM, ACC, DAT, LEX_SIZE, RUSSIAN_LEX_SIZE, DISINHIBIT, INHIBIT, ACTIVATE_ONLY, CLEAR_DET, AREAS, EXPLICIT_AREAS, RECURRENT_AREAS, RUSSIAN_AREAS, RUSSIAN_EXPLICIT_AREAS, ENGLISH_READOUT_RULES, RUSSIAN_READOUT_RULES,
+)
 from .grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT, AreaRule, FiberRule
 
 class ParserBrain(Brain):
     """Base parser brain class that extends the basic brain for language processing."""
     
-    def __init__(self, p, lexeme_dict={}, all_areas=[], recurrent_areas=[], initial_areas=[], readout_rules={}, engine="auto"):
+    def __init__(self, p, lexeme_dict: Optional[Dict] = None,
+                 all_areas: Optional[List[str]] = None,
+                 recurrent_areas: Optional[List[str]] = None,
+                 initial_areas: Optional[List[str]] = None,
+                 readout_rules: Optional[Dict] = None, engine="auto"):
         """
         Initialize the parser brain.
         
@@ -32,15 +39,15 @@ class ParserBrain(Brain):
         if engine == "auto":
             engine = resolve_mixed_engine(engine)
         Brain.__init__(self, p, engine=engine)
-        self.lexeme_dict = lexeme_dict
-        self.all_areas = all_areas
-        self.recurrent_areas = recurrent_areas
-        self.initial_areas = initial_areas
+        self.lexeme_dict = {} if lexeme_dict is None else lexeme_dict
+        self.all_areas = [] if all_areas is None else list(all_areas)
+        self.recurrent_areas = [] if recurrent_areas is None else list(recurrent_areas)
+        self.initial_areas = [] if initial_areas is None else list(initial_areas)
 
         self.fiber_states = defaultdict()
         self.area_states = defaultdict(set)
         self.activated_fibers = defaultdict(set)
-        self.readout_rules = readout_rules
+        self.readout_rules = {} if readout_rules is None else readout_rules
         self.area_lexeme_cache = {}
         self._outer_lexeme_cache = {}
         self._inner_lexeme_cache = {}

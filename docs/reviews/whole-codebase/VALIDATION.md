@@ -6005,3 +6005,10 @@ The abstract engine's implicit-backend `reset_area_connections` default now
 marks its intentional no-op explicitly, removing an empty-hook ambiguity while
 preserving the concrete reset implementations. Owner-routing and engine
 availability tests pass **13 tests**.
+
+### Parser constructor and namespace contracts (2026-09-12)
+
+`ParserBrain` no longer uses mutable dictionary/list defaults; omitted curricula
+are allocated per instance and supplied sequences are copied. Its language-area
+dependencies are explicit rather than wildcard-imported. Language parsing and
+constructor contract tests pass **9 tests**.

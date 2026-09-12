@@ -86,3 +86,11 @@ if __name__ == '__main__':
 def test_parse_rejects_unknown_language_before_dispatch():
     with pytest.raises(ValueError, match="unsupported language"):
         language.parse(language="Klingon")
+
+
+def test_parser_constructor_does_not_use_mutable_defaults():
+    import inspect
+    from neural_assemblies.language.parser import ParserBrain
+    params = inspect.signature(ParserBrain.__init__).parameters
+    for name in ("lexeme_dict", "all_areas", "recurrent_areas", "initial_areas", "readout_rules"):
+        assert params[name].default is None
