@@ -22,7 +22,6 @@
     "research/experiments/role_recipe_2x2_ext.py": 1,
     "research/experiments/sampler_overlap_amplification.py": 1,
     "research/experiments/sampling_budget_interaction.py": 1,
-    "research/experiments/scaled_feature_recall.py": 1,
     "research/experiments/slow_homeostasis_recall.py": 1,
     "research/experiments/split_architecture_2x2.py": 1,
     "research/experiments/surprise_gain_recall.py": 1,

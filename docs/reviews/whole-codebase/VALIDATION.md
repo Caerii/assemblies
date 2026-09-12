@@ -5527,3 +5527,10 @@ artifact through the canonical finite, exclusive writer. Its repetition arms,
 reference comparisons, and output schema are unchanged; reruns cannot
 silently replace the evidence. Compilation, Ruff, and both result-writer
 ratchets pass: **2 passed**.
+### Scaled-feature recall writer migration (2026-09-12)
+
+The registered scaled-feature recall sweep now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its OFF/SCALED arms,
+paired confidence analysis, and output schema are unchanged; reruns cannot
+silently replace the evidence. Compilation, Ruff, and both result-writer
+ratchets pass: **2 passed**.

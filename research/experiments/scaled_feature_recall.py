@@ -66,16 +66,18 @@ plumbing leaks and nothing else is interpretable.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 from collections import defaultdict
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 SEEDS = [42, 43, 44, 45, 46]
 ARMS = ("OFF", "SCALED")
@@ -159,9 +161,10 @@ def main():
                   f"C1={g['c1_identical']} C2={g['c2']}",
                   flush=True)
 
-    with open(OUT_PATH, "w") as f:
-        json.dump({a: {str(s): v for s, v in by.items()}
-                   for a, by in results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        a: {str(s): v for s, v in by.items()}
+        for a, by in results.items()
+    })
 
     # Seed summaries through `diagnostics.ensemble`/`paired_delta` -- Q2 IS
     # a paired test, and the confidence bound (not the mean) is the judge.
