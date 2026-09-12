@@ -6421,3 +6421,7 @@ Learned word-order gating now declares its composed parser surface: brain and tr
 ### Compiled training parser surface gate (2026-09-12)
 
 Training compiler entry points now consistently require the fully composed `EmergentParser`, matching the topology helpers they call. The previous mixed `CoreParserMixin`/`EmergentParser` annotations made valid composed calls fail static checking and obscured the actual dependency boundary. Pyright reports **0 diagnostics**; topology-linking/performance tests pass **4 tests** (with expected sampled-recurrence warnings), and `git diff --check` is clean.
+
+### Prediction lexicon optional-state gate (2026-09-12)
+
+Next-token inference now snapshots the optional prediction lexicon through `getattr` once and uses that validated local for the readout. A parser without a trained prediction lexicon therefore exits through one explicit empty-state boundary instead of mixing `hasattr` with an unguarded attribute read. The prediction parity test passes **1 test with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean. The mixin still has broader unresolved cross-mixin typing diagnostics tracked by the ongoing parser-surface audit.

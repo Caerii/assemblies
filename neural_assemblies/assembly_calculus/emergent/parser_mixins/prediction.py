@@ -289,7 +289,8 @@ class PredictionMixin:
         if not words:
             return []
 
-        if not hasattr(self, 'prediction_lexicon') or not self.prediction_lexicon:
+        prediction_lexicon = getattr(self, "prediction_lexicon", None)
+        if not prediction_lexicon:
             return []
 
         prev_fidelity = self.brain.projection_fidelity
@@ -316,6 +317,6 @@ class PredictionMixin:
                 )
 
             pred_assembly = _snap(self.brain, PREDICTION)
-            return readout_all(pred_assembly, self.prediction_lexicon)
+            return readout_all(pred_assembly, prediction_lexicon)
         finally:
             self.brain.projection_fidelity = prev_fidelity
