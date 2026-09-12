@@ -6351,3 +6351,7 @@ The wobbly POS hypothesis path now declares its parser integration cache and its
 ### Wobbly-memory cache ownership gate (2026-09-12)
 
 Wobbly mining now resolves the parser cache through an explicit `None` check, preserving the non-optional local memory invariant after cache admission. This removes optional-member and return-type ambiguity while retaining reuse of an existing parser memory. Pyright reports **0 diagnostics**; focused hypothesis/memory tests pass **2 tests with 1 intentional sampled-recurrence warning**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Parser checkpoint fork state gate (2026-09-12)
+
+The composed parser now declares its `_wobbly_fork` provenance flag alongside its other checkpoint and cache state. Forking no longer writes an undeclared dynamic attribute at the parser boundary. Pyright reports **0 diagnostics** for checkpoint evaluation; parser-fork contract tests pass **21 tests**, and Ruff F/E9 plus `git diff --check` are clean.

@@ -95,6 +95,7 @@ class EmergentParser(
     _erp_report: Optional["ErpCalibrationReport"]
     _fresh_integration_cache: Dict[tuple[str, str], float]
     _wobbly_memory: Optional["WobblyMemory"]
+    _wobbly_fork: bool
 
 
 __all__ = [
