@@ -5479,3 +5479,10 @@ through the canonical finite, exclusive writer. Its budget/mechanism cells,
 reference comparisons, and output schema are unchanged; reruns cannot
 silently replace the evidence. Compilation, Ruff, and both result-writer
 ratchets pass: **2 passed**.
+### ERP pathway-vs-area binding writer migration (2026-09-12)
+
+The registered ERP pathway/binding comparison now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its paired channels,
+per-seed AUC analysis, and output schema are unchanged; reruns cannot silently
+replace the evidence. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.

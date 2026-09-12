@@ -64,7 +64,7 @@ os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 os.environ.setdefault("EMERGENT_ERP_FAST", "1")
 
-import json                                                             # noqa: E402
+from research.json_documents import write_new_document                 # noqa: E402
 
 from erp_pathway_vs_area_control import (                               # noqa: E402
     DET, N_PER_ARM, SUBJECT, VERB, _corpus_counts, _pick,
@@ -178,8 +178,7 @@ def main():
                 }
                 print(f"  {key:<20} AUC={m:.4f} sd={sd:.4f} n={len(aucs)}")
 
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_new_document(Path(OUT_PATH), out)
     print(f"-> {OUT_PATH}")
 
 
