@@ -79,6 +79,7 @@ class StackedStimuli:
         self.widx = widx.to(self.device)
 
     def contribute(self, drive, rows=None):
+        del rows  # The transducer selects its own hashed row from the word index.
         w = self.widx.clamp_min(0)
         d = self.base[w, self._ar]                                    # [B, n]
         if self.learns:
@@ -93,6 +94,7 @@ class StackedStimuli:
         pass
 
     def observe(self, prev, new):
+        del prev  # Learning counts only current winners for the selected word.
         if not (self.learns and new.shape[1]):
             return
         live = (self.widx >= 0).view(-1, 1) & (new >= 0)

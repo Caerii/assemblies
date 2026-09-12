@@ -828,6 +828,7 @@ class StimulusFiber:
     drive_gain = 1.0
 
     def contribute(self, drive, rows=None):
+        del rows  # Anchors use fixed hashed rows; shared hook carries rows for learned fibers.
         if not self.learns:
             # An anchor never potentiates, so its priced drive is a constant:
             # one add per round instead of six launches (15% of a run).
@@ -858,6 +859,7 @@ class StimulusFiber:
         pass
 
     def observe(self, prev, new):
+        del prev  # Anchor potentiation depends only on newly selected winners.
         if self.learns and new.shape[1]:
             # -1 winners are a brain whose rounds are over (a converged
             # brain under `stop_when_stable`, a dead brain): no potentiation

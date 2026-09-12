@@ -328,6 +328,7 @@ class ComputeEngine(ABC):
         fired neurons are tracked) override this to return the mapping.
         Default returns None (indices are neuron IDs).
         """
+        del area  # Dense engines have no compact-to-global mapping.
         return None
 
     def clear_refractory(self, area: str) -> None:
@@ -337,12 +338,14 @@ class ComputeEngine(ABC):
         or between independent trials.  Default is a no-op (suitable for
         engines without LRI support).
         """
+        del area  # Engines without LRI have no refractory state to clear.
 
     def set_input_noise(self, area: str, std: float) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-input-noise"""
         from .registration import validate_input_noise
         if validate_input_noise(std) != 0:
-            raise NotImplementedError(f"{type(self).__name__} does not implement input noise")
+            raise NotImplementedError(
+                f"{type(self).__name__} does not implement input noise for {area!r}")
 
     def set_competition_policy(self, area: str, policy) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy
@@ -350,7 +353,9 @@ class ComputeEngine(ABC):
         Backends must opt into runtime competition changes. A facade must not
         attach a field to backend storage and assume the selector consumes it.
         """
-        raise NotImplementedError(f"{type(self).__name__} does not implement runtime competition policies")
+        raise NotImplementedError(
+            f"{type(self).__name__} does not implement runtime competition policy "
+            f"{policy!r} for {area!r}")
 
     def set_lri(self, area: str, refractory_period: int,
                 inhibition_strength: float) -> None:
@@ -362,6 +367,8 @@ class ComputeEngine(ABC):
         Specification: neural_assemblies/ir/VERIFICATION.md#contract-area-controls
         """
         from ._homeostasis import validate_lri_parameters
+        if not isinstance(area, str) or not area:
+            raise ValueError("area must be a nonempty string")
         refractory_period, inhibition_strength = validate_lri_parameters(
             refractory_period, inhibition_strength)
         if refractory_period != 0 or inhibition_strength != 0:
@@ -392,6 +399,9 @@ class ComputeEngine(ABC):
         Requesting the DEFAULT (``enabled=False``) is not a request for the
         mechanism and stays a no-op everywhere, matching `_reject_unsupported`.
         """
+        del strength  # Unsupported engines reject enabling before strength applies.
+        if not isinstance(area, str) or not area:
+            raise ValueError("area must be a nonempty string")
         if enabled:
             raise NotImplementedError(
                 f"{type(self).__name__}.set_refracted({area!r}, enabled=True) "
@@ -405,6 +415,7 @@ class ComputeEngine(ABC):
 
         Default is a no-op.
         """
+        del area  # Engines without refraction have no bias state to clear.
 
     def normalize_weights(self, target: str, source: str = None) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-weight-normalization
@@ -415,6 +426,7 @@ class ComputeEngine(ABC):
         storage must reject the operation; a silent no-op cannot certify a
         normalization intervention.
         """
+        del target, source  # Unsupported hooks have no mutable weight state.
         raise NotImplementedError(
             f"{type(self).__name__} does not implement weight normalization"
         )
@@ -530,6 +542,7 @@ class ComputeEngine(ABC):
 
         Engines that do not materialize lazily inherit this default.
         """
+        del source, target  # Dense fibers have no extent watermark.
         return None
 
     def materialized_count(self, area: str) -> Optional[int]:
@@ -541,6 +554,7 @@ class ComputeEngine(ABC):
         object is asked, and adding a third reader of that name to the ABC is
         how the confusion propagates.
         """
+        del area  # Full-population engines do not track materialization.
         return None
 
     # -- Identity --
