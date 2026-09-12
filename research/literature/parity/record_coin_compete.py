@@ -6,6 +6,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 from neural_assemblies.programs.markov_coin import CoinFlipModel, train_markov_from_sequences
 from neural_assemblies.core.brain import Brain
 
@@ -65,7 +67,7 @@ def main() -> None:
         },
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(golden, indent=2) + "\n", encoding="utf-8")
+    write_new_document(OUT, golden)
     print(json.dumps(golden["metrics"], indent=2))
 
 

@@ -15,6 +15,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 from neural_assemblies.programs.colt_halfspace_numpy import run_colt_halfspace
 
 ROOT = Path(__file__).resolve().parents[3]
@@ -62,7 +64,7 @@ def main() -> None:
         ],
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(golden, indent=2) + "\n", encoding="utf-8")
+    write_new_document(OUT, golden)
     print(f"wrote {OUT}")
     print(f"  D+ overlap {result.pos_overlap:.2f} (>= {0.75 * k:.0f})")
     print(f"  D- overlap {result.neg_overlap:.2f} (<= {0.25 * k:.0f})")

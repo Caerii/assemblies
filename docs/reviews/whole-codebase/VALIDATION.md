@@ -6183,3 +6183,7 @@ The partitioned non-slow slice 1840:1980 passed **136 tests, 2 optional skips, a
 ### Specification graph validation (2026-09-12)
 
 The maintained specification graph resolves all discovered implementation and formal-module links with **0 errors**. The `research.evidence specifications` command emitted the complete edge set and an empty error list; the attempted obsolete `graph` subcommand is not part of the current CLI and is left unclaimed.
+
+### Immutable literature recorder gate (2026-09-12)
+
+The ten parity golden recorders now use `research.json_documents.write_new_document`, so an existing golden cannot be silently overwritten. They compile successfully. Literature-golden and legacy-result-storage tests pass **48 tests, 5 optional skips, and 1 expected xfail in 108.53 seconds**.

@@ -27,6 +27,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 from neural_assemblies.programs.colt_multiassembly_numpy import (
     run_colt_multiassembly,
     support_bound,
@@ -99,7 +101,7 @@ def main() -> None:
         ],
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(golden, indent=2) + "\n", encoding="utf-8")
+    write_new_document(OUT, golden)
     print(f"wrote {OUT}")
     print(f"  recall {result.recall:.4f} (>= {result.recall_floor:.4f})")
     for a, o, c in zip(result.alphas, result.overlaps, result.chance):

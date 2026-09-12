@@ -7,6 +7,8 @@ import copy
 import json
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 from neural_assemblies.assembly_calculus import (
     associate,
     chance_overlap,
@@ -195,7 +197,7 @@ def main() -> None:
         },
         "notes": "Extended metrics use test_assembly_calculus cue protocols. Re-baselined under norm_init=True default (Brain) at 30 formation rounds; 10 rounds under-reinforces associate.",
     }
-    OUT.write_text(json.dumps(golden, indent=2) + "\n", encoding="utf-8")
+    write_new_document(OUT, golden)
     print(json.dumps(golden["metrics"], indent=2))
 
 

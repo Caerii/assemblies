@@ -7,6 +7,8 @@ import json
 import os
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 ROOT = Path(__file__).resolve().parents[3]
 OUT = ROOT / "research" / "literature" / "parity" / "golden" / "nemo2025_curriculum.json"
 
@@ -92,7 +94,7 @@ def main() -> None:
         "config_ref": "parity/configs/nemo2025.yaml",
     }
     OUT.parent.mkdir(parents=True, exist_ok=True)
-    OUT.write_text(json.dumps(golden, indent=2) + "\n", encoding="utf-8")
+    write_new_document(OUT, golden)
     print(json.dumps(golden["metrics"], indent=2))
 
 
