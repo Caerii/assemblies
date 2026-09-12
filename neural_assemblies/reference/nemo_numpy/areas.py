@@ -12,6 +12,10 @@ import numpy as np
 
 def k_cap(input_arr: np.ndarray, cap_size: int) -> np.ndarray:
     """Top-cap_size indices by total input (reference ``brain.k_cap``)."""
+    if isinstance(cap_size, bool) or not isinstance(cap_size, int) or cap_size < 0:
+        raise ValueError("cap_size must be a non-negative integer")
+    if cap_size == 0:
+        return np.array([], dtype=int)
     if np.all(input_arr == 0):
         return np.array([], dtype=int)
     return input_arr.argsort(axis=-1)[..., -cap_size:]
