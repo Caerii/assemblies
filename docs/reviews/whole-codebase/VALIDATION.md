@@ -5789,3 +5789,9 @@ therefore protected against future compatibility regressions.
 `register_early_fuzzy_variants` now rejects nonzero seeds because its variant
 generator is deterministic and never consumed that parameter. Active acquisition
 callers no longer pass a misleading seed; the true-negative test passes.
+
+### Scaffold prefix contract (2026-09-12)
+
+`ScaffoldNetwork` now rejects its unused legacy `prefix` override because area
+identities are explicit constructor inputs. The sequence suite covers this true
+negative and passes **21 tests**.

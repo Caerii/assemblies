@@ -212,6 +212,11 @@ class ScaffoldNetwork:
         beta: float = 0.1,
         prefix: str = "_scaffold",
     ):
+        if prefix != "_scaffold":
+            raise ValueError(
+                "ScaffoldNetwork fixes prefix='_scaffold'; area names are "
+                "provided explicitly by main_area and scaffold_area"
+            )
         self.brain = brain
         self.main_area = main_area
         self.scaffold_area = scaffold_area

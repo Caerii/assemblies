@@ -272,6 +272,10 @@ class TestScaffoldComparisonContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "beta=0.1"):
             compare_scaffold_vs_simple(beta=0.2)
 
+    def test_scaffold_network_rejects_unused_prefix(self):
+        with self.assertRaisesRegex(ValueError, "prefix='_scaffold'"):
+            ScaffoldNetwork(_make_brain(), "MAIN", "AUX", prefix="other")
+
 
 class TestScaffoldNetwork(unittest.TestCase):
     """Brain-native ScaffoldNetwork API."""
