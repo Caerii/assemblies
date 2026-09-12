@@ -7118,3 +7118,7 @@ The post-repair maintained gate is green: 3,830 passed, 141 skipped, 8 xfailed, 
 ## Explicit backend ownership API (2026-09-12)
 
 `Brain.explicit_engine` exposes the lazily-created explicit backend as a read-only property. Legacy MNIST program helpers now use that property rather than reaching into `Brain._explicit_engine`; engine connection storage remains private to the backend. Validation: the complete maintained gate passed with 3,830 tests passed, 141 skipped, 8 xfailed, and 10 subtests in 457.60s before this documentation-only follow-up.
+
+## Legacy program typing cleanup (2026-09-12)
+
+The explicit-owner API migration exposed latent Pyright failures in Tier A and patch-merge helpers. Optional teacher data is now narrowed before indexing, patch-merge's typed parameters are passed explicitly, and the fuzzy digit reducer uses a typed key function. Validation: Pyright on the two legacy programs reports 0 diagnostics; patch-merge and reinforcement suites 26 passed in 185.76s.
