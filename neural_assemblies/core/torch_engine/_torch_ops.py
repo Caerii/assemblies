@@ -17,6 +17,7 @@ class TorchOps(Protocol):
     sparse: _SparseNamespace
     sparse_coo: Any
     int64: Any
+    int32: Any
     float32: Any
     float64: Any
     bool: Any
@@ -28,6 +29,11 @@ class TorchOps(Protocol):
     topk: Callable[..., Any]
     sparse_csr_tensor: Callable[..., Any]
     sparse_coo_tensor: Callable[..., Any]
+    empty: Callable[..., Any]
+    ones: Callable[..., Any]
+    zeros_like: Callable[..., Any]
+    repeat_interleave: Callable[..., Any]
+    isin: Callable[..., Any]
 
 torch_ops = cast(TorchOps, _torch)
 __all__ = ["TorchOps", "torch_ops"]

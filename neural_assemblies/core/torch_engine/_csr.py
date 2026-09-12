@@ -5,7 +5,7 @@ val) — using O(nnz) memory instead of O(rows x cols).  At typical
 connection probability p=0.0005 this is ~2000x smaller than dense.
 """
 
-import torch
+from ._torch_ops import torch_ops
 
 from .._homeostasis import column_scale
 
@@ -23,9 +23,9 @@ class CSRConn:
         self._ncols = 0
         self._log_rows = 0   # hash-initialised row extent
         self._log_cols = 0   # hash-initialised col extent
-        self._crow = torch.zeros(1, dtype=torch.int64, device=device)
-        self._col = torch.empty(0, dtype=torch.int32, device=device)
-        self._val = torch.empty(0, dtype=WEIGHT_DTYPE, device=device)
+        self._crow = torch_ops.zeros(1, dtype=torch_ops.int64, device=device)
+        self._col = torch_ops.empty(0, dtype=torch_ops.int32, device=device)
+        self._val = torch_ops.empty(0, dtype=WEIGHT_DTYPE, device=device)
 
     @property
     def nnz(self):
@@ -35,7 +35,7 @@ class CSRConn:
 
     def accumulate_rows(self, row_indices, out_size):
         """Sum selected rows -> dense float32 vector of *out_size*."""
-        result = torch.zeros(out_size, dtype=torch.float32,
+        result = torch_ops.zeros(out_size, dtype=torch_ops.float32,
                              device=self._device)
         if self.nnz == 0 or len(row_indices) == 0:
             return result
@@ -63,7 +63,7 @@ class CSRConn:
         if flat_idx is None:
             return
         sel_cols = self._col[flat_idx]
-        col_mask = torch.isin(sel_cols.int(), tgt_winners.int())
+        col_mask = torch_ops.isin(sel_cols.int(), tgt_winners.int())
         update_idx = flat_idx[col_mask]
         if len(update_idx) > 0:
             updated = self._val[update_idx].float() * (1 + beta)
@@ -78,20 +78,20 @@ class CSRConn:
         # Convert existing CSR -> COO
         if self.nnz > 0:
             lengths = self._crow[1:] - self._crow[:-1]
-            old_r = torch.repeat_interleave(
-                torch.arange(self._nrows, dtype=torch.int32,
+            old_r = torch_ops.repeat_interleave(
+                torch_ops.arange(self._nrows, dtype=torch_ops.int32,
                              device=self._device),
                 lengths.int())
             old_c = self._col
             old_v = self._val
         else:
-            old_r = torch.empty(0, dtype=torch.int32, device=self._device)
-            old_c = torch.empty(0, dtype=torch.int32, device=self._device)
-            old_v = torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device)
+            old_r = torch_ops.empty(0, dtype=torch_ops.int32, device=self._device)
+            old_c = torch_ops.empty(0, dtype=torch_ops.int32, device=self._device)
+            old_v = torch_ops.empty(0, dtype=WEIGHT_DTYPE, device=self._device)
 
-        all_r = torch.cat([old_r, new_r]) if len(new_r) > 0 else old_r
-        all_c = torch.cat([old_c, new_c]) if len(new_c) > 0 else old_c
-        all_v = torch.cat([old_v, new_v]) if len(new_v) > 0 else old_v
+        all_r = torch_ops.cat([old_r, new_r]) if len(new_r) > 0 else old_r
+        all_c = torch_ops.cat([old_c, new_c]) if len(new_c) > 0 else old_c
+        all_v = torch_ops.cat([old_v, new_v]) if len(new_v) > 0 else old_v
 
         self._rebuild_csr(needed_rows, needed_cols, all_r, all_c, all_v)
 
@@ -111,10 +111,10 @@ class CSRConn:
         self._nrows = nrows
         self._ncols = ncols
         if len(rows) == 0:
-            self._crow = torch.zeros(
-                nrows + 1, dtype=torch.int64, device=self._device)
-            self._col = torch.empty(0, dtype=torch.int32, device=self._device)
-            self._val = torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device)
+            self._crow = torch_ops.zeros(
+                nrows + 1, dtype=torch_ops.int64, device=self._device)
+            self._col = torch_ops.empty(0, dtype=torch_ops.int32, device=self._device)
+            self._val = torch_ops.empty(0, dtype=WEIGHT_DTYPE, device=self._device)
             return
 
         # Sort by (row, col); stable so last duplicate wins
@@ -124,19 +124,19 @@ class CSRConn:
         sk = sort_key[order]
 
         # Keep last occurrence of each (row, col) pair
-        unique = torch.ones(len(sk), dtype=torch.bool, device=self._device)
+        unique = torch_ops.ones(len(sk), dtype=torch_ops.bool, device=self._device)
         unique[:-1] = sk[:-1] != sk[1:]
         rows = rows[unique]; cols = cols[unique]; vals = vals[unique]
 
         # Build crow from row counts
-        self._crow = torch.zeros(
-            nrows + 1, dtype=torch.int64, device=self._device)
+        self._crow = torch_ops.zeros(
+            nrows + 1, dtype=torch_ops.int64, device=self._device)
         if len(rows) > 0:
-            counts = torch.zeros(
-                nrows, dtype=torch.int64, device=self._device)
+            counts = torch_ops.zeros(
+                nrows, dtype=torch_ops.int64, device=self._device)
             counts.scatter_add_(
                 0, rows.long(),
-                torch.ones(len(rows), dtype=torch.int64,
+                torch_ops.ones(len(rows), dtype=torch_ops.int64,
                            device=self._device))
             self._crow[1:] = counts.cumsum(0)
         self._col = cols.int()
@@ -165,7 +165,7 @@ class CSRConn:
         passed the bound.  Defaults to all stored rows only for callers that
         genuinely want the full count.
         """
-        deg = torch.zeros(ncols, dtype=torch.float32, device=self._device)
+        deg = torch_ops.zeros(ncols, dtype=torch_ops.float32, device=self._device)
         if self.nnz > 0:
             cols = self._col.long()
             valid = cols < ncols
@@ -173,13 +173,13 @@ class CSRConn:
                 # Row r owns the flat slice [crow[r], crow[r+1]); everything at
                 # or past crow[nrows] belongs to a row we must not count.
                 cutoff = int(self._crow[int(nrows)].item())
-                bound = torch.zeros_like(valid)
+                bound = torch_ops.zeros_like(valid)
                 bound[:cutoff] = True
                 valid = valid & bound
             if not bool(valid.all()):
                 cols = cols[valid]
             deg.scatter_add_(
-                0, cols, torch.ones(len(cols), dtype=torch.float32,
+                0, cols, torch_ops.ones(len(cols), dtype=torch_ops.float32,
                                     device=self._device))
         return deg
 
@@ -208,7 +208,7 @@ class CSRConn:
         cols = cols[(cols >= 0) & (cols < self._ncols)]
         if len(cols) == 0:
             return
-        colmask = torch.zeros(self._ncols, dtype=torch.bool,
+        colmask = torch_ops.zeros(self._ncols, dtype=torch_ops.bool,
                               device=self._device)
         colmask[cols] = True
         entry_mask = colmask[self._col.long()]
@@ -216,7 +216,7 @@ class CSRConn:
             # Row r owns the flat slice [crow[r], crow[r+1]); everything at
             # or past crow[nrows] belongs to a row we must not touch.
             cutoff = int(self._crow[int(nrows)].item())
-            bound = torch.zeros_like(entry_mask)
+            bound = torch_ops.zeros_like(entry_mask)
             bound[:cutoff] = True
             entry_mask &= bound
         idx = entry_mask.nonzero(as_tuple=True)[0]
@@ -224,7 +224,7 @@ class CSRConn:
             return
         ecols = self._col[idx].long()
         evals = self._val[idx].float()
-        sums = torch.zeros(self._ncols, dtype=torch.float32,
+        sums = torch_ops.zeros(self._ncols, dtype=torch_ops.float32,
                            device=self._device)
         sums.scatter_add_(0, ecols, evals)
         factors = column_scale(sums, setpoint, eps=eps)
@@ -236,7 +236,7 @@ class CSRConn:
         """Column-normalize so each column sums to 1.0."""
         if len(self._val) == 0 or self._ncols == 0:
             return
-        sums = torch.zeros(self._ncols, dtype=torch.float32,
+        sums = torch_ops.zeros(self._ncols, dtype=torch_ops.float32,
                            device=self._device)
         sums.scatter_add_(0, self._col.long(), self._val.float())
         sums = sums.clamp(min=eps)
@@ -251,9 +251,9 @@ class CSRConn:
         self._ncols = 0
         self._log_rows = 0
         self._log_cols = 0
-        self._crow = torch.zeros(1, dtype=torch.int64, device=self._device)
-        self._col = torch.empty(0, dtype=torch.int32, device=self._device)
-        self._val = torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device)
+        self._crow = torch_ops.zeros(1, dtype=torch_ops.int64, device=self._device)
+        self._col = torch_ops.empty(0, dtype=torch_ops.int32, device=self._device)
+        self._val = torch_ops.empty(0, dtype=WEIGHT_DTYPE, device=self._device)
 
 
 #: Above this density a fiber stores dense. The numpy engine's CSR mirror
@@ -284,8 +284,8 @@ def densify(csr, device='cuda', max_rows=None, max_cols=None):
     dense._w = dense._new_buffer(csr._nrows, csr._ncols)
     if csr.nnz > 0:
         lengths = csr._crow[1:] - csr._crow[:-1]
-        rows = torch.repeat_interleave(
-            torch.arange(csr._nrows, dtype=torch.int64, device=device),
+        rows = torch_ops.repeat_interleave(
+            torch_ops.arange(csr._nrows, dtype=torch_ops.int64, device=device),
             lengths)
         # `.to(DTYPE)` like EVERY other write into `_w`. CSR stores
         # bfloat16 and dense stores float32 -- deliberately, because
@@ -337,7 +337,7 @@ class TorchDenseConn:
     #: 0.040 in bf16 vs 0.320 in f32, numpy f32 reference 0.560, same seed).
     #: CSR keeps bf16: its fibers are the low-density ambient ones where the
     #: memory halving is the point and per-entry precision is not marginal.
-    DTYPE = torch.float32
+    DTYPE = torch_ops.float32
 
     def __init__(self, device='cuda', max_rows=None, max_cols=None):
         self._device = device
@@ -404,16 +404,16 @@ class TorchDenseConn:
         stored value is identical either way.
         """
         if self._col_major:
-            return torch.zeros((cols, rows), dtype=self.DTYPE,
+            return torch_ops.zeros((cols, rows), dtype=self.DTYPE,
                                device=self._device).t()
-        return torch.zeros((rows, cols), dtype=self.DTYPE,
+        return torch_ops.zeros((rows, cols), dtype=self.DTYPE,
                            device=self._device)
 
     # -- Input accumulation (project_into hot path) -------------------------
 
     def accumulate_rows(self, row_indices, out_size):
         """Sum selected rows -> dense float32 vector of *out_size*."""
-        result = torch.zeros(out_size, dtype=torch.float32,
+        result = torch_ops.zeros(out_size, dtype=torch_ops.float32,
                              device=self._device)
         if self._w.shape[1] == 0 or len(row_indices) == 0:
             return result
@@ -477,7 +477,7 @@ class TorchDenseConn:
     def column_indegree(self, ncols, nrows=None):
         """Per-column count of present synapses over the first ``nrows`` rows
         (see `CSRConn.column_indegree` for why the bound is not optional)."""
-        deg = torch.zeros(ncols, dtype=torch.float32, device=self._device)
+        deg = torch_ops.zeros(ncols, dtype=torch_ops.float32, device=self._device)
         r = self._w.shape[0] if nrows is None else min(int(nrows),
                                                        self._w.shape[0])
         c = min(ncols, self._w.shape[1])
