@@ -38,6 +38,7 @@ from research.experiments.base import (
     paired_ttest,
 )
 from research.experiments.metrics.instability import compute_jaccard_instability
+from neural_assemblies.assembly_calculus.metrics import jaccard_similarity
 from neural_assemblies.core.brain import Brain
 
 
@@ -628,11 +629,14 @@ def probe_settling_dynamics(
 
             curr_winners = set(int(w) for w in result.winners)
 
-            if prev_winners and (prev_winners | curr_winners):
-                jac = len(prev_winners & curr_winners) / len(
-                    prev_winners | curr_winners)
-            else:
-                jac = None
+            # The first round has no predecessor and remains explicitly
+            # undefined; subsequent rounds use the canonical Jaccard law,
+            # including its empty/empty identity value of 1.0.
+            jac = (
+                jaccard_similarity(prev_winners, curr_winners)
+                if prev_winners
+                else None
+            )
 
             core_ovlp = measure_overlap(
                 result.winners, core_assemblies[word])
