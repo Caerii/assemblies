@@ -6307,3 +6307,7 @@ The Rust workspace and the packaged Python IR crate compile and test against the
 ### Throughput artifact serialization gate (2026-09-12)
 
 The throughput benchmark now delegates result-file creation to the canonical IR JSON writer, so benchmark artifacts share finite-value validation, deterministic UTF-8 encoding, and create-only overwrite semantics with the research and cross-language paths. Its focused contract suite passes **4 tests**, including a real CLI output and second-run overwrite refusal; Ruff F/E9 and `git diff --check` are clean.
+
+### Unified protocol and generic JSON boundary gate (2026-09-12)
+
+Protocol exports now reuse the canonical JSON encoder and create-only writer used by generic reports; schema validation remains at the protocol boundary. This removes duplicate serialization policy and locks deterministic sorted UTF-8 bytes with a wire regression. The protocol suite passes **53 tests**; Ruff F/E9 and `git diff --check` are clean.

@@ -47,6 +47,16 @@ def test_old_writer_cannot_overwrite_committed_evidence(tmp_path):
     assert path.read_bytes() == before
 
 
+def test_protocol_writer_uses_canonical_json_bytes(tmp_path):
+    path = tmp_path / "protocol.json"
+    write_protocol_document(path, {"ir_version": "1", "protocol": "x",
+                                   "metrics": {"b": 1, "a": "λ"}})
+    assert path.read_text(encoding="utf-8") == (
+        '{\n  "ir_version": "1",\n  "metrics": {\n'
+        '    "a": "λ",\n    "b": 1\n  },\n  "protocol": "x"\n}\n'
+    )
+
+
 def test_generic_json_writer_is_canonical_finite_and_create_only(tmp_path):
     path = tmp_path / "report.json"
     write_json_document(path, {"b": 1, "a": "\u03bb"})

@@ -98,11 +98,7 @@ def write_json_document(path: str | Path, document: dict[str, Any]) -> None:
     """
     if not isinstance(document, dict):
         raise TypeError("JSON documents must be mappings")
-    try:
-        text = json.dumps(document, indent=2, ensure_ascii=False,
-                          allow_nan=False, sort_keys=True) + "\n"
-    except (TypeError, ValueError, OverflowError) as exc:
-        raise ValueError(f"document is not finite JSON: {exc}") from exc
+    text = _encode_json_document(document)
     path = Path(path)
     path.parent.mkdir(parents=True, exist_ok=True)
     with path.open("x", encoding="utf-8") as stream:
@@ -113,8 +109,13 @@ def write_protocol_document(path: str | Path, doc: dict[str, Any]) -> None:
     errors = validate_protocol_document(doc)
     if errors:
         raise ValueError(errors)
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
-    text = json.dumps(doc, indent=2, ensure_ascii=False, allow_nan=False) + "\n"
-    with path.open("x", encoding="utf-8") as stream:
-        stream.write(text)
+    write_json_document(path, doc)
+
+
+def _encode_json_document(document: dict[str, Any]) -> str:
+    """Encode one finite JSON mapping with the repository's canonical policy."""
+    try:
+        return (json.dumps(document, indent=2, ensure_ascii=False,
+                           allow_nan=False, sort_keys=True) + "\n")
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"document is not finite JSON: {exc}") from exc
