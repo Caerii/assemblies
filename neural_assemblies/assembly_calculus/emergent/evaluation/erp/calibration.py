@@ -344,7 +344,7 @@ def calibrate_erp_thresholds(
     *,
     frames: Optional[List[CalibrationFrame]] = None,
     grammatical_sentences: Optional[List[List[str]]] = None,
-    critical_position: int = 3,
+    critical_position: Optional[int] = None,
     ensure_prediction: bool = True,
     probe_depth: str = "calibration",
     fast: bool = False,
@@ -359,6 +359,10 @@ def calibrate_erp_thresholds(
     threshold changes only classification; it cannot change an already
     observed N400/P600 quantity.
     """
+    if critical_position is not None and (
+        type(critical_position) is not int or critical_position < 0
+    ):
+        raise ValueError("critical_position must be a nonnegative integer or None")
     if ensure_prediction:
         _ensure_minimal_prediction_bridges(parser)
 
@@ -400,7 +404,7 @@ def calibrate_erp_thresholds(
     raw_samples = collect_frame_samples(
         parser,
         frames,
-        critical_position=None,
+        critical_position=critical_position,
         readiness=readiness,
         baseline=baseline,
         thresholds=fb,

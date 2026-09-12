@@ -72,6 +72,15 @@ def test_threshold_tuning_has_no_ignored_baseline_parameter():
     ).parameters
 
 
+@pytest.mark.parametrize("position", [-1, True, 1.5, "3"])
+def test_calibration_rejects_invalid_critical_position(position):
+    with pytest.raises(ValueError, match="critical_position"):
+        calibrate_erp_thresholds(
+            SimpleNamespace(), ensure_prediction=False,
+            critical_position=position,
+        )
+
+
 def test_calibration_observes_frames_once(monkeypatch):
     """Tuning must not become a hidden second training schedule."""
     from neural_assemblies.assembly_calculus.emergent.evaluation.erp import calibration
@@ -99,8 +108,10 @@ def test_calibration_observes_frames_once(monkeypatch):
     monkeypatch.setattr(calibration, "collect_frame_samples", collect_once)
     calibration.calibrate_erp_thresholds(
         SimpleNamespace(), ensure_prediction=False, fast=False,
+        critical_position=7,
     )
     assert len(calls) == 1
+    assert calls[0][1]["critical_position"] == 7
 
 
 class TestErpCalibration:

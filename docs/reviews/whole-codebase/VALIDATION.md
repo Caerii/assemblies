@@ -5903,3 +5903,9 @@ pre-penalty drive. A direct explicit-engine contract test passes.
 The sparse growth edge writer no longer receives the target name it never uses;
 the target remains represented by the already-selected connection object. CSR
 drive-cache tests pass **6 tests**, covering the expansion path.
+
+### ERP critical-position contract (2026-09-12)
+
+`calibrate_erp_thresholds` now threads an explicitly supplied critical position
+into frame collection; `None` preserves dynamic per-frame selection. Invalid
+positions fail before parser access, and five calibration tests pass.
