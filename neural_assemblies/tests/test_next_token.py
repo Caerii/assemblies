@@ -23,6 +23,8 @@ Prediction:
 import time
 
 import pytest
+from neural_assemblies.assembly_calculus.assembly import Assembly
+from neural_assemblies.assembly_calculus.contracts import NextTokenPredictionPlan
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.next_token import (
@@ -121,6 +123,14 @@ def test_scoring_rejects_unknown_word_before_prediction(monkeypatch):
     with pytest.raises(KeyError, match="missing from stimuli_map"):
         score_corpus(
             brain, "LEX", [["the", "unknown"]], {"the": "stim_the"}, {},
+        )
+
+
+def test_prediction_rejects_lexicon_from_another_area():
+    with pytest.raises(ValueError, match="prediction area"):
+        NextTokenPredictionPlan(
+            "LEX", ("the",), {"the": "stim_the"},
+            {"the": Assembly("OTHER", [])},
         )
 
 

@@ -178,6 +178,8 @@ class NextTokenScorePlan:
         object.__setattr__(self, "rounds_per_token", training.rounds_per_token)
         if not isinstance(self.lexicon, Mapping) or any(not isinstance(value, Assembly) for value in self.lexicon.values()):
             raise TypeError("score lexicon must map labels to Assembly snapshots")
+        if any(value.area != self.area for value in self.lexicon.values()):
+            raise ValueError("score lexicon snapshots must belong to the scoring area")
 
     def preflight(self, brain) -> None:
         NextTokenTrainingPlan(
@@ -276,8 +278,13 @@ class NextTokenPredictionPlan:
             raise TypeError("prediction stimuli_map must be a mapping")
         if any(word not in self.stimuli_map for word in self.context):
             raise KeyError("prediction context contains a word missing from stimuli_map")
+        if any(not isinstance(self.stimuli_map[word], str) or not self.stimuli_map[word]
+               for word in self.context):
+            raise ValueError("prediction stimuli must be nonempty names")
         if not isinstance(self.lexicon, Mapping) or any(not isinstance(value, Assembly) for value in self.lexicon.values()):
             raise TypeError("prediction lexicon must map labels to Assembly snapshots")
+        if any(value.area != self.area for value in self.lexicon.values()):
+            raise ValueError("prediction lexicon snapshots must belong to the prediction area")
         if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
             raise ValueError("rounds_per_token must be a positive integer")
         _explicit_bool("adapt", self.adapt)

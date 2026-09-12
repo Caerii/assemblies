@@ -5035,3 +5035,12 @@ materialization, recurrence, rounds, and seed are admitted before the read-only
 probe. The observation denominator and null/failed-recovery outcomes remain
 explicit. Noise-robustness, operation-contract, and lazy-import tests pass:
 **201 passed**; Ruff is clean.
+
+## Next-token area identity hardening (2026-09-11)
+
+Prediction and scoring plans now require every lexicon Assembly snapshot to
+belong to the target area and every context stimulus to be a nonempty name.
+This prevents cross-area overlap from producing a plausible but meaningless
+next-token metric. Added a direct wrong-area true negative. Next-token and
+operation-contract tests pass: **171 passed**; Ruff and evidence checks are
+clean.
