@@ -11,7 +11,7 @@ from dataclasses import dataclass, field
 from typing import Dict, List, Optional, Sequence, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
-    from ..parser_mixins.core import CoreParserMixin
+    from ..parser import EmergentParser
     from ..core.corpus_index import BridgeTransition, CorpusIndex
     from ..curriculum.dialogue import DialoguePair
     from ..training.compiled import CompiledTopologySpec
@@ -85,7 +85,7 @@ class CompiledRolePlan:
 
 
 def compile_role_plan(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
     repetitions: int,
 ) -> CompiledRolePlan:
@@ -135,7 +135,7 @@ class CompiledLexiconPlan:
 
 
 def compile_lexicon_plan(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     *,
     holdout_words: Optional[set] = None,
     skip_known: bool = True,
@@ -212,7 +212,7 @@ def compile_bridge_ops(
 
 
 def compile_training_plan(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
     *,
     transitions: Optional[Sequence["BridgeTransition"]] = None,
@@ -256,7 +256,7 @@ def group_bridge_ops_by_prefix(
 
 
 def compile_dialogue_pairs(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     pairs: Sequence["DialoguePair"],
 ) -> "CorpusIndex":
     """Compile Q→A pairs into bridge transitions (question context → answer word)."""
@@ -312,7 +312,7 @@ def compile_dialogue_pairs(
 
 
 def link_preallocate_stim_targets(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     area_names: Sequence[str],
 ) -> None:
     """Pre-grow stim→area 1-D vectors to current ever-fired depth."""

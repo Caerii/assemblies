@@ -6417,3 +6417,7 @@ Learned word-order gating now declares its composed parser surface: brain and tr
 ### Optional distributional oracle boundary gate (2026-09-12)
 
 `category_oracle` now treats distributional categories, statistics, and the classifier as an optional parser capability. It reads those components through one guarded boundary and skips them when the composed parser does not provide them, rather than exposing hidden mandatory attributes after an `hasattr` check. Pyright reports **0 diagnostics**; dialogue tests pass **5 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Compiled training parser surface gate (2026-09-12)
+
+Training compiler entry points now consistently require the fully composed `EmergentParser`, matching the topology helpers they call. The previous mixed `CoreParserMixin`/`EmergentParser` annotations made valid composed calls fail static checking and obscured the actual dependency boundary. Pyright reports **0 diagnostics**; topology-linking/performance tests pass **4 tests** (with expected sampled-recurrence warnings), and `git diff --check` is clean.
