@@ -132,28 +132,12 @@ def train(parser):
     return parser
 
 
+from research.experiments.role_guards import role_guards as _role_guards
+
 def guards(parser):
-    out = {"roles_ok": 0, "roles_total": 0}
-    for text, expected in ROLE_PROBES:
-        roles, _diag = parser.parse_roles_by_reconstruction(text.split())
-        for w, want in expected.items():
-            out["roles_total"] += 1
-            out["roles_ok"] += roles.get(w) == want
-    _r1, d1 = parser.parse_roles_by_reconstruction(
-        "the dog chases the cat".split())
-    _r2, d2 = parser.parse_roles_by_reconstruction(
-        "the cat is chased by the dog".split())
-    out["c1_identical"] = bool(d1["winners"]) and d1["winners"] == d2["winners"]
-    _r3, d3 = parser.parse_roles_by_reconstruction(
-        "the child enters the mouse".split())
-    _r4, d4 = parser.parse_roles_by_reconstruction(
-        "the child is entered by the mouse".split())
-    common = set(d3["winners"]) & set(d4["winners"])
-    out["c2"] = (sum(
-        len(set(d3["winners"][r]) & set(d4["winners"][r]))
-        / max(1, len(d3["winners"][r])) for r in common) / len(common)
-        if common else None)
-    return out
+    """Run role-probe controls for this study."""
+    return _role_guards(parser, ROLE_PROBES)
+
 
 
 def run_cell(arm: str, seed: int) -> dict:

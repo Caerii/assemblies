@@ -5101,3 +5101,7 @@ Five primitive ERP studies carried the same SVO sampling loop, with only their d
 ### Matched ERP triple deduplication (2026-09-11)
 
 Three primitive ERP studies carried the same deterministic matched-triple constructor. `matched_stimuli.py` now owns the protocol, while each study passes its declared noun, verb, and novel-noun inventories through a compatibility wrapper. The helper explicitly preserves seed-independent indexing, rejects invalid counts, and enforces the no-self-patient invariant. Three duplicate implementations were removed; latent unused-variable and formatting smells in the touched incremental study were cleared. Invariants and compilation pass; Ruff and diff checks are clean.
+
+### Role guard deduplication (2026-09-11)
+
+`scaled_feature_recall.py` and `surprise_gain_recall.py` carried the same role-probe controls, including the active/passive equivalence and transitive-role overlap checks. `role_guards.py` now owns that control protocol; each study passes its own declared probe inventory. The helper smoke test confirms expected counts, equivalence, and overlap output. Both study modules compile; Ruff and diff checks pass. This removes 43 duplicated lines while keeping the two experimental arms and measurements separate.
