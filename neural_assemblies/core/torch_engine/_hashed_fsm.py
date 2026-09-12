@@ -30,6 +30,8 @@ from typing import Dict, Sequence, Tuple
 
 import torch
 
+from ._torch_ops import torch_ops
+
 from ._arc_core import HashedArcCore
 from ._hashed_transducer import StackedStimuli
 
@@ -87,14 +89,14 @@ class HashedArcFSM:
                                   norm_init=norm_init, max_rounds=max_potentiations,
                                   device=device, zero_or_size=zero_or_size)
         # the assigned code: [n_states, k] compact indices, one block per state
-        self.blocks = torch.arange(len(self.states) * self.k, device=device,
-                                   dtype=torch.int64).view(len(self.states), self.k)
+        self.blocks = torch_ops.arange(len(self.states) * self.k, device=device,
+                                   dtype=torch_ops.int64).view(len(self.states), self.k)
 
     # -- helpers ---------------------------------------------------------------
     def _idx(self, x, index):
         if isinstance(x, str):
-            return torch.full((self.B,), index[x], dtype=torch.int64, device=self.device)
-        return torch.as_tensor(x, dtype=torch.int64, device=self.device)
+            return torch_ops.full((self.B,), index[x], dtype=torch_ops.int64, device=self.device)
+        return torch_ops.as_tensor(x, dtype=torch_ops.int64, device=self.device)
 
     def cue_state(self, state) -> None:
         """Set STATE's winners to the assigned block of `state` (a name, or
@@ -105,7 +107,7 @@ class HashedArcFSM:
         """[B] index of the block STATE's current winners overlap most."""
         w = self.state.winners
         hit = (w.unsqueeze(1) // self.k).eq(
-            torch.arange(len(self.states), device=self.device).view(1, -1, 1))
+            torch_ops.arange(len(self.states), device=self.device).view(1, -1, 1))
         # winners outside every block (if any) count for no state
         inside = (w < len(self.states) * self.k).unsqueeze(1)
         return (hit & inside).sum(2).argmax(1)
@@ -139,11 +141,11 @@ class HashedArcFSM:
         indices, -1 where idle. Frozen throughout, from an inhibited arc."""
         self.arc.inhibit()
         self.cue_state(start_state)
-        out = torch.full_like(symbols, -1)
+        out = torch_ops.full_like(symbols, -1)
         for t in range(symbols.shape[1]):
             got = self.step(symbols[:, t])
             live = symbols[:, t] >= 0
-            out[:, t] = torch.where(live, got, out[:, t])
+            out[:, t] = torch_ops.where(live, got, out[:, t])
         return out
 
     def check(self) -> None:
