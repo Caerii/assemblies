@@ -1,68 +1,78 @@
-"""Typed runtime namespace for PyTorch generated operators.
+"""Typed runtime namespace for PyTorch's generated operator surface.
 
-PyTorch's tensor and generator classes are typed by its stubs, but many
-factory/operator names are generated dynamically and are invisible to static
-checkers.  Keeping those values behind this narrow protocol makes the runtime
-surface explicit without replacing ``torch`` as the type namespace.
+PyTorch wheels expose many factory/operator names dynamically, while tensor
+and generator classes remain useful type anchors.  This protocol makes the
+runtime boundary explicit without replacing ``torch`` as the type namespace.
+The cast is erased at runtime: ``torch_ops`` is the imported torch module.
 """
 from typing import Any, Callable, Protocol, cast
+
 import torch as _torch
+
+TensorCall = Callable[..., _torch.Tensor]
+
 
 class _SparseNamespace(Protocol):
     coo: Any
     csr: Any
-    mm: Callable[..., Any]
+    mm: TensorCall
+
 
 class TorchOps(Protocol):
     sparse: _SparseNamespace
     sparse_coo: Any
-    int64: Any
-    int32: Any
+    cuda: Any
+    Generator: Any
+    device: Any
+
+    # Dtypes and layout sentinels are dynamically exposed values.
+    bool: Any
     bfloat16: Any
     float32: Any
     float64: Any
-    bool: Any
-    cat: Callable[..., Any]
-    stack: Callable[..., Any]
-    zeros: Callable[..., Any]
-    zeros_like: Callable[..., Any]
-    arange: Callable[..., Any]
-    topk: Callable[..., Any]
-    sparse_csr_tensor: Callable[..., Any]
-    sparse_coo_tensor: Callable[..., Any]
-    tensor: Callable[..., Any]
-    from_numpy: Callable[..., Any]
-    meshgrid: Callable[..., Any]
-    gather: Callable[..., Any]
-    argsort: Callable[..., Any]
-    sort: Callable[..., Any]
-    cumsum: Callable[..., Any]
-    empty_like: Callable[..., Any]
-    ones_like: Callable[..., Any]
-    unique_consecutive: Callable[..., Any]
-    bmm: Callable[..., Any]
-    maximum: Callable[..., Any]
-    int16: Any
     int8: Any
-    einsum: Callable[..., Any]
-    full: Callable[..., Any]
-    as_tensor: Callable[..., Any]
-    device: Callable[..., Any]
-    Generator: Any
+    int16: Any
+    int32: Any
+    int64: Any
     long: Any
-    normal: Callable[..., Any]
-    rand: Callable[..., Any]
+
+    # Tensor-returning factories/operators.
+    arange: TensorCall
+    as_tensor: TensorCall
+    bmm: TensorCall
+    cat: TensorCall
+    cumsum: TensorCall
+    empty: TensorCall
+    empty_like: TensorCall
+    einsum: TensorCall
     erfinv: Callable[..., Any]
+    full: TensorCall
+    full_like: TensorCall
+    from_numpy: TensorCall
+    gather: TensorCall
+    isin: TensorCall
+    maximum: TensorCall
+    normal: TensorCall
+    ones: TensorCall
+    ones_like: TensorCall
+    rand: Callable[..., Any]
+    repeat_interleave: TensorCall
+    sparse_coo_tensor: TensorCall
+    sparse_csr_tensor: TensorCall
+    stack: TensorCall
+    tensor: TensorCall
+    where: TensorCall
+    zeros: TensorCall
+    zeros_like: TensorCall
+
+    # Structured-return operations are intentionally left open until their
+    # per-call result contracts are modeled (indices/values/inverse maps).
+    argsort: Callable[..., Any]
+    meshgrid: Callable[..., Any]
+    sort: Callable[..., Any]
     topk: Callable[..., Any]
-    where: Callable[..., Any]
-    full_like: Callable[..., Any]
-    empty: Callable[..., Any]
-    cuda: Any
-    empty: Callable[..., Any]
-    ones: Callable[..., Any]
-    zeros_like: Callable[..., Any]
-    repeat_interleave: Callable[..., Any]
-    isin: Callable[..., Any]
+    unique_consecutive: Callable[..., Any]
+
 
 torch_ops = cast(TorchOps, _torch)
-__all__ = ["TorchOps", "torch_ops"]
+__all__ = ["TensorCall", "TorchOps", "torch_ops"]
