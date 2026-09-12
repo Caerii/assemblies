@@ -6,14 +6,16 @@ Uses custom CUDA kernels for fast learning.
 """
 
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Tuple
 import time
 
-# Try to import PyTorch for GPU acceleration
+from neural_assemblies.core._torch_ops import torch_ops
+
+# Probe capability through the shared lazy boundary.  Importing this module
+# remains safe on CPU-only installations; construction is CUDA-gated below.
 try:
-    import torch
-    HAS_TORCH = torch.cuda.is_available()
-except ImportError:
+    HAS_TORCH = bool(torch_ops.cuda.is_available())
+except (ImportError, AttributeError, RuntimeError):
     HAS_TORCH = False
 
 
@@ -39,7 +41,7 @@ class GPUAssemblyLearner:
         self.p = p
         self.beta = beta
         self.verbose = verbose
-        self.device = torch.device('cuda')
+        self.device = torch_ops.device("cuda")
         
         # Initialize weight matrices on GPU
         # LEX <-> CORE, VISUAL <-> CORE
@@ -52,35 +54,34 @@ class GPUAssemblyLearner:
         self.W_core_to_core = self._init_weights(n, n)
         
         # Activations buffer
-        self.activations = torch.zeros(n, device=self.device, dtype=torch.float32)
+        self.activations = torch_ops.zeros(n, device=self.device, dtype=torch_ops.float32)
         
         # Track learned words
-        self.word_assemblies: Dict[str, torch.Tensor] = {}
-        self.visual_assemblies: Dict[str, torch.Tensor] = {}
+        self.word_assemblies: Dict[str, Any] = {}
+        self.visual_assemblies: Dict[str, Any] = {}
         self.word_exposures: Dict[str, int] = {}
         
         if verbose:
-            print(f"GPU Assembly Learner initialized on {torch.cuda.get_device_name()}")
+            print(f"GPU Assembly Learner initialized on {torch_ops.cuda.get_device_name()}")
             print(f"  n={n}, k={k}, p={p}, beta={beta}")
             mem_mb = (5 * n * n * 4) / (1024 * 1024)  # 5 weight matrices
             print(f"  GPU memory for weights: {mem_mb:.1f} MB")
     
-    def _init_weights(self, n_in: int, n_out: int) -> torch.Tensor:
+    def _init_weights(self, n_in: int, n_out: int) -> Any:
         """Initialize sparse random weights on GPU"""
         # Sparse initialization: only p fraction of connections
-        W = torch.zeros(n_out, n_in, device=self.device, dtype=torch.float32)
-        mask = torch.rand(n_out, n_in, device=self.device) < self.p
-        W[mask] = torch.randn(mask.sum(), device=self.device) * 0.1
+        W = torch_ops.zeros(n_out, n_in, device=self.device, dtype=torch_ops.float32)
+        mask = torch_ops.rand(n_out, n_in, device=self.device) < self.p
+        W[mask] = torch_ops.randn(mask.sum(), device=self.device) * 0.1
         return W
     
-    def _get_or_create_stimulus(self, concept: str) -> torch.Tensor:
+    def _get_or_create_stimulus(self, concept: str) -> Any:
         """Get or create a stimulus pattern for a concept"""
-        np.random.seed(hash(concept) % (2**32))
-        indices = np.random.choice(self.n, self.k, replace=False)
-        np.random.seed()
-        return torch.tensor(indices, device=self.device, dtype=torch.long)
+        rng = np.random.default_rng(hash(concept) % (2**32))
+        indices = rng.choice(self.n, self.k, replace=False)
+        return torch_ops.tensor(indices, device=self.device, dtype=torch_ops.long)
     
-    def _accumulate_and_topk(self, W: torch.Tensor, active: torch.Tensor) -> torch.Tensor:
+    def _accumulate_and_topk(self, W: Any, active: Any) -> Any:
         """
         GPU-accelerated weight accumulation and top-k selection.
         
@@ -91,11 +92,11 @@ class GPUAssemblyLearner:
         activations = W[:, active].sum(dim=1)  # (n_out,)
         
         # Top-k selection
-        _, top_k_indices = torch.topk(activations, self.k)
+        _, top_k_indices = torch_ops.topk(activations, self.k)
         
         return top_k_indices
     
-    def _hebbian_update(self, W: torch.Tensor, pre: torch.Tensor, post: torch.Tensor):
+    def _hebbian_update(self, W: Any, pre: Any, post: Any):
         """
         GPU-accelerated Hebbian weight update.
         
@@ -127,7 +128,7 @@ class GPUAssemblyLearner:
             core_activations = visual_contrib + lex_contrib
             
             # Select top-k for CORE
-            _, core_active = torch.topk(core_activations, self.k)
+            _, core_active = torch_ops.topk(core_activations, self.k)
             
             # 2. Hebbian update: strengthen VISUAL->CORE and LEX->CORE
             self._hebbian_update(self.W_visual_to_core, grounding_stim, core_active)
@@ -156,11 +157,11 @@ class GPUAssemblyLearner:
         
         # VISUAL -> CORE
         core_activations = self.W_visual_to_core[:, grounding_stim].sum(dim=1)
-        _, core_active = torch.topk(core_activations, self.k)
+        _, core_active = torch_ops.topk(core_activations, self.k)
         
         # CORE -> LEX
         lex_activations = self.W_core_to_lex[:, core_active].sum(dim=1)
-        _, lex_active = torch.topk(lex_activations, self.k)
+        _, lex_active = torch_ops.topk(lex_activations, self.k)
         
         # Check overlap with expected word assembly
         expected_assembly = self.word_assemblies[expected_word]
@@ -197,8 +198,8 @@ def benchmark_cpu_vs_gpu():
         print("PyTorch CUDA not available, skipping GPU benchmark")
         return
     
-    print(f"\nPyTorch CUDA available: {torch.cuda.is_available()}")
-    print(f"GPU: {torch.cuda.get_device_name() if torch.cuda.is_available() else 'N/A'}")
+    print(f"\nPyTorch CUDA available: {torch_ops.cuda.is_available()}")
+    print(f"GPU: {torch_ops.cuda.get_device_name() if torch_ops.cuda.is_available() else 'N/A'}")
     
     # Test configurations - start small
     configs = [
@@ -220,12 +221,12 @@ def benchmark_cpu_vs_gpu():
             
             # Warm up
             gpu_learner.learn_word('warmup', 'NOUN', ['WARMUP'], n_rounds=1)
-            torch.cuda.synchronize()
+            torch_ops.cuda.synchronize()
             print("  Warmup done, timing GPU...")
             
             start = time.perf_counter()
             gpu_learner.learn_word('dog', 'NOUN', ['DOG'], n_rounds=5)
-            torch.cuda.synchronize()
+            torch_ops.cuda.synchronize()
             gpu_time = (time.perf_counter() - start) * 1000
             print(f"  GPU time: {gpu_time:.2f} ms")
         except Exception as e:
