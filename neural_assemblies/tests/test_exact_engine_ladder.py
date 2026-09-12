@@ -52,6 +52,11 @@ def _explicit(norm_init=True, n=N, k=K, seed=SEED):
 class TestL0Substrate:
     """Initial weights must be the SAME NUMBERS, not merely the same law."""
 
+    def test_materialize_rejects_unknown_storage(self):
+        engine = _exact()
+        with pytest.raises(ValueError, match="storage must be"):
+            engine.materialize_area("A", storage="bogus")
+
     def test_stimulus_fiber_cannot_be_compared_elementwise_and_here_is_why(self):
         """The sparse engine's stim fiber is STREAM-drawn, so parity is not
         available on this path -- and that is a defect there, not here.

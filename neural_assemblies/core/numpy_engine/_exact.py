@@ -1150,7 +1150,16 @@ class NumpyExactEngine(ComputeEngine):
                 self._stim_pot[stim][area][:] = 0.0
 
     def materialize_area(self, area: str, storage: str = "csr") -> int:
-        """No-op: every neuron already exists. Present so arbiter code works."""
+        """No-op: every neuron already exists.
+
+        Exact mode has no selectable weight container, but it still validates
+        the shared materialization vocabulary so a misspelled representation
+        cannot pass as a valid protocol.
+        """
+        if storage not in {"csr", "dense"}:
+            raise ValueError(
+                "numpy_exact materialize_area storage must be 'csr' or 'dense'"
+            )
         return self._areas[area].n
 
     @property

@@ -5872,3 +5872,9 @@ protects the reduced API surface.
 The disabled progress sink now names its intentionally discarded event fields as
 private parameters, making the no-op explicit to static analysis and readers.
 The active progress API remains unchanged.
+
+### Exact materialization vocabulary (2026-09-12)
+
+`numpy_exact` validates shared `csr`/`dense` storage names even though every
+neuron is already represented. Unknown storage values now fail before the
+no-op, with a true-negative acceptance-ladder test.
