@@ -5186,3 +5186,12 @@ records its constructor shorthand (`None`) at the declaration boundary while
 normalizing to a full aligned role vector in `__post_init__`. The two pathway
 builders and sentence substrate are Pyright-clean; consolidation tests pass:
 **12 passed**.
+
+### PFA/FSM construction boundary (2026-09-11)
+
+PFA and FSM constructors now canonicalize state and symbol collections to
+lists and reject strings before transition validation. Probabilistic PFAs also
+carry an explicit local invariant that a branching configuration has both a
+choice policy and a constructed choice area; deterministic paths never build
+one. Optional seeds are typed as optional at the public methods. Both modules
+are Pyright/Ruff-clean; PFA and FSM checks pass: **22 passed**.

@@ -91,8 +91,10 @@ class FSMNetwork:
         prefix: str = "_fsm",
     ):
         self.brain = brain
-        states = states if isinstance(states, (str, bytes)) else tuple(states)
-        symbols = symbols if isinstance(symbols, (str, bytes)) else tuple(symbols)
+        if isinstance(states, (str, bytes)) or isinstance(symbols, (str, bytes)):
+            raise TypeError("states and symbols must be ordered collections, not strings")
+        states = list(states)
+        symbols = list(symbols)
         self.transition_map = TransitionMap(transitions).validate_domain(states, symbols, initial_state)
         self.states = list(states)
         self.symbols = list(symbols)

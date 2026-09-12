@@ -38,7 +38,7 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import List, Literal
+from typing import List, Literal, Optional
 import math
 from numbers import Integral, Real
 
@@ -453,15 +453,19 @@ class PFANetwork:
         self.choice = choice
         self.flip_mode = choice.mode if choice is not None else None
 
-        states = states if isinstance(states, (str, bytes)) else tuple(states)
-        symbols = symbols if isinstance(symbols, (str, bytes)) else tuple(symbols)
+        if isinstance(states, (str, bytes)) or isinstance(symbols, (str, bytes)):
+            raise TypeError("states and symbols must be ordered collections, not strings")
+        states = list(states)
+        symbols = list(symbols)
         self.transition_map = TransitionMap(transitions).validate_domain(
             states, symbols, initial_state).validate_probability_mass()
         self._branch_schedules = {key: self.transition_map.branch_schedule(*key)
                                   for key in self.transition_map.keys()}
-        det_transitions = [(state, symbol, schedule[0][0])
-                           for (state, symbol), schedule in self._branch_schedules.items()
-                           if len(schedule) == 1]
+        det_transitions: List[TransitionLike] = [
+            (state, symbol, schedule[0][0])
+            for (state, symbol), schedule in self._branch_schedules.items()
+            if len(schedule) == 1
+        ]
         branching = any(len(schedule) > 1 for schedule in self._branch_schedules.values())
         if branching and choice is None:
             raise ValueError("Branching requires explicit SeedMixtureChoice: transition weights "
@@ -474,7 +478,15 @@ class PFANetwork:
         )
 
         # A deterministic machine has no random-choice population or training.
-        self._coin = choice.build(brain, prefix=f"{prefix}_coin") if branching else None
+        coin = None
+        if branching:
+            # The guard above establishes this invariant before any Brain
+            # construction; keeping it local lets the checker enforce it too.
+            assert choice is not None
+            coin = choice.build(brain, prefix=f"{prefix}_coin")
+            if coin is None:
+                raise RuntimeError("branching PFA failed to construct its choice area")
+        self._coin = coin
 
         self._current_state = initial_state
 
@@ -487,7 +499,7 @@ class PFANetwork:
     def current_state(self) -> str:
         return self._current_state
 
-    def step(self, symbol: str, seed: int = None) -> str:
+    def step(self, symbol: str, seed: Optional[int] = None) -> str:
         """Process one symbol and return the new state.
 
         For deterministic transitions, delegates to the FSM.
@@ -509,14 +521,17 @@ class PFANetwork:
                     self._fsm.state_area, rounds=self._fsm.rounds)
             new_state = self._fsm.step(symbol)
         else:
-            index = self.choice.select_index(self._coin, (weight for _, weight in schedule), seed=seed)
+            choice, coin = self.choice, self._coin
+            if choice is None or coin is None:
+                raise RuntimeError("branching PFA has no configured choice area")
+            index = choice.select_index(coin, (weight for _, weight in schedule), seed=seed)
             new_state = schedule[index][0]
 
         self._current_state = new_state
         return new_state
 
     def run(self, input_symbols: List[str],
-            seed: int = None) -> List[str]:
+            seed: Optional[int] = None) -> List[str]:
         """Process a sequence of symbols.
 
         Args:
