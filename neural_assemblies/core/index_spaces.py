@@ -8,8 +8,10 @@ codebase are both called ``winners``:
   * ``Assembly.winners`` -- STABLE NEURON IDS in ``0..n-1``, produced by mapping
                             compact indices through ``compact_to_neuron_id``.
 
-Both are ``np.ndarray`` of ``uint32``, so mixing them is silently accepted,
-returns a number, and reads as chance. It voided a merge-recall result once
+Both retain NumPy array behavior and ``uint32`` storage, but their branded
+runtime types and static annotations distinguish the spaces at public
+boundaries. Mixing unbranded arrays remains possible, so callers must annotate
+or convert raw values explicitly.
 (the conclusion "merge recall does not hold" was withdrawn only after the index
 spaces were found to differ). The spaces were measured to be COMPLETELY
 DISJOINT, so a cross-space comparison is not merely noisy -- it is meaningless.

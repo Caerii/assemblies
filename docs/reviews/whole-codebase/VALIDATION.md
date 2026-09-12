@@ -5737,3 +5737,10 @@ The `core.index_spaces` module doc now uses explicit same-space overloads and
 no longer teaches the removed `SameSpace` alias. Specification-link and
 maintained evidence validators remain green; focused index tests pass: **8
 passed**. Pyright reports **0 errors**.
+
+### Index-space module preamble reconciliation (2026-09-12)
+
+The index-space module preamble now describes the implemented runtime brands
+and the remaining unbranded-array compatibility boundary, instead of claiming
+that all NumPy arrays are silently indistinguishable. Pyright reports **0
+errors**, the index-space tests pass (**3 passed**), and Ruff/diff checks pass.
