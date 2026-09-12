@@ -53,9 +53,10 @@ Reference:
     BRIDGE_WEBSCALE_CURRICULUM.md, Section 4 (Minimal recipe).
 """
 
-from typing import Dict, List, Tuple
+from typing import Dict, List, Mapping, Sequence, Tuple
 
 from .readout import readout_all, build_lexicon, Lexicon
+from .assembly import Assembly
 from .ops import sequence_memorize, _snap
 from .contracts import (
     LEXICON_BUILD_CONTRACT, NEXT_TOKEN_PREDICTION_CONTRACT,
@@ -66,8 +67,8 @@ from .contracts import (
 
 
 @implements(LEXICON_BUILD_CONTRACT)
-def build_next_token_model(brain, area: str, vocab: List[str],
-                           stimuli_map: Dict[str, str],
+def build_next_token_model(brain, area: str, vocab: Sequence[str],
+                           stimuli_map: Mapping[str, str],
                            rounds: int = 10) -> Lexicon:
     """Build the vocabulary lexicon for next-token prediction.
 
@@ -93,8 +94,8 @@ def build_next_token_model(brain, area: str, vocab: List[str],
 
 
 @implements(NEXT_TOKEN_TRAINING_CONTRACT)
-def train_on_corpus(brain, area: str, corpus: List[List[str]],
-                    stimuli_map: Dict[str, str],
+def train_on_corpus(brain, area: str, corpus: Sequence[Sequence[str]],
+                    stimuli_map: Mapping[str, str],
                     rounds_per_token: int = 5,
                     repetitions: int = 1) -> None:
     """Train the brain on a corpus of sentences.
@@ -134,9 +135,9 @@ def train_on_corpus(brain, area: str, corpus: List[List[str]],
 
 
 @implements(NEXT_TOKEN_PREDICTION_CONTRACT)
-def predict_next_token(brain, area: str, context: List[str],
-                       stimuli_map: Dict[str, str],
-                       lexicon: Lexicon,
+def predict_next_token(brain, area: str, context: Sequence[str],
+                       stimuli_map: Mapping[str, str],
+                       lexicon: Mapping[str, Assembly],
                        rounds_per_token: int = 5,
                        adapt: bool = False) -> List[Tuple[str, float]]:
     """Predict the next token given a context sequence.
@@ -185,9 +186,9 @@ def predict_next_token(brain, area: str, context: List[str],
         )
 
 
-def _predict_next_token_inner(brain, area: str, context: List[str],
-                              stimuli_map: Dict[str, str],
-                              lexicon: Lexicon,
+def _predict_next_token_inner(brain, area: str, context: Sequence[str],
+                              stimuli_map: Mapping[str, str],
+                              lexicon: Mapping[str, Assembly],
                               rounds_per_token: int) -> List[Tuple[str, float]]:
     """Drive the context and read out. See ``predict_next_token``."""
     for i, word in enumerate(context):
@@ -221,9 +222,9 @@ def _predict_next_token_inner(brain, area: str, context: List[str],
 
 
 @implements(NEXT_TOKEN_SCORE_CONTRACT)
-def score_corpus(brain, area: str, corpus: List[List[str]],
-                 stimuli_map: Dict[str, str],
-                 lexicon: Lexicon,
+def score_corpus(brain, area: str, corpus: Sequence[Sequence[str]],
+                 stimuli_map: Mapping[str, str],
+                 lexicon: Mapping[str, Assembly],
                  rounds_per_token: int = 5) -> Dict[str, float]:
     """Score next-token prediction accuracy on a corpus.
 

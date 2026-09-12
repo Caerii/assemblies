@@ -5129,3 +5129,18 @@ The scaled-feature and surprise-gain studies now share `curriculum_training.trai
 ### Pyright stable-ID boundary check (2026-09-11)
 
 The checker audit found four diagnostics in `Arbitration.ratio`: its arm container was typed as `object` even though the protocol intentionally accepts scalar or sequence metrics. Changing it to `Any` documents that heterogeneous boundary without weakening the index-space types. Pyright now reports zero errors for `index_spaces`, `Assembly`, and `diagnostics`; Assembly Calculus and area registration checks pass: **230 passed**; Ruff and diff checks are clean.
+
+### Public calculus type-boundary pass (2026-09-11)
+
+The package-wide Pyright pass exposed several real boundary mismatches in the
+new contract-backed operations. Attention now constructs its result through the
+stable `NeuronIds` type; cue replacement no longer rebinds a typed population
+parameter to an untyped plan field; association normalizes its optional cofire
+count through an integer property and casts validated optional stimuli at the
+construction boundary; and the readout/next-token APIs accept the immutable
+`Mapping`/`Sequence` inputs their plans already require. The contract decorator
+records metadata through an explicitly typed dynamic attribute. The remaining
+853 diagnostics are concentrated in legacy emergent mixin multiple-inheritance
+typing and are not part of these public calculus contracts. Contract and
+attention tests pass: **175 passed**; `compileall`, Ruff, and `git diff --check`
+are clean.

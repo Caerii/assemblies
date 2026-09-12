@@ -9,7 +9,7 @@ import math
 from numbers import Integral, Real
 import random
 from types import MappingProxyType
-from typing import Callable, Mapping
+from typing import Any, Callable, Mapping, cast
 
 import numpy as np
 
@@ -482,8 +482,8 @@ class AssociationPlan:
     @property
     def steps(self) -> tuple[ProjectionStep, ...]:
         joint_stimuli = () if self.fix_sources else (
-            (self.stim_a, (self.source_a,)),
-            (self.stim_b, (self.source_b,)),
+            (cast(str, self.stim_a), (self.source_a,)),
+            (cast(str, self.stim_b), (self.source_b,)),
         )
         source_a_targets = (
             (self.target,) if self.fix_sources else (self.source_a, self.target)
@@ -502,8 +502,13 @@ class AssociationPlan:
         return (
             self._single_source_steps(self.source_a, self.stim_a)
             + self._single_source_steps(self.source_b, self.stim_b)
-            + (joint,) * self.cofire_rounds
+            + (joint,) * self.cofire_count
         )
+
+    @property
+    def cofire_count(self) -> int:
+        """Normalized cofire count after validation."""
+        return int(self.cofire_rounds or 0)
 
     def preflight(self, brain) -> None:
         for name in (self.source_a, self.source_b, self.target):
@@ -1972,6 +1977,6 @@ OPERATION_CONTRACTS = MappingProxyType({
 def implements(contract: OperationContract) -> Callable:
     """Attach the exact contract object to its public implementation."""
     def decorate(operation: Callable) -> Callable:
-        operation.operation_contract = contract
+        cast(Any, operation).operation_contract = contract
         return operation
     return decorate

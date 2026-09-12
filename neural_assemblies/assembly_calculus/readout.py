@@ -31,7 +31,7 @@ Reference:
     arXiv:2306.15364.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 from .assembly import Assembly, overlap
 from .ops import project
@@ -39,7 +39,7 @@ from .contracts import LEXICON_BUILD_CONTRACT, READOUT_CONTRACT, LexiconBuildPla
 
 
 # Type alias: word string → Assembly snapshot
-Lexicon = Dict[str, Assembly]
+Lexicon = Mapping[str, Assembly]
 
 
 @implements(READOUT_CONTRACT)
@@ -110,8 +110,8 @@ def readout_all(assembly: Assembly,
 
 
 @implements(LEXICON_BUILD_CONTRACT)
-def build_lexicon(brain, area: str, words: List[str],
-                  stimuli_map: Dict[str, str],
+def build_lexicon(brain, area: str, words: Sequence[str],
+                  stimuli_map: Mapping[str, str],
                   rounds: int = 10) -> Lexicon:
     """Build a lexicon by projecting each word's stimulus into an area.
 

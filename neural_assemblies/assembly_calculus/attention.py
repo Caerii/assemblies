@@ -16,6 +16,7 @@ from typing import Mapping
 import numpy as np
 
 from .assembly import Assembly, overlap
+from ..core.index_spaces import NeuronIds
 from .contracts import ATTENTION_CONTRACT, AttentionPlan, implements
 
 
@@ -109,7 +110,7 @@ def attend(
             neuron = int(neuron_id)
             support[neuron] = support.get(neuron, 0.0) + candidate.weight
     ranked_neurons = sorted(support, key=lambda neuron: (-support[neuron], neuron))
-    output = Assembly(value_area, ranked_neurons[:plan.output_size])
+    output = Assembly(value_area, NeuronIds(np.asarray(ranked_neurons[:plan.output_size], dtype=np.uint32)))
     return AttentionResult(
         query_area=query.area,
         value_area=value_area,

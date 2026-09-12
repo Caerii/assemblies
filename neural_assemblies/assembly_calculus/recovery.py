@@ -18,10 +18,11 @@ def replace_neurons(reference: Assembly, *, population: NeuronIds, count: int, s
     Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-cue-replacement
     """
     plan = CueReplacementPlan(reference, population, count, seed)
-    reference, population = plan.reference, plan.population
+    reference = plan.reference
+    population_values = plan.population
     count, seed = plan.count, plan.seed
     original = np.sort(validated_indices(reference.neuron_ids, unique=True))
-    universe = np.sort(validated_indices(population, unique=True))
+    universe = np.sort(validated_indices(population_values, unique=True))
     alternatives = np.setdiff1d(universe, original, assume_unique=True)
     rng = np.random.default_rng(int(seed))
     positions = rng.permutation(len(original))[:int(count)]
