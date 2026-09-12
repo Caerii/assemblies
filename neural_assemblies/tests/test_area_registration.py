@@ -266,6 +266,26 @@ def test_direct_numpy_engines_share_beta_registration_validation(engine_name):
     assert not engine._areas
 
 
+@pytest.mark.parametrize('engine_name', ['numpy_sparse', 'numpy_exact', 'numpy_explicit'])
+def test_direct_numpy_engines_validate_runtime_policy_before_mutation(engine_name):
+    from neural_assemblies import TopKPolicy
+    from neural_assemblies.core.numpy_engine import (
+        NumpyExactEngine, NumpyExplicitEngine, NumpySparseEngine,
+    )
+    engine = {
+        'numpy_sparse': NumpySparseEngine,
+        'numpy_exact': NumpyExactEngine,
+        'numpy_explicit': NumpyExplicitEngine,
+    }[engine_name](p=.1)
+    engine.add_area('A', 4, 2, .1)
+    assert engine._areas['A'].winner_policy is None
+    with pytest.raises(TypeError, match='competition policy'):
+        engine.set_competition_policy('A', object())
+    with pytest.raises(ValueError, match='population'):
+        engine.set_competition_policy('A', TopKPolicy(k=5))
+    assert engine._areas['A'].winner_policy is None
+
+
 @pytest.mark.parametrize('path', ['primary', 'auxiliary', 'direct'])
 def test_runtime_policy_cannot_bypass_slot_contract(path):
     from neural_assemblies import ThresholdPolicy

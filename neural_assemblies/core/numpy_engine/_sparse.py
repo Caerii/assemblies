@@ -53,11 +53,11 @@ from ..semantics import (
 try:
     from ...compute.sparse_simulation import SparseSimulationEngine
     from ...compute.winner_selection import WinnerSelector
-    from ...compute.winner_policies import TopKPolicy
+    from ...compute.winner_policies import TopKPolicy, validate_competition_policy
 except ImportError:
     from compute.sparse_simulation import SparseSimulationEngine
     from compute.winner_selection import WinnerSelector
-    from compute.winner_policies import TopKPolicy
+    from compute.winner_policies import TopKPolicy, validate_competition_policy
 
 from ._growth import GrowthMixin, _self_fiber_deferred_init  # noqa: F401
 from ._kwta_prune import (
@@ -2689,6 +2689,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     def set_competition_policy(self, area: str, policy) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy"""
+        validate_competition_policy(self._areas[area].n, policy)
         self._areas[area].winner_policy = policy
 
     def set_beta(self, target: str, source: str, beta: float) -> None:

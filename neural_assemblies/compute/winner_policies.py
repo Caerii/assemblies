@@ -159,3 +159,28 @@ class EPercentPolicy:
 
 
 WinnerPolicy = TopKPolicy | ThresholdPolicy | RelativeThresholdPolicy | EPercentPolicy
+
+
+def validate_competition_policy(population: int, policy: WinnerPolicy | None) -> None:
+    """Validate a policy against an area's population before state mutation.
+
+    This is the single runtime boundary used by :class:`Brain` and every
+    compute backend.  Policy constructors validate their own fields; this
+    validator checks the contextual constraint that only the owning area can
+    know (a winner cap cannot exceed its population).
+
+    Specification: ``neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy``
+    """
+    if policy is None:
+        return
+    known = (TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, EPercentPolicy)
+    if not isinstance(policy, known):
+        raise TypeError(
+            "competition policy must be TopKPolicy, ThresholdPolicy, "
+            "RelativeThresholdPolicy, EPercentPolicy, or None"
+        )
+    capped = getattr(policy, "k", None)
+    if capped is None:
+        capped = getattr(policy, "max_winners", None)
+    if capped is not None and capped > population:
+        raise ValueError("competition policy winner cap cannot exceed area population")

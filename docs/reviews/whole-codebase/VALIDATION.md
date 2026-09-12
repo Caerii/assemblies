@@ -7009,7 +7009,7 @@ Added `validate_refraction_strength` to the homeostasis owner and applied it bef
 `Brain.set_masked_readout` now rejects nonboolean flags before resolving backend state and stores the validated value without truthiness coercion. This prevents values such as `1` or `"false"` from silently selecting a different refraction readout protocol. Validation: refraction suite 12 passed; Pyright on Brain and homeostasis 0 errors/warnings/information.
 ## Competition policy boundary validation (2026-09-12)
 
-Added a shared Brain-side validator for competition policies. Area registration and runtime updates now accept only the supported policy objects or `None`, and reject winner caps larger than the population before mutating Brain/backend state. Validation: area-registration plus winner-policy suites 235 passed; Pyright on Brain 0 errors/warnings/information.
+Added a shared Brain-side validator for competition policies. Area registration and runtime updates now accept only the supported policy objects or `None`, and reject winner caps larger than the population before mutating Brain/backend state. Validation: area-registration plus winner-policy suites 246 passed; Pyright on Brain 0 errors/warnings/information.
 ## Emergent parser boolean configuration (2026-09-12)
 
 `CoreParserMixin` now validates `fast_training`, `norm_init`, `synaptic_scaling_deferred`, and `split_feature_areas` as explicit booleans (with `None` retained only where the API defines an automatic default). Truthy nonbooleans can no longer silently select a different training or feature-area protocol. Validation: split-feature suite 13 passed; Pyright 0 errors/warnings/information.
@@ -7022,3 +7022,6 @@ Applied `validate_plasticity_rate` to NumPy sparse, NumPy exact, NumPy explicit,
 ## Runtime refraction validation parity (2026-09-12)
 
 Applied the shared refraction-strength validator and exact boolean check to the abstract engine boundary, NumPy sparse backend, and Torch backend. Direct backend runtime controls now reject malformed refraction settings consistently with Brain before mutating area state. Validation: homeostasis suite 13 passed; Pyright on engine backends 0 errors/warnings/information.
+## Direct-engine competition policy parity (2026-09-12)
+
+Moved contextual competition-policy validation into `compute.winner_policies.validate_competition_policy` and routed Brain, NumPy sparse/exact/explicit, and Torch runtime setters through it. Direct backend calls now reject unknown policy objects and population-exceeding caps before state mutation, closing a bypass in which the facade and backend accepted different protocols. Validation: area-registration plus winner-policy suites 246 passed; Pyright on winner policies, Brain, and all four engine modules 0 errors/warnings/information; `git diff --check` clean.

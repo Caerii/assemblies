@@ -1963,22 +1963,8 @@ class Brain:
     @staticmethod
     def _validate_competition_policy(population: int, policy) -> None:
         """Validate a policy before either Brain or backend state changes."""
-        if policy is None:
-            return
-        from ..compute.winner_policies import (
-            EPercentPolicy, RelativeThresholdPolicy, ThresholdPolicy, TopKPolicy,
-        )
-        known = (TopKPolicy, ThresholdPolicy, RelativeThresholdPolicy, EPercentPolicy)
-        if not isinstance(policy, known):
-            raise TypeError(
-                "competition policy must be TopKPolicy, ThresholdPolicy, "
-                "RelativeThresholdPolicy, EPercentPolicy, or None"
-            )
-        capped = getattr(policy, "k", None)
-        if capped is None:
-            capped = getattr(policy, "max_winners", None)
-        if capped is not None and capped > population:
-            raise ValueError("competition policy winner cap cannot exceed area population")
+        from ..compute.winner_policies import validate_competition_policy
+        validate_competition_policy(population, policy)
 
     def set_input_noise(self, area_name: str, std: float) -> None:
         """Set Gaussian pre-selection noise on the executing owner.

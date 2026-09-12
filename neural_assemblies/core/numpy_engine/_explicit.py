@@ -384,6 +384,8 @@ class NumpyExplicitEngine(ComputeEngine):
     def set_competition_policy(self, area: str, policy) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy"""
         state = self._areas[area]
+        from ...compute.winner_policies import validate_competition_policy
+        validate_competition_policy(state.n, policy)
         validate_slot_configuration(state.n, state.slot_count, policy)
         state.winner_policy = policy
 
