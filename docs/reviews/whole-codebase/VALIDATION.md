@@ -5472,3 +5472,10 @@ result artifact through the canonical finite, exclusive writer. Its mass
 readout, seed/cell organization, and output schema are unchanged; reruns
 cannot silently replace the evidence. Compilation, Ruff, and both
 result-writer ratchets pass: **2 passed**.
+### Episode-budget recall writer migration (2026-09-12)
+
+The registered episode-budget sweep now publishes its fixed result artifact
+through the canonical finite, exclusive writer. Its budget/mechanism cells,
+reference comparisons, and output schema are unchanged; reruns cannot
+silently replace the evidence. Compilation, Ruff, and both result-writer
+ratchets pass: **2 passed**.

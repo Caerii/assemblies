@@ -6,7 +6,6 @@
     "research/experiments/coin_fairness_study.py": 2,
     "research/experiments/competition_dynamics.py": 1,
     "research/experiments/dead_fiber_hunt.py": 1,
-    "research/experiments/episode_budget_recall.py": 1,
     "research/experiments/erp_pathway_vs_area_binding.py": 1,
     "research/experiments/fetch_childes_brown.py": 1,
     "research/experiments/flush_rate_sweep.py": 1,

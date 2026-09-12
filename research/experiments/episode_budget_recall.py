@@ -40,10 +40,10 @@ need more than 200.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 from collections import defaultdict
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
@@ -51,6 +51,8 @@ os.environ.setdefault("TRAIN_PROGRESS", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 SEEDS = list(range(42, 52))
 BUDGETS = (100, 200)
@@ -170,9 +172,10 @@ def main():
     for (budget, mech, seed), res in cell_results.items():
         results[f"b{budget}:{mech}"][seed] = res
 
-    with open(OUT_PATH, "w") as f:
-        json.dump({c: {str(s): v for s, v in by.items()}
-                   for c, by in results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        c: {str(s): v for s, v in by.items()}
+        for c, by in results.items()
+    })
 
     if len(SEEDS) < 3:
         print("\n(smoke mode: too few seeds for ensembles -- see JSON)")
