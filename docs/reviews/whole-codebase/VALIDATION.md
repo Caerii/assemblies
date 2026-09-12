@@ -7141,3 +7141,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Replaced ambiguous `**kw` expansion with explicit `seed` and `n_examples` arguments for shared bundle, merge, completion, and cross-domain training calls.
 - H9 evidence now fails loudly when a required merge or recurrent stream is absent instead of passing `None` into a numeric evidence row.
 - `uv run pyright neural_assemblies/programs/colt_mnist_evidence.py`: 0 errors.
+
+
+## 2026-09-12 ? H9 diagnostic configuration
+
+- Removed ambiguous shared-dictionary expansion from recurrent, ventral, multiscale, merge, and grid diagnostic calls.
+- H9 now passes only explicit typed configuration to each loader and runner, preserving the registered radii and cache policy.
+- `uv run pyright neural_assemblies/programs/colt_mnist_h9_diagnostic.py`: 0 errors.
