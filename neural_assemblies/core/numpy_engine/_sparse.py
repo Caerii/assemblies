@@ -11,7 +11,7 @@ import zlib
 
 import numpy as np
 from ..index_spaces import validated_indices, reserve_initial_neuron_ids
-from typing import Dict, List, Tuple
+from typing import Dict, List, Optional, Tuple
 from collections import OrderedDict, defaultdict
 
 # `scipy.sparse` is imported ON FIRST USE via `scipy_sparse()`, not here --
@@ -2743,7 +2743,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     # -- Weight normalization -----------------------------------------------
 
-    def normalize_weights(self, target: str, source: str = None) -> None:
+    def normalize_weights(self, target: str, source: Optional[str] = None) -> None:
         """Column-normalize weights into *target* so each neuron sums to 1.0."""
         check_area_homeostasis(target, refracted=self._areas[target].refracted,
                                synaptic_scaling=True)

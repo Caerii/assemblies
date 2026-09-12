@@ -6594,3 +6594,8 @@ ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0
 ## 2026-09-12 — Brain projection and inhibition boundary
 
 - Typed Brain's optional projection maps and normalization source, made inhibition absence an explicit no-op result at _apply_inhibition, and routed the example's random choices through the Brain-owned seeded generator. Brain Pyright: 0 diagnostics; Brain/inhibition tests: 40 passed in 1.68s.
+
+## 2026-09-12 — engine override contract alignment
+
+- Aligned NumPy sparse and Torch engine 
+ormalize_weights overrides with the base Optional[str] source contract. Targeted core tests (model semantics, Brain, projection rounds) — 73 passed in 1.84s. Optional Torch diagnostics remain confined to untyped dynamic Torch symbols and nullable backend internals.

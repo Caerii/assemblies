@@ -20,7 +20,7 @@ Requires: torch with CUDA support.
 import math
 import numpy as np
 from collections import defaultdict, deque
-from typing import Dict, List
+from typing import Dict, List, Optional
 
 import torch
 
@@ -1593,7 +1593,7 @@ class TorchSparseEngine(ComputeEngine):
 
     # -- Weight normalization -----------------------------------------------
 
-    def normalize_weights(self, target: str, source: str = None) -> None:
+    def normalize_weights(self, target: str, source: Optional[str] = None) -> None:
         check_area_homeostasis(target, refracted=self._areas[target].refracted,
                                synaptic_scaling=True)
         eps = 1e-8
