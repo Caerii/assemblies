@@ -7492,3 +7492,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Optimized `Sequence.overlap_matrix` to compute only the upper triangle and mirror it, preserving the canonical diagonal and symmetry.
 - Added a construction-level symmetry/diagonal invariant test.
 - Validation: sequence tests passed (23 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 overlap algebra laws
+
+- Added construction-level laws for overlap symmetry, containment normalization, and the deliberate zero result for empty assemblies.
+- Validation: `uv run pytest neural_assemblies/tests/test_assembly_calculus.py -q -k TestAssembly` passed (12 tests); `git diff --check` passed.

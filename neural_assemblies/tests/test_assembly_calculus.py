@@ -18,6 +18,7 @@ import pytest
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus import (
     Assembly,
+    overlap,
     chance_overlap,
     project,
     reciprocal_project,
@@ -102,6 +103,18 @@ class TestAssembly:
         a = Assembly("A", np.arange(0, 100, dtype=np.uint32))
         b = Assembly("A", np.arange(100, 200, dtype=np.uint32))
         assert a.overlap(b) == 0.0
+
+    def test_overlap_algebra_is_symmetric_and_containment_normalized(self):
+        smaller = Assembly("A", np.array([1, 2], dtype=np.uint32))
+        larger = Assembly("A", np.array([0, 1, 2, 3], dtype=np.uint32))
+        assert smaller.overlap(larger) == larger.overlap(smaller) == 1.0
+        assert overlap(smaller, larger) == overlap(larger, smaller)
+
+    def test_empty_overlap_is_zero_even_with_empty_identity(self):
+        empty = Assembly("A", np.array([], dtype=np.uint32))
+        nonempty = Assembly("A", np.array([1], dtype=np.uint32))
+        assert empty.overlap(empty) == 0.0
+        assert empty.overlap(nonempty) == nonempty.overlap(empty) == 0.0
 
     def test_chance_overlap_formula(self):
         assert chance_overlap(100, 1000) == pytest.approx(0.1)
