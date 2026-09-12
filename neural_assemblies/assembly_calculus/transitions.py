@@ -30,7 +30,7 @@ from collections import defaultdict
 from dataclasses import dataclass
 import math
 from numbers import Real
-from typing import DefaultDict, Iterable, Iterator
+from typing import DefaultDict, Iterable, Iterator, cast
 
 
 @dataclass(frozen=True)
@@ -67,11 +67,20 @@ class Transition:
                 "Transitions must be Transition objects or 3/4-tuples, "
                 "not plain strings or bytes."
             )
-        if len(value) == 3:
-            from_state, symbol, to_state = value
+        try:
+            raw = tuple(cast(Iterable[object], value))
+        except TypeError as exc:
+            raise TypeError(
+                "Transitions must be Transition objects or 3/4-tuples "
+                "of (from_state, symbol, to_state[, probability])."
+            ) from exc
+        if len(raw) == 3:
+            from_state, symbol, to_state = cast(tuple[str, str, str], raw)
             return cls(from_state, symbol, to_state)
-        if len(value) == 4:
-            from_state, symbol, to_state, probability = value
+        if len(raw) == 4:
+            from_state, symbol, to_state, probability = cast(
+                tuple[str, str, str, float], raw
+            )
             return cls(from_state, symbol, to_state, probability)
         raise TypeError(
             "Transitions must be Transition objects or 3/4-tuples "

@@ -5195,3 +5195,12 @@ carry an explicit local invariant that a branching configuration has both a
 choice policy and a constructed choice area; deterministic paths never build
 one. Optional seeds are typed as optional at the public methods. Both modules
 are Pyright/Ruff-clean; PFA and FSM checks pass: **22 passed**.
+
+### Shared transition normalization (2026-09-11)
+
+`Transition.from_value` now converts raw tuple-like inputs once at the
+symbolic boundary, with an explicit malformed-input error and typed 3/4-field
+unpacking. FSM/PFA state and symbol collection errors use the same
+`ValueError` contract as the transition-domain validator. The shared
+transition, FSM, and PFA modules are Pyright/Ruff-clean; transition-domain and
+PFA checks pass: **79 passed**.

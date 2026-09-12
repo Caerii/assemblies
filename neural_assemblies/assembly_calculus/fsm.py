@@ -92,7 +92,7 @@ class FSMNetwork:
     ):
         self.brain = brain
         if isinstance(states, (str, bytes)) or isinstance(symbols, (str, bytes)):
-            raise TypeError("states and symbols must be ordered collections, not strings")
+            raise ValueError("states and symbols must be ordered collections, not strings")
         states = list(states)
         symbols = list(symbols)
         self.transition_map = TransitionMap(transitions).validate_domain(states, symbols, initial_state)
