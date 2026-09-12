@@ -5751,3 +5751,10 @@ errors**, the index-space tests pass (**3 passed**), and Ruff/diff checks pass.
 that it would ignore. It is explicitly documented and validated as a
 standalone reference protocol; passing caller state raises before simulation.
 Sequence and scaffold tests pass: **19 passed**. Ruff and diff checks pass.
+
+### Scaffold comparator parameter contract (2026-09-12)
+
+The standalone scaffold comparator now rejects non-default `rounds_per_step` and
+`beta` values instead of accepting and ignoring them. Historical defaults remain
+compatible, while callers cannot silently believe they changed the reference
+protocol. Sequence tests pass: **19 passed**; Ruff and diff checks pass.
