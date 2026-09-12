@@ -21,13 +21,14 @@ def generate_test_triples(
         raise ValueError("n_triples must be a nonnegative integer")
     if len(nouns) < 2 or not verbs or not novel_nouns:
         raise ValueError("matched triples require two nouns, one verb, and one novel noun")
-    return [
-        (
-            nouns[i % len(nouns)],
-            verbs[i % len(verbs)],
-            [noun for noun in nouns if noun != nouns[i % len(nouns)]][i % (len(nouns) - 1)],
-            verbs[(i + 1) % len(verbs)],
-            novel_nouns[i % len(novel_nouns)],
-        )
-        for i in range(n_triples)
-    ]
+    triples = []
+    for index in range(n_triples):
+        agent = nouns[index % len(nouns)]
+        verb = verbs[index % len(verbs)]
+        eligible_patients = [noun for noun in nouns if noun != agent]
+        grammatical_object = eligible_patients[index % len(eligible_patients)]
+        category_violation = verbs[(index + 1) % len(verbs)]
+        novel_object = novel_nouns[index % len(novel_nouns)]
+        triples.append((agent, verb, grammatical_object,
+                        category_violation, novel_object))
+    return triples

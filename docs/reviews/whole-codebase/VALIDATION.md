@@ -5105,3 +5105,7 @@ Three primitive ERP studies carried the same deterministic matched-triple constr
 ### Role guard deduplication (2026-09-11)
 
 `scaled_feature_recall.py` and `surprise_gain_recall.py` carried the same role-probe controls, including the active/passive equivalence and transitive-role overlap checks. `role_guards.py` now owns that control protocol; each study passes its own declared probe inventory. The helper smoke test confirms expected counts, equivalence, and overlap output. Both study modules compile; Ruff and diff checks pass. This removes 43 duplicated lines while keeping the two experimental arms and measurements separate.
+
+### Protocol helper readability pass (2026-09-11)
+
+The shared SVO and matched-ERP generators now use explicit named loops rather than walrus expressions and repeated indexing inside comprehensions. The generated order and seed behavior are unchanged, while the no-self-patient and matched-condition invariants are visible directly in the implementation. Compilation, Ruff, diff checks, and both protocol invariant probes pass.
