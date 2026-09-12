@@ -6125,3 +6125,6 @@ Curriculum structure scoring and the MNIST geometry panel now use strict pairing
 ### ERP canonical-caller integration gate (2026-09-12)
 
 The ERP runner now completes whole-sentence category maps after early-stop probes through the canonical cached classifier. `measure_live_integration` calls the fixed single-projection phrase/P600 contracts without obsolete settling arguments. The checkpoint delta cell passes **6 pattern/wobble cases** in **50.62 seconds**; six sampled recurrence warnings remain intentional provenance guards. Focused B905/F scans are clean.
+### Broad non-slow integration gate (2026-09-12)
+
+The corrected suite reached 16% without a failure after the earlier 474-test boundary, then stalled with no CPU or output progress across repeated live-process polls. It was stopped to release the test environment; this is partial evidence, not a suite pass. The targeted checkpoint cell and all focused contract suites remain the authoritative green gates.
