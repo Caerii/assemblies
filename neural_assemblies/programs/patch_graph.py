@@ -189,7 +189,7 @@ def build_grid_patch_graph(
     by_scale: dict[int, list[int]] = {}
     for p in patches:
         by_scale.setdefault(p.scale, []).append(p.patch_id)
-    for scale, ids in by_scale.items():
+    for _scale, ids in by_scale.items():
         for i in range(len(ids) - 1):
             bind_pairs.append((ids[i], ids[i + 1]))
         if len(ids) >= 2:

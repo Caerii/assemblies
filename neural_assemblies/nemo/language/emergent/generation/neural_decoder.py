@@ -231,7 +231,7 @@ class EmergentRetriever:
         # For each matching VP, find which nouns overlap with it
         subject_scores = {}
         
-        for vp_key, vp_assembly, vp_overlap in matching_vps:
+        for _vp_key, vp_assembly, vp_overlap in matching_vps:
             # Find nouns that overlap with this VP
             for noun, noun_assembly in self.brain.learned_assemblies[Area.NOUN_CORE].items():
                 noun_overlap = self.brain.get_assembly_overlap(noun_assembly, vp_assembly)
@@ -277,7 +277,7 @@ class EmergentRetriever:
         # For each matching VP, find which verbs overlap with it
         verb_scores = {}
         
-        for vp_key, vp_assembly, vp_overlap in matching_vps:
+        for _vp_key, vp_assembly, vp_overlap in matching_vps:
             for verb, verb_assembly in self.brain.learned_assemblies[Area.VERB_CORE].items():
                 verb_overlap = self.brain.get_assembly_overlap(verb_assembly, vp_assembly)
                 if verb_overlap > 0.05:

@@ -177,7 +177,7 @@ class IntegratedNemoTrainer:
         """Infer syntactic roles from word positions and categories"""
         roles = []
         
-        for i, word in enumerate(words):
+        for _i, word in enumerate(words):
             word_lower = word.lower()
             
             # Simple heuristics based on position and category
@@ -199,7 +199,7 @@ class IntegratedNemoTrainer:
         """Train on a list of sentences"""
         sentences_trained = 0
         
-        for epoch in range(n_epochs):
+        for _epoch in range(n_epochs):
             for sentence in corpus:
                 # Tokenize
                 words = sentence.lower().split()

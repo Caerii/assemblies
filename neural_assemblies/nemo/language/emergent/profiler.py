@@ -393,7 +393,7 @@ def profile_projection_kernel(n: int = 10000, k: int = 100,
     test_input = cp.random.randint(0, n, k, dtype=cp.uint32)
     
     with NEMOProfiler() as profiler:
-        for i in range(iterations):
+        for _i in range(iterations):
             with profiler.measure("projection_only"):
                 brain._project(Area.NOUN_CORE, test_input, learn=False)
             
@@ -422,7 +422,7 @@ def profile_hebbian_kernel(n: int = 10000, k: int = 100,
     test_input2 = cp.random.randint(0, n, k, dtype=cp.uint32)
     
     with NEMOProfiler() as profiler:
-        for i in range(iterations):
+        for _i in range(iterations):
             # First projection sets prev
             brain._project(Area.NOUN_CORE, test_input1, learn=False)
             

@@ -188,7 +188,7 @@ class LanguageLearner:
         
         # Find most common starting word category
         start_counts = defaultdict(int)
-        for (w1, w2), count in self.bigram_counts.items():
+        for (w1, _w2), count in self.bigram_counts.items():
             cat1 = self.get_word_category(w1)
             start_counts[cat1] += count
         

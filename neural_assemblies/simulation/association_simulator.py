@@ -40,21 +40,21 @@ def associate(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10):
     VERBOSE = os.environ.get("ASSEMBLIES_VERBOSE") == "1"
     b.project({"stimA": ["A"], "stimB": ["B"]}, {})
     # Create assemblies A and B to stability
-    for i in range(9):
+    for _ in range(9):
         if VERBOSE:
             print(f"Stabilizing A/B {i+1}/9")
         b.project({"stimA": ["A"], "stimB": ["B"]},
                   {"A": ["A"], "B": ["B"]}, verbose=1 if VERBOSE else 0)
     b.project({"stimA": ["A"]}, {"A": ["A", "C"]}, verbose=1 if VERBOSE else 0)
     # Project A->C
-    for i in range(9):
+    for _ in range(9):
         if VERBOSE:
             print(f"A->C {i+1}/10")
         b.project({"stimA": ["A"]},
                   {"A": ["A", "C"], "C": ["C"]}, verbose=1 if VERBOSE else 0)
     # Project B->C
     b.project({"stimB": ["B"]}, {"B": ["B", "C"]})
-    for i in range(9):
+    for _ in range(9):
         if VERBOSE:
             print(f"B->C {i+1}/10")
         b.project({"stimB": ["B"]},
@@ -69,7 +69,7 @@ def associate(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10):
                   {"A": ["A", "C"], "B": ["B", "C"], "C": ["C"]}, verbose=1 if VERBOSE else 0)
     # Project just B
         b.project({"stimB": ["B"]}, {"B": ["B", "C"]}, verbose=1 if VERBOSE else 0)
-    for i in range(9):
+    for _ in range(9):
         if VERBOSE:
             print(f"Final B-only {i+1}/10")
         b.project({"stimB": ["B"]}, {"B": ["B", "C"], "C": ["C"]}, verbose=1 if VERBOSE else 0)
@@ -118,23 +118,23 @@ def association_grand_sim(n=100000, k=317, p=0.01, beta=0.05, min_iter=10, max_i
     b.add_area("C", n, k, beta)
     b.project({"stimA": ["A"], "stimB": ["B"]}, {})
     # Create assemblies A and B to stability
-    for i in range(9):
+    for _ in range(9):
         b.project({"stimA": ["A"], "stimB": ["B"]},
                   {"A": ["A"], "B": ["B"]})
     b.project({"stimA": ["A"]}, {"A": ["A", "C"]})
     # Project A->C
-    for i in range(9):
+    for _ in range(9):
         b.project({"stimA": ["A"]},
                   {"A": ["A", "C"], "C": ["C"]})
     # Project B->C
     b.project({"stimB": ["B"]}, {"B": ["B", "C"]})
-    for i in range(9):
+    for _ in range(9):
         b.project({"stimB": ["B"]},
                   {"B": ["B", "C"], "C": ["C"]})
     # Project both A,B to C
     b.project({"stimA": ["A"], "stimB": ["B"]},
               {"A": ["A", "C"], "B": ["B", "C"]})
-    for i in range(min_iter-2):
+    for _ in range(min_iter-2):
         b.project({"stimA": ["A"], "stimB": ["B"]},
                   {"A": ["A", "C"], "B": ["B", "C"], "C": ["C"]})
     results = {}

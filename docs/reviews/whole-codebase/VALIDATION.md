@@ -6247,3 +6247,7 @@ Parity manifests now share the IR writer's finite, canonical, create-only JSON b
 ### Maintained production code-smell gate (2026-09-12)
 
 Removed unused loop bindings from maintained consolidation, language, acquisition, and sparse-engine paths, and replaced the decorator's constant `setattr` with direct contract assignment. The focused consolidation, language, and operation-contract suites pass **184 tests with 2 intentional sampled-recurrence warnings**; Ruff B007/B010/F/E9 checks on the changed files are clean.
+
+### Legacy production smell cleanup gate (2026-09-12)
+
+Removed unused loop bindings from maintained NEMO language, simulation, program, and text-generation modules. The focused simulation/NEMO regression set passes **64 tests with 9 intentional sampled-recurrence warnings**; changed modules compile, and Ruff B007 is clean across those production paths.

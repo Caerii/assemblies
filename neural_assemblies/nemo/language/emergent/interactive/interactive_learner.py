@@ -103,7 +103,7 @@ class InteractiveLearner:
         )
         
         # Train for a few epochs
-        for epoch in range(num_epochs):
+        for _epoch in range(num_epochs):
             for sentence in training_data:
                 self.learner.present_grounded_sentence(
                     sentence.words,

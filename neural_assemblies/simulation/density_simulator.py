@@ -33,7 +33,7 @@ def density(n=100000, k=317, p=0.01, beta=0.05, rounds=20):
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
     saved_w = []
-    for i in range(rounds):
+    for _ in range(rounds):
         b.project({"stim": ["A"]}, {"A": ["A"]})
         saved_w.append(b.areas["A"].w)
     conn = b.connectomes["A"]["A"]

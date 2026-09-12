@@ -79,7 +79,7 @@ class ActivationSpreader:
             self._record_state(area)
         
         # Spread until convergence or max rounds
-        for round_num in range(max_rounds):
+        for _round_num in range(max_rounds):
             changed = self._spread_one_round()
             
             if not changed:

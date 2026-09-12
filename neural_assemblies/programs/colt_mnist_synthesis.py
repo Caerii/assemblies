@@ -277,7 +277,7 @@ def main() -> None:
     cards = run_synthesis_audit(
         seed=args.seed, n_examples=args.n_examples, k=args.k,
     )
-    for name, card in cards.items():
+    for _name, card in cards.items():
         print(card.narrative)
         print()
 

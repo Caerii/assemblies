@@ -272,7 +272,7 @@ class CurriculumLearner:
             if len(generated) == length:
                 # Check if positions match expected categories
                 match = True
-                for i, (t, g) in enumerate(zip(target, generated, strict=True)):
+                for _i, (t, g) in enumerate(zip(target, generated, strict=True)):
                     t_cat = self.learner.get_word_category(t)
                     g_cat = self.learner.get_word_category(g)
                     if t_cat != g_cat and t_cat != -1 and g_cat != -1:
@@ -417,7 +417,7 @@ if __name__ == "__main__":
     generator = SentenceGenerator(cl.learner)
     
     print("\nGenerated sentences:")
-    for i in range(5):
+    for _i in range(5):
         sent = generator.generate_sentence(4)
         print(f"  {' '.join(sent)}")
     

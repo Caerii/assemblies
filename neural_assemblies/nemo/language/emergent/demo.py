@@ -31,7 +31,7 @@ def demo():
     # Train
     print("\nTraining...")
     start = time.perf_counter()
-    for epoch in range(3):
+    for _epoch in range(3):
         for sentence in training_data:
             learner.present_grounded_sentence(
                 sentence.words, sentence.contexts, 

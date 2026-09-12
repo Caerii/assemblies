@@ -127,7 +127,7 @@ class QuestionAnswerer:
     def _extract_subject_from_question(self, words: List[str]) -> Optional[str]:
         """Extract subject from a question like 'what does the dog do'."""
         # Look for nouns in the question
-        for i, word in enumerate(words):
+        for _i, word in enumerate(words):
             cat, _ = self.learner.get_emergent_category(word)
             if cat in ['NOUN', 'PRONOUN']:
                 return word

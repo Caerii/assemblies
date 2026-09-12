@@ -400,7 +400,7 @@ def build_lexicon() -> Dict[str, Dict]:
         ("blue", {"color": True}),
         ("green", {"color": True}),
     ]
-    for i, (word, features) in enumerate(adjectives):
+    for _i, (word, features) in enumerate(adjectives):
         lexicon[word] = create_word_entry(idx, "ADJ", features=features)
         idx += 1
     
@@ -422,7 +422,7 @@ def build_lexicon() -> Dict[str, Dict]:
         ("now", {"time": True, "present": True}),
         ("then", {"time": True, "past": True}),
     ]
-    for i, (word, features) in enumerate(adverbs):
+    for _i, (word, features) in enumerate(adverbs):
         lexicon[word] = create_word_entry(idx, "ADV", features=features)
         idx += 1
     
@@ -444,7 +444,7 @@ def build_lexicon() -> Dict[str, Dict]:
         ("between", {"spatial": True}),
         ("through", {"spatial": True, "path": True}),
     ]
-    for i, (word, features) in enumerate(prepositions):
+    for _i, (word, features) in enumerate(prepositions):
         lexicon[word] = create_word_entry(idx, "PREP", features=features)
         idx += 1
     

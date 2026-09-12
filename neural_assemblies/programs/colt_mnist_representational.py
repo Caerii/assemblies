@@ -153,7 +153,7 @@ def honest_pair_gated_predict(
 
     if use_forward_completion and low_pattern is not None:
         rng = np.random.default_rng(seed)
-        for pi, proto in enumerate(forward_protocols):
+        for _pi, proto in enumerate(forward_protocols):
             pat = (
                 low_pattern if proto == "full"
                 else apply_absence_mask(low_pattern, proto, rng=rng)

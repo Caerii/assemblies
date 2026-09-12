@@ -35,7 +35,7 @@ def plot_project_sim(show=True, save="", show_legend=False, use_text_font=True):
     od = OrderedDict(sorted(results.items()))
     x = np.arange(100)
     print(x)
-    for key, val in od.items():
+    for _key, val in od.items():
         plt.plot(x, val, linewidth=0.7)
     if show_legend:
         plt.legend(od.keys(), loc='upper left')
@@ -77,7 +77,7 @@ def plot_merge_sim(show=True, save="", show_legend=False, use_text_font=True):
 
     od = OrderedDict(sorted(results.items()))
     x = np.arange(101)
-    for key, val in od.items():
+    for _key, val in od.items():
         plt.plot(x, val, linewidth=0.7)
     if show_legend:
         plt.legend(od.keys(), loc='upper left')

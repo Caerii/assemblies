@@ -42,7 +42,7 @@ def merge_sim(n=100000, k=317, p=0.01, beta=0.05, max_t=50):
     b.project({"stimA": ["A"], "stimB": ["B"]},
               {"A": ["A", "C"], "B": ["B", "C"]})
     b.project({}, {"A": ["A", "C"], "B": ["B", "C"], "C": ["C", "A", "B"]})
-    for i in range(max_t-1):
+    for _i in range(max_t-1):
         b.project({"stimA": ["A"], "stimB": ["B"]},
                   {"A": ["A", "C"], "B": ["B", "C"], "C": ["C", "A", "B"]})
     return b.areas["A"].saved_w, b.areas["B"].saved_w, b.areas["C"].saved_w

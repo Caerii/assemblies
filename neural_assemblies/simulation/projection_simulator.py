@@ -29,7 +29,7 @@ def project_sim(n=1000000, k=1000, p=0.01, beta=0.05, t=50):
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
-    for i in range(t-1):
+    for _i in range(t-1):
         b.project({}, {"A": ["A"]})
     return b.areas["A"].saved_w
 
@@ -71,8 +71,8 @@ def assembly_only_sim(n=100000, k=317, p=0.05, beta=0.05, project_iter=10):
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)
     b.project({"stim": ["A"]}, {})
-    for i in range(project_iter-1):
+    for _i in range(project_iter-1):
         b.project({"stim": ["A"]}, {"A": ["A"]})
-    for i in range(5):
+    for _i in range(5):
         b.project({}, {"A": ["A"]})
     return b.areas["A"].saved_w
