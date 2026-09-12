@@ -32,6 +32,8 @@ class TorchOps(Protocol):
     sparse_coo_tensor: Callable[..., Any]
     tensor: Callable[..., Any]
     meshgrid: Callable[..., Any]
+    gather: Callable[..., Any]
+    einsum: Callable[..., Any]
     empty: Callable[..., Any]
     ones: Callable[..., Any]
     zeros_like: Callable[..., Any]

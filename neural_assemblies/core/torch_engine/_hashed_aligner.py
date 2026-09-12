@@ -38,7 +38,7 @@ from __future__ import annotations
 
 from typing import Any, cast
 
-import torch
+from ._torch_ops import torch_ops
 
 from ..numpy_engine import _seeding
 from ._hashed import AreaFiber, HashedArea, PresentFiber, StimulusFiber
@@ -226,10 +226,10 @@ class HashedAligner:
                                     manage_episodes=False)
             if self.track_pinned:
                 assert pinned is not None
-                m = torch.zeros(self.B, self.feat_n, dtype=torch.bool,
+                m = torch_ops.zeros(self.B, self.feat_n, dtype=torch_ops.bool,
                                 device=self.device)
                 m.scatter_(1, new, True)
-                ov = torch.gather(m, 1, pinned.long()).sum(1).float()
+                ov = torch_ops.gather(m, 1, pinned.long()).sum(1).float()
                 self.pinned.append(float((ov / self.feat_k).mean()))
         self.cross.end_episode()
 
@@ -268,13 +268,13 @@ class HashedAligner:
         """[V, I, B] overlap counts / feat_k between reconstruct(w) and
         bundle_assembly(b), all brains, by mask GEMM."""
         V, I = len(words), len(inventory)
-        R = torch.zeros(V, self.B, self.feat_n, dtype=torch.float32,
+        R = torch_ops.zeros(V, self.B, self.feat_n, dtype=torch_ops.float32,
                         device=self.device)
-        A = torch.zeros(I, self.B, self.feat_n, dtype=torch.float32,
+        A = torch_ops.zeros(I, self.B, self.feat_n, dtype=torch_ops.float32,
                         device=self.device)
         for vi, w in enumerate(words):
             R[vi].scatter_(1, self.reconstruct(w), 1.0)
         for ii, b in enumerate(inventory):
             A[ii].scatter_(1, self.bundle_assembly(b), 1.0)
-        out = torch.einsum("vbn,ibn->vib", R, A) / self.feat_k
+        out = torch_ops.einsum("vbn,ibn->vib", R, A) / self.feat_k
         return out                                    # [V, I, B]
