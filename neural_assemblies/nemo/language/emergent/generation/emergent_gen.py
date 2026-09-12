@@ -14,7 +14,7 @@ The response EMERGES from:
 This is what NEMO-style generation should look like.
 """
 
-from typing import List, Dict, TYPE_CHECKING
+from typing import Any, List, Dict, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
@@ -72,7 +72,7 @@ class TrueEmergentGenerator:
         else:
             return self._generate_default_response(encoded)
     
-    def _encode_input(self, words: List[str]) -> Dict[str, any]:
+    def _encode_input(self, words: List[str]) -> Dict[str, Any]:
         """
         Encode input words to neural assemblies.
         

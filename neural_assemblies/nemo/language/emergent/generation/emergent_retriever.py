@@ -22,8 +22,10 @@ This is FULLY EMERGENT:
 - Decoding uses neural overlap with learned word assemblies
 """
 
-from typing import List, Tuple, Optional, Dict, TYPE_CHECKING
-import cupy as cp
+import importlib
+from typing import Any, List, Tuple, Optional, Dict, TYPE_CHECKING
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 if TYPE_CHECKING:
     from ..learner import EmergentLanguageLearner
@@ -192,7 +194,7 @@ class EmergentRetriever:
         return result[:top_k]
     
     def check_pattern_exists(self, subject: str, verb: str, 
-                              obj: str = None,
+                              obj: Optional[str] = None,
                               min_overlap: float = 0.1) -> Tuple[bool, float]:
         """
         Check if a pattern exists in learned knowledge - EMERGENT approach.
@@ -249,7 +251,7 @@ class EmergentRetriever:
     # HELPER METHODS
     # =========================================================================
     
-    def _get_verb_assembly(self, verb: str) -> Optional[cp.ndarray]:
+    def _get_verb_assembly(self, verb: str) -> Optional[CpArray]:
         """Get verb assembly, trying multiple forms."""
         # Try exact form
         assembly = self.brain.get_learned_assembly(Area.VERB_CORE, verb)
@@ -270,7 +272,7 @@ class EmergentRetriever:
         
         return None
     
-    def _get_subject_assembly(self, subject: str) -> Optional[cp.ndarray]:
+    def _get_subject_assembly(self, subject: str) -> Optional[CpArray]:
         """Get subject assembly from NOUN_CORE or PRON_CORE."""
         assembly = self.brain.get_learned_assembly(Area.NOUN_CORE, subject)
         if assembly is not None:
@@ -279,7 +281,7 @@ class EmergentRetriever:
         assembly = self.brain.get_learned_assembly(Area.PRON_CORE, subject)
         return assembly
     
-    def _find_matching_vp_verbs(self, verb_assembly: cp.ndarray, 
+    def _find_matching_vp_verbs(self, verb_assembly: CpArray,
                                  min_overlap: float) -> List[Tuple[str, float]]:
         """Find VP_VERB assemblies that match a verb assembly."""
         matches = []
@@ -292,7 +294,7 @@ class EmergentRetriever:
         matches.sort(key=lambda x: -x[1])
         return matches
     
-    def _find_matching_vp_subjs(self, subj_assembly: cp.ndarray,
+    def _find_matching_vp_subjs(self, subj_assembly: CpArray,
                                  min_overlap: float) -> List[Tuple[str, float]]:
         """Find VP_SUBJ assemblies that match a subject assembly."""
         matches = []
@@ -305,7 +307,7 @@ class EmergentRetriever:
         matches.sort(key=lambda x: -x[1])
         return matches
     
-    def _decode_subject(self, vp_subj: cp.ndarray) -> Tuple[Optional[str], float]:
+    def _decode_subject(self, vp_subj: CpArray) -> Tuple[Optional[str], float]:
         """Decode VP_SUBJ assembly to subject word."""
         # Try NOUN_CORE first
         word, overlap = self.brain.find_best_matching_word(Area.NOUN_CORE, vp_subj)
@@ -316,11 +318,11 @@ class EmergentRetriever:
         word, overlap = self.brain.find_best_matching_word(Area.PRON_CORE, vp_subj)
         return word, overlap
     
-    def _decode_verb(self, vp_verb: cp.ndarray) -> Tuple[Optional[str], float]:
+    def _decode_verb(self, vp_verb: CpArray) -> Tuple[Optional[str], float]:
         """Decode VP_VERB assembly to verb word."""
         return self.brain.find_best_matching_word(Area.VERB_CORE, vp_verb)
     
-    def _decode_object(self, vp_obj: cp.ndarray) -> Tuple[Optional[str], float]:
+    def _decode_object(self, vp_obj: CpArray) -> Tuple[Optional[str], float]:
         """Decode VP_OBJ assembly to object word."""
         return self.brain.find_best_matching_word(Area.NOUN_CORE, vp_obj)
 
@@ -477,7 +479,7 @@ class EmergentGenerator:
             return "i could not find the action"
         
         # Check if pattern exists using emergent retrieval
-        exists, confidence = self.retriever.check_pattern_exists(subject, verb, obj)
+        exists, confidence = self.retriever.check_pattern_exists(subject, verb, obj if isinstance(obj, str) else None)
         
         if exists:
             if obj:
