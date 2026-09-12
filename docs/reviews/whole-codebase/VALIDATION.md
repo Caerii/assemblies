@@ -6793,3 +6793,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Sparse CUDA kernel dependency boundary (2026-09-12)
 
 `core/kernels/sparse_ops.py` now loads CuPy through an explicit dynamic optional handle, eliminating the final static import leak in the CUDA kernel helpers. Kernel tests remain **10 optional skips** without the compiled extension; Pyright and Ruff report zero diagnostics.
+
+
+## Legacy C++ brain extension boundary (2026-09-12)
+
+`core/brain_cpp.py` now loads the optional native extension dynamically into an explicit handle, so its compatibility wrapper remains importable and statically analyzable when the DLL is absent. Import fallback was verified with `CPP_AVAILABLE=False`; Pyright and Ruff report zero diagnostics.
