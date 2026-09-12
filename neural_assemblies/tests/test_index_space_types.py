@@ -58,6 +58,14 @@ MUST_ERROR = {9, 10, 11}
 MUST_BE_CLEAN = {12, 13, 14}
 
 
+def test_brand_constructor_preserves_device_like_arrays_without_host_copy():
+    class DeviceLike:
+        __cuda_array_interface__ = {"shape": (0,), "typestr": "<u4", "data": (0, False), "version": 3}
+
+    value = DeviceLike()
+    assert CompactIdx(value) is value
+
+
 def test_mixing_index_spaces_is_rejected_at_runtime():
     compact = CompactIdx(np.array([0, 1, 2], dtype=np.uint32))
     neurons =(np.array([77, 88, 99], dtype=np.uint32))

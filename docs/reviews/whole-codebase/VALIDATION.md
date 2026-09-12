@@ -5691,3 +5691,12 @@ NEMO role blending no longer catches arbitrary exceptions from
 measurements still use the explicit `Measured.or_else(0.0)` path; real readout
 or state errors now surface. Role-margin and NEMO parser tests pass: **13
 passed**. Ruff, compilation, and diff checks pass.
+
+### Device-safe runtime index brands (2026-09-12)
+
+The branded index constructor now preserves CuPy/device arrays without an
+implicit host conversion; NumPy arrays remain zero-copy branded subclasses.
+The overloads explicitly enumerate same-space pairs so Pyright retains the
+mixed-space rejection after the runtime upgrade. Device-safe constructor,
+static, overlap, and assembly-calculus checks pass: **40 passed**; Pyright
+reports **0 errors**. Ruff and diff checks pass.

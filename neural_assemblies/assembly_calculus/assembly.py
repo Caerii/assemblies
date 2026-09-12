@@ -30,7 +30,7 @@ from dataclasses import dataclass
 from numbers import Integral
 from typing import overload
 
-from ..core.index_spaces import NeuronIds, SameSpace, validated_indices
+from ..core.index_spaces import CompactIdx, NeuronIds, validated_indices
 
 
 @dataclass(frozen=True)
@@ -116,7 +116,9 @@ class Assembly:
 @overload
 def overlap(a: "Assembly", b: "Assembly") -> float: ...
 @overload
-def overlap(a: SameSpace, b: SameSpace) -> float: ...
+def overlap(a: CompactIdx, b: CompactIdx) -> float: ...
+@overload
+def overlap(a: NeuronIds, b: NeuronIds) -> float: ...
 def overlap(a, b) -> float:
     """Overlap ratio between two winner arrays or Assemblies.
 

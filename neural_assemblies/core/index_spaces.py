@@ -41,6 +41,12 @@ class _BrandedIndices(np.ndarray):
     """Zero-copy runtime brand for one semantic index space."""
 
     def __new__(cls, values):
+        # CuPy arrays cannot be passed through ``np.asarray`` without an
+        # explicit host transfer. Preserve them on their native backend; the
+        # runtime brand is available for NumPy values, where ndarray subclassing
+        # is zero-copy.
+        if hasattr(values, "__cuda_array_interface__"):
+            return values
         return np.asarray(values).view(cls)
 
     def __array_finalize__(self, _obj):
