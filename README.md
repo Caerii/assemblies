@@ -252,7 +252,7 @@ omit `--skip-tests` to run the non-slow package tests afterward.
 
 The default parallel developer gate uses twelve workers on machines with at
 least twelve logical CPUs and `--dist load`; the current measured run is
-about four minutes for 3,794 fast-tier tests. Set `ASSEMBLIES_TEST_WORKERS` or
+about four minutes for roughly 3,950 fast-tier tests. Set `ASSEMBLIES_TEST_WORKERS` or
 use `scripts/verify_maintained.py --workers N` to tune smaller machines.
 Long empirical calibration, bootstrap, and curriculum gates are kept in the
 `slow` tier and remain part of the complete verification surface.
