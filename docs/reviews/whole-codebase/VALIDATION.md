@@ -5187,6 +5187,14 @@ normalizing to a full aligned role vector in `__post_init__`. The two pathway
 builders and sentence substrate are Pyright-clean; consolidation tests pass:
 **12 passed**.
 
+### Wobbly replay identity key (2026-09-11)
+
+The wobbly-episode replay map now types and documents its full identity as
+`(sentence tuple, probe position/word)`. The previous annotation named only a
+single string while storing the whole sentence, obscuring the context needed
+to distinguish otherwise identical probes. The replay module is Pyright-clean
+and bootstrap checks pass: **9 passed**.
+
 ### PFA/FSM construction boundary (2026-09-11)
 
 PFA and FSM constructors now canonicalize state and symbol collections to

@@ -63,7 +63,9 @@ def episodes_to_grounded_sentences(parser: "EmergentParser", memory: WobblyMemor
 
     sentences = []
     seen: Set[Tuple[str, ...]] = set()
-    resolved_map: Dict[Tuple[str, Tuple[int, str]], str] = {}
+    # The sentence tuple is part of the identity: the same probe position and
+    # word can occur in multiple episodes with different surrounding context.
+    resolved_map: Dict[Tuple[Tuple[str, ...], Tuple[int, str]], str] = {}
     for ep in memory.episodes:
         if ep.resolved_category:
             resolved_map[(ep.sentence, (ep.probe.position, ep.probe.word))] = (
