@@ -6375,3 +6375,7 @@ Sentence generation now validates lexicon form and lemma shapes before construct
 ### NEMO role-margin typing gate (2026-09-12)
 
 The NEMO gating parser now declares its role score map and uses an explicit key function for maximum selection. This makes the role readout's numeric contract visible to static tooling and avoids relying on an overloaded dictionary method. Pyright reports **0 diagnostics**; NEMO FSM tests pass **3 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Parser sweep cache set contract gate (2026-09-12)
+
+The parser cache key now accepts any abstract set of holdout words and normalizes it once before calling the set-based resolver. Frozen cache identity and mutable caller inputs therefore share one explicit boundary. Pyright reports **0 diagnostics**; parser-cache identity tests pass **14 tests**, and Ruff F/E9 plus `git diff --check` are clean.

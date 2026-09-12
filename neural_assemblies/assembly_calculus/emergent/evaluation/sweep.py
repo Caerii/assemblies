@@ -10,7 +10,7 @@ import os
 import time
 from pathlib import Path
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import AbstractSet, Dict, List, Optional, Set, Tuple, TYPE_CHECKING
 
 if TYPE_CHECKING:
     from ..parser import EmergentParser
@@ -296,14 +296,15 @@ class ParserCache:
         depth: str,
         *,
         seed: int,
-        holdout_words: Optional[Set[str]],
+        holdout_words: Optional[AbstractSet[str]],
         n: int,
         k: int,
         fast_training: bool,
         params: Tuple,
     ) -> Tuple:
         from .generalization import resolve_holdout_set
-        holdout = frozenset(resolve_holdout_set(holdout_words))
+        resolved_words = None if holdout_words is None else set(holdout_words)
+        holdout = frozenset(resolve_holdout_set(resolved_words))
         return (depth, seed, holdout, n, k, fast_training, params,
                 _training_env_signature())
 
