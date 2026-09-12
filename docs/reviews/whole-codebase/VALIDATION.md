@@ -6763,3 +6763,8 @@ After standardizing exact-engine option admission, honoring the minimal continua
 ## Homeostasis Torch boundary cleanup (2026-09-12)
 
 Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead of importing Torch directly, and LRI validation canonicalizes the integral period before range checks. Homeostasis tests pass **10/10**; Pyright and Ruff report zero diagnostics for the module.
+
+
+## Pricing scalar/vector contract (2026-09-12)
+
+`candidate_divisor` now narrows scalar versus per-fiber probability inputs explicitly, preserving the same pricing law while removing ambiguous union arithmetic. Pricing tests pass **23/23**; Pyright and Ruff report zero diagnostics.
