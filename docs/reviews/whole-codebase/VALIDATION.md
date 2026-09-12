@@ -7156,3 +7156,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Branch selection validates the configured coin at the point of use and raises if a branching state lacks its policy/coin pair.
 - `uv run pyright neural_assemblies/programs/arc_markov.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_arc_markov_contract.py -q`: 44 passed in 17.86s.
+
+
+## 2026-09-12 ? patch binding panel configuration
+
+- Replaced shared untyped loader kwargs with explicit seed, example count, capacity, and cache arguments across recurrent, spatial, multiscale, and reference bundles.
+- `uv run pyright neural_assemblies/programs/patch_binding_panel.py`: 0 errors.
