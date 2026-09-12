@@ -47,6 +47,9 @@ English: what it isolates is whether an induced state can carry one bit
 across a distractor, which is the capacity the template also needs and
 cannot measure.
 
+**Result artifact.** The accepted chain, gap-2 corpus values are retained in
+[`seq_a3_transducer_results_register_chain_gap2.json`](../../results/sequence/seq_a3_transducer_results_register_chain_gap2.json).
+
 ## Amendment 1 (2026-09-09): a gap of two distractors
 
 The chain with one distractor between agreeing words is accepted, but a

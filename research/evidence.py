@@ -303,6 +303,10 @@ def validate_active_evidence_graph(root: Path = ROOT) -> list[str]:
     audit = audit_history(root)
     edges = {(edge['from'], edge['to']) for edge in audit['resolved_edges']}
     errors = []
+    for preregistration in audit['preregistrations_without_resolved_result_links']:
+        errors.append(
+            f'{preregistration}: no resolved result link; mark it pending or link the artifact'
+        )
     for name in files:
         path = root / name
         artifact_errors = validate_artifact(path, root=root)
