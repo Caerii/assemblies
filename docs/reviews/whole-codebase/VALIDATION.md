@@ -5590,3 +5590,11 @@ through `write_checkpoint_document`. Its `ZS_ANALYZE` read path, fixed exam,
 and output schema remain unchanged, while raw JSON overwrite is replaced by
 atomic checkpoint publication. Compilation, Ruff, and both result-writer
 ratchets pass: **2 passed**.
+
+### Paper-regime 2x2 writer migration (2026-09-12)
+
+The registered paper-regime comparison now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its L0/L1 and
+gain arms, synthetic guard, paired comparisons, and output schema are
+unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.

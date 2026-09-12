@@ -44,12 +44,15 @@ import random
 import statistics as st
 import sys
 from collections import Counter
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from childes_graduation import build_number_slice, load_corpus  # noqa: E402
 from imbalance_attribution import episode_stream  # noqa: E402
@@ -205,8 +208,7 @@ def main():
         synth[f"L0G4-{s}"]["bal"] - synth[f"L1G1-{s}"]["bal"] for s in SEEDS)
 
     out = {"cells": cells, "synthetic": synth, "analysis": analysis}
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_new_document(Path(OUT_PATH), out)
     print(json.dumps(analysis, indent=2))
     print(f"-> {OUT_PATH}")
 
