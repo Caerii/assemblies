@@ -53,7 +53,7 @@ import numpy as np
 # NEURAL_ASSEMBLIES_NO_RUST=1, everything still runs and produces the same
 # numbers -- just slower.
 try:
-    import na_kernels as _rust
+    import na_kernels as _rust  # pyright: ignore[reportMissingImports]
 except ImportError:                     # pragma: no cover - accelerator absent
     _rust = None
 
