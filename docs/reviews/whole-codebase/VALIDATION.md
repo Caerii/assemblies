@@ -6633,3 +6633,8 @@ eural_assemblies without eagerly importing the research stack. Lazy-import contr
 The operation-contract, specification-link, and index-space suites pass **186 tests**. Ruff reports no violations across `neural_assemblies/core` and `neural_assemblies/assembly_calculus`. Torch GPU parity passes **32 tests**; hashed substrate parity passes **2 tests with 24 expected skips** where the fused environment is unavailable.
 
 A Protocol-backed runtime alias for PyTorch was trialled and reverted: it preserved ordinary calls in one module but made existing `torch.Tensor` annotations and sparse namespace access invalid across the package. No compatibility layer was committed. The sampled SENTENCES ERP calibration still produces the documented inverted `p600_auc = 0.000` diagnostic; no threshold or test bar was weakened.
+
+
+## Typed Torch operator boundary pilot (2026-09-12)
+
+The batched Torch engine now routes generated operators and dtypes through the explicit `torch_ops` protocol while leaving `torch` available for normal type semantics. Pyright and Ruff report zero diagnostics for the boundary and module; batched projection tests pass **16 tests** (6 expected skips), and Torch parity plus ePWTA GPU tests pass **32 tests**. The adapter is a runtime cast of the imported module, so this is an API/type boundary with no dispatch layer or numerical change.
