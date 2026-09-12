@@ -55,3 +55,15 @@ def test_runner_list_is_discoverable_without_importing_experiments(capsys):
     assert len(lines) == len(runner.EXPERIMENTS)
     assert all("\t" in line for line in lines)
     assert lines == sorted(lines)
+
+
+def test_registered_experiments_defer_accelerator_imports_until_after_runner_validation():
+    """A bad tag or engine must fail before importing torch/CuPy extensions."""
+    for command, module in EXPERIMENTS.items():
+        tree = ast.parse(_module_source(module))
+        for node in tree.body:
+            if isinstance(node, ast.Import):
+                imported = {alias.name.split('.')[0] for alias in node.names}
+                assert not imported.intersection({'torch', 'cupy'}), command
+            elif isinstance(node, ast.ImportFrom) and node.module:
+                assert node.module.split('.')[0] not in {'torch', 'cupy'}, command
