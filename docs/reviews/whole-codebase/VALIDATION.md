@@ -5613,3 +5613,10 @@ The finite-size/null ladder and trained coin outputs now use the canonical
 exclusive writer. Simulation, replot loading, and figure generation are
 unchanged; reruns cannot silently replace either evidence file. Ruff,
 compilation, result-writer ratchets, and diff checks pass.
+
+### Additional fixed-study writer migrations (2026-09-12)
+
+The CHILDES phase-one recipe, imbalance attribution, and dead-fiber census
+now publish fixed result artifacts through the exclusive writer. Registered
+computation and schemas are unchanged; overwrite attempts fail. Ruff,
+compilation, result-writer ratchets, and diff checks pass.

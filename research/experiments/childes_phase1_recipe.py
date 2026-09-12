@@ -47,12 +47,15 @@ import os
 import random
 import statistics as st
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from childes_graduation import build_number_slice, load_corpus  # noqa: E402
 
@@ -199,8 +202,7 @@ def main():
     }
     out = {"n": N, "cells": {s: cells[s] for s in SEEDS},
            "analysis": analysis}
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_new_document(Path(OUT_PATH), out)
     print(json.dumps(analysis, indent=2, default=str))
     print(f"-> {OUT_PATH}")
 

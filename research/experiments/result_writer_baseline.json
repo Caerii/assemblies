@@ -2,12 +2,9 @@
   "direct_json_dump_sites": {
     "research/experiments/applications/explore_agreement_params.py": 1,
     "research/experiments/childes_graduation.py": 1,
-    "research/experiments/childes_phase1_recipe.py": 1,
     "research/experiments/competition_dynamics.py": 1,
-    "research/experiments/dead_fiber_hunt.py": 1,
     "research/experiments/fetch_childes_brown.py": 1,
     "research/experiments/flush_rate_sweep.py": 1,
-    "research/experiments/imbalance_attribution.py": 1,
     "research/experiments/primitives/explore_binding_params.py": 1,
     "research/experiments/primitives/explore_composed_params.py": 1,
     "research/experiments/primitives/explore_forward_prediction_params.py": 1,

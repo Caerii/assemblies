@@ -54,16 +54,19 @@ Run: python dead_fiber_hunt.py           (full, ~2 min)
 """
 from __future__ import annotations
 
-import json
+
 import os
 import random
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from childes_graduation import build_number_slice, load_corpus  # noqa: E402
 
@@ -258,8 +261,7 @@ def main():
               f"nnz={r['sg_fiber'].get('nnz')} "
               f"desync={r['sg_fiber'].get('extent_desync')}", flush=True)
 
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump({"n": N, "cells": cells}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {"n": N, "cells": cells})
     print(f"-> {OUT_PATH}")
 
 
