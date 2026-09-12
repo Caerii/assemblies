@@ -45,6 +45,19 @@ def test_consolidate_rejects_empty_protocol_or_invalid_passes():
         consolidate(_minimal_brain(), [object()])
 
 
+def test_consolidate_rejects_invalid_later_step_before_mutation():
+    brain = _minimal_brain()
+    with pytest.raises(KeyError, match="unknown"):
+        consolidate(
+            brain,
+            [
+                PathwayReplay(NOUN_CORE, ROLE_AGENT, stimulus="phon_dog"),
+                PathwayReplay(NOUN_CORE, "MISSING"),
+            ],
+        )
+    assert _conn_nonzero(brain, NOUN_CORE, ROLE_AGENT) == 0
+
+
 def test_accumulate_context_rejects_empty_schedule():
     with pytest.raises(ValueError, match="nonempty word"):
         ContextAccumulationPlan((), "CONTEXT")

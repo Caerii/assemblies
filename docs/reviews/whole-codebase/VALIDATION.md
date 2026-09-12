@@ -4951,3 +4951,11 @@ docstring, semantic card, public exports, registry, and decorator ratchet are
 linked. A missing-source true negative protects against accidental context-only
 updates. Focused consolidation/contract/lazy-import tests pass: **183 passed**;
 Ruff and `python -m research.evidence check` are clean.
+
+## Consolidation replay admission (2026-09-11)
+
+The public replay step executors now share a pre-mutation validator. It checks
+area-role distinctness, source cardinality, positive rounds, topology, stimuli,
+and stimulus-area pairs. `consolidate` validates every step before executing
+any, preventing a malformed later step from leaving earlier replay mutations.
+Focused consolidation/contract tests pass: **174 passed**; Ruff is clean.

@@ -38,6 +38,7 @@ must be validated per application (see ``neural_assemblies/tests/test_consolidat
 from __future__ import annotations
 
 from dataclasses import dataclass
+from numbers import Integral
 from typing import List, Sequence, Set, Tuple, Union
 
 from .assembly import Assembly
@@ -106,12 +107,53 @@ class MultiProjectReplay:
 ConsolidationStep = Union[PathwayReplay, MergeReplay, MultiProjectReplay]
 
 
+def _validate_replay_step(brain, step: ConsolidationStep) -> None:
+    """Reject a replay schedule before its first backend mutation."""
+    if isinstance(step, PathwayReplay):
+        names = (step.source_area, step.target_area)
+        stimuli = (step.stimulus,)
+        if step.source_area == step.target_area:
+            raise ValueError("pathway replay requires distinct source and target areas")
+    elif isinstance(step, MergeReplay):
+        names = (step.source_a, step.source_b, step.target)
+        stimuli = (step.stimulus_a, step.stimulus_b)
+        if len(set(names)) != 3:
+            raise ValueError("merge replay requires three distinct areas")
+    elif isinstance(step, MultiProjectReplay):
+        names = (*step.sources, step.target)
+        stimuli = tuple(stim for stim, _ in step.stimulus_projections)
+        if not step.sources:
+            raise ValueError("multi-project replay requires at least one source")
+        if len(set(step.sources)) != len(step.sources):
+            raise ValueError("multi-project replay sources must be distinct")
+        if step.target in step.sources:
+            raise ValueError("multi-project replay target must differ from sources")
+        if any(not isinstance(pair, tuple) or len(pair) != 2 for pair in step.stimulus_projections):
+            raise TypeError("multi-project replay stimuli must be (stimulus, area) pairs")
+        if any(area not in names for _, area in step.stimulus_projections):
+            raise ValueError("multi-project replay stimulus area must be a replay area")
+    else:
+        raise TypeError(f"unsupported consolidation step: {type(step).__name__}")
+
+    if any(not isinstance(name, str) or not name for name in names):
+        raise ValueError("consolidation replay area names must be nonempty strings")
+    if isinstance(step.rounds, bool) or not isinstance(step.rounds, Integral) or step.rounds < 1:
+        raise ValueError("consolidation replay rounds must be a positive integer")
+    for stimulus in stimuli:
+        if stimulus is not None and stimulus not in brain.stimuli:
+            raise KeyError(f"consolidation replay stimulus is unknown: {stimulus!r}")
+    for name in names:
+        if name not in brain.areas:
+            raise KeyError(f"consolidation replay area is unknown: {name!r}")
+
+
 # ---------------------------------------------------------------------------
 # Step executors
 # ---------------------------------------------------------------------------
 
 def replay_pathway(brain, step: PathwayReplay) -> PathwayEdge:
     """Execute one pathway consolidation step; return the strengthened edge."""
+    _validate_replay_step(brain, step)
     if step.stimulus is not None:
         project(brain, step.stimulus, step.source_area, rounds=step.rounds)
 
@@ -136,6 +178,7 @@ def replay_pathway(brain, step: PathwayReplay) -> PathwayEdge:
 
 def replay_merge(brain, step: MergeReplay) -> Set[PathwayEdge]:
     """Execute one merge consolidation step."""
+    _validate_replay_step(brain, step)
     edges: Set[PathwayEdge] = set()
 
     if step.stimulus_a is not None:
@@ -151,6 +194,7 @@ def replay_merge(brain, step: MergeReplay) -> Set[PathwayEdge]:
 
 def replay_multi_project(brain, step: MultiProjectReplay) -> Set[PathwayEdge]:
     """Execute a multi-source projection into one target with recurrence."""
+    _validate_replay_step(brain, step)
     edges: Set[PathwayEdge] = set()
 
     for stim, area in step.stimulus_projections:
@@ -339,6 +383,8 @@ def consolidate(
             "consolidation steps must be PathwayReplay, MergeReplay, or "
             f"MultiProjectReplay; got {invalid!r}"
         )
+    for step in plan.steps:
+        _validate_replay_step(brain, step)
     steps = plan.steps
     passes = plan.passes
     clear_activity = plan.clear_activity

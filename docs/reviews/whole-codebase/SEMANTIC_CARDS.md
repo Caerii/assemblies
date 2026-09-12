@@ -1609,6 +1609,14 @@ empty direction schedule fail before replay.
 
 `consolidate` executes a nonempty ordered tuple of `PathwayReplay`, `MergeReplay`, or `MultiProjectReplay` steps for a positive number of passes without resetting area connections. It optionally clears activity and optionally performs the destructive area/index preparation used only for episodic-reset protocols. The plan returns strengthened pathway edges; malformed or empty schedules are rejected before replay.
 
+Each replay step has a second admission boundary because the step executors
+are public composition points. Before the first backend call, every step now
+checks distinct area roles, nonempty sources, positive rounds, known topology,
+known stimuli, and valid stimulus-area pairs. The whole protocol validates all
+steps up front, so an invalid later step cannot leave earlier steps partially
+trained. The corresponding control is
+`test_consolidate_rejects_invalid_later_step_before_mutation`.
+
 <a id="contract-binding-read"></a>
 
 ## Single-source binding readout
