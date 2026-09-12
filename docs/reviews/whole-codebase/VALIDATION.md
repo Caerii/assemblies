@@ -6980,3 +6980,6 @@ Read `research/experiments/seq_refraction_wander.py` as an executable protocol. 
 ## Maintained gate rerun (2026-09-12)
 
 `uv run python scripts/verify_maintained.py` completed successfully. Pyright analyzed 286 maintained files with 0 errors, warnings, or informational diagnostics. The non-slow package suite passed 3778 tests, skipped 141, retained 8 expected failures, and passed 10 subtests (277 warnings; sampled-recurrence warnings are intentional provenance safeguards). Total test time was 1698.10 seconds.
+## Directed plasticity lookup (2026-09-12)
+
+`Brain.plasticity_rate(from_area, to_area)` now exposes the directed fiber beta with the target default only as a fallback. `sequence_memorize` uses this accessor when restoring a scoped target->target beta boost, preventing a distinct directed override from being replaced by the area-wide default. Focused validation: `test_per_fiber_beta.py` 14 passed; Pyright on `brain.py` and `ops.py` 0 errors/warnings/information.

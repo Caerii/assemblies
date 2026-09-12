@@ -1053,7 +1053,9 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
             # the within/bridge RATIO (1.11 at reps=5 vs 1.76 at reps=40): the
             # attractor grows faster than the bridge, and recall has to escape
             # the attractor to advance.
-            original_beta = brain.areas[target].beta
+            # Snapshot the directed fiber rate.  The area-wide default is not
+            # necessarily the rate currently applied to target -> target.
+            original_beta = brain.plasticity_rate(target, target)
             if beta_boost is not None:
                 # NOTE: saves the AREA-WIDE default beta but restores it into
                 # the target->target pathway specifically.  If a caller had

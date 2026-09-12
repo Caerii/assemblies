@@ -1815,6 +1815,24 @@ class Brain:
                 and self._explicit_engine is not self._engine_for(self.areas[to_area])):
             self._explicit_engine.set_beta(to_area, from_area, new_beta)
 
+    def plasticity_rate(self, from_area: str, to_area: str) -> float:
+        """Return the current directed beta for one area-to-area fiber.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-plasticity-rate
+
+        The value is resolved from the target area's directed fiber table and
+        falls back to the target area's default beta for fibers that have not
+        been overridden. Keeping this lookup beside :meth:`update_plasticity`
+        prevents schedules from snapshotting the ambiguous area-wide ``beta``
+        when a distinct directed fiber rate is already configured.
+        """
+        if from_area not in self.areas:
+            raise KeyError(f"unknown plasticity source area {from_area!r}")
+        if to_area not in self.areas:
+            raise KeyError(f"unknown plasticity target area {to_area!r}")
+        target = self.areas[to_area]
+        return float(target.beta_by_area.get(from_area, target.beta))
+
     def add_connectivity(self, source: str, target: str, p: float) -> None:
         """Set one fiber's connection probability, overriding the global `p`.
 

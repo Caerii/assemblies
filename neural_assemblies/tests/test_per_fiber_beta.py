@@ -72,6 +72,22 @@ def test_working_route_is_visible_to_the_engine_and_the_dense_path():
     assert b.areas["A"].beta_by_area["A"] == 0.0        # compute.explicit_projection reads this
 
 
+def test_plasticity_rate_reads_the_directed_fiber_not_area_default():
+    b = _brain()
+    b.update_plasticity("A", "A", 0.37)
+    b.areas["A"].beta = 0.91
+
+    assert b.plasticity_rate("A", "A") == pytest.approx(0.37)
+
+
+def test_plasticity_rate_validates_both_area_names():
+    b = _brain()
+    with pytest.raises(KeyError, match="unknown plasticity source"):
+        b.plasticity_rate("missing", "A")
+    with pytest.raises(KeyError, match="unknown plasticity target"):
+        b.plasticity_rate("A", "missing")
+
+
 def test_dead_route_refuses_instead_of_no_opping():
     """The exact call that silently did nothing must now raise."""
     b = _brain()
