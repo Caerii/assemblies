@@ -48,6 +48,7 @@ def read_out(area, mapping, brain, dependencies, readout_rules):
     def _identified(w):
         return bool(w) and w != "<NON-WORD>"
 
+    this_word = None
     if area != DEP_CLAUSE:
         this_word = brain.getWord(LEX, cue_area=area, clause_scope="outer")
 
