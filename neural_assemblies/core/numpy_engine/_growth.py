@@ -16,6 +16,7 @@ integer updates when the base is recomputable.
 from __future__ import annotations
 
 import os
+from typing import Any, cast
 
 import numpy as np
 
@@ -109,6 +110,41 @@ def _self_fiber_deferred_init() -> bool:
 
 class GrowthMixin:
     """Growth methods of `NumpySparseEngine`; see module docstring."""
+
+    # Growth is a composed concern, not a standalone engine.  Declare the
+    # host surface once so this module can be type-checked in isolation while
+    # retaining the concrete implementation in NumpySparseEngine.  The
+    # polymorphic array and backend methods intentionally remain Any here;
+    # their concrete contracts live on ComputeEngine and Connectome.
+    _area_conns: Any
+    _areas: Any
+    _content_init: Any
+    _dense_stim_threshold: Any
+    _deterministic: Any
+    _init_area_block: Any
+    _no_recruitment: Any
+    _p_for: Any
+    _pair_seed: Any
+    _rng: Any
+    _seed: Any
+    _sparse_sim: Any
+    _stim_conn_version: Any
+    _stim_conns: Any
+    _stim_fastpath: Any
+    _stim_target_cache: Any
+    _stimuli: Any
+    _to_xp: Any
+    _weight_bounds: Any
+    _xp: Any
+    heterogeneous: Any
+    inhibitory_prob: Any
+    inhibitory_weight: Any
+    mark_column_dirty: Any
+    mark_columns_dirty: Any
+    mark_region_refilled: Any
+    norm_init: Any
+    p: Any
+    synaptic_scaling: Any
 
     def _use_virtual(self) -> bool:
         return (_virtual_weights_enabled()
@@ -252,15 +288,18 @@ class GrowthMixin:
         nc = needed_cols - log_cols
         self.mark_region_refilled(conn, log_rows, log_cols)
         if nr > 0 and log_cols > 0:
-            conn.weights[log_rows:needed_rows, :log_cols] = (
+            # VirtualWeights grows through its own sparse write API; this
+            # branch is reached only for materialised arrays.  The host
+            # connectome keeps a union type, so narrow it at the boundary.
+            cast(Any, conn.weights)[log_rows:needed_rows, :log_cols] = (
                 self._init_area_block(src_name, target, log_rows,
                                       needed_rows, 0, log_cols))
         if nc > 0 and log_rows > 0:
-            conn.weights[:log_rows, log_cols:needed_cols] = (
+            cast(Any, conn.weights)[:log_rows, log_cols:needed_cols] = (
                 self._init_area_block(src_name, target, 0, log_rows,
                                       log_cols, needed_cols))
         if nr > 0 and nc > 0:
-            conn.weights[log_rows:needed_rows, log_cols:needed_cols] = (
+            cast(Any, conn.weights)[log_rows:needed_rows, log_cols:needed_cols] = (
                 self._init_area_block(src_name, target, log_rows,
                                       needed_rows, log_cols, needed_cols))
         conn._log_rows = max(int(getattr(conn, "_log_rows", 0)), needed_rows)
