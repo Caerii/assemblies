@@ -6648,3 +6648,8 @@ The batched Torch engine now routes generated operators and dtypes through the e
 ## Torch hash boundary migration (2026-09-12)
 
 The deterministic hashed-connectome constructor `_hash.py` now routes generated Torch factories, dtypes, and mesh operations through `torch_ops`. Pyright and Ruff report zero diagnostics. Hash-finalizer and hashed substrate/aligner/transducer regression checks pass **8 tests with 24 expected skips**; no hashing or tie behavior was changed.
+
+
+## Torch state boundary migration (2026-09-12)
+
+`_state.py` now routes per-area tensor allocation through the shared `torch_ops` boundary. Pyright and Ruff report zero diagnostics, and Torch scaling plus parity regressions pass **38 tests**. State initialization and device behavior remain unchanged.
