@@ -212,3 +212,5 @@ lost a quarter of them to duplicates.
 
 What is NOT established: how any of this scales with n. Both ceilings here are
 bounded by the tiling limit of a single 2000-neuron area.
+
+Evidence artifact: `research/results/logs/seq_s5_substrate_c_scoped.log`.

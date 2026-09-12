@@ -6873,3 +6873,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Evidence graph planned versus missing edges (2026-09-12)
 
 `research/evidence.py` now classifies preregistrations that explicitly declare unrun work as `preregistrations_pending_results`, leaving `preregistrations_without_resolved_result_links` for actual missing edges. The live audit currently reports **4** missing links and **22** pending preregistrations out of the previously conflated set of 26. The evidence validator now has zero Pyright diagnostics; research-runner tests pass **98/98**.
+
+
+## Evidence links include committed study logs (2026-09-12)
+
+The evidence graph now recognizes committed `.log` and `.txt` study artifacts as resolvable evidence while keeping orphan-data reporting limited to JSON and CSV result artifacts. Explicit links were added for the unaligned-scenes, substrate-ceiling, and A1 FSM parity registrations. The live audit is now **1** actual missing result edge (`PREREG_agreement_corpus.md`) and **19** pending preregistrations. Research-runner tests pass **98/98**; Pyright and Ruff are clean.

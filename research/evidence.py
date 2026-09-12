@@ -27,7 +27,12 @@ from research.json_documents import decode_document, encode_document, load_docum
 from research.source_archive import validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
-_FILE_REF = re.compile(r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb)(?![\w])')
+_FILE_REF = re.compile(
+    r'(?<![\w/])(?:[\w.-]+/)*[\w.-]+\.(?:py|md|json|csv|ipynb|log|txt)'
+    r'(?![\w])'
+)
+_DATA_SUFFIXES = frozenset({'.json', '.csv'})
+_EVIDENCE_SUFFIXES = _DATA_SUFFIXES | frozenset({'.log', '.txt'})
 _ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
 
 
@@ -248,11 +253,16 @@ def audit_history(root: Path = ROOT) -> dict:
                                    'reason': 'ambiguous' if candidates else 'unresolved',
                                    'candidates': candidates})
     results = sorted(name for name in files if name.startswith('research/')
-                     and Path(name).suffix in {'.json', '.csv'}
+                     and Path(name).suffix in _DATA_SUFFIXES
                      and ('/results/' in name or 'result' in Path(name).name))
+    evidence_files = {
+        name for name in files if name.startswith('research/')
+        and Path(name).suffix in _EVIDENCE_SUFFIXES
+        and ('/results/' in name or 'result' in Path(name).name)
+    }
     preregs = sorted(name for name in files if Path(name).name.startswith('PREREG_')
                      and Path(name).suffix == '.md')
-    reports_results = {edge['from'] for edge in edges if edge['to'] in results}
+    reports_results = {edge['from'] for edge in edges if edge['to'] in evidence_files}
     # A preregistration that explicitly says it has not run yet is a planned
     # node, not a dangling evidence edge. Keep it visible in a separate list so
     # the audit distinguishes missing links from work that has no result by

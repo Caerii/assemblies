@@ -226,3 +226,5 @@ learning.
 **What is NOT claimed**, restating the registration: the scene still supplies
 causal order; nothing here is about syntax beyond word order, about function
 words, or about real corpora. Alignment is over 13 types with >= 3 exposures.
+
+Evidence artifact: `research/results/logs/unaligned_scenes.log`.

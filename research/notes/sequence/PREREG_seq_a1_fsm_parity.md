@@ -163,3 +163,5 @@ Stated before the data:
   transitions of a state, reaching 1.1^165, and there our clamp does something
   the reference does not. Report max weight per arm; if the null arm is clamped,
   our null is not the reference's null and must be labelled as such.
+
+Evidence artifact: `research/results/logs/seq_a1_fsm_parity.log`.
