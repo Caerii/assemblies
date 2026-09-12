@@ -5878,3 +5878,9 @@ The active progress API remains unchanged.
 `numpy_exact` validates shared `csr`/`dense` storage names even though every
 neuron is already represented. Unknown storage values now fail before the
 no-op, with a true-negative acceptance-ladder test.
+
+### Brain projection verbosity contract (2026-09-12)
+
+`Brain.project` now validates verbosity levels and emits concise basic or
+detailed routing diagnostics when requested. Previously the value was threaded
+through private methods but discarded. Five invalid-level true negatives pass.

@@ -147,6 +147,12 @@ def test_cold_read_only_rounds_fail_before_source_synchronization():
     assert b._engine.materialized_count("T") == 0
 
 
+@pytest.mark.parametrize("verbose", [-1, 3, True, 1.5, "1"])
+def test_project_rejects_invalid_verbose_levels_before_routing(verbose):
+    with pytest.raises(ValueError, match="verbose must be one of"):
+        Brain().project({}, {}, verbose=verbose)
+
+
 @pytest.mark.parametrize("engine", ["numpy_exact", "numpy_sparse", "numpy_explicit"])
 @pytest.mark.parametrize("learning", [False, True])
 def test_engine_repetition_matches_individual_steps(engine, learning):

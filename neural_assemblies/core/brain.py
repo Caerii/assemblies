@@ -1019,6 +1019,8 @@ class Brain:
             external_drive: Per-target additive input bias for explicit areas (length n).
             verbose: 0=silent, 1=basic, 2=detailed.
         """
+        if type(verbose) is not int or verbose not in (0, 1, 2):
+            raise ValueError("verbose must be one of 0, 1, or 2")
         drive = external_drive or {}
         if areas_by_stim is not None or dst_areas_by_src_area is not None:
             self._project_impl(areas_by_stim or {}, dst_areas_by_src_area or {}, verbose, drive)
@@ -1097,6 +1099,19 @@ class Brain:
         Core projection implementation. Builds input mappings from stimuli and areas, then delegates to the
         compute engine for all projection, winner selection, and plasticity.
         """
+        if verbose:
+            print(
+                f"project: stimuli={list(areas_by_stim)} "
+                f"areas={list(dst_areas_by_src_area)}",
+                flush=True,
+            )
+            if verbose == 2:
+                targets = set()
+                for destinations in areas_by_stim.values():
+                    targets.update(destinations)
+                for destinations in dst_areas_by_src_area.values():
+                    targets.update(destinations)
+                print(f"project: targets={sorted(targets)}", flush=True)
         external_drive = external_drive or {}
         stim_in, area_in = self._projection_inputs(
             areas_by_stim, dst_areas_by_src_area)
