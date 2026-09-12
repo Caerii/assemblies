@@ -5827,3 +5827,9 @@ true-negative parser test passes.
 `tune_thresholds_from_samples` no longer accepts the baseline object it never
 read. Threshold tuning remains driven by labeled samples and fallback policy,
 and a signature test protects the reduced surface.
+
+### Warm ERP probe surface (2026-09-12)
+
+The cached-prefix ERP probe no longer accepts the baseline object it never
+reads; baseline remains explicit only on the non-cached probe that computes
+excess values. The frame module passes Ruff and compilation checks.

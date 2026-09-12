@@ -352,7 +352,6 @@ def _probe_at_critical_position(
     pos: int,
     *,
     readiness: ErpReadiness,
-    baseline: ErpBaseline,
     probe_depth: str,
     protocol: ErpProtocol,
 ):
@@ -595,7 +594,6 @@ def collect_frame_samples(
             p = _probe_at_critical_position_warm(
                 parser, known, pos,
                 readiness=readiness,
-                baseline=baseline,
                 probe_depth=probe_depth,
                 cache=prefix_cache,
                 protocol=protocol,
