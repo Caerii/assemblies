@@ -7,7 +7,7 @@ Reference: dabagia.org/nemo/sequences/, dabagia.org/nemo/coinflipping/
 
 from __future__ import annotations
 
-from typing import Dict, List, Sequence, Tuple
+from typing import Any, Dict, List, Sequence, Tuple
 
 import numpy as np
 
@@ -65,9 +65,9 @@ class NemoArcFSM:
 
     def __init__(
         self,
-        brain,
-        states: List[str],
-        symbols: List[str],
+        brain: Any,
+        states: Sequence[str],
+        symbols: Sequence[str],
         transitions: List[TransitionLike],
         *,
         n: int = 5000,
@@ -79,10 +79,14 @@ class NemoArcFSM:
         prefix: str = "_nemo_fsm",
     ):
         self.brain = brain
-        states = states if isinstance(states, (str, bytes)) else tuple(states)
-        symbols = symbols if isinstance(symbols, (str, bytes)) else tuple(symbols)
+        states = tuple(states)
+        symbols = tuple(symbols)
+        if not states:
+            raise ValueError("NemoArcFSM requires at least one declared state")
+        if not symbols:
+            raise ValueError("NemoArcFSM requires at least one declared symbol")
         self.transition_map = TransitionMap(transitions).validate_domain(
-            states, symbols, states[0] if states else None)
+            states, symbols, states[0])
         self._table = self.transition_map.deterministic_table()
         self.states = list(states)
         self.symbols = list(symbols)
