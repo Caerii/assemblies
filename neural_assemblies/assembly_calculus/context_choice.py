@@ -71,7 +71,7 @@ class ContextAttractorChoice:
     def __init__(self, brain, *, protocol: ContextChoiceProtocol, prefix='_context_choice'):
         if not isinstance(protocol, ContextChoiceProtocol):
             raise ValueError('ContextAttractorChoice requires an explicit ContextChoiceProtocol')
-        if protocol.noise_std > 0 and not brain._engine.supports_input_noise:
+        if protocol.noise_std > 0 and not brain.engine.supports_input_noise:
             raise NotImplementedError('positive noise requires an engine with native input noise support')
         self.brain, self._protocol = brain, protocol
         self.context_area = f'{prefix}_context'

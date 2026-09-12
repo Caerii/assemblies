@@ -45,7 +45,7 @@ class BatchedLM:
     """
 
     def __init__(self, brain, area, vocab, stimuli_map, lexicon):
-        eng = brain._engine
+        eng = brain.engine
         if not getattr(eng, "supports_batched_next_token", False):
             raise TypeError(
                 f"BatchedLM requires an engine with batched next-token support; "

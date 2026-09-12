@@ -80,6 +80,13 @@ class TestGetXpCallPattern:
 class TestCpuBrainSmoke:
     """Smoke test: full projection cycle on numpy backend."""
 
+    def test_brain_exposes_backend_at_public_boundary(self):
+        from neural_assemblies.core.brain import Brain
+
+        brain = Brain(p=0.1, seed=42, engine="numpy_sparse")
+        assert brain.engine is brain._engine
+        assert brain.engine.name == brain.engine_name
+
     def test_explicit_projection(self):
         from neural_assemblies.core.brain import Brain
 

@@ -279,7 +279,7 @@ class MorphosyntaxMixin:
             tense_stims[tense_name] = stim_name
 
         flush_every = int(getattr(self, "morph_flush_every", 0))
-        eng = self.brain._engine
+        eng = self.brain.engine
         deferred = getattr(eng, "synaptic_scaling_deferred", False)
         episode = 0
         # E8 (#137): epochs raise per-form exposure at fixed diversity --

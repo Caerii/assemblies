@@ -470,6 +470,17 @@ class Brain:
         return self._engine.name
 
     @property
+    def engine(self) -> ComputeEngine:
+        """Return the active backend through the public composition boundary.
+
+        Callers that need a backend capability should use this property rather
+        than reaching into the private ``_engine`` implementation slot.  The
+        backend remains the owner of compute state; this accessor exposes that
+        ownership without making the storage layout part of the API.
+        """
+        return self._engine
+
+    @property
     def projection_fidelity(self) -> str:
         """Global projection fidelity: ``exact`` or ``compiled`` (fuzzy)."""
         return self._engine.get_projection_fidelity()
