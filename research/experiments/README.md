@@ -42,6 +42,16 @@ The numpy-era scripts these supersede (`seq_a1_horizon.py`,
 `seq_s5_soft_census.py`, `seq_s5_word_problem.py`, ...) remain runnable and
 their results sit in the same results folders.
 
+## Migration boundary
+
+Scripts absent from the shared-runner table are historical or diagnostic paths,
+not silently supported study commands. In particular, `seq_s5_bar_tie.py` and
+`seq_s5_norm_init_intervention.py` still delegate to the legacy tiered S5
+executor, whose effective backend and materialization semantics are not yet
+captured by a runner execution profile. They remain available for forensic
+reproduction only; migrate them after their backend identity and protocol
+inputs are made explicit.
+
 ## Shared modules
 
 - `_substrate.py`: the measurement standards (ceiling from a curve, distinctness checks, seed handling).
