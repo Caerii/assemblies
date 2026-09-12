@@ -43,6 +43,13 @@ def test_mask_rejects_unknown_endpoints_and_non_boolean_values(brain):
     assert ("missing", "T") not in brain.plasticity_mask
 
 
+def test_mask_query_rejects_unknown_endpoints_instead_of_defaulting_true(brain):
+    with pytest.raises(KeyError, match="unknown plasticity source"):
+        brain.fiber_plasticity_enabled("missing", "T")
+    with pytest.raises(KeyError, match="unknown plasticity target"):
+        brain.fiber_plasticity_enabled("A", "missing")
+
+
 def test_failed_projection_does_not_leave_engine_mask(brain):
     brain.set_fiber_plasticity("A", "T", False)
     with pytest.raises(ValueError):

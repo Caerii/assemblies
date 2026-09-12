@@ -6998,3 +6998,6 @@ Searched maintained package paths for direct beta reads/writes. The only non-tes
 ## Fiber plasticity mask validation (2026-09-12)
 
 `Brain.set_fiber_plasticity` now validates source identity (area or registered stimulus), target identity (area), and exact boolean type before changing the mask. Unknown or truthy-but-nonboolean controls can no longer create inert protocol entries. Validation: `test_fiber_learning_contract.py` 13 passed; Pyright on Brain 0 errors/warnings/information.
+## Fiber mask query validation (2026-09-12)
+
+Centralized directed-fiber endpoint validation in `Brain._validate_fiber_endpoints` and applied it to both mask writes and reads. `fiber_plasticity_enabled` no longer defaults unknown endpoints to `True`, preventing typos from masquerading as enabled learning paths. Validation: fiber-learning plus sampled-fiber suites 27 passed; Pyright on Brain 0 errors/warnings/information.

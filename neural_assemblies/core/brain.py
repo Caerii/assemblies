@@ -410,16 +410,21 @@ class Brain:
         from creating an inert mask entry that looks like a real protocol
         control.
         """
-        if src not in self.areas and src not in self.stimuli:
-            raise KeyError(f"unknown plasticity source {src!r}")
-        if dst not in self.areas:
-            raise KeyError(f"unknown plasticity target {dst!r}")
+        self._validate_fiber_endpoints(src, dst)
         if type(enabled) is not bool:
             raise TypeError("enabled must be a bool")
         self.plasticity_mask[(src, dst)] = enabled
 
+    def _validate_fiber_endpoints(self, src: str, dst: str) -> None:
+        """Validate names shared by all directed-fiber controls."""
+        if src not in self.areas and src not in self.stimuli:
+            raise KeyError(f"unknown plasticity source {src!r}")
+        if dst not in self.areas:
+            raise KeyError(f"unknown plasticity target {dst!r}")
+
     def fiber_plasticity_enabled(self, src: str, dst: str) -> bool:
         """Whether Hebbian plasticity is allowed on *src* → *dst*."""
+        self._validate_fiber_endpoints(src, dst)
         if self.disable_plasticity:
             return False
         return self.plasticity_mask.get((src, dst), True)
