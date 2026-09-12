@@ -121,15 +121,12 @@ def build_parser(seed: int, arm: str):
     return EmergentParser(**kwargs)
 
 
-def train(parser):
-    from neural_assemblies.assembly_calculus.emergent.curriculum import (
-        CurriculumTrainer,
-    )
+from research.experiments.curriculum_training import train_curriculum as _train_curriculum
 
-    ct = CurriculumTrainer(parser)
-    for stage in STAGES:
-        ct.train_stage(stage)
-    return parser
+
+def train(parser):
+    """Train through this study's declared curriculum."""
+    return _train_curriculum(parser, STAGES)
 
 
 from research.experiments.role_guards import role_guards as _role_guards

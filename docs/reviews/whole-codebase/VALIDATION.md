@@ -5117,3 +5117,7 @@ The shared SVO and matched-ERP generators now use explicit named loops rather th
 ### Diagnostic readout source link (2026-09-11)
 
 `readout_all` now links directly to the readout semantic card, which explicitly distinguishes its deterministic score table from thresholded lexical decoding and from a probability distribution. This closes a code-to-spec navigation gap without adding a second operation contract or changing behavior. Readout/NEMO checks pass: **15 passed**; Ruff and specification validation are clean.
+
+### Curriculum training loop deduplication (2026-09-11)
+
+The scaled-feature and surprise-gain studies now share `curriculum_training.train_curriculum`. Each retains its own `STAGES` tuple and passes it explicitly; the helper owns only trainer construction and ordered stage execution. A fake-trainer schedule probe confirms order and parser identity, and both study modules compile with Ruff and diff checks clean.
