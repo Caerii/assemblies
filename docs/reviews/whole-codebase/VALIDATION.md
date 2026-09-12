@@ -5783,3 +5783,9 @@ the measurement includes them.
 Dedicated tests now prove that retired `phrase_stability` and
 `anchored_p600_live` controls fail before touching parser state. The guards are
 therefore protected against future compatibility regressions.
+
+### Fuzzy registration seed contract (2026-09-12)
+
+`register_early_fuzzy_variants` now rejects nonzero seeds because its variant
+generator is deterministic and never consumed that parameter. Active acquisition
+callers no longer pass a misleading seed; the true-negative test passes.
