@@ -55,7 +55,7 @@ which carries the full reference and a local PDF path where one is checked in.
 citation cannot quietly become a dead string.
 """
 
-from contextlib import contextmanager
+from contextlib import contextmanager, nullcontext
 from numbers import Integral
 
 import numpy as np
@@ -1053,25 +1053,11 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
             # the within/bridge RATIO (1.11 at reps=5 vs 1.76 at reps=40): the
             # attractor grows faster than the bridge, and recall has to escape
             # the attractor to advance.
-            # Snapshot the directed fiber rate.  The area-wide default is not
-            # necessarily the rate currently applied to target -> target.
-            original_beta = brain.plasticity_rate(target, target)
-            if beta_boost is not None:
-                # NOTE: saves the AREA-WIDE default beta but restores it into
-                # the target->target pathway specifically.  If a caller had
-                # set a distinct target->target beta before calling, that
-                # value is not what gets restored.  Left as-is: current
-                # callers never do, and changing it would alter results.
-                brain.update_plasticity(target, target, beta_boost)
-            try:
+            boost = (brain.temporary_plasticity(target, target, beta_boost)
+                     if beta_boost is not None else nullcontext())
+            with boost:
                 for _ in range(recur_rounds):
                     brain.project({stim_name: [target]}, {target: [target]})
-            finally:
-                if beta_boost is not None:
-                    # The boost is a scoped protocol setting. Restore it even
-                    # when a backend raises, otherwise a failed experiment
-                    # contaminates every later run on this Brain.
-                    brain.update_plasticity(target, target, original_beta)
 
             assemblies.append(_snap(brain, target))
 

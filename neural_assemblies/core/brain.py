@@ -1833,6 +1833,20 @@ class Brain:
         target = self.areas[to_area]
         return float(target.beta_by_area.get(from_area, target.beta))
 
+    @contextlib.contextmanager
+    def temporary_plasticity(self, from_area: str, to_area: str,
+                             new_beta: float):
+        """Temporarily change one directed fiber rate and always restore it.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-plasticity-rate
+        """
+        original = self.plasticity_rate(from_area, to_area)
+        self.update_plasticity(from_area, to_area, new_beta)
+        try:
+            yield
+        finally:
+            self.update_plasticity(from_area, to_area, original)
+
     def add_connectivity(self, source: str, target: str, p: float) -> None:
         """Set one fiber's connection probability, overriding the global `p`.
 

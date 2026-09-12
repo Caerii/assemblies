@@ -28,6 +28,7 @@ Reference:
 from __future__ import annotations
 
 import math
+from contextlib import nullcontext
 from numbers import Integral, Real
 from typing import List, Sequence as SequenceLike
 
@@ -172,25 +173,19 @@ def _train_scaffold_step(
     )
     recur_rounds = max(1, int(rounds_per_step * phase_b_ratio))
     stim_rounds = max(1, rounds_per_step - recur_rounds)
-    main = brain.areas[main_area]
-    aux = brain.areas[scaffold_area]
-    main_beta, aux_beta = main.beta, aux.beta
     for _ in range(stim_rounds):
         brain.project({stim: [main_area]}, {})
-    if beta_boost is not None:
-        brain.update_plasticity(main_area, main_area, beta_boost)
-        brain.update_plasticity(scaffold_area, scaffold_area, beta_boost)
-    try:
+    scopes = (
+        brain.temporary_plasticity(main_area, main_area, beta_boost),
+        brain.temporary_plasticity(scaffold_area, scaffold_area, beta_boost),
+    ) if beta_boost is not None else (nullcontext(), nullcontext())
+    with scopes[0], scopes[1]:
         for _ in range(recur_rounds):
             brain.project({stim: [main_area]}, {})
             brain.project({}, {scaffold_area: [main_area]})
             brain.project({}, {main_area: [scaffold_area]})
             brain.project({}, {main_area: [main_area]})
             brain.project({}, {scaffold_area: [scaffold_area]})
-    finally:
-        if beta_boost is not None:
-            brain.update_plasticity(main_area, main_area, main_beta)
-            brain.update_plasticity(scaffold_area, scaffold_area, aux_beta)
 
 
 class ScaffoldNetwork:

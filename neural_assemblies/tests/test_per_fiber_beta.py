@@ -88,6 +88,16 @@ def test_plasticity_rate_validates_both_area_names():
         b.plasticity_rate("A", "missing")
 
 
+def test_temporary_plasticity_restores_directed_rate_after_exception():
+    b = _brain()
+    b.update_plasticity("A", "A", 0.37)
+    with pytest.raises(RuntimeError):
+        with b.temporary_plasticity("A", "A", 0.83):
+            assert b.plasticity_rate("A", "A") == pytest.approx(0.83)
+            raise RuntimeError("synthetic phase failure")
+    assert b.plasticity_rate("A", "A") == pytest.approx(0.37)
+
+
 def test_dead_route_refuses_instead_of_no_opping():
     """The exact call that silently did nothing must now raise."""
     b = _brain()

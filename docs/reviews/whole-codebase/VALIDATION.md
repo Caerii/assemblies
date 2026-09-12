@@ -6983,3 +6983,6 @@ Read `research/experiments/seq_refraction_wander.py` as an executable protocol. 
 ## Directed plasticity lookup (2026-09-12)
 
 `Brain.plasticity_rate(from_area, to_area)` now exposes the directed fiber beta with the target default only as a fallback. `sequence_memorize` uses this accessor when restoring a scoped target->target beta boost, preventing a distinct directed override from being replaced by the area-wide default. Focused validation: `test_per_fiber_beta.py` 14 passed; Pyright on `brain.py` and `ops.py` 0 errors/warnings/information.
+## Scoped plasticity phase abstraction (2026-09-12)
+
+Added `Brain.temporary_plasticity`, an exception-safe context manager that snapshots and restores the directed fiber rate. `sequence_memorize` and `memorize_scaffold_step` now use the shared scope instead of duplicating try/finally mutation logic; this also removes the old area-default restoration hazard. Focused validation: per-fiber plus sequence-recall tests 27 passed; Pyright on all touched modules 0 errors/warnings/information.
