@@ -6582,3 +6582,7 @@ ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0
 ## 2026-09-12 — connectome RNG compatibility boundary
 
 - Made the legacy module-or-Generator RNG fallback explicit with a narrowly scoped dynamic cast. This preserves direct-connectome compatibility while keeping production seeded-Generator semantics unchanged. Pyright: 0 diagnostics; connectome and capacity/fingerprint tests: 12 passed in 1.60s (expected sampled warnings).
+
+## 2026-09-12 — Brain and engine shared state contracts
+
+- Declared engine connection registries and capability hooks on ComputeEngine; aligned Brain and HomeostasisConfig around the shared ScalingSpec; made semantic fallback casting explicit. This removes structural mismatches without changing backend dispatch. Targeted Pyright checks reduced Brain diagnostics from 26 to 18; model/area registration tests — 221 passed in 1.36s.

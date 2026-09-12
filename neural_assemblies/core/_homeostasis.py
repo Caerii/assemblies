@@ -183,7 +183,7 @@ class HomeostasisConfig:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-homeostasis-config"""
 
     norm_init: bool = False
-    synaptic_scaling: bool | frozenset[str] = False
+    synaptic_scaling: ScalingSpec = False
     synaptic_scaling_deferred: bool = False
 
     def __post_init__(self):

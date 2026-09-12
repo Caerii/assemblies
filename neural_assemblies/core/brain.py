@@ -31,7 +31,7 @@ from copy import deepcopy
 from numbers import Integral
 import os
 import numpy as np
-from typing import Dict, List, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 from collections import defaultdict
 
 from .backend import get_xp, to_cpu, detect_best_engine
@@ -45,6 +45,7 @@ from .engine import (
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
 from ._homeostasis import (
     HomeostasisConfig,
+    ScalingSpec,
     check_area_homeostasis,
     validate_homeostasis_capabilities,
     validate_lri_parameters,
@@ -120,7 +121,7 @@ class Brain:
         projection_fidelity: str = "exact",
         inhibitory_prob: float = 0.0,
         inhibitory_weight: float = -0.2,
-        synaptic_scaling: "bool | frozenset | set | tuple" = False,
+        synaptic_scaling: ScalingSpec = False,
         synaptic_scaling_deferred: bool = False,
         recurrent_projection: bool = False,
         norm_init: bool | None = None,
@@ -274,7 +275,7 @@ class Brain:
 
         # Compute engine — required, defaults to auto-detected best backend
         if isinstance(engine, str):
-            engine_kwargs = dict(
+            engine_kwargs: Dict[str, Any] = dict(
                 p=p, seed=seed, w_max=w_max, deterministic=deterministic,
             )
             # Admission above proves the selected engine implements this pair.
@@ -348,7 +349,7 @@ class Brain:
         self._engine.set_projection_fidelity(projection_fidelity)
 
         # Secondary engine for explicit areas (lazily created)
-        self._explicit_engine: ComputeEngine = None
+        self._explicit_engine: Optional[ComputeEngine] = None
         self._seed = seed
 
         # Inter-area inhibition groups for winner-take-all
@@ -359,7 +360,7 @@ class Brain:
         # One-time incoming-weight normalization (reference `norm_init`).
         # Legacy schedule inputs; see project_rounds's source-linked contract.
         self.norm_init: bool = norm_init
-        self._synaptic_scaling: bool = synaptic_scaling
+        self._synaptic_scaling: ScalingSpec = synaptic_scaling
         self._synaptic_scaling_deferred: bool = synaptic_scaling_deferred
         # Select target self-recurrence in the legacy project_rounds schedule.
         self.recurrent_projection: bool = recurrent_projection
@@ -394,11 +395,11 @@ class Brain:
     @property
     def model_semantics(self) -> ModelSemantics:
         """Immutable, executable description of the primary engine path."""
-        return getattr(
+        return cast(ModelSemantics, getattr(
             self,
             "_model_semantics",
             self._engine.describe_model_semantics(),
-        )
+        ))
 
     def set_fiber_plasticity(self, src: str, dst: str, enabled: bool) -> None:
         """Enable or disable Hebbian updates on one directed fiber (E6)."""

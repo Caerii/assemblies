@@ -81,6 +81,10 @@ class ComputeEngine(ABC):
     # Concrete engines populate this registry during setup.  Declaring the
     # shared state at the interface boundary keeps optional hooks type-safe.
     _areas: Dict[str, Any]
+    _area_conns: Dict[str, Dict[str, Any]]
+    _stim_conns: Dict[str, Dict[str, Any]]
+    _gpu_sampling: bool = False
+    dense_drive: bool = False
     """Abstract base for all compute backends.
 
     The engine owns ALL compute state: connectome weights, activation
@@ -181,6 +185,21 @@ class ComputeEngine(ABC):
     supports_dense_drive = False
     supports_stim_preallocation = False
     supports_batched_next_token = False
+
+    def _configure_sampled_recurrence_policy(self, policy: object) -> None:
+        """Record the policy on engines that expose the shared hook."""
+        self.sampled_recurrence_policy = policy
+
+    def set_dense_area_conn(self, src: str, tgt: str, conn: Any) -> None:
+        """Install a dense compatibility fiber in the engine registry."""
+        self._area_conns.setdefault(src, {})[tgt] = conn
+
+    def materialize_area(self, area: str, storage: str = "csr") -> int:
+        """Materialize an area when the backend supports explicit storage."""
+        del area, storage
+        raise NotImplementedError(
+            f"{type(self).__name__} does not support area materialization"
+        )
 
     @abstractmethod
     def describe_model_semantics(self):
