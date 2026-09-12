@@ -6098,3 +6098,6 @@ The theory evidence validator now uses strict treatment/control pairing after it
 ### Grounded utterance alignment gate (2026-09-12)
 
 `GroundedUtterance` now rejects word/POS length mismatches at construction, and the public assembly language learner uses strict pairing while learning. This prevents malformed curriculum examples from silently losing tokens. Focused sentence and CHILDES suites pass **9 tests**; B905/F scans are clean.
+### Generation tuple-alignment gate (2026-09-12)
+
+GPU language generation and NEMO sentence generation now use strict tuple unpacking for candidate words, weights, patterns, and scores. A malformed internal candidate record cannot silently truncate into a different distribution. Focused B905/F scans are clean. Direct NEMO generator smoke is environment-blocked because CuPy is unavailable; no GPU runtime pass is claimed.

@@ -569,7 +569,7 @@ class GPULanguageLearner:
             
             if verbose:
                 pred_str = ", ".join([f"{w}:{s:.2f}" for w, s in predictions[:5]])
-                status = "✓" if found else "✗"
+                status = "âœ“" if found else "âœ—"
                 print(f"  {status} '{' '.join(context)}' -> [{pred_str}]")
                 print(f"      Expected one of: {expected_words}")
         
@@ -698,7 +698,7 @@ class GPULanguageLearner:
             
             # Pick from top candidates with weighted randomness
             top_candidates = candidates[:5]
-            words, scores, poses, next_states = zip(*top_candidates)
+            words, scores, poses, next_states = zip(*top_candidates, strict=True)
             scores = np.array(scores) + 0.01
             probs = scores / scores.sum()
             

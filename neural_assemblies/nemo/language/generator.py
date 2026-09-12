@@ -39,7 +39,7 @@ class SentenceGenerator:
         if not items:
             return None
         
-        words, weights = zip(*items)
+        words, weights = zip(*items, strict=True)
         weights = np.array(weights, dtype=np.float64)
         
         if weights.sum() == 0:
@@ -96,7 +96,7 @@ class SentenceGenerator:
         
         if patterns:
             # Sample a pattern weighted by frequency
-            pattern_list, counts = zip(*patterns)
+            pattern_list, counts = zip(*patterns, strict=True)
             probs = np.array(counts, dtype=float)
             probs /= probs.sum()
             pattern = pattern_list[np.random.choice(len(pattern_list), p=probs)]
@@ -129,7 +129,7 @@ class SentenceGenerator:
                         bigram_score = self.learner.can_follow(prev, w)
                         scored.append((w, bigram_score + 0.1))  # Small base prob
                     
-                    words, scores = zip(*scored)
+                    words, scores = zip(*scored, strict=True)
                     probs = np.array(scores)
                     probs /= probs.sum()
                     word = np.random.choice(words, p=probs)
