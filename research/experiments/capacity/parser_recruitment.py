@@ -54,6 +54,9 @@ if str(_REPO) not in sys.path:
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
+from neural_assemblies.assembly_calculus.assembly import compact_overlap  # noqa: E402
+from neural_assemblies.core.index_spaces import CompactIdx  # noqa: E402
+
 
 def _win(a):
     """Accept an Assembly snapshot or a raw winner array."""
@@ -61,9 +64,8 @@ def _win(a):
 
 
 def _overlap(a, b) -> float:
-    sa, sb = set(_win(a).tolist()), set(_win(b).tolist())
-    m = min(len(sa), len(sb))
-    return len(sa & sb) / m if m else 0.0
+    """Compact-index overlap for the sparse parser substrate."""
+    return compact_overlap(CompactIdx(_win(a)), CompactIdx(_win(b)))
 
 
 def _cosine(a, b) -> float:
@@ -117,7 +119,7 @@ def analyse_area(parser, core_area: str, k: int, n: int) -> Dict:
         else np.array([0.0])
 
     # Retrieval probe: re-present each word's phon stimulus, plasticity off.
-    from neural_assemblies.assembly_calculus.emergent.parser_mixins.core import _snap
+    from neural_assemblies.assembly_calculus.ops import _snap
     prev = parser.brain.disable_plasticity
     parser.brain.disable_plasticity = True
     self_ov, ident = [], []

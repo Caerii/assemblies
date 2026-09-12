@@ -7556,3 +7556,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Migrated `research/experiments/capacity/lexicon_capacity.py` from a private overlap formula to the named `compact_overlap` kernel, preserving its documented sparse compact-index semantics.
 - Validation: Pyright on the capacity experiment reported 0 errors; direct helper smoke check returned the expected 0.5 overlap; `git diff --check` passed.
+
+
+## 2026-09-12 compact parser-recruitment overlap migration
+
+- Migrated `research/experiments/capacity/parser_recruitment.py` to the named `compact_overlap` kernel.
+- Repaired its stale `_snap` import to the canonical `assembly_calculus.ops` boundary.
+- Validation: Pyright reported 0 errors; direct compact helper check returned 0.5; `git diff --check` passed.
