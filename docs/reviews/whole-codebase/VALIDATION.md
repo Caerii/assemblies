@@ -6618,3 +6618,7 @@ eural_assemblies without eagerly importing the research stack. Lazy-import contr
 ## 2026-09-12 — sparse projection trace state
 
 - Initialized optional pre-k-WTA trace fields at the start of NumpySparseEngine.project_into, so recording is branch-independent and result metadata is always defined. Sparse projection, probe-state, and materialization tests — 78 passed, 1 expected failure, 17 expected sampled warnings. Static diagnostics in _sparse.py reduced from 48 to 44.
+
+## 2026-09-12 — sparse state and engine semantic types
+
+- Typed sparse area winners, neuron pools, refractory history, and cumulative bias as backend arrays/containers (Any at the NumPy/CuPy polymorphic boundary), and gave ComputeEngine.describe_model_semantics an explicit result type. Sparse static diagnostics reduced from 44 to 8; projection/connectome/materialization tests — 71 passed, 1 expected failure, 17 expected warnings.

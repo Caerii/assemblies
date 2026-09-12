@@ -1,6 +1,7 @@
 """Internal state containers for NumPy engines."""
 
 from dataclasses import dataclass, field
+from typing import Any
 
 from ..backend import get_xp
 from ..activity import ActivityState
@@ -16,20 +17,20 @@ class SparseAreaState(ActivityState):
     k: int
     beta: float
     w: int = 0
-    winners: object = None          # xp array, compact indices
+    winners: Any = None             # xp array, compact indices
     compact_to_neuron_id: list = field(default_factory=list)
-    neuron_id_pool: object = None   # np.ndarray of shuffled neuron IDs
+    neuron_id_pool: Any = None      # np.ndarray of shuffled neuron IDs
     neuron_id_pool_ptr: int = 0
     fixed_assembly: bool = False
     beta_by_source: dict = field(default_factory=dict)  # source_name -> beta
     # LRI (Long-Range Inhibition) — refractory suppression for sequences
     refractory_period: int = 0              # 0 = LRI disabled
     inhibition_strength: float = 0.0        # penalty magnitude
-    _refractory_history: object = None      # deque of set[int] (compact indices)
+    _refractory_history: Any = None         # deque of set[int] (compact indices)
     # Refracted mode — cumulative bias inhibition for FSM arc areas
     refracted: bool = False
     refracted_strength: float = 0.0
-    _cumulative_bias: object = None         # xp float32 array, length w
+    _cumulative_bias: Any = None            # xp float32 array, length w
     #: MASKED READOUT ([[REFRACTION-ANTI-MERGING]]): a read (no plasticity)
     #: ranks the raw drive, the bias neither subtracted nor charged. Writes
     #: are never masked -- the bias is what keeps items apart while they

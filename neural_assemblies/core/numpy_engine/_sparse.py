@@ -2265,7 +2265,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                                                    dtype=np.float64)
 
         corr = np.zeros(limit, dtype=np.float64)
-        touched = []
+        touched: List[np.ndarray] = []
         total_active = 0
         for src_name in from_areas:
             if not self.fiber_learning_allowed(src_name, target):
@@ -2277,7 +2277,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             if not isinstance(w, xp.ndarray) or getattr(w, "ndim", 0) != 2:
                 return None
             src_w = xp.asarray(self._areas[src_name].winners)
-            internal = np.asarray(to_cpu(src_w[src_w < w.shape[0]]))
+            internal = [int(x) for x in to_cpu(src_w[src_w < w.shape[0]])]
             # COUNT EVERY ACTIVE ROW, not just the ones this block currently
             # covers. `eager_fiber_init` can materialise or widen a block
             # INSIDE the gather loop, after this decision has been taken, and
@@ -2286,7 +2286,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             # and therefore always safe; clipping to `w.shape[0]` undercounts
             # and makes the bound too low, which silently drops real winners.
             total_active += int(len(src_w))
-            if len(internal) == 0:
+            if not internal:
                 continue
             cols = min(limit, int(w.shape[1]))
             c, t = self._support_for(src_name, target).correction(
@@ -2297,9 +2297,11 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         if total_active == 0:
             return None
 
-        touch = (np.unique(np.concatenate(touched)) if touched
-                 else np.empty(0, dtype=np.int64))
-        ev = evaluate_set(touch, stim_total, k, limit)
+        touch = np.asarray(
+            np.unique(np.concatenate(touched)) if touched
+            else np.empty(0, dtype=np.int64), dtype=np.int64,
+        )
+        ev = np.asarray(evaluate_set(touch, stim_total, k, limit), dtype=np.int64)
         if len(ev) < k:
             return None
 
@@ -2325,7 +2327,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             need = tau_lo - float(total_active)
             extra = np.nonzero(stim_total[:limit] >= need)[0]
             if len(extra):
-                ev = np.union1d(ev, extra.astype(np.int64))
+                ev = np.asarray(np.union1d(ev, extra.astype(np.int64)), dtype=np.int64)
                 if len(ev) >= k:
                     tau_lo = _tau(ev)
 

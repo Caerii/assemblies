@@ -202,7 +202,7 @@ class ComputeEngine(ABC):
         )
 
     @abstractmethod
-    def describe_model_semantics(self):
+    def describe_model_semantics(self) -> Any:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-model-semantics
 
         Return the immutable semantics implemented by the default path.
