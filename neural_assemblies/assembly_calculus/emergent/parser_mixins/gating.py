@@ -65,7 +65,7 @@ class GatingMixin:
         marker_facts: List[Tuple[bool, bool, Set[str]]] = []
         for sent in sentences:
             role_order = []
-            for word, role in zip(sent.words, sent.roles):
+            for word, role in zip(sent.words, sent.roles, strict=True):
                 if role == "agent":
                     role_order.append(ROLE_AGENT)
                 elif role == "patient":

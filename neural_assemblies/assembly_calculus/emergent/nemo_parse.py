@@ -74,7 +74,7 @@ def infer_transitive_verbs(sentences: Iterable) -> Set[str]:
         words = list(getattr(sent, "words", ()) or ())
         if "patient" not in roles:
             continue
-        for w, r in zip(words, roles):
+        for w, r in zip(words, roles, strict=True):
             if r == "action":
                 transitive.add(w)
     return transitive

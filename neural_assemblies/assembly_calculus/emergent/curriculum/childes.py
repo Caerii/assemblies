@@ -215,7 +215,7 @@ def mor_number_teacher(utterance: Utterance) -> Dict[str, str]:
     out: Dict[str, str] = {}
     if utterance.mor is None:
         return out
-    for word, mor in zip(utterance.words, utterance.mor):
+    for word, mor in zip(utterance.words, utterance.mor, strict=True):
         head = mor.split("~", 1)[0]          # clitic host
         if not head.startswith(("n|", "n:")):
             continue
