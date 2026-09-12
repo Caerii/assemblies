@@ -228,7 +228,7 @@ class RecoveryPlan:
         for assembly in (self.reference, self.cue):
             if np.any(np.asarray(assembly.neuron_ids) >= area.n):
                 raise ValueError("recovery neuron IDs exceed area population")
-        owner = brain._engine_for(area)
+        owner = brain.engine_for(self.reference.area)
         count = owner.materialized_count(self.reference.area)
         if count is not None and count != area.n:
             raise ValueError("recovery observation requires a fully materialized population")

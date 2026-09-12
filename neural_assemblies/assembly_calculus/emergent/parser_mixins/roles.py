@@ -227,7 +227,7 @@ class RoleBindingMixin:
                 if area is None:
                     diag["unavailable_areas"][name] = "area_missing"
                     return False
-                if not brain._engine_for(area).probe_target_ready(name):
+                if not brain.engine_for(name).probe_target_ready(name):
                     diag["unavailable_areas"][name] = "population_not_materialized"
                     return False
             stored = self.core_lexicons.get(core, {}).get(word)

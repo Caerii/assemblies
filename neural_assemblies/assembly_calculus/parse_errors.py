@@ -215,7 +215,7 @@ def assembly_stability(brain, source_area: str, target_area: str,
                                target_area: [target_area]})
         second = _snap(brain, target_area)
 
-    engine = brain._engine_for(brain.areas[target_area])
+    engine = brain.engine_for(target_area)
     pool = engine.materialized_count(target_area)
     if pool is None:                       # engine does not track it; assume
         pool = int(getattr(brain.areas[target_area], "n", 0))   # the full area

@@ -892,7 +892,7 @@ class MorphosyntaxMixin:
         # engine contains the authoritative dense connectome.
         for label, area in cand_areas.items():
             cols = compact_images.get(label) or []
-            eng = brain._engine_for(brain.areas[area])
+            eng = brain.engine_for(area)
             conn = getattr(eng, "_area_conns", {}).get(core_area, {}).get(area)
             w = getattr(conn, "weights", None) if conn is not None else None
             if not cols or w is None or getattr(w, "ndim", 0) != 2:

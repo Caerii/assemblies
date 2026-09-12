@@ -319,7 +319,7 @@ def link_preallocate_stim_targets(
     for area_name in area_names:
         if area_name not in parser.brain.areas:
             continue
-        engine = parser.brain._engine_for(parser.brain.areas[area_name])
+        engine = parser.brain.engine_for(area_name)
         if not getattr(engine, "supports_stim_preallocation", False):
             continue
         w = parser.brain.population_counts(area_name).ever_fired

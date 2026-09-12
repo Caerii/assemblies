@@ -140,7 +140,7 @@ class IncrementalMixin:
     ) -> None:
         """Skip connectome matrix growth during compiled training."""
         for area_name in area_names:
-            engine = self.brain._engine_for(self.brain.areas[area_name])
+            engine = self.brain.engine_for(area_name)
             if not hasattr(engine, "_areas"):
                 continue
             if area_name in cast(Any, engine)._areas:
@@ -151,7 +151,7 @@ class IncrementalMixin:
     ) -> None:
         """Fixed-topology projection: top-k on pregrown columns only."""
         for area_name in area_names:
-            engine = self.brain._engine_for(self.brain.areas[area_name])
+            engine = self.brain.engine_for(area_name)
             if not hasattr(engine, "_areas"):
                 continue
             if area_name in cast(Any, engine)._areas:
@@ -161,7 +161,7 @@ class IncrementalMixin:
         """Reuse pregrown connectome columns during training (skip expand)."""
         if capacity_cols <= 0:
             return
-        engine = self.brain._engine_for(self.brain.areas[area_name])
+        engine = self.brain.engine_for(area_name)
         if not hasattr(engine, "_areas") or area_name not in cast(Any, engine)._areas:
             return
         st = cast(Any, engine)._areas[area_name]
@@ -169,7 +169,7 @@ class IncrementalMixin:
         st._ring_capacity_cols = capacity_cols
 
     def _disable_area_ring_mode(self, area_name: str) -> None:
-        engine = self.brain._engine_for(self.brain.areas[area_name])
+        engine = self.brain.engine_for(area_name)
         if not hasattr(engine, "_areas") or area_name not in cast(Any, engine)._areas:
             return
         st = cast(Any, engine)._areas[area_name]
@@ -193,7 +193,7 @@ class IncrementalMixin:
 
     def _context_compiled_active(self) -> bool:
         """True when CONTEXT ring reuse is enabled for bridge training."""
-        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
+        engine = self.brain.engine_for(CONTEXT)
         if not hasattr(engine, "_areas") or CONTEXT not in cast(Any, engine)._areas:
             return False
         return bool(getattr(cast(Any, engine)._areas[CONTEXT], "_ring_mode", False))
@@ -238,7 +238,7 @@ class IncrementalMixin:
                             rounds=self.inference_rounds)
                 self.brain.project({}, {core_area: [CONTEXT]})
 
-        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
+        engine = self.brain.engine_for(CONTEXT)
         if hasattr(engine, "_areas") and CONTEXT in cast(Any, engine)._areas:
             # Size the ring by what the representation REQUIRES -- one
             # k-assembly per prefix position -- not merely by what pre-growth
@@ -316,7 +316,7 @@ class IncrementalMixin:
         )
 
     def _check_context_reset(self, *, preserve_mapping: bool) -> None:
-        engine = self.brain._engine_for(self.brain.areas[CONTEXT])
+        engine = self.brain.engine_for(CONTEXT)
         if not preserve_mapping and getattr(engine, "_no_recruitment", False):
             raise ValueError(
                 "read_only cannot reset CONTEXT population or neuron identities; "
@@ -843,7 +843,7 @@ class IncrementalMixin:
             if winners:
                 import numpy as np
                 arr = np.asarray(winners, dtype=np.uint32)
-                engine = self.brain._engine_for(self.brain.areas[area_name])
+                engine = self.brain.engine_for(area_name)
                 engine.set_winners(area_name, arr)
                 self.brain.areas[area_name].winners = arr
             else:

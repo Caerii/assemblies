@@ -237,7 +237,7 @@ class RandomChoiceArea:
         """
         brain = self.brain
         area = brain.areas[self.area_name]
-        engine = brain._engine_for(area)
+        engine = brain.engine_for(self.area_name)
 
         materialize = getattr(engine, "materialize_area", None)
         if materialize is None:
@@ -341,7 +341,7 @@ class RandomChoiceArea:
 
     def _seed_uniform(self, rng) -> None:
         area = self.brain.areas[self.area_name]
-        engine = self.brain._engine_for(area)
+        engine = self.brain.engine_for(self.area_name)
         count = engine.materialized_count(self.area_name)
         if count is not None and count != area.n:
             raise ValueError("uniform coin seeding requires the complete materialized population")
