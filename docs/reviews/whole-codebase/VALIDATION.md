@@ -7563,3 +7563,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Migrated `research/experiments/capacity/parser_recruitment.py` to the named `compact_overlap` kernel.
 - Repaired its stale `_snap` import to the canonical `assembly_calculus.ops` boundary.
 - Validation: Pyright reported 0 errors; direct compact helper check returned 0.5; `git diff --check` passed.
+
+
+## 2026-09-12 exact-context overlap boundary
+
+- Migrated `task90_context_collapse_on_exact.py` to the named `neuron_overlap` kernel because its `_snap` outputs are stable neuron IDs.
+- Fixed the script's typed stdout reconfiguration boundary; Pyright now reports 0 errors.
+- Validation: direct helper check returned 0.5; `git diff --check` passed.

@@ -58,6 +58,7 @@ CONTROLS
 from __future__ import annotations
 
 import itertools
+from io import TextIOWrapper
 import os
 import statistics
 import sys
@@ -71,10 +72,13 @@ ENGINES = ("numpy_sparse", "numpy_exact")
 
 
 def _overlap(a, b):
-    from neural_assemblies.assembly_calculus.assembly import overlap
+    from neural_assemblies.assembly_calculus.assembly import neuron_overlap
+    from neural_assemblies.core.index_spaces import NeuronIds
     import numpy as np
-    return float(overlap(np.asarray(sorted(a), dtype=np.int64),
-                         np.asarray(sorted(b), dtype=np.int64)))
+    return float(neuron_overlap(
+        NeuronIds(np.asarray(sorted(a), dtype=np.uint32)),
+        NeuronIds(np.asarray(sorted(b), dtype=np.uint32)),
+    ))
 
 
 def measure(engine):
@@ -102,7 +106,8 @@ def measure(engine):
 
 
 def main() -> None:
-    sys.stdout.reconfigure(encoding="utf-8", errors="replace")
+    if isinstance(sys.stdout, TextIOWrapper):
+        sys.stdout.reconfigure(encoding="utf-8", errors="replace")
     print(f"\n  #90 -- study II's CONTEXT cross-prefix overlap on exact drive")
     print(f"  n={N} k={K} beta={BETA} p={P} rounds={ROUNDS}, seed {SEED}")
     print(f"  the claim: 0.7566 +/- 0.0958, 'collapsed to one attractor'")
