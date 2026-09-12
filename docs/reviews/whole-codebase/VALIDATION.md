@@ -5150,6 +5150,15 @@ The contract decorator is now a generic callable protocol carrying its
 weakening decorated function signatures. The contract module is Pyright-clean
 and its focused suite passes: **163 passed**.
 
+### Operational performance surface (2026-09-12)
+
+The root README's operational table is backed by the maintained throughput
+diagnostic rather than an uncited headline. A three-seed materialized
+`numpy_exact` smoke at `n=100, k=10, rounds=1` emitted per-seed timings,
+quantiles, engine semantics, and the current commit identity. This confirms
+that the documented command exposes diagnostic performance while preserving
+the distinction between throughput and scientific evidence.
+
 ### Maintained-suite regression baseline (2026-09-11)
 
 The fresh non-slow maintained run completed with **3708 passed, 139 skipped,
