@@ -7248,3 +7248,11 @@ The attractor training protocol now declares its actual seven-value return contr
 - TACL F1 smoke now raises when parsing returns no role assignment instead of iterating `None`.
 - `uv run pyright neural_assemblies/programs/colt_mnist_tier_util.py neural_assemblies/programs/tacl_parser_f1.py`: 0 errors.
 - TACL F1 smoke completed with visible sampler warning and measured role recall 0.667; this remains an empirical limitation, not a hidden pass.
+
+
+## 2026-09-12 ? parity scheduler audit
+
+- The `-n 8 --dist loadscope` benchmark exposed a stale strict zip in projection parity: the test permitted a one-winner stochastic count delta but required equal allocation lengths.
+- Replaced strict pairing with matched-prefix comparison and retained explicit warnings for permitted count differences.
+- Focused parity test: 1 passed in 1.83s.
+- Full `-n 8 --dist loadscope` run reached 3,829 passed before this repair; its failure was the harness contradiction above, not an engine failure.
