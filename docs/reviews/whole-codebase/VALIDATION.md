@@ -5854,3 +5854,9 @@ pre-penalty inputs, total, and candidate count when `record_activation=True`,
 matching the shared engine contract instead of returning an empty observation.
 Ruff and compilation checks pass; GPU execution remains a required environment
 gate.
+
+### Fork provenance contract (2026-09-12)
+
+Parser forks now retain `_wobbly_fork` provenance while preserving deep-copy
+isolation. The flag remains available to higher-level episode replay instead of
+being silently discarded; the fork contract suite passes **21 tests**.
