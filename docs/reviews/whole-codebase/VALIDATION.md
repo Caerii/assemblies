@@ -6140,3 +6140,6 @@ The verbose slice spanning computation, connectome, consolidation, context obser
 ### Cross-repo and emergent parser slice gate (2026-09-12)
 
 The next partitioned non-slow slice, covering cross-repository parity and early emergent parser tests, passed **125 tests with 15 optional skips in 48.74 seconds**. Five sampled-recurrence warnings are intentional provenance guards. No failures occurred.
+### Emergent parser and overlap slice gate (2026-09-12)
+
+The next partitioned non-slow slice passed **136 tests, 3 optional skips, and 1 expected xfail in 240.98 seconds**. It covers central emergent parser behavior, sequence parameter contracts, curriculum learning, and engine overlap checks. Twenty-three sampled-recurrence warnings are intentional provenance guards; no unexpected failures occurred.
