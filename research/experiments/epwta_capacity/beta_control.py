@@ -12,12 +12,13 @@ Output: ``results_beta_control.json``.
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
@@ -68,7 +69,7 @@ def main():
     out = {"params": {"n": N, "pool": POOL, "k_s": K_S, "p_s": P_S, "V": V,
                       "seeds": len(SEEDS), "metaplasticity": 0.0},
            "rows": rows, "duration_s": time.time() - t0}
-    (HERE / "results_beta_control.json").write_text(json.dumps(out, indent=1))
+    write_new_document(HERE / "results_beta_control.json", out)
     print(f"done in {out['duration_s']:.1f}s")
 
 

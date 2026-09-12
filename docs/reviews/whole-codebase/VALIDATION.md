@@ -5317,6 +5317,14 @@ analysis remain unchanged; reruns cannot silently replace the capacity
 artifact. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
 
+### E%-WTA beta-control writer migration (2026-09-12)
+
+The one-shot beta-control study now emits `results_beta_control.json` through
+the canonical finite, exclusive writer. Its beta arms, aggregate fields, and
+analysis remain unchanged; reruns cannot silently replace the null-control
+artifact. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls
