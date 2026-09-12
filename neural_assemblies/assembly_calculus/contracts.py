@@ -9,11 +9,14 @@ import math
 from numbers import Integral, Real
 import random
 from types import MappingProxyType
-from typing import Any, Callable, Mapping, cast
+from typing import Callable, Mapping, ParamSpec, Protocol, TypeVar, cast
 
 import numpy as np
 
 from .assembly import Assembly
+
+_P = ParamSpec("_P")
+_R_co = TypeVar("_R_co", covariant=True)
 
 
 def _require_name(label: str, value: object) -> None:
@@ -1974,9 +1977,19 @@ OPERATION_CONTRACTS = MappingProxyType({
 })
 
 
-def implements(contract: OperationContract) -> Callable:
+class ContractedOperation(Protocol[_P, _R_co]):
+    """Callable carrying the inspectable contract attached by ``implements``."""
+
+    operation_contract: OperationContract
+
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R_co: ...
+
+
+def implements(
+    contract: OperationContract,
+) -> Callable[[Callable[_P, _R_co]], ContractedOperation[_P, _R_co]]:
     """Attach the exact contract object to its public implementation."""
-    def decorate(operation: Callable) -> Callable:
-        cast(Any, operation).operation_contract = contract
-        return operation
+    def decorate(operation: Callable[_P, _R_co]) -> ContractedOperation[_P, _R_co]:
+        setattr(operation, "operation_contract", contract)
+        return cast(ContractedOperation[_P, _R], operation)
     return decorate

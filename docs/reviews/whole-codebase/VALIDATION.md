@@ -5144,3 +5144,8 @@ records metadata through an explicitly typed dynamic attribute. The remaining
 typing and are not part of these public calculus contracts. Contract and
 attention tests pass: **175 passed**; `compileall`, Ruff, and `git diff --check`
 are clean.
+
+The contract decorator is now a generic callable protocol carrying its
+`OperationContract`, so metadata remains visible to static callers without
+weakening decorated function signatures. The contract module is Pyright-clean
+and its focused suite passes: **163 passed**.
