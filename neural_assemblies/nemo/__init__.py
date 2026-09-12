@@ -47,6 +47,11 @@ __author__ = "Assembly Calculus Project"
 # dependency boundary explicit and avoiding an eager CuPy import that also
 # interferes with the NumPy/Torch engines.
 from importlib import import_module
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .core import Brain, BrainParams, Area, AreaParams
+    from .language import LanguageLearner, SentenceGenerator
 
 _LAZY_SYMBOLS = {
     "Brain": (".core", "Brain"),
@@ -68,5 +73,6 @@ def __getattr__(name: str):
     return value
 
 
-__all__ = list(_LAZY_SYMBOLS)
+__all__ = ["Brain", "BrainParams", "Area", "AreaParams",
+           "LanguageLearner", "SentenceGenerator"]
 
