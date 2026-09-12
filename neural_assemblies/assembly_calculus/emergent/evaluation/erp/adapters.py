@@ -235,7 +235,7 @@ def _live_sources_into(brain, area: str) -> List[str]:
     ([[silent-no-op-dead-fibers]]), which is the whole reason the self-recurrent
     probe read 0.0 for a year without anyone noticing.
     """
-    engine = brain._engine_for(brain.areas[area])
+    engine = brain.engine_for(area)
     conns = getattr(engine, "_area_conns", None)
     if conns is None:
         return []
@@ -853,7 +853,7 @@ def _predicted_energy(brain, entry) -> Measured:
     if area not in brain.areas:
         return Measured.undefined(
             "no PREDICTION area in this brain", legacy=0.0)
-    engine = brain._engine_for(brain.areas[area])
+    engine = brain.engine_for(area)
     eng_areas = getattr(engine, "_areas", {})
     from_areas = [a for a in (CONTEXT, area) if a in eng_areas]
     prev_rec = getattr(brain, "record_activation", False)

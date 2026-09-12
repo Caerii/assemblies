@@ -675,6 +675,23 @@ class Brain:
             return self._explicit_engine
         return self._engine
 
+    def engine_for(self, area_name: str) -> ComputeEngine:
+        """Return the compute owner for a named area.
+
+        Areas marked ``explicit`` may be owned by the dedicated NumPy explicit
+        backend while sparse areas remain on the primary engine.  This public
+        resolver keeps that mixed-engine rule in one place for composition
+        code; callers do not need to depend on the private ``Area``-based
+        resolver or the backend storage layout.
+        """
+        if not isinstance(area_name, str) or not area_name:
+            raise ValueError("area_name must be a nonempty string")
+        try:
+            area = self.areas[area_name]
+        except KeyError as exc:
+            raise KeyError(f"unknown area: {area_name!r}") from exc
+        return self._engine_for(area)
+
     def population_counts(self, area_name: str) -> PopulationCounts:
         """Return active, lifetime and materialized sizes without `.w`.
 

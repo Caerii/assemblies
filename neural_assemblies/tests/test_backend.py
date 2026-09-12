@@ -95,6 +95,10 @@ class TestCpuBrainSmoke:
         brain.add_area("A", n=100, k=10, beta=0.05, explicit=True)
         brain.add_area("B", n=100, k=10, beta=0.05, explicit=True)
         brain.add_stimulus("s", size=20)
+        assert brain.engine_for("A") is brain.engine_for("B")
+        assert brain.engine_for("A").name == "numpy_explicit"
+        with pytest.raises(KeyError, match="unknown area"):
+            brain.engine_for("missing")
 
         # Stimulus -> A
         brain.project({"s": ["A"]}, {})

@@ -123,7 +123,7 @@ def item_afferent_mass(
     brain = parser.brain
     # The feature connectome is owned by the target feature area.  Reading the
     # primary engine would miss explicit/alternate owners in mixed brains.
-    eng = brain._engine_for(brain.areas[feature_area])
+    eng = brain.engine_for(feature_area)
     core = parser._word_core_area(word)
     phon = parser.stim_map.get(word)
     conn = eng._area_conns.get(core, {}).get(feature_area)
