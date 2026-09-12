@@ -54,7 +54,7 @@ if TYPE_CHECKING:
     from ..train_progress import TrainProgress
     from ..core.corpus_index import CorpusIndex
 
-from contextlib import contextmanager
+from contextlib import nullcontext
 from typing import Dict, List, Optional
 
 from neural_assemblies.core.brain import Brain
@@ -396,26 +396,17 @@ class CoreParserMixin(
     # Per-fiber plasticity policy
     # ==================================================================
 
-    @contextmanager
     def _gain_on_fiber(self, target: str, source: str, gain: float):
-        """Transiently multiply one fiber's beta through the engine's own
-        set_beta/get_beta -- the authoritative per-fiber store (the #88
-        lesson: writing any OTHER beta bookkeeping is a silent no-op).
+        """Return a scope that transiently multiplies one fiber's beta.
 
-        Lives on the core mixin because it is a property of FIBERS, not of
-        any one training phase; morphosyntax and any future phase share
-        this single bracket rather than growing siblings.
+        The Brain owns the directed rate and restoration transaction. Keeping
+        this adapter as a thin gain calculation avoids a second, subtly
+        different set_beta/get_beta implementation in the parser mixin.
         """
         if gain == 1.0:
-            yield
-            return
-        eng = self.brain._engine_for(self.brain.areas[target])
-        base = eng.get_beta(target, source)
-        self.brain.update_plasticity(source, target, base * gain)
-        try:
-            yield
-        finally:
-            self.brain.update_plasticity(source, target, base)
+            return nullcontext()
+        base = self.brain.plasticity_rate(source, target)
+        return self.brain.temporary_plasticity(source, target, base * gain)
 
     @property
     def role_bind_gain(self) -> float:

@@ -6986,3 +6986,6 @@ Read `research/experiments/seq_refraction_wander.py` as an executable protocol. 
 ## Scoped plasticity phase abstraction (2026-09-12)
 
 Added `Brain.temporary_plasticity`, an exception-safe context manager that snapshots and restores the directed fiber rate. `sequence_memorize` and `memorize_scaffold_step` now use the shared scope instead of duplicating try/finally mutation logic; this also removes the old area-default restoration hazard. Focused validation: per-fiber plus sequence-recall tests 27 passed; Pyright on all touched modules 0 errors/warnings/information.
+## Parser fiber-gain scope unified (2026-09-12)
+
+`EmergentParser._gain_on_fiber` now delegates directed beta ownership and restoration to `Brain.temporary_plasticity`; its only responsibility is calculating the multiplied rate. This removes the duplicate engine `get_beta`/`set_beta` bracket and unifies parser, sequence, and scaffold protocol scopes. Focused validation: `test_split_feature_areas.py` 12 passed; Pyright on parser core and Brain 0 errors/warnings/information.
