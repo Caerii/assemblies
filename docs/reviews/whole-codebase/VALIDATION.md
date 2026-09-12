@@ -6068,3 +6068,6 @@ All emergent consolidation schedule builders now require each grounded sentence'
 ### Pricing vector alignment gate (2026-09-12)
 
 Candidate pricing now rejects mismatched `input_sizes`/`src_pops`, and pooled-binomial moment matching rejects mismatched sizes/probabilities. All arithmetic pairings are strict, preventing a partially priced fiber set from looking valid. Engine-pricing and per-fiber pricing suites pass **30 tests**; B905/F is clean.
+### Grounded context alignment gate (2026-09-12)
+
+`GroundedCorpus.infer_context` now rejects unequal token and POS-tag sequences before deriving visual objects, properties, or actions, and all paired traversals are strict. A direct negative probe passes and the focused B905/F scan is clean. The broad emergent parser test was stopped after repeated non-termination observations; no green result is claimed for that suite.

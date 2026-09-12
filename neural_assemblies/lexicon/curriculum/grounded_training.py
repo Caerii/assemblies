@@ -187,17 +187,23 @@ class GroundedCorpus:
         return 'NOUN'  # Default to noun
     
     def infer_context(self, words: List[str], pos_tags: List[str]) -> GroundedContext:
-        """Infer grounding context from sentence structure"""
+        """Infer grounding context from sentence structure.
+
+        Each token must have exactly one part-of-speech tag; truncating a
+        sentence here changes the learned grounding silently.
+        """
+        if len(words) != len(pos_tags):
+            raise ValueError("words and pos_tags must have equal length")
         context = GroundedContext()
         
         # Extract nouns as visual objects
-        for word, pos in zip(words, pos_tags):
+        for word, pos in zip(words, pos_tags, strict=True):
             if pos == 'NOUN':
                 context.visual_objects.append(word.upper())
         
         # Extract adjectives as properties
         current_noun = None
-        for i, (word, pos) in enumerate(zip(words, pos_tags)):
+        for i, (word, pos) in enumerate(zip(words, pos_tags, strict=True)):
             if pos == 'NOUN':
                 current_noun = word.upper()
             elif pos == 'ADJ' and current_noun is None:
@@ -211,7 +217,7 @@ class GroundedCorpus:
                         break
         
         # Extract actions (simple SVO pattern)
-        for i, (word, pos) in enumerate(zip(words, pos_tags)):
+        for i, (word, pos) in enumerate(zip(words, pos_tags, strict=True)):
             if pos == 'VERB':
                 agent = None
                 patient = None
