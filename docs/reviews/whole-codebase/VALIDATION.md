@@ -6461,3 +6461,7 @@ POS inference now treats frame and distributional classifiers as optional capabi
 ### Core evidence-store ownership gate (2026-09-12)
 
 The composition root now declares the lazy evidence stores shared by acquisition and wobbly parsing: the exposure log and per-word wobbly resolutions. Ownership is explicit at the parser boundary while lazy allocation remains unchanged for parsers that do not use those features. Classification evidence tests pass **23 tests**, and `git diff --check` is clean. The remaining static diagnostics are method-capability and legacy evidence-map typing issues, not undeclared store ownership.
+
+### Centralized optional distributional boundary gate (2026-09-12)
+
+POS inference now routes bootstrap and decomposition through `_distributional_scores`, a single guarded capability adapter for the optional distributional classifier. This removes duplicated `getattr`/cast logic and ensures absent distributional support has the same `UNKNOWN`/empty-score behavior everywhere. Pyright diagnostics dropped from **12 to 8**; classification evidence tests pass **23 tests**, and `git diff --check` is clean.

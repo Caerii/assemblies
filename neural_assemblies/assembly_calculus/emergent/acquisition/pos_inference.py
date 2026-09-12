@@ -259,6 +259,17 @@ def _frame_pos_scores(
     return {}
 
 
+def _distributional_scores(
+    parser: "CoreParserMixin", word: str
+) -> Tuple[str, Dict[str, float]]:
+    """Read optional distributional classification through one boundary."""
+    classifier = getattr(parser, "classify_distributional", None)
+    if not callable(classifier):
+        return "UNKNOWN", {}
+    classify = cast(Callable[[str], Tuple[str, Dict[str, float]]], classifier)
+    return classify(word)
+
+
 def classify_word_bootstrapped(
     parser: "CoreParserMixin",
     word: str,
@@ -286,7 +297,7 @@ def classify_word_bootstrapped(
 
     dist_scores: Dict[str, float] = {}
     if exposure > 0:
-        _, dist_scores = parser.classify_distributional(word)
+        _, dist_scores = _distributional_scores(parser, word)
 
     signals: List[Tuple[str, Dict[str, float], int]] = []
 
@@ -561,12 +572,8 @@ def decompose_word_classification(
     neural_cat = evidence.category if evidence and evidence.source == "neural" else "UNKNOWN"
     neural_by_cat = evidence.category_scores() if evidence and evidence.source == "neural" else {}
 
-    dist_classifier = getattr(parser, "classify_distributional", None)
-    if dist_n > 0 and callable(dist_classifier):
-        classify_dist = cast(
-            Callable[[str], Tuple[str, Dict[str, float]]], dist_classifier
-        )
-        dist_cat, dist_scores = classify_dist(word)
+    if dist_n > 0:
+        dist_cat, dist_scores = _distributional_scores(parser, word)
     else:
         dist_cat, dist_scores = "UNKNOWN", {}
     ground_scores = grounding_evidence_scores(ctx)
