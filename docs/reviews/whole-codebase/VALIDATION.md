@@ -6383,3 +6383,7 @@ The parser cache key now accepts any abstract set of holdout words and normalize
 ### Generalization parity and sweep typing gate (2026-09-12)
 
 Generalization parity now passes typed keyword arguments directly instead of constructing an unconstrained options dictionary. Its nested and scalar result metrics are validated before deltas or formatted sweep tables are computed, and sweep summaries validate their row mapping. Pyright reports **0 diagnostics** for the module; a synthetic table-format integration check passes, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Batch training parser-type gate (2026-09-12)
+
+`BatchProjector` now declares the fully composed `EmergentParser` it actually requires, rather than the narrower `CoreParserMixin` that omitted methods supplied by the composed MRO. This removes a false static boundary and makes `_clear_role_activity` part of the correct parser surface. Pyright reports **0 diagnostics**; Ruff F/E9 and `git diff --check` are clean.

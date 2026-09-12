@@ -13,14 +13,14 @@ from neural_assemblies.assembly_calculus.ops import (
 ROLE_BINDING_ROUNDS = 2
 
 if TYPE_CHECKING:
-    from ..parser_mixins.core import CoreParserMixin
+    from ..parser import EmergentParser
     from ..core.grounding import GroundingContext
 
 
 class BatchProjector:
     """Execute role/lexicon projections with shared batching utilities."""
 
-    def __init__(self, parser: "CoreParserMixin"):
+    def __init__(self, parser: "EmergentParser"):
         self.parser = parser
         self.brain = parser.brain
 
