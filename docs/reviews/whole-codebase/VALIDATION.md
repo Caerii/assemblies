@@ -4977,3 +4977,12 @@ measuring stable-ID overlap. Its deterministic lexical tie rule and
 below-threshold `None` outcome are recorded as observation semantics, separate
 from neural learning. Readout, operation-contract, and lazy-import tests pass:
 **183 passed**; Ruff is clean.
+
+## Fiber materialization contract (2026-09-11)
+
+The lazy-connectome allocation boundary now has `FiberMaterializationPlan` and
+`FIBER_MATERIALIZATION_CONTRACT`. It validates topology and optional source
+snapshot ownership before activation, distinguishes inactive source (`False`)
+from successful allocation (`True`), and documents the plasticity-off
+materialization schedule. Focused fiber/binding/registry tests pass: **170
+passed**; Ruff is clean.

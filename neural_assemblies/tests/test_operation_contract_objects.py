@@ -420,6 +420,7 @@ def test_registry_and_public_callable_cannot_drift():
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
     from neural_assemblies.assembly_calculus.readout import fuzzy_readout
+    from neural_assemblies.assembly_calculus.binding import materialize_fiber
     from neural_assemblies.assembly_calculus.binding import bind as source_bind, binding_strength, input_drive, recall
     from neural_assemblies.assembly_calculus.consolidation import accumulate_context, accumulate_context_step, consolidate
 
@@ -430,7 +431,8 @@ def test_registry_and_public_callable_cannot_drift():
         "pattern_completion": "pattern_complete",
     }
     for name, contract in OPERATION_CONTRACTS.items():
-        operation = (fuzzy_readout if name == "fuzzy_readout" else
+        operation = (materialize_fiber if name == "materialize_fiber" else
+                     fuzzy_readout if name == "fuzzy_readout" else
                      attend if name == "attention" else
                      source_bind if name == "source_binding" else
                      recall if name == "binding_recall" else

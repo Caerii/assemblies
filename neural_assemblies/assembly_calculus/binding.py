@@ -45,6 +45,7 @@ from typing import Dict, Iterable, Mapping, Optional
 from .assembly import Assembly, overlap
 from .ops import activate_assembly, _snap
 from .contracts import (
+    FIBER_MATERIALIZATION_CONTRACT,
     BINDING_RECALL_CONTRACT,
     BINDING_STRENGTH_CONTRACT,
     INPUT_DRIVE_CONTRACT,
@@ -52,6 +53,7 @@ from .contracts import (
     BindingRecallPlan,
     BindingStrengthPlan,
     InputDrivePlan,
+    FiberMaterializationPlan,
     SourceBindingPlan,
     implements,
 )
@@ -76,6 +78,7 @@ def _activate_all(
         activate_assembly(brain, assembly)
 
 
+@implements(FIBER_MATERIALIZATION_CONTRACT)
 def materialize_fiber(
     brain,
     src_area: str,
@@ -88,11 +91,12 @@ def materialize_fiber(
     Returns True if the fiber carried traffic. A fiber projected while the
     source area is empty allocates nothing, which is failure mode 1 above, so
     this refuses to pretend it succeeded.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-fiber-materialization
     """
-    if src_area not in brain.areas:
-        raise KeyError(f"materialize_fiber source area is unknown: {src_area!r}")
-    if dst_area not in brain.areas:
-        raise KeyError(f"materialize_fiber target area is unknown: {dst_area!r}")
+    plan = FiberMaterializationPlan(src_area, dst_area, src_assembly)
+    plan.preflight(brain)
+    src_area, dst_area, src_assembly = plan.src_area, plan.dst_area, plan.src_assembly
     if src_assembly is not None:
         activate_assembly(brain, src_assembly)
     if len(brain.areas[src_area].winners) == 0:

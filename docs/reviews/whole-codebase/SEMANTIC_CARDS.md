@@ -591,6 +591,18 @@ instrument, not a neural learning result: it cannot establish that the brain
 itself represented a symbolic label. Invalid decoder configuration fails
 before any overlap measurement.
 
+<a id="contract-fiber-materialization"></a>
+
+## Fiber materialization
+
+`binding.materialize_fiber` is an allocation operation, separate from learning
+and readout. Its plan validates the source/target topology and optional source
+snapshot before activation. With a live source it enters a plasticity-off
+allocation scope, ensures target columns exist, and returns `True`; an empty
+source returns `False` as an explicit inactive-source outcome. This is the
+named boundary between lazy sampled connectivity and a persistent materialized
+fiber, so absent traffic cannot be reported as successful allocation.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction

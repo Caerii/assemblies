@@ -93,6 +93,30 @@ class ReadoutPlan:
 
 
 @dataclass(frozen=True)
+class FiberMaterializationPlan:
+    """Validated allocation of a source-to-target fiber."""
+
+    src_area: str
+    dst_area: str
+    src_assembly: Assembly | None = None
+
+    def __post_init__(self) -> None:
+        _require_name("src_area", self.src_area)
+        _require_name("dst_area", self.dst_area)
+        if self.src_assembly is not None:
+            if not isinstance(self.src_assembly, Assembly):
+                raise TypeError("src_assembly must be an Assembly snapshot or None")
+            if self.src_assembly.area != self.src_area:
+                raise ValueError("src_assembly belongs to another source area")
+
+    def preflight(self, brain) -> None:
+        if self.src_area not in brain.areas:
+            raise KeyError(f"materialize_fiber source area is unknown: {self.src_area!r}")
+        if self.dst_area not in brain.areas:
+            raise KeyError(f"materialize_fiber target area is unknown: {self.dst_area!r}")
+
+
+@dataclass(frozen=True)
 class ProjectionPlan:
     """Validated schedule for the named stimulus-to-area operation.
 
@@ -1074,6 +1098,27 @@ READOUT_CONTRACT = OperationContract(
 )
 
 
+FIBER_MATERIALIZATION_CONTRACT = OperationContract(
+    operation_id="fiber-materialization-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-fiber-materialization",
+    plan_type=FiberMaterializationPlan,
+    inputs=("brain", "source area", "target area", "optional source snapshot"),
+    reads=("source activity", "target fiber allocation state"),
+    mutates=("target fiber columns", "temporary source/target activity"),
+    regime=("known source and target areas", "frozen allocation with plasticity off"),
+    observed_outcome=("boolean indicating whether source traffic was materialized",),
+    failure_conditions=("unknown topology", "snapshot/source mismatch", "stale snapshot"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_materialize_fiber_contract.py::"
+        "test_materialize_fiber_rejects_unknown_topology",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_materialize_fiber_contract.py::"
+        "test_materialize_fiber_reports_inactive_source_explicitly",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1559,6 +1604,7 @@ CONTEXT_STEP_CONTRACT = OperationContract(
 OPERATION_CONTRACTS = MappingProxyType({
     "activate_assembly": ACTIVATION_CONTRACT,
     "fuzzy_readout": READOUT_CONTRACT,
+    "materialize_fiber": FIBER_MATERIALIZATION_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,
