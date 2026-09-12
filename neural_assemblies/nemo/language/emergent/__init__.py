@@ -38,6 +38,14 @@ Example:
     result = parser.parse(['the', 'dog', 'runs'])
 """
 
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from .brain import EmergentNemoBrain
+    from .learner import EmergentLanguageLearner
+    from .generator import SentenceGenerator
+    from .parser import SentenceParser, ParseResult, QuestionAnswerer
+
 __version__ = "2.1.0"
 
 from .areas import (
@@ -74,23 +82,11 @@ def __getattr__(name: str):
     globals()[name] = value
     return value
 
-__all__ = [
-    # Areas
-    'Area', 'NUM_AREAS',
-    'MUTUAL_INHIBITION_GROUPS', 'GROUNDING_TO_CORE',
-    'INPUT_AREAS', 'LEXICAL_AREAS', 'CORE_AREAS',
-    'THEMATIC_AREAS', 'PHRASE_AREAS', 'SYNTACTIC_AREAS', 'CONTROL_AREAS',
-    
-    # Params
-    'EmergentParams', 'GroundingContext', 'GroundingModality', 'GroundedSentence',
-    
-    # Classes
-    'EmergentNemoBrain', 'EmergentLanguageLearner', 'SentenceGenerator',
-    
-    # Parser
-    'SentenceParser', 'ParseResult', 'QuestionAnswerer',
-    
-    # Functions
-    'create_training_data', 'create_simple_training_data',
-]
+__all__ = ['Area', 'NUM_AREAS', 'MUTUAL_INHIBITION_GROUPS', 'GROUNDING_TO_CORE',
+           'INPUT_AREAS', 'LEXICAL_AREAS', 'CORE_AREAS', 'THEMATIC_AREAS',
+           'PHRASE_AREAS', 'SYNTACTIC_AREAS', 'CONTROL_AREAS', 'EmergentParams',
+           'GroundingContext', 'GroundingModality', 'GroundedSentence',
+           'EmergentNemoBrain', 'EmergentLanguageLearner', 'SentenceGenerator',
+           'SentenceParser', 'ParseResult', 'QuestionAnswerer',
+           'create_training_data', 'create_simple_training_data']  # pyright: ignore[reportUnsupportedDunderAll]
 
