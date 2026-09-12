@@ -5675,3 +5675,11 @@ object, including read/binding, context, next-token, recovery, and fiber
 contracts. Import introspection reports no missing exports, and registry,
 research-contract, and operation-contract tests pass: **182 passed**. Ruff and
 diff checks pass.
+
+### Continual replay failure propagation (2026-09-12)
+
+`replay_corpus_sample` no longer catches every exception from
+`train_next_token` while counting the sentence as replayed. Training failures
+now surface immediately, so stability reports cannot claim successful replay
+when the learning contract failed. A constructed failing parser proves the
+negative path: **1 passed**. Ruff, compilation, and diff checks pass.

@@ -114,7 +114,11 @@ def replay_corpus_sample(
     *,
     max_sentences: int = 20,
 ) -> int:
-    """Light replay of stored sentences to mitigate catastrophic forgetting."""
+    """Light replay of stored sentences to mitigate catastrophic forgetting.
+
+    Training errors propagate deliberately: a replay count is evidence that
+    training completed, never a best-effort attempt.
+    """
     count = 0
     for sent in sentences[:max_sentences]:
         known = [w for w in sent if w in parser.stim_map]
@@ -122,10 +126,7 @@ def replay_corpus_sample(
             continue
         parser.ingest_raw_sentence(known)
         if hasattr(parser, "train_next_token"):
-            try:
-                parser.train_next_token([known], dedupe_sentences=False)
-            except Exception:
-                pass
+            parser.train_next_token([known], dedupe_sentences=False)
         count += 1
     return count
 
