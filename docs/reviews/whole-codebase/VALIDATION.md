@@ -6104,3 +6104,6 @@ GPU language generation and NEMO sentence generation now use strict tuple unpack
 ### Adjacent-token training contract (2026-09-12)
 
 Sequence training in both the public and hashed transducers now uses an explicit `i, i+1` loop. This makes the intentional offset visible and avoids treating an adjacency relation as equal-length pairing; a blanket strict zip had incorrectly rejected every nonempty sentence. The transducer suite passes **8 tests** and focused B905/F scans are clean.
+### Sequence tracing prefix contract (2026-09-12)
+
+The sequence sweep now compares recalled and memorized assemblies over their explicit common prefix. A terminal novel recall step is intentionally excluded, and the prior truncating zip is gone. Trace and sequence-recall suites pass **25 tests**; sampled recurrence warnings remain intentional provenance guards and B905/F is clean.

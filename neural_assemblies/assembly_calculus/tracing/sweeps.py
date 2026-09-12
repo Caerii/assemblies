@@ -120,7 +120,10 @@ def lri_recall_sweep(configs: Sequence[RecallSweepConfig]) -> list[dict[str, obj
             for step in trace
         ]
         ordered_matches = 0
-        for step, known in zip(trace, memorized):
+        # Recall may include a terminal novel step; compare only the
+        # memorized prefix explicitly rather than hiding the offset in zip.
+        for i in range(min(len(trace), len(memorized))):
+            step, known = trace[i], memorized[i]
             if overlap(step.assembly, known) >= config.match_threshold:
                 ordered_matches += 1
             else:
