@@ -7457,3 +7457,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Removed duplicate chance-overlap formulas from parser error detection and the research experiment base helper.
 - Both now delegate to `assembly.chance_overlap(k, n)`; the parser adapter preserves its legacy `(n, k)` signature and degenerate boundary behavior.
 - Added a cross-module formula invariant. Validation: parse-error plus assembly calculus tests passed (53 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 canonical research overlap measurement
+
+- Replaced the duplicate `research.experiments.base.measure_overlap` implementation with the package overlap kernel and explicit `NeuronIds` conversion.
+- Added a parity assertion tying the research helper to the package kernel; historical projection/scaling callers remain green.
+- Validation: metric-kernel tests passed (7 tests); Pyright reported 0 errors.

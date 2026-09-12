@@ -7,6 +7,7 @@ from neural_assemblies.assembly_calculus.metrics.instability import (
     mean_jaccard_instability,
 )
 from neural_assemblies.assembly_calculus.metrics.prediction import measure_n400
+from neural_assemblies.assembly_calculus.assembly import overlap
 from research.experiments.base import measure_overlap
 
 
@@ -16,6 +17,11 @@ class TestMetricKernels:
         b = np.array([3, 4, 5, 6, 7], dtype=np.uint32)
         expected = 1.0 - measure_overlap(a, b)
         assert measure_n400(a, b) == expected
+
+    def test_research_overlap_helper_is_the_package_kernel(self):
+        a = np.array([1, 2, 3], dtype=np.uint32)
+        b = np.array([2, 3, 4], dtype=np.uint32)
+        assert measure_overlap(a, b) == overlap(a, b)
 
     def test_jaccard_instability_on_known_sequence(self):
         rounds = [{1, 2, 3}, {1, 2, 4}, {5, 6, 7}]

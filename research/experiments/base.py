@@ -19,7 +19,11 @@ import numpy as np
 from scipy import stats
 
 from research.json_documents import load_document, write_new_document
-from neural_assemblies.assembly_calculus.assembly import chance_overlap as _canonical_chance_overlap
+from neural_assemblies.assembly_calculus.assembly import (
+    chance_overlap as _canonical_chance_overlap,
+    overlap as _canonical_overlap,
+)
+from neural_assemblies.core.index_spaces import NeuronIds
 
 
 def _validate_execution_success(value):
@@ -169,26 +173,8 @@ class ExperimentBase(ABC):
 
 
 def measure_overlap(winners_a: np.ndarray, winners_b: np.ndarray) -> float:
-    """
-    Measure overlap between two assemblies as fraction of shared neurons.
-    
-    Args:
-        winners_a: Array of neuron indices in assembly A
-        winners_b: Array of neuron indices in assembly B
-    
-    Returns:
-        Overlap ratio (intersection / min(len_a, len_b))
-    """
-    if len(winners_a) == 0 or len(winners_b) == 0:
-        return 0.0
-    
-    set_a = set(winners_a.tolist() if isinstance(winners_a, np.ndarray) else winners_a)
-    set_b = set(winners_b.tolist() if isinstance(winners_b, np.ndarray) else winners_b)
-    
-    intersection = len(set_a & set_b)
-    min_size = min(len(set_a), len(set_b))
-    
-    return intersection / min_size if min_size > 0 else 0.0
+    """Compatibility name for the canonical assembly overlap measurement."""
+    return _canonical_overlap(NeuronIds(np.asarray(winners_a)), NeuronIds(np.asarray(winners_b)))
 
 
 def measure_jaccard(winners_a: np.ndarray, winners_b: np.ndarray) -> float:
