@@ -6323,3 +6323,7 @@ The pyright probe for compact versus stable neuron indices is available and was 
 ### Contract decorator static boundary gate (2026-09-12)
 
 The `implements` decorator now casts to the callable-with-contract protocol before assigning `operation_contract`, so the runtime attachment and static declaration describe the same object. Pyright reports **0 diagnostics** for `contracts.py`; the operation-contract suite passes **163 tests**, and Ruff F/E9 plus `git diff --check` are clean. A package-wide scan remains noisy because emergent parser mixins are dynamically composed; that debt is tracked separately rather than hidden by suppressions.
+
+### Progress sink override gate (2026-09-12)
+
+The no-op training progress sink now preserves the base `_emit(level, message)` parameter names, removing an incompatible override that made the public progress abstraction fail static checking. Pyright reports **0 diagnostics** for the module; Ruff F/E9 and `git diff --check` are clean.

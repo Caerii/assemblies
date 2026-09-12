@@ -116,7 +116,7 @@ class _NullProgress(TrainProgress):
     def __init__(self) -> None:
         super().__init__("", enabled=False)
 
-    def _emit(self, _level: str, _message: str) -> None:
+    def _emit(self, level: str, message: str) -> None:
         return
 
 
