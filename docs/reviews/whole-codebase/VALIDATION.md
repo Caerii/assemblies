@@ -7192,3 +7192,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Typed `SeedMixtureChoice.mode` as the validated `k_split | compete` literal.
 - `uv run pyright neural_assemblies/programs/markov_coin.py neural_assemblies/programs/arc_markov.py neural_assemblies/assembly_calculus/coin_config.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_pfa_choice_contract.py neural_assemblies/tests/test_arc_markov_contract.py -q`: 62 passed in 22.54s.
+
+
+## 2026-09-12 ? synthesis audit configuration
+
+- Replaced shared untyped bundle kwargs with explicit seed, example count, capacity, and cache arguments for recurrent and attractor scorecards.
+- `uv run pyright neural_assemblies/programs/colt_mnist_synthesis.py`: 0 errors.
