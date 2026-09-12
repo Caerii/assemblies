@@ -2,7 +2,7 @@
 
 from __future__ import annotations
 
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, TYPE_CHECKING
 
 from ..session.dialogue_state import DialogueState
 from ..structured_io import InstructionFrame
@@ -22,6 +22,19 @@ class DialogueMixin:
     stim_map: Dict[str, str]
     word_grounding: Dict[str, GroundingContext]
     bridge_rounds: int
+
+    if TYPE_CHECKING:
+        # Methods supplied by sibling mixins in the composed EmergentParser.
+        # Keeping these declarations local makes dialogue's dependency
+        # surface visible without changing the runtime MRO.
+        def _ensure_prediction_lexicon(self, words: Optional[List[str]] = None) -> None: ...
+        def train_next_token(self, *args: Any, **kwargs: Any) -> None: ...
+        def build_context_incremental(self, *args: Any, **kwargs: Any) -> Any: ...
+        def _train_next_token_bridge(self, next_phon: str, *, bridge_rounds: int) -> None: ...
+        def parse_incremental(self, *args: Any, **kwargs: Any) -> Any: ...
+        def ingest_raw_sentence(self, words: List[str]) -> None: ...
+        def parse_instruction(self, words: List[str]) -> InstructionFrame: ...
+        def _register_vocabulary(self, vocab: Dict[str, GroundingContext]) -> None: ...
 
     def train_dialogue(
         self,

@@ -6473,3 +6473,7 @@ The POS inference module now has no remaining Pyright diagnostics. Aggregate acc
 ### Dialogue shared-state declaration gate (2026-09-12)
 
 Dialogue training and turn presentation now declare their shared parser state: stimulus map, grounded vocabulary, and bridge-round budget. Ownership remains at the composed parser initialization path, while the mixin exposes the exact data it reads for context resolution and bridge learning. Static diagnostics for the file dropped from **22 to 13**; dialogue tests pass **5 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Dialogue sibling-capability declarations gate (2026-09-12)
+
+DialogueMixin now declares, under `TYPE_CHECKING`, the sibling methods it consumes: prediction lexicon setup, next-token training, context lifecycle, incremental parsing, raw ingestion, instruction parsing, and vocabulary registration. These declarations do not alter runtime MRO but make the cross-mixin contract visible. Static diagnostics dropped from **13 to 2**; dialogue tests pass **5 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean. The two remaining diagnostics are compiler helpers still nominally typed to full parser classes.
