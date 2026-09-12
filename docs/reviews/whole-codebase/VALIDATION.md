@@ -6040,3 +6040,9 @@ Python file.
 `preprocess_image` now chains conversion failures when it raises its public
 `TypeError`, preserving the underlying cause for diagnosis. The image
 activation suite passes **6 tests** and the B904 scan is clean.
+
+### GPU learner vocabulary definitions (2026-09-12)
+
+Removed a duplicate `has` entry from the transitive-verb set. The definition was
+semantically redundant but obscured the fact that this set is a declarative
+vocabulary, and now passes the duplicate-literal scan.

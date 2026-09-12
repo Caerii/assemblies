@@ -371,7 +371,7 @@ class GPULanguageLearner:
         
         # Mark transitive vs intransitive verbs
         self.transitive_verbs = {'sees', 'has', 'wants', 'eats', 'drinks', 'reads', 
-                                  'walks', 'chases', 'throws', 'has', 'have'}
+                                  'walks', 'chases', 'throws', 'have'}
         self.intransitive_verbs = {'runs', 'sleeps', 'flies', 'plays', 'jumps', 'is'}
         
         # Semantic constraints: what can be eaten/drunk/etc.
