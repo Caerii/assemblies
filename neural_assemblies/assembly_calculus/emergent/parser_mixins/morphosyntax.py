@@ -337,7 +337,7 @@ class MorphosyntaxMixin:
 
         # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
         # phase end is where the accumulated mass gets renormalized.
-        eng = self.brain._engine
+        eng = self.brain.engine
         if getattr(eng, "synaptic_scaling_deferred", False):
             flush = getattr(eng, "flush_synaptic_scaling", None)
             if callable(flush):
@@ -523,7 +523,7 @@ class MorphosyntaxMixin:
             number_stims[num_name] = stim_name
 
         flush_every = int(getattr(self, "morph_flush_every", 0))
-        eng = self.brain._engine
+        eng = self.brain.engine
         deferred = getattr(eng, "synaptic_scaling_deferred", False)
         episode = 0
         # Same epoch loop as train_tense -- see E8 note there.
@@ -591,7 +591,7 @@ class MorphosyntaxMixin:
 
         # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
         # phase end is where the accumulated mass gets renormalized.
-        eng = self.brain._engine
+        eng = self.brain.engine
         if getattr(eng, "synaptic_scaling_deferred", False):
             flush = getattr(eng, "flush_synaptic_scaling", None)
             if callable(flush):

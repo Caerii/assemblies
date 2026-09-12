@@ -16,7 +16,7 @@ docs/gpu_scale_design.md (Lever B) and core/torch_engine/_batched.py.
 
 BatchedLM is read-only inference by construction (it selects only among
 materialized neurons). The matching sequential semantics is the engine's
-``readonly`` mode (``brain._engine.readonly = True``), which suppresses candidate
+    ``readonly`` mode on the brain's public ``engine`` boundary, which suppresses candidate
 sampling so a projection never materializes new neurons -- inference should not
 grow the brain, and it gives a fixed connectome to batch over.
 
