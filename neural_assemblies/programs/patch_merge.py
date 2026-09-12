@@ -64,8 +64,8 @@ class PatchMergeResult(ColtMnistHierarchicalBrainResult):
 def _sync_part_connectome(brain, src: str, dst: str, weights: np.ndarray) -> None:
     w32 = weights.astype(np.float32)
     brain.connectomes[src][dst].weights = w32
-    if brain._explicit_engine is not None:
-        brain._explicit_engine._area_conns[src][dst].weights = w32
+    if brain.explicit_engine is not None:
+        brain.explicit_engine._area_conns[src][dst].weights = w32
 
 
 def _merge_two_active(
@@ -285,8 +285,8 @@ def run_grid_patch_merge_mnist(
     brain.connectomes[MID][HIGH].weights = w_mh.astype(np.float32)
     zero_hc = np.zeros((n_high, n_class), dtype=np.float32)
     brain.connectomes[HIGH][CLASS].weights = zero_hc
-    if brain._explicit_engine is not None:
-        eng = brain._explicit_engine
+    if brain.explicit_engine is not None:
+        eng = brain.explicit_engine
         eng._area_conns[MID][HIGH].weights = w_mh.astype(np.float32)
         eng._area_conns[HIGH][CLASS].weights = zero_hc
 

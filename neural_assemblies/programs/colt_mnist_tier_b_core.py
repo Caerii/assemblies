@@ -62,8 +62,8 @@ def _ventral_brain_and_outputs(**kwargs):
         w_hh /= np.maximum(w_hh.sum(axis=0, keepdims=True), 1e-12)
         w32 = w_hh.astype(np.float32)
         brain.connectomes[HIGH][HIGH].weights = w32
-        if brain._explicit_engine is not None:
-            brain._explicit_engine._area_conns[HIGH][HIGH].weights = w32
+        if brain.explicit_engine is not None:
+            brain.explicit_engine._area_conns[HIGH][HIGH].weights = w32
 
     if enable_high_recurrence:
         from neural_assemblies.programs.colt_mnist_brain_util import (

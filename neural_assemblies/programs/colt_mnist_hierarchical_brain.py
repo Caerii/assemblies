@@ -72,8 +72,8 @@ def _sync_two_layer(brain, a_lm: np.ndarray, w_mh: np.ndarray) -> None:
     brain.connectomes[MID][HIGH].weights = w32
     zero_hc = np.zeros((w_mh.shape[0], brain.areas[CLASS].n), dtype=np.float32)
     brain.connectomes[HIGH][CLASS].weights = zero_hc
-    if brain._explicit_engine is not None:
-        eng = brain._explicit_engine
+    if brain.explicit_engine is not None:
+        eng = brain.explicit_engine
         eng._area_conns[LOW][MID].weights = a32
         eng._area_conns[MID][HIGH].weights = w32
         eng._area_conns[HIGH][CLASS].weights = zero_hc
@@ -97,8 +97,8 @@ def _forward_high(
 def _set_high_from_vector(brain, high_vec: np.ndarray) -> None:
     winners = np.flatnonzero(high_vec > 0).astype(np.uint32)
     brain.areas[HIGH].winners = winners
-    if brain._explicit_engine is not None:
-        brain._explicit_engine.set_winners(HIGH, winners)
+    if brain.explicit_engine is not None:
+        brain.explicit_engine.set_winners(HIGH, winners)
 
 
 def _predict_digit(

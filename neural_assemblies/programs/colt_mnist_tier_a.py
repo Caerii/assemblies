@@ -294,8 +294,8 @@ def run_merge_halves_mnist(
     brain.connectomes[MID][HIGH].weights = w32
     zero_hc = np.zeros((n_mid, n_class), dtype=np.float32)
     brain.connectomes[HIGH][CLASS].weights = zero_hc
-    if brain._explicit_engine is not None:
-        eng = brain._explicit_engine
+    if brain.explicit_engine is not None:
+        eng = brain.explicit_engine
         eng._area_conns[TOP][MID].weights = a_tm32
         eng._area_conns[BOT][MID].weights = a_bot32
         eng._area_conns[MID][HIGH].weights = w32

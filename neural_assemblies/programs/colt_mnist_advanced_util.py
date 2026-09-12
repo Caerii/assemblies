@@ -64,8 +64,8 @@ def wire_digit_slots_from_prototypes(
         w[np.ix_(pre, post)] = 1.0
     conn = brain.connectomes[src][dst]
     conn.weights = w.astype(np.float32)
-    if brain._explicit_engine is not None:
-        econn = brain._explicit_engine._area_conns.get(src, {}).get(dst)
+    if brain.explicit_engine is not None:
+        econn = brain.explicit_engine._area_conns.get(src, {}).get(dst)
         if econn is not None:
             econn.weights = conn.weights
     renorm_connectome_columns(brain, src, dst)
@@ -90,8 +90,8 @@ def wire_class_mixed_prototypes(
         w[np.ix_(pre, post)] = 1.0
     conn = brain.connectomes[src][dst]
     conn.weights = w.astype(np.float32)
-    if brain._explicit_engine is not None:
-        econn = brain._explicit_engine._area_conns.get(src, {}).get(dst)
+    if brain.explicit_engine is not None:
+        econn = brain.explicit_engine._area_conns.get(src, {}).get(dst)
         if econn is not None:
             econn.weights = conn.weights
     renorm_connectome_columns(brain, src, dst)
@@ -115,8 +115,8 @@ def wire_semantic_from_anchors(
             w[np.ix_(pre, post)] = 1.0
     conn = brain.connectomes[src][dst]
     conn.weights = w.astype(np.float32)
-    if brain._explicit_engine is not None:
-        econn = brain._explicit_engine._area_conns.get(src, {}).get(dst)
+    if brain.explicit_engine is not None:
+        econn = brain.explicit_engine._area_conns.get(src, {}).get(dst)
         if econn is not None:
             econn.weights = conn.weights
     renorm_connectome_columns(brain, src, dst)
@@ -147,8 +147,8 @@ def wire_semantic_from_view_projections(
                 w[np.ix_(pre, post)] += 1.0
     conn = brain.connectomes[src][dst]
     conn.weights = w.astype(np.float32)
-    if brain._explicit_engine is not None:
-        econn = brain._explicit_engine._area_conns.get(src, {}).get(dst)
+    if brain.explicit_engine is not None:
+        econn = brain.explicit_engine._area_conns.get(src, {}).get(dst)
         if econn is not None:
             econn.weights = conn.weights
     renorm_connectome_columns(brain, src, dst)

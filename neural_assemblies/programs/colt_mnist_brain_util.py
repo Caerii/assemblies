@@ -23,8 +23,8 @@ def renorm_connectome_columns(brain, src: str, dst: str) -> None:
     xp = get_xp()
     col_sums = w.sum(axis=0, keepdims=True)
     conn.weights = w / xp.maximum(col_sums, 1e-12)
-    if brain._explicit_engine is not None:
-        econn = brain._explicit_engine._area_conns.get(src, {}).get(dst)
+    if brain.explicit_engine is not None:
+        econn = brain.explicit_engine._area_conns.get(src, {}).get(dst)
         if econn is not None:
             econn.weights = conn.weights
 
@@ -40,9 +40,9 @@ def sync_protocol_weights(
     w32 = w.astype(np.float32)
     brain.connectomes[input_area][hidden_area].weights = a32
     brain.connectomes[hidden_area][hidden_area].weights = w32
-    if brain._explicit_engine is not None:
-        brain._explicit_engine._area_conns[input_area][hidden_area].weights = a32
-        brain._explicit_engine._area_conns[hidden_area][hidden_area].weights = w32
+    if brain.explicit_engine is not None:
+        brain.explicit_engine._area_conns[input_area][hidden_area].weights = a32
+        brain.explicit_engine._area_conns[hidden_area][hidden_area].weights = w32
 
 
 def set_kcap_winners(brain, area: str, pattern: np.ndarray) -> np.ndarray:

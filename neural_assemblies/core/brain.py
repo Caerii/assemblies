@@ -481,6 +481,16 @@ class Brain:
         return self._engine
 
     @property
+    def explicit_engine(self) -> Optional[ComputeEngine]:
+        """Return the optional backend owning explicit areas.
+
+        The engine is created lazily when the first explicit area is added.
+        ``None`` therefore means that no explicit area has been registered,
+        rather than that explicit execution is unavailable.
+        """
+        return self._explicit_engine
+
+    @property
     def projection_fidelity(self) -> str:
         """Global projection fidelity: ``exact`` or ``compiled`` (fuzzy)."""
         return self._engine.get_projection_fidelity()

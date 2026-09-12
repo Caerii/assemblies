@@ -167,8 +167,8 @@ def _attach_class_to_recurrent(
     sync_protocol_weights(brain, w_hh, a_lh, "LOW", HIGH)
     zero_hc = np.zeros((n_high, n_class), dtype=np.float32)
     brain.connectomes[HIGH][CLASS].weights = zero_hc
-    if brain._explicit_engine is not None:
-        brain._explicit_engine._area_conns[HIGH][CLASS].weights = zero_hc
+    if brain.explicit_engine is not None:
+        brain.explicit_engine._area_conns[HIGH][CLASS].weights = zero_hc
 
     high_bias = np.zeros(n_high, dtype=np.float32)
     for digit in range(NUM_DIGITS):
@@ -256,8 +256,8 @@ def _predict(
 
     winners = np.flatnonzero(high_vec > 0).astype(np.uint32)
     brain.areas[HIGH].winners = winners
-    if brain._explicit_engine is not None:
-        brain._explicit_engine.set_winners(HIGH, winners)
+    if brain.explicit_engine is not None:
+        brain.explicit_engine.set_winners(HIGH, winners)
     clear_area_winners(brain, CLASS)
     reciprocal_project(brain, HIGH, CLASS, rounds=1)
     return int(np.argmax(
