@@ -7098,3 +7098,7 @@ The legacy parser now converts its set-valued projection map into a deterministi
 ## Public owner API documentation (2026-09-12)
 
 The API guide now names Brain.engine and Brain.engine_for(area_name) as the supported backend-composition boundaries, including the mixed explicit/sparse ownership rule. This keeps private engine slots out of newcomer workflows and links the interface to the existing semantic model documentation.
+
+## Parser owner-only state writes (2026-09-12)
+
+Parser winner clearing now writes through Brain.engine_for(area_name) only. The former mirrored write to both primary and explicit private engines could leave a non-owner state authoritative; the owner boundary removes that ambiguity. Validation: language parsing, parser composition, and TACL parser suites 39 passed.
