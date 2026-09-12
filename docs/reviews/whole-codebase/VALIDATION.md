@@ -6489,3 +6489,7 @@ Dialogue compiler calls now record the full-parser composition invariant explici
 ### Classification bootstrap compatibility gate (2026-09-12)
 
 `CategoryClassificationMixin.classify_word_cached` now preserves the full `BootstrapScores` compatibility mapping, including provenance metadata, for alternate-grounding and non-lexicon paths. Numeric-only projections remain confined to score arithmetic in POS inference, so callers do not silently lose evidence metadata. Pyright reports **0 diagnostics** for the mixin; classification evidence and observation tests pass **36 tests**, and `git diff --check` is clean.
+
+### Parser composition contract gate (2026-09-12)
+
+The composition root now declares the stage methods it orchestrates (raw ingestion, morphology, prediction, word-order evidence, and readout), and the dynamic Brain option boundary is explicitly isolated at the constructor call. This removes an untyped conditional kwargs expansion from the scientific orchestration path and makes the cross-mixin schedule visible to static tooling. Pyright reports **0 diagnostics** for `core.py`; parser composition and emergent parser tests pass **166 tests with 1 existing xfail**. The expected sampled-recurrence warnings remain visible.

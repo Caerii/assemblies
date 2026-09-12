@@ -6,13 +6,16 @@ only their address is.
 
 
 from collections import defaultdict
-from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
+from typing import Any, Dict, List, Optional, Protocol, Set, Tuple, TYPE_CHECKING
 from neural_assemblies.assembly_calculus.ops import sequence_memorize
 
 from ..core.areas import ROLE_AGENT, ROLE_PATIENT, SEQ, FUNC_COMP, FUNC_MARKER
 from neural_assemblies.core.brain import Brain
 from ..core.grounding import GroundingContext
 from ..curriculum.data import GroundedSentence
+
+if TYPE_CHECKING:
+    from ..acquisition.pos_inference import BootstrapScores
 
 
 class _GatingSurface(Protocol):
@@ -29,7 +32,7 @@ class _GatingSurface(Protocol):
 
     def _func_subcat_of(self, word: str) -> Optional[str]: ...
 
-    def classify_word_cached(self, word: str) -> Tuple[str, float]: ...
+    def classify_word_cached(self, word: str) -> Tuple[str, "BootstrapScores"]: ...
 
     def constituent_role_order(self) -> List[str]: ...
 

@@ -48,7 +48,7 @@ now: each stage is a module with an entry point, and what it must be true of
 when it returns can be stated there.
 """
 
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Any, cast
 
 if TYPE_CHECKING:
     from ..train_progress import TrainProgress
@@ -106,6 +106,22 @@ class CoreParserMixin(
     # the stores remain lazy because most parser instances never use them.
     _exposure_log: Optional[List[List[str]]]
     _wobbly_resolutions: Optional[Dict[str, Dict[str, object]]]
+
+    if TYPE_CHECKING:
+        # Cross-mixin calls made by the orchestration root.  These declarations
+        # are the composition contract; implementations remain in their stage
+        # modules and are resolved by the concrete parser MRO.
+        def ingest_raw_sentence(self, words: List[str]) -> None: ...
+        def _update_word_order_from_evidence(self) -> Optional[str]: ...
+        def train_tense(self, sentences: List[List[str]]) -> None: ...
+        def train_mood(self, sentences: List[List[str]]) -> None: ...
+        def train_polarity(self, sentences: List[List[str]]) -> None: ...
+        def train_number(self, sentences: List[List[str]], labels: Optional[Dict[str, str]] = None) -> None: ...
+        def train_conjunctions(self, sentences: List[List[str]]) -> None: ...
+        def train_next_token(self, sentences: List[GroundedSentence], **kwargs: object) -> None: ...
+        def detect_tense(self, words: List[str]) -> str: ...
+        def detect_mood(self, words: List[str]) -> str: ...
+        def detect_polarity(self, words: List[str]) -> str: ...
 
     # DEFAULTS phon_weight=6.0, beta=0.05 -- the Phase B pair, flipped on three
     # independent lines of evidence (deferred until all three were in):
@@ -284,7 +300,10 @@ class CoreParserMixin(
         #: readout time. INVALIDATION: train_tense/train_number clear it;
         #: any other path that trains into a feature area must too.
         self._feature_image_cache: Dict[tuple, object] = {}
-        self.brain = Brain(**brain_kwargs)
+        # ``brain_kwargs`` is assembled conditionally above so omitted options
+        # retain Brain's defaults.  Keep the dynamic boundary local and typed:
+        # the Brain constructor is the single owner of option validation.
+        self.brain = Brain(**cast(dict[str, Any], brain_kwargs))
         self.engine_name = self.brain.engine_name or resolved_engine
 
         self._bridge_topology_linked: bool = False
