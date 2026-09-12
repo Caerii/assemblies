@@ -28,17 +28,19 @@ REGISTERED READINGS:
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
 from collections import defaultdict
+from pathlib import Path
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 SEEDS = [42, 43, 44]
 CONFIGS = ["OFF", "SLOW"]
@@ -131,9 +133,10 @@ def main():
 
     cells = [(c, r, s) for c in CONFIGS for r in REPS for s in SEEDS]
     cell_results = run_cells(census_cell, cells)
-    with open(OUT_PATH, "w") as f:
-        json.dump({f"{c}:R{r}:s{s}": v
-                   for (c, r, s), v in cell_results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        f"{c}:R{r}:s{s}": v
+        for (c, r, s), v in cell_results.items()
+    })
 
     print("\n=== w_max census (fraction of image-column weights >= 0.9*cap) ===")
     agg: dict = defaultdict(list)

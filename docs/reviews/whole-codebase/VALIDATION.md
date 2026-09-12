@@ -5576,3 +5576,10 @@ artifact through the canonical finite, exclusive writer. Its reference read,
 word-level collision analysis, cross-n comparison, and output schema are
 unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
 and both result-writer ratchets pass: **2 passed**.
+### W-max census writer migration (2026-09-12)
+
+The registered w-max census now publishes its fixed per-cell artifact through
+the canonical finite, exclusive writer. Its compact-index weight census,
+seed/config keys, and output schema are unchanged; reruns cannot silently
+replace the evidence. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.

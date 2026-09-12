@@ -20,7 +20,6 @@
     "research/experiments/role_recipe_2x2.py": 1,
     "research/experiments/role_recipe_2x2_ext.py": 1,
     "research/experiments/surprise_gain_recall.py": 1,
-    "research/experiments/wmax_census.py": 1,
     "research/experiments/zipf_synthesis.py": 1
   },
   "direct_json_write_text_sites": {}
