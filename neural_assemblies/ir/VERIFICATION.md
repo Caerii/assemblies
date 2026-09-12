@@ -2274,6 +2274,19 @@ integer, unique indices. Duplicate entries would otherwise be collapsed by the
 set-based metric and could turn malformed activity into a plausible overlap.
 
 
+<a id="contract-set-metrics"></a>
+### Pure set metrics
+
+The package metrics use explicit set semantics and are pure functions: they do
+not read engine state or mutate their inputs. `jaccard_similarity(A, B)` is
+`|A intersect B| / |A union B|` and returns `1.0` for two empty sets.
+`cosine_similarity(A, B)` is `|A intersect B| / sqrt(|A||B|)` and returns
+`0.0` whenever either set is empty. `recall_fraction(observed, reference)`
+uses the reference as its denominator and returns `1.0` for an empty
+reference. These identities are construction laws, not empirical claims, and
+are tested independently of any backend.
+
+
 <a id="contract-readout-threshold"></a>
 ### Readout threshold
 
