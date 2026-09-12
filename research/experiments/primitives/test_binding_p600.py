@@ -220,7 +220,7 @@ def run_trial(
 class BindingP600Experiment(ExperimentBase):
     """Test P600-like binding difficulty signals at critical sentence positions."""
 
-    def __init__(self, results_dir: Path = None, seed: int = 42,
+    def __init__(self, results_dir: Path | None = None, seed: int = 42,
                  verbose: bool = True):
         super().__init__(
             name="binding_p600",
