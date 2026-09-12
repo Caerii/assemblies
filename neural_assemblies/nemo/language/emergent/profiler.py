@@ -21,9 +21,11 @@ Usage:
     profiler.print_summary()
 """
 
+import importlib
 import time
-import cupy as cp
-from typing import Dict, List
+from typing import Any, Dict, List, Optional
+cp: Any = importlib.import_module("cupy")
+from neural_assemblies.core._torch_ops import torch_ops
 from dataclasses import dataclass, field
 from collections import defaultdict
 from contextlib import contextmanager
@@ -214,6 +216,8 @@ class NEMOProfiler:
     def __exit__(self, *args):
         if self.sync_cuda:
             cp.cuda.Stream.null.synchronize()
+        if self._start_time is None:
+            return
         self.results.total_time_ms = (time.perf_counter() - self._start_time) * 1000
         
         # Get GPU memory
@@ -243,7 +247,7 @@ class NEMOProfiler:
         self.results.add_timing(name, duration_ms)
 
 
-def profile_function(name: str = None):
+def profile_function(name: Optional[str] = None):
     """
     Decorator to profile a function.
     
@@ -486,8 +490,6 @@ def benchmark_topk_methods(n: int = 10000, k: int = 100,
     """
     Compare different topk implementations.
     """
-    import torch
-    
     print(f"\nBenchmarking topk methods: n={n}, k={k}")
     print("-" * 50)
     
@@ -495,13 +497,13 @@ def benchmark_topk_methods(n: int = 10000, k: int = 100,
     
     # Create test data
     data_cp = cp.random.randn(n).astype(cp.float32)
-    data_torch = torch.as_tensor(data_cp, device='cuda')
+    data_torch = torch_ops.as_tensor(data_cp, device='cuda')
     
     # Method 1: torch.topk
     cp.cuda.Stream.null.synchronize()
     start = time.perf_counter()
     for _ in range(iterations):
-        _, idx = torch.topk(data_torch, k, sorted=False)
+        _, idx = torch_ops.topk(data_torch, k, sorted=False)
     cp.cuda.Stream.null.synchronize()
     results['torch.topk'] = (time.perf_counter() - start) * 1000 / iterations
     
