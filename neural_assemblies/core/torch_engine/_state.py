@@ -4,7 +4,7 @@ from collections import deque
 from dataclasses import dataclass, field
 from typing import Any
 
-import torch
+from ._torch_ops import torch_ops
 from ..activity import ActivityState
 
 # Threshold above which we use lazy ID generation instead of
@@ -50,12 +50,12 @@ class TorchAreaState(ActivityState):
 
     def __post_init__(self):
         if self.winners is None:
-            self.winners = torch.empty(0, dtype=torch.int32, device='cuda')
+            self.winners = torch_ops.empty(0, dtype=torch_ops.int32, device='cuda')
         if self._refractory_history is None:
             self._refractory_history = deque(
                 maxlen=max(self.refractory_period, 1))
         if self._cumulative_bias is None:
-            self._cumulative_bias = torch.zeros(0, dtype=torch.float32,
+            self._cumulative_bias = torch_ops.zeros(0, dtype=torch_ops.float32,
                                                 device='cuda')
 
     def next_neuron_id(self) -> int:
