@@ -6275,3 +6275,7 @@ Ruff's remaining B007 findings in maintained tests were replaced with `_` bindin
 ### Lazy API lint contract gate (2026-09-12)
 
 The unknown-export guard now keeps its attribute name in a variable, preserving an explicit dynamic lookup while satisfying Ruff's B009 rule against constant `getattr` calls. The lazy-import suite passes **12 tests** and Ruff B/F/E9 is clean.
+
+### Cumulative non-slow CPU integration audit (2026-09-12)
+
+The full `neural_assemblies/tests` non-slow, non-GPU collection completed in **1,655.34 seconds**: **3,762 passed, 135 skipped, 6 expected xfails, 5 failures, 10 subtests passed**. The five failures are all the known ERP calibration/metric scientific bars (`test_erp_calibration.py` and `test_erp_metric_range.py`), with no infrastructure or unification regression elsewhere. An isolated rerun reproduced the same **5 failures and 14 passes in 50.98 seconds**, confirming they are deterministic and remain an explicit scientific blocker rather than a transient full-suite effect.
