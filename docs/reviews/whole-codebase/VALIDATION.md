@@ -6163,3 +6163,7 @@ The partitioned non-slow slice 1280:1420 passed **70 tests with 70 optional skip
 ### Historical merge and projection contract slice (2026-09-12)
 
 The partitioned non-slow slice 1420:1560 passed **140 tests in 17.66 seconds**. It covers historical merge/projection trial preservation, parameter validation, and stopping-rule admission.
+
+### IR, cross-language, and homeostasis slice (2026-09-12)
+
+The partitioned non-slow slice 1560:1700 passed **139 tests with 1 optional skip in 57.84 seconds**. It covers IR and cross-language adapters, historical validation, homeostasis, and engine scaling. One sampled-recurrence warning is intentional provenance enforcement.
