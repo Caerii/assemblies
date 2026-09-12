@@ -191,6 +191,16 @@ class FinalFixedHyperdimensionalAssembly:
         result = np.setxor1d(assembly_a, assembly_b)
         return result
     
+    @staticmethod
+    def _validate_calculus_domain(function_assemblies, x_assemblies, minimum):
+        if len(function_assemblies) != len(x_assemblies):
+            raise ValueError(
+                "function_assemblies and x_assemblies must have equal length"
+            )
+        if len(function_assemblies) < minimum:
+            return False
+        return True
+
     def _compute_derivative(self, function_assemblies: List[np.ndarray], 
                           x_assemblies: List[np.ndarray]) -> List[np.ndarray]:
         """
@@ -198,9 +208,9 @@ class FinalFixedHyperdimensionalAssembly:
         
         Uses finite difference: f'(x) ≈ [f(x+h) - f(x-h)] / (2h)
         """
-        if len(function_assemblies) < 3:
+        if not self._validate_calculus_domain(function_assemblies, x_assemblies, 3):
             return []
-        
+
         derivatives = []
         
         for i in range(1, len(function_assemblies) - 1):
@@ -224,9 +234,9 @@ class FinalFixedHyperdimensionalAssembly:
         
         Uses trapezoidal rule: ∫f(x)dx ≈ Σ[f(x_i) + f(x_{i+1})] * h/2
         """
-        if len(function_assemblies) < 2:
+        if not self._validate_calculus_domain(function_assemblies, x_assemblies, 2):
             return []
-        
+
         integrals = []
         
         for i in range(len(function_assemblies) - 1):
@@ -253,6 +263,8 @@ class FinalFixedHyperdimensionalAssembly:
         Returns:
             Dictionary with derivatives and integrals
         """
+        if len(x_values) != len(f_values):
+            raise ValueError("x_values and f_values must have equal length")
         # Convert to assemblies
         x_assemblies = []
         f_assemblies = []

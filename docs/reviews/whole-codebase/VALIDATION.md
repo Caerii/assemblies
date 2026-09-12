@@ -5958,3 +5958,10 @@ random-background mechanism it does not implement. The default compatibility
 value remains accepted; nondefault probabilities now fail explicitly and direct
 assignment no longer carries an unused processing counter. The sparse simulation
 suite passes **20 tests**.
+
+### Hyperdimensional calculus domain contract (2026-09-12)
+
+The experimental hyperdimensional calculus helpers now reject mismatched
+function/domain sequences instead of silently truncating through `zip`. The
+finite-difference and integration entry points validate domain cardinality, and
+the demo validates raw value lengths. Focused contract tests pass **2 tests**.
