@@ -44,15 +44,17 @@ installed until the fix.
 Requires: cupy (for GPU arrays; kernels in kernels/implicit.py are optional).
 """
 
+import importlib
+from typing import Any, Dict
+
 import numpy as np
-from typing import Dict
 
 from ._homeostasis import refraction_increment
 from .engine import ProjectionResult, register_engine
 from .backend import to_cpu, to_xp
 
 # Guard — this module is only loaded if cupy is available
-import cupy as cp
+cp: Any = importlib.import_module("cupy")
 
 from .numpy_engine import NumpySparseEngine
 from .kernels.sparse_ops import (
@@ -62,9 +64,11 @@ from .kernels.sparse_ops import (
 )
 
 # PyTorch top-k: single kernel call, faster than CuPy argpartition+argsort
+_torch: Any = None
 try:
-    import torch
-    _HAS_TORCH = torch.cuda.is_available()
+    import torch as _torch_module
+    _torch = _torch_module
+    _HAS_TORCH = bool(_torch.cuda.is_available())
 except ImportError:
     _HAS_TORCH = False
 
@@ -562,8 +566,8 @@ class CudaImplicitEngine(NumpySparseEngine):
         elif _HAS_TORCH:
             # PyTorch top-k: single fused kernel, ~2x faster than
             # CuPy argpartition + argsort (avoids 2 separate launches)
-            torch_inputs = torch.as_tensor(all_inputs, device='cuda')
-            _, top_idx = torch.topk(torch_inputs, k, sorted=True)
+            torch_inputs = _torch.as_tensor(all_inputs, device='cuda')
+            _, top_idx = _torch.topk(torch_inputs, k, sorted=True)
             winners_gpu = cp.asarray(top_idx).astype(cp.uint32)
         else:
             part_idx = cp.argpartition(-all_inputs, k)[:k]
@@ -577,8 +581,11 @@ class CudaImplicitEngine(NumpySparseEngine):
         first_inputs_gathered = all_inputs[winners_gpu[first_mask_gpu]]
 
         # Single sync: transfer winners + first-timer inputs to CPU
-        winners_cpu = winners_gpu.get().tolist()
-        first_inputs_cpu = first_inputs_gathered.get().tolist() if first_inputs_gathered.size > 0 else []
+        winners_cpu = to_cpu(winners_gpu).tolist()
+        first_inputs_cpu = (
+            to_cpu(first_inputs_gathered).tolist()
+            if first_inputs_gathered.size > 0 else []
+        )
 
         # Remap first-timers on CPU (tiny: k iterations)
         num_first = 0
