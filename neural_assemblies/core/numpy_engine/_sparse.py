@@ -584,7 +584,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     def _p_for(self, source: str, target: str) -> float:
         """This fiber's connection probability; the global `p` unless set."""
-        return self._fiber_p.get((source, target), self.p)
+        value = self._fiber_p.get((source, target))
+        return self.p if value is None else float(value)
 
     def heterogeneous(self) -> bool:
         """Whether any fiber overrides `p`. Guards every fast path that
@@ -840,8 +841,13 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         rewrite formed assemblies, so this raises instead. Requesting the value
         already in force is not a change and stays a no-op.
         """
+        if p is None:
+            raise ValueError("connectivity probability p must be provided")
         key = (source, target)
-        if float(p) == float(self._fiber_p.get(key, self.p)):
+        current_p = self._fiber_p.get(key)
+        if current_p is None:
+            current_p = self.p
+        if float(p) == float(current_p):
             return
         if source not in self._areas and source not in self._stimuli:
             raise KeyError(f"unknown source {source!r}")
