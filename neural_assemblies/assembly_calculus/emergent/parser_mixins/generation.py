@@ -55,7 +55,7 @@ class GenerationMixin:
     brain: "Brain"
     rounds: int
     stim_map: Dict[str, str]
-    word_order_type: str
+    word_order_type: Optional[str]
     word_grounding: Dict[str, GroundingContext]
     core_lexicons: Dict[str, Dict[str, Assembly]]
     role_lexicons: Dict[str, Dict[str, Assembly]]

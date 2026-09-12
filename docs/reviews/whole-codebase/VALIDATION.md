@@ -6537,3 +6537,7 @@ All parser mixin capability declarations now agree on the canonical `classify_wo
 ### Prediction capability contract gate (2026-09-12)
 
 `PredictionMixin` now declares its context lifecycle and incremental-building capabilities, and prediction lexicon/bridge compiler calls explicitly witness the composed parser and compiled topology interfaces. The context-compiled flag is typed as the callable capability actually used by the bridge schedule. Pyright reports **0 diagnostics**; batched and scaling next-token tests pass **10 tests with 1 existing xfail**.
+
+### Parser composition closure gate (2026-09-12)
+
+The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostics**. The final closure aligned the canonical classification signature across all mixins and removed the last parser-level override conflicts for role reconstruction, fiber-gain context management, and optional word-order state. Parser composition and morphology tests pass **19 tests**, with expected sampled-recurrence warnings preserved.
