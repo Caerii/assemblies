@@ -5700,3 +5700,10 @@ The overloads explicitly enumerate same-space pairs so Pyright retains the
 mixed-space rejection after the runtime upgrade. Device-safe constructor,
 static, overlap, and assembly-calculus checks pass: **40 passed**; Pyright
 reports **0 errors**. Ruff and diff checks pass.
+
+### Public index-boundary documentation (2026-09-12)
+
+The API guide now places compact/stable index semantics and active/recruited/
+materialized count meanings beside cue-recovery construction. It directs users
+to the branded conversion APIs and names `.w` as compatibility-only, aligning
+the ergonomic examples with the runtime safety boundary. Diff checks pass.
