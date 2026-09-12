@@ -493,6 +493,20 @@ Replacing active neurons is a different perturbation, covered by the pending
 [cue-corruption contract](reviews/whole-codebase/SEMANTIC_CARDS.md#contract-legacy-cue-corruption).
 
 
+## Index spaces and population counts
+
+`Area.winners` contains engine-local `CompactIdx` positions. They can change
+when a sparse area materializes more neurons and must not be stored as an
+assembly. `Assembly.neuron_ids` contains stable `NeuronIds`; use
+`Assembly.from_area(brain, area)` or `to_neuron_ids` at the boundary before
+comparing, persisting, or injecting a snapshot. Mixed branded arrays are
+rejected by `overlap` before a meaningless score is computed.
+
+Use `area.active_count` for current winners, `area.recruited_count` for the
+lifetime number of neurons recruited, and `brain.population_counts(name)` when
+you also need the engine's materialized extent. The old `.w` field is an
+engine-internal compatibility field and does not name one stable quantity.
+
 ## Explicit cue replacement and recovery
 
 Choose the perturbation population and an exact replacement count. Recovery reports
