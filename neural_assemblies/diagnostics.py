@@ -431,7 +431,7 @@ def drive_breakdown(brain, target: str, sources: Sequence[str],
     if target_ids is None:
         target_ids = read_assembly(brain, target)
 
-    eng_t = brain._engine_for(brain.areas[target])
+    eng_t = brain.engine_for(target)
     t_inv = _compact_index(eng_t, target) or {}
 
     per: Dict[str, float] = {}
@@ -505,7 +505,7 @@ def recurrence_audit(brain, areas: Optional[Sequence[str]] = None
     if unknown:
         raise KeyError(f"recurrence_audit areas are unknown: {unknown}")
     for a in names:
-        eng = brain._engine_for(brain.areas[a])
+        eng = brain.engine_for(a)
         conn = getattr(eng, "_area_conns", {}).get(a, {}).get(a)
         w = getattr(conn, "weights", None)
         if w is None or getattr(w, "shape", (0, 0))[0] == 0:
@@ -693,7 +693,7 @@ def fiber_census(brain, driven: Optional[Mapping[str, Sequence[str]]] = None
     out: List[FiberState] = []
     for dst_name in brain.areas:
         try:
-            eng = brain._engine_for(brain.areas[dst_name])
+            eng = brain.engine_for(dst_name)
         except Exception:                                    # noqa: BLE001
             continue
         dst_w = int(getattr(brain.areas[dst_name], "w", 0) or 0)
@@ -832,7 +832,7 @@ def pricing_exposure(brain) -> List[PricingExposure]:
     norm_init = bool(getattr(brain, "norm_init", False))
     for dst_name, dst in brain.areas.items():
         try:
-            eng = brain._engine_for(dst)
+            eng = brain.engine_for(dst)
         except Exception:                                    # noqa: BLE001
             continue
         eng_areas = getattr(eng, "_areas", {})
@@ -993,7 +993,7 @@ def regime_audit(brain, driven: Optional[Mapping[str, Sequence[str]]] = None,
     out: List[Regime] = []
     for name, area in brain.areas.items():
         try:
-            eng = brain._engine_for(area)
+            eng = brain.engine_for(name)
         except Exception:                                    # noqa: BLE001
             continue
         n = int(getattr(area, "n", 0) or 0)
@@ -1326,7 +1326,7 @@ def arbitrate(build, measure, arms: Sequence[str] = ARBITER_ARMS,
         brain = build(spec)
         if arm == "materialized":
             for name, area in list(brain.areas.items()):
-                eng = brain._engine_for(area)
+                eng = brain.engine_for(name)
                 if hasattr(eng, "materialize_area"):
                     eng.materialize_area(name)
         out[arm] = measure(brain)
@@ -1670,7 +1670,7 @@ def area_load(brain) -> Dict[str, float]:
     """
     out = {}
     for name, area in brain.areas.items():
-        eng = brain._engine_for(area)
+        eng = brain.engine_for(name)
         try:
             w = int(eng.get_num_ever_fired(name))
         except (KeyError, AttributeError):

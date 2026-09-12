@@ -120,11 +120,11 @@ class ExplicitRound:
             raise ValueError("Brain inhibition and fiber plasticity overrides are unsupported")
         if self.plasticity and brain.disable_plasticity:
             raise ValueError("Brain learning disable contradicts instruction")
-        engine = brain._engine_for(brain.areas[self.target])
+        engine = brain.engine_for(self.target)
         self.validate(engine)
         for name in names:
             area = brain.areas[name]
-            if brain._engine_for(area) is not engine:
+            if brain.engine_for(area) is not engine:
                 raise ValueError("all instruction areas must use the same dense engine")
             if (area.fixed_assembly or area.slot_count or area.winner_policy is not None
                     or area.n != engine._areas[name].n or area.k != engine._areas[name].k):

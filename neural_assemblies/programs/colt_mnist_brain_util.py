@@ -48,7 +48,7 @@ def sync_protocol_weights(
 def set_kcap_winners(brain, area: str, pattern: np.ndarray) -> np.ndarray:
     winners = np.flatnonzero(pattern > 0).astype(np.uint32)
     brain.areas[area].unfix_assembly()
-    brain._engine_for(brain.areas[area]).set_winners(area, winners)
+    brain.engine_for(area).set_winners(area, winners)
     brain.areas[area].winners = winners
     return winners
 
@@ -56,7 +56,7 @@ def set_kcap_winners(brain, area: str, pattern: np.ndarray) -> np.ndarray:
 def clear_area_winners(brain, area: str) -> None:
     empty = np.array([], dtype=np.uint32)
     brain.areas[area].unfix_assembly()
-    brain._engine_for(brain.areas[area]).set_winners(area, empty)
+    brain.engine_for(area).set_winners(area, empty)
     brain.areas[area].winners = empty
 
 
@@ -68,7 +68,7 @@ def fix_class_slot(brain, area: str, digit: int, k: int) -> None:
     slot = class_slot_neurons(digit, k)
     brain.areas[area].winners = slot
     brain.areas[area].fix_assembly()
-    eng = brain._engine_for(brain.areas[area])
+    eng = brain.engine_for(area)
     eng.set_winners(area, slot)
     eng.fix_assembly(area)
 
