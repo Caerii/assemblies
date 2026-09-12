@@ -40,6 +40,8 @@ class TorchOps(Protocol):
     where: Callable[..., Any]
     full_like: Callable[..., Any]
     empty: Callable[..., Any]
+    cuda: Any
+    empty: Callable[..., Any]
     ones: Callable[..., Any]
     zeros_like: Callable[..., Any]
     repeat_interleave: Callable[..., Any]

@@ -27,6 +27,8 @@ which for a cross round includes the cross fiber.
 from __future__ import annotations
 
 import torch
+
+from ._torch_ops import torch_ops
 from typing import Any
 
 from ._hashed import HashedArea, PresentFiber, StimulusFiber, _fused_cuda
@@ -50,11 +52,11 @@ def pad_schedules(per_brain, device="cuda"):
     """List of (words, bundles) lists -> [B, S] int64 tensors, -1 padded."""
     S = max(len(w) for w, _ in per_brain)
     B = len(per_brain)
-    W = torch.full((B, S), -1, dtype=torch.int64)
-    Bd = torch.full((B, S), -1, dtype=torch.int64)
+    W = torch_ops.full((B, S), -1, dtype=torch_ops.int64)
+    Bd = torch_ops.full((B, S), -1, dtype=torch_ops.int64)
     for b, (w, bb) in enumerate(per_brain):
-        W[b, :len(w)] = torch.tensor(w)
-        Bd[b, :len(bb)] = torch.tensor(bb)
+        W[b, :len(w)] = torch_ops.tensor(w)
+        Bd[b, :len(bb)] = torch_ops.tensor(bb)
     return W.to(device), Bd.to(device)
 
 
@@ -64,14 +66,14 @@ def _hash_jitter(salt, n, jitter, device, slab=16):
     Computed `slab` bundles at a time: the int64 temporaries of the whole
     [B, I, n] block were three times the result and, at V = 1024 and a
     wide FEAT, most of the card. Same ops per element, so the same floats."""
-    cols = torch.arange(n, dtype=torch.int64, device=device)
+    cols = torch_ops.arange(n, dtype=torch_ops.int64, device=device)
     B, I = salt.shape
-    out = torch.empty(B, I, n, dtype=torch.float32, device=device)
+    out = torch_ops.empty(B, I, n, dtype=torch_ops.float32, device=device)
     for i0 in range(0, I, slab):
         h = (cols.view(1, 1, -1) ^ salt[:, i0:i0 + slab].view(B, -1, 1)) * 0x9E3779B1
         h = (h ^ (h >> 15)) * 0x85EBCA6B
         h = (h ^ (h >> 13)) & 0xFFFFFFFF
-        out[:, i0:i0 + slab] = h.to(torch.float32) * (jitter / 4294967296.0)
+        out[:, i0:i0 + slab] = h.to(torch_ops.float32) * (jitter / 4294967296.0)
     return out
 
 
@@ -160,7 +162,7 @@ class ScheduledAligner:
         sel, ovf = self.mod.topk_select(ranked, area.k)
         if int(ovf.max()):
             raise RuntimeError("k-WTA candidate set overflowed")
-        return sel.to(torch.int64)
+        return sel.to(torch_ops.int64)
 
     def prepare(self, features):
         """Cache every anchor. `features`: [B, I, F_per] int64, -1 padded."""
@@ -168,31 +170,31 @@ class ScheduledAligner:
         B, dev = self.B, self.device
         self.features = features.to(dev)
         I, Fper = self.features.shape[1], self.features.shape[2]
-        ar = torch.arange(B, device=dev)
+        ar = torch_ops.arange(B, device=dev)
         # LEX winners per (brain, word)
-        self.lex_cache = torch.full((B, self.V, self.k), -1, dtype=torch.int64,
+        self.lex_cache = torch_ops.full((B, self.V, self.k), -1, dtype=torch_ops.int64,
                                     device=dev)
         for i, ph in enumerate(self.phon):
-            d = torch.zeros(B, self.n, device=dev)
+            d = torch_ops.zeros(B, self.n, device=dev)
             ph.contribute(d)
             self.lex_cache[:, i] = self._select(self.lex, d, [ph])
         # feature constants [B, F+1, feat_n] (slot F is the zero pad) -> bundle drive
-        consts = torch.zeros(B, self.F + 1, self.feat_n, device=dev)
+        consts = torch_ops.zeros(B, self.F + 1, self.feat_n, device=dev)
         for f, ff in enumerate(self.featf):
             ff.contribute(consts[:, f])
-        idx = torch.where(self.features < 0,
-                          torch.full_like(self.features, self.F),
+        idx = torch_ops.where(self.features < 0,
+                          torch_ops.full_like(self.features, self.F),
                           self.features)                     # [B, I, Fper]
         self.bundle_drive = consts[ar.view(B, 1, 1), idx].sum(dim=2)   # [B, I, feat_n]
         # salts: the seeds of the fibers that fire, XORed as HashedArea does
-        fseeds = torch.stack([ff.seeds.to(torch.int64) & 0xFFFFFFFF
+        fseeds = torch_ops.stack([ff.seeds.to(torch_ops.int64) & 0xFFFFFFFF
                               for ff in self.featf] +
-                             [torch.zeros(B, dtype=torch.int64, device=dev)],
+                             [torch_ops.zeros(B, dtype=torch_ops.int64, device=dev)],
                              dim=1)                          # [B, F+1]
-        salt = torch.zeros(B, I, dtype=torch.int64, device=dev)
+        salt = torch_ops.zeros(B, I, dtype=torch_ops.int64, device=dev)
         for s in range(Fper):
             salt = salt ^ fseeds[ar.view(B, 1), idx[:, :, s]]
-        cross_salt = (self.cross.seeds.to(torch.int64) & 0xFFFFFFFF).view(B, 1)
+        cross_salt = (self.cross.seeds.to(torch_ops.int64) & 0xFFFFFFFF).view(B, 1)
         self.jit_anchor = _hash_jitter(salt, self.feat_n, self.tie_jitter, dev)
         self.jit_cross = _hash_jitter(salt ^ cross_salt, self.feat_n,
                                       self.tie_jitter, dev)
@@ -201,12 +203,12 @@ class ScheduledAligner:
         self.jit_recon = _hash_jitter(cross_salt.view(B, 1), self.feat_n,
                                       self.tie_jitter, dev)[:, 0]   # [B, feat_n]
         # FEAT winners per (brain, bundle) under the stimulus alone
-        self.feat_cache = torch.full((B, I, self.feat_k), -1,
-                                     dtype=torch.int64, device=dev)
+        self.feat_cache = torch_ops.full((B, I, self.feat_k), -1,
+                                     dtype=torch_ops.int64, device=dev)
         for j in range(I):
             ranked = self.bundle_drive[:, j] + self.jit_anchor[:, j]
             sel, _ = self.mod.topk_select(ranked, self.feat_k)
-            self.feat_cache[:, j] = sel.to(torch.int64)
+            self.feat_cache[:, j] = sel.to(torch_ops.int64)
         # the anchors are cached: the fibers (one per word and per feature)
         # and the prepare-time tensors are dead -- at V = 1024 and a wide
         # FEAT they were most of the card
@@ -243,22 +245,22 @@ class ScheduledAligner:
             torch.cuda.synchronize()
             cf.check()
             return
-        ar = torch.arange(B, device=dev)
-        neg_rows = torch.full((B, self.k), -1, dtype=torch.int64, device=dev)
-        neg_new = torch.full((B, self.feat_k), -1, dtype=torch.int64, device=dev)
+        ar = torch_ops.arange(B, device=dev)
+        neg_rows = torch_ops.full((B, self.k), -1, dtype=torch_ops.int64, device=dev)
+        neg_new = torch_ops.full((B, self.feat_k), -1, dtype=torch_ops.int64, device=dev)
         for s in range(S):
             w, bid = words[:, s], bundles[:, s]
             live = ((w >= 0) & (bid >= 0)).view(B, 1)
             if not bool(live.any()):
                 break
-            rows = torch.where(live, self.lex_cache[ar, w.clamp_min(0)], neg_rows)
+            rows = torch_ops.where(live, self.lex_cache[ar, w.clamp_min(0)], neg_rows)
             stim = self.bundle_drive[ar, bid.clamp_min(0)]
             jit = self.jit_cross[ar, bid.clamp_min(0)]
             for _ in range(self.rounds_word):
                 d = stim.clone()
                 self.cross.contribute(d, rows)
                 sel, _ = self.mod.topk_select(d + jit, self.feat_k)
-                new = torch.where(live, sel.to(torch.int64), neg_new)
+                new = torch_ops.where(live, sel.to(torch_ops.int64), neg_new)
                 self.cross.observe(rows, new)
         self.cross.check()
 
@@ -268,15 +270,15 @@ class ScheduledAligner:
         stimulus-only assembly, per brain."""
         B, dev = self.B, self.device
         I = self.feat_cache.shape[1]
-        A = torch.zeros(B, I, self.feat_n, device=dev)
+        A = torch_ops.zeros(B, I, self.feat_n, device=dev)
         A.scatter_(2, self.feat_cache.clamp_min(0), (self.feat_cache >= 0).float())
-        R = torch.zeros(B, self.V, self.feat_n, device=dev)
+        R = torch_ops.zeros(B, self.V, self.feat_n, device=dev)
         for i in range(self.V):
-            d = torch.zeros(B, self.feat_n, device=dev)
+            d = torch_ops.zeros(B, self.feat_n, device=dev)
             self.cross.contribute(d, self.lex_cache[:, i])
             sel, _ = self.mod.topk_select(d + self.jit_recon, self.feat_k)
-            R[:, i].scatter_(1, sel.to(torch.int64), 1.0)
-        return torch.einsum("bvn,bin->bvi", R, A) / self.feat_k
+            R[:, i].scatter_(1, sel.to(torch_ops.int64), 1.0)
+        return torch_ops.einsum("bvn,bin->bvi", R, A) / self.feat_k
 
     def type_accuracy(self, targets, n_bundles, exposures, min_exposures):
         """Per-brain accuracy over words with enough exposures, argmax over
@@ -285,7 +287,7 @@ class ScheduledAligner:
         tab = self.overlap_table()                                  # [B, V, I]
         B, V, I = tab.shape
         dev = tab.device
-        valid = torch.arange(I, device=dev).view(1, 1, I) < n_bundles.view(B, 1, 1).to(dev)
+        valid = torch_ops.arange(I, device=dev).view(1, 1, I) < n_bundles.view(B, 1, 1).to(dev)
         best = tab.masked_fill(~valid, -1.0).argmax(dim=2)          # [B, V]
         targets, exposures = targets.to(dev), exposures.to(dev)
         scored = (targets >= 0) & (exposures >= min_exposures)
