@@ -65,10 +65,11 @@ def run(command: list[str], *, capture_output: bool = False) -> subprocess.Compl
                           capture_output=capture_output)
 
 
-def check_pyright() -> bool:
+def maintained_sources(root: Path = ROOT) -> list[str]:
+    """Return the exact maintained Python sources, failing closed on drift."""
     files: list[str] = []
     for scope in MAINTAINED_SCOPES:
-        scope_path = ROOT / scope
+        scope_path = root / scope
         if not scope_path.is_dir():
             raise FileNotFoundError(
                 f"maintained verification scope does not exist: {scope}"
@@ -80,12 +81,16 @@ def check_pyright() -> bool:
             and "\\archive\\" not in str(path).lower()
         )
     for relative in MAINTAINED_FILES:
-        if not (ROOT / relative).is_file():
+        if not (root / relative).is_file():
             raise FileNotFoundError(
                 f"maintained verification file does not exist: {relative}"
             )
     files.extend(MAINTAINED_FILES)
-    files = sorted(set(files))
+    return sorted(set(files))
+
+
+def check_pyright() -> bool:
+    files = maintained_sources()
     result = run(["uv", "run", "pyright", *files, "--outputjson"], capture_output=True)
     if result.stdout:
         report = json.loads(result.stdout)
