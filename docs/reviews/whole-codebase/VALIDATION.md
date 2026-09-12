@@ -7295,3 +7295,9 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - README now advertises the measured eight-worker `loadfile` fast gate, the explicit slow empirical gate, and their current fast-tier scale.
 - Command documentation matches the central marker scheduling in `tests/conftest.py`.
+
+
+## 2026-09-12 ? maintained semantic gate
+
+- `uv run pyright neural_assemblies/assembly_calculus neural_assemblies/core neural_assemblies/programs research/runner.py research/evidence.py --outputjson`: 245 files analyzed, 0 errors.
+- `uv run python -m research.evidence check`: valid maintained graph, no errors.
