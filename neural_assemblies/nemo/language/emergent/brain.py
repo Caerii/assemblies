@@ -16,11 +16,15 @@ NEW in 2.2.0: CUDA backend support for ~8x faster training!
 Uses hash-based implicit connectivity with no weight matrix storage.
 """
 
-import cupy as cp
-import torch
+import importlib
+from typing import Any
 import numpy as np
 from typing import Dict, Optional, Set, Tuple, List
 from collections import defaultdict
+from neural_assemblies.core._torch_ops import torch_ops
+
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 from neural_assemblies.core.measurement import Measured
 from neural_assemblies.nemo.core.kernel import projection_fp16_kernel, hebbian_kernel
@@ -55,11 +59,13 @@ class EmergentNemoBrain:
     - Error detection via assembly stability
     """
     
-    def __init__(self, params: EmergentParams = None, verbose: bool = True, 
+    def __init__(self, params: EmergentParams | None = None, verbose: bool = True,
                  use_cuda_backend: bool = True):
         self.p = params or EmergentParams()
         self.verbose = verbose
         n, k = self.p.n, self.p.k
+        if k is None:
+            raise ValueError("EmergentParams.k must be resolved before constructing the brain")
         
         # =====================================================================
         # CUDA BACKEND - ~8x faster training with hash-based connectivity
@@ -77,7 +83,7 @@ class EmergentNemoBrain:
                 )
         
         # Input assemblies for each modality (created on demand)
-        self.assemblies: Dict[Area, Dict[str, cp.ndarray]] = {
+        self.assemblies: Dict[Area, Dict[str, CpArray]] = {
             Area.PHON: {},
             Area.VISUAL: {},
             Area.MOTOR: {},
@@ -102,8 +108,8 @@ class EmergentNemoBrain:
         self.l_num = [cp.zeros(1, dtype=cp.uint32) for _ in range(NUM_AREAS)]
         
         # Current and previous activations
-        self.current: Dict[Area, Optional[cp.ndarray]] = {a: None for a in Area}
-        self.prev: Dict[Area, Optional[cp.ndarray]] = {a: None for a in Area}
+        self.current: Dict[Area, Optional[CpArray]] = {a: None for a in Area}
+        self.prev: Dict[Area, Optional[CpArray]] = {a: None for a in Area}
         
         # Inhibition state (for mutual inhibition)
         self.inhibited: Set[Area] = set()
@@ -222,8 +228,8 @@ class EmergentNemoBrain:
             shared_mem=k * 4
         )
         
-        result_torch = torch.as_tensor(result, device='cuda')
-        _, winners_idx = torch.topk(result_torch, k, sorted=False)
+        result_torch = torch_ops.as_tensor(result, device='cuda')
+        _, winners_idx = torch_ops.topk(result_torch, k, sorted=False)
         winners = cp.asarray(winners_idx).astype(cp.uint32)
         
         if learn and self.prev[area] is not None:
