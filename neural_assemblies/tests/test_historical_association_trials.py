@@ -61,7 +61,7 @@ def test_disjoint_b_corruptions_are_not_read_and_evaluation_learns(monkeypatch, 
     outcomes = []
     for replacement in (np.arange(6), np.arange(54, 60)):
         class Corruption:
-            def choice(self, *args, **kwargs):
+            def choice(self, *args, replacement=replacement, **kwargs):
                 return replacement.copy()
         outcomes.append(study.run_association_trial(cfg, 1, bidirectional, rng=Corruption())['recovery'])
     assert outcomes[0] == outcomes[1]

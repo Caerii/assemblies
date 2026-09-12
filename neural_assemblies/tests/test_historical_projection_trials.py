@@ -105,7 +105,7 @@ def test_crossarea_observation_does_not_depend_on_corrupted_b_cue(monkeypatch):
     outcomes = []
     for replacement in (np.arange(6), np.arange(54, 60)):
         class Corruption:
-            def choice(self, *args, **kwargs):
+            def choice(self, *args, replacement=replacement, **kwargs):
                 return replacement.copy()
 
         def rng(seed=None):

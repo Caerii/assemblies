@@ -194,7 +194,7 @@ def test_streak_matches_window_rule_for_all_eight_comparison_patterns():
         for window in range(1, 5):
             brain = SimpleNamespace(areas={"A": SimpleNamespace(explicit=True, winners=np.array([], dtype=int))})
             count = 0
-            def project(stimuli, fibers):
+            def project(stimuli, fibers, brain=brain, sequence=sequence):
                 nonlocal count
                 brain.areas["A"].winners = np.array(sequence[count])
                 count += 1

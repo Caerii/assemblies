@@ -37,7 +37,7 @@ def test_recovery_improves_cue_and_fails_learning_and_dynamics_nulls(engine, see
         cue = replace_neurons(reference, population=ids(range(2000)), count=100, seed=700)
         area = brain.areas[reference.area]
         connection = brain._engine._area_conns[reference.area][reference.area]
-        def weights():
+        def weights(brain=brain, connection=connection, engine=engine):
             if engine == 'torch_sparse':
                 assert brain._engine._device.type == 'cuda'
                 return connection._val.float().cpu().numpy().copy()

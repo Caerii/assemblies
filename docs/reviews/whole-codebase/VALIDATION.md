@@ -6255,3 +6255,7 @@ Removed unused loop bindings from maintained NEMO language, simulation, program,
 ### Closure capture safety gate (2026-09-12)
 
 Conformance helpers now bind the brain/engine they inspect at definition time, and the ARC Markov test binds each branch bit explicitly. This prevents a future loop refactor from silently making every closure test the final parameter. Ruff B023 is clean for both files; the conformance suite passes **14 tests with 10 intentional sampled-recurrence warnings**, and the ARC Markov contract suite passes **44 tests**.
+
+### Historical closure binding gate (2026-09-12)
+
+Historical association, merge, projection, scaling, noise, and operation-contract tests now bind loop-scoped replacement, brain, engine, sequence, and AST mapping values explicitly. This removes late-binding ambiguity from controls that compare alternate mechanisms. Ruff B023/F/E9 is clean across the maintained test suite, and the combined regression set passes **343 tests**.

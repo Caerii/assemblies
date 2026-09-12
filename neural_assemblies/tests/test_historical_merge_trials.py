@@ -67,7 +67,7 @@ def test_disjoint_winner_replacements_do_not_change_driven_readout(monkeypatch,t
     results=[]
     for replacement in (np.arange(6),np.arange(54,60)):
         class Replacement:
-            def choice(self,*args,**kwargs):
+            def choice(self,*args,replacement=replacement,**kwargs):
                 return replacement.copy()
         monkeypatch.setattr(np.random,'default_rng',lambda seed=None: Replacement() if seed==offset else original(seed))
         results.append(trial(study.MergeConfig(60,6,.2,.1,20.,3,3),1))

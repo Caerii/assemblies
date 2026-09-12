@@ -302,8 +302,8 @@ def test_static_partial_merge_calls_name_the_unstimulated_source_mode():
                     continue
                 keywords = {kw.arg: kw.value for kw in node.keywords if kw.arg}
 
-                def present(field):
-                    value = keywords.get(field)
+                def present(field, mapping=keywords):
+                    value = mapping.get(field)
                     return value is not None and not (
                         isinstance(value, ast.Constant) and value.value is None
                     )
