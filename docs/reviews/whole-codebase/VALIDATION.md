@@ -5121,3 +5121,7 @@ The shared SVO and matched-ERP generators now use explicit named loops rather th
 ### Curriculum training loop deduplication (2026-09-11)
 
 The scaled-feature and surprise-gain studies now share `curriculum_training.train_curriculum`. Each retains its own `STAGES` tuple and passes it explicitly; the helper owns only trainer construction and ordered stage execution. A fake-trainer schedule probe confirms order and parser identity, and both study modules compile with Ruff and diff checks clean.
+
+### Stable-ID readout annotation (2026-09-11)
+
+`diagnostics.read_assembly` now returns the `NeuronIds` type at the public boundary, and `assembly_overlap` requires `NeuronIds` operands. The runtime values are unchanged, but static callers can no longer treat the sanctioned stable-ID readout as an untyped array. Index-space and ratchet checks pass: **9 passed**; Ruff and diff checks are clean.

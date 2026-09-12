@@ -96,7 +96,7 @@ class Verdict:
 # The one sanctioned readout
 # --------------------------------------------------------------------------
 
-def read_assembly(brain, area: str) -> np.ndarray:
+def read_assembly(brain, area: str) -> NeuronIds:
     """Current assembly in *area* as STABLE NEURON IDS.
 
     Always use this rather than ``brain.areas[area].winners``, which is a
@@ -105,10 +105,10 @@ def read_assembly(brain, area: str) -> np.ndarray:
     like a negative result. See failure shape 3 in the module docstring.
     """
     from neural_assemblies.assembly_calculus.ops import _snap
-    return np.asarray(_snap(brain, area).winners, dtype=np.int64)
+    return NeuronIds(np.asarray(_snap(brain, area).winners, dtype=np.int64))
 
 
-def assembly_overlap(a, b) -> float:
+def assembly_overlap(a: NeuronIds, b: NeuronIds) -> float:
     """Overlap between two assemblies of NEURON IDS. Order-insensitive.
 
     Both operands are asserted into the neuron-ID space, which is what makes
