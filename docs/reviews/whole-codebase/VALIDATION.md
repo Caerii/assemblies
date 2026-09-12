@@ -6738,3 +6738,8 @@ Moved the canonical lazy `torch_ops` protocol to `neural_assemblies.core._torch_
 ## ERP calibration failed-bar visibility (2026-09-12)
 
 The ERP separation test now treats an observed raw P600 AUC at or below chance as an explicit expected failure, preserving the failed scientific bar instead of asserting an unsupported clipped-median ordering. The test reports **1 xfailed** for the current inverted backend measurement.
+
+
+## ERP calibration mode invariance (2026-09-12)
+
+Removed an unrelated above-chance assertion from the fast/full mode invariance test; mode equivalence is now checked independently of the known separation bar. The complete ERP calibration module passes **14 tests, 1 expected failure**.
