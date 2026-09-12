@@ -70,7 +70,7 @@ class FinalFixedHyperdimensionalAssembly:
         # Create hypervector by mapping each unique element
         hypervector = np.zeros(self.dimension)
         
-        for element, count in zip(unique_elements, counts):
+        for element, count in zip(unique_elements, counts, strict=True):
             # Map each unique element to hypervector position
             if 0 <= element < self.dimension:
                 # Use the count as the strength (multi-hot encoding)
@@ -98,7 +98,7 @@ class FinalFixedHyperdimensionalAssembly:
         # Reconstruct assembly by repeating elements based on their strength
         reconstructed = []
         
-        for idx, strength in zip(non_zero_indices, non_zero_values):
+        for idx, strength in zip(non_zero_indices, non_zero_values, strict=True):
             # Round strength to nearest integer (count)
             count = int(round(strength * np.linalg.norm(hypervector)))
             if count > 0:
@@ -206,7 +206,7 @@ class FinalFixedHyperdimensionalAssembly:
         """
         Compute derivative using assembly operations.
         
-        Uses finite difference: f'(x) ≈ [f(x+h) - f(x-h)] / (2h)
+        Uses finite difference: f'(x) â‰ˆ [f(x+h) - f(x-h)] / (2h)
         """
         if not self._validate_calculus_domain(function_assemblies, x_assemblies, 3):
             return []
@@ -232,7 +232,7 @@ class FinalFixedHyperdimensionalAssembly:
         """
         Compute integral using assembly operations.
         
-        Uses trapezoidal rule: ∫f(x)dx ≈ Σ[f(x_i) + f(x_{i+1})] * h/2
+        Uses trapezoidal rule: âˆ«f(x)dx â‰ˆ Î£[f(x_i) + f(x_{i+1})] * h/2
         """
         if not self._validate_calculus_domain(function_assemblies, x_assemblies, 2):
             return []
@@ -269,7 +269,7 @@ class FinalFixedHyperdimensionalAssembly:
         x_assemblies = []
         f_assemblies = []
         
-        for x, f_x in zip(x_values, f_values):
+        for x, f_x in zip(x_values, f_values, strict=True):
             # Create assemblies representing the values
             x_assembly = np.array([int(x * 100) % self.dimension])
             f_assembly = np.array([int(f_x * 100) % self.dimension])
@@ -307,7 +307,7 @@ class FinalFixedHyperdimensionalAssembly:
         
         # Check accuracy
         total_error = 0
-        for orig, recon in zip(sequence, decoded_sequence):
+        for orig, recon in zip(sequence, decoded_sequence, strict=True):
             error = len(set(orig) - set(recon)) + len(set(recon) - set(orig))
             total_error += error
         
