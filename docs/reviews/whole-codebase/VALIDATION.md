@@ -6215,3 +6215,7 @@ The legacy language grammar, readout, and debugger modules no longer use wildcar
 ### Language parser symbol admission gate (2026-09-12)
 
 The explicit language vocabulary exposed one latent production defect: `EnglishParserBrain.getWord` referenced an undefined `DET_SIZE`, so its null-determiner fallback could fail only at runtime. `DET_SIZE` is now a named language-area constant and is imported explicitly. Language F403/F405/F821 checks are clean and parser tests pass **9 tests**.
+
+### Language fa?ade import minimization (2026-09-12)
+
+The parser now imports only the language-area symbols it actually uses; the full language package has no F401/F403/F405/F821 findings. Parser tests pass **9 tests** after the import minimization.
