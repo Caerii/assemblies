@@ -63,9 +63,11 @@ k and the target afferent count so this cannot happen silently.
 from __future__ import annotations
 
 import argparse
-import json
 import random
 from typing import Dict, List, Tuple
+from pathlib import Path
+
+from research.json_documents import write_new_document
 
 import numpy as np
 
@@ -214,7 +216,7 @@ def run(n: int, k: int, p: float, beta: float, seeds: List[int],
           f"chance {a3[0]['chance']:.4f})    paper {lo:.2f}-{hi:.2f}")
 
     a4 = claim_a4(n, k, p, beta, seeds[0], norm_init, [1, 2, 5, 10, 20], 0.40, 10)
-    print(f"A4 complete from 40% cue    (paper: rises toward ~1.0 with reinforcement)")
+    print("A4 complete from 40% cue    (paper: rises toward ~1.0 with reinforcement)")
     for t, ov in a4:
         print(f"      reinforcement {t:>3}  ->  overlap {ov:.4f}")
 

@@ -12,7 +12,6 @@ is an independent target for the engine to be measured against (cf. task #54).
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from research.json_documents import write_new_document

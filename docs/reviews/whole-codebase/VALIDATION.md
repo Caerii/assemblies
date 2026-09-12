@@ -6191,3 +6191,7 @@ The ten parity golden recorders now use `research.json_documents.write_new_docum
 ### PNAS claims recorder boundary (2026-09-12)
 
 The parameterized PNAS claims recorder now writes its optional JSON output through the create-only evidence boundary, so `--json` cannot overwrite a prior measurement. The module compiles and shares the same strict finite-number/canonical encoding path as the other golden recorders.
+
+### Parity recorder lint gate (2026-09-12)
+
+The parity recorder package now passes Ruff F checks with no unused imports, unresolved names, or dead f-strings. The PNAS claims recorder compiles after its create-only writer migration.

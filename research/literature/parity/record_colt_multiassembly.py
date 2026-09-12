@@ -24,7 +24,6 @@ WHAT THIS GOLDEN ASSERTS AND WHAT IT MERELY PINS -- the distinction is the point
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from research.json_documents import write_new_document
