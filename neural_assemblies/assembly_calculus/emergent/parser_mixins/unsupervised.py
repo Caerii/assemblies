@@ -26,7 +26,10 @@ weights, and a snapshot taken during training would be contaminated by
 whichever filler was most recently trained.
 """
 
-from typing import Dict, List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING, cast
+
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
 
 from neural_assemblies.assembly_calculus.ops import project
 
@@ -43,8 +46,10 @@ from ..training.linker import link_role_topology
 
 if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex
-    from ..curriculum.data import GroundedSentence
-
+    from ..core.grounding import GroundingContext
+    from ..parser import EmergentParser
+    from ..training.compiled import CompiledTopologyParser
+from ..curriculum.data import GroundedSentence
 from ..core.areas import ROLE_GOAL
 
 _ROLE_TRAINING_AREAS = (ROLE_AGENT, ROLE_PATIENT, ROLE_GOAL)
@@ -52,6 +57,16 @@ _ROLE_TRAINING_AREAS = (ROLE_AGENT, ROLE_PATIENT, ROLE_GOAL)
 
 class UnsupervisedMixin:
     """Unsupervised thematic role learning from raw exposure."""
+
+    brain: Brain
+    k: int
+    rounds: int
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, "GroundingContext"]
+    role_lexicons: Dict[str, Dict[str, Assembly]]
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
 
     def _clear_role_activity(self, role_area: str) -> None:
         """Clear role winners without wiping learned connectomes.
@@ -174,17 +189,18 @@ class UnsupervisedMixin:
                 self.role_lexicons[role_area] = {}
 
         if corpus_index is None:
-            corpus_index = compile_corpus(self, sentences)
+            corpus_index = compile_corpus(cast("EmergentParser", self), sentences)
 
         compiled_enabled = getattr(self, "_compiled_training_enabled", True)
-        batch = BatchProjector(self)
+        parser = cast("EmergentParser", self)
+        batch = BatchProjector(parser)
 
         if compiled_enabled:
             link_role_topology(
-                self, corpus_index, force=force_link,
+                parser, corpus_index, force=force_link,
             )
-            plan = compile_role_plan(self, corpus_index, repetitions)
-            with compiled_topology(self, plan.topology):
+            plan = compile_role_plan(parser, corpus_index, repetitions)
+            with compiled_topology(cast("CompiledTopologyParser", self), plan.topology):
                 for op in plan.role_ops:
                     batch.apply_role_update(
                         op.word, op.role_area, rounds=op.rounds,
@@ -287,8 +303,8 @@ class UnsupervisedMixin:
         if not missing:
             return
 
-        role_spec = role_topology_spec(self)
-        batch = BatchProjector(self)
+        role_spec = role_topology_spec(cast("CompiledTopologyParser", self))
+        batch = BatchProjector(cast("EmergentParser", self))
         compiled_enabled = getattr(self, "_compiled_training_enabled", True)
 
         def _extract_one(word: str, role_area: str) -> None:
@@ -297,7 +313,7 @@ class UnsupervisedMixin:
             )
 
         if compiled_enabled and role_spec.ready:
-            with compiled_topology(self, role_spec):
+            with compiled_topology(cast("CompiledTopologyParser", self), role_spec):
                 for word, role_area in missing:
                     _extract_one(word, role_area)
         else:

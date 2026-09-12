@@ -6509,3 +6509,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Lexicon training capability gate (2026-09-12)
 
 `LexiconTrainingMixin` now declares its Brain, stimulus, grounding, assembly-store, cache, and phonological registration surfaces. Compiler and topology calls are explicitly witnessed as full-parser capabilities, while the optional word subset is narrowed at the sequence boundary. Pyright reports **0 diagnostics**; parser composition tests pass **13 tests**, with the intentional sampled-recurrence warnings preserved.
+
+### Unsupervised role training capability gate (2026-09-12)
+
+`UnsupervisedMixin` now declares its neural state and role assembly stores, and all corpus/compiler/topology boundaries explicitly witness the composed parser capabilities they require. This keeps structural role inference and compiled training on one typed path without changing the unsupervised protocol. Pyright reports **0 diagnostics**; passive voice and role binding margin tests pass **15 tests**, with the expected sampled-recurrence warning preserved.
