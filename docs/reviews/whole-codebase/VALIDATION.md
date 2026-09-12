@@ -5764,3 +5764,9 @@ protocol. Sequence tests pass: **19 passed**; Ruff and diff checks pass.
 The torch sparse backend now rejects `storage="dense"` rather than silently
 using CSR. The operational throughput benchmark selects the representation
 implemented by the requested backend, and a contract test covers the mapping.
+
+### Throughput provenance names concrete storage (2026-09-12)
+
+Operational benchmark output now records the concrete materialization
+representation (`dense` or `csr`) alongside the materialized/sampled label, so
+performance numbers identify the storage protocol they actually ran.

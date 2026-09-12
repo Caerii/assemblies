@@ -24,6 +24,7 @@ def test_throughput_reports_per_seed_quantiles():
     assert result["status"] == "diagnostic"
     assert "git_commit" in result["runtime"]
     assert result["storage"] == "materialized"
+    assert result["materialization_storage"] == "dense"
     assert result["warmup"] is True
     assert result["model_semantics"]["connectome"] == "fixed-hash-regenerated"
     assert len(cell["per_seed"]) == 3
