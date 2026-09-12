@@ -8,7 +8,10 @@ to override NumpySparseEngine.project_into hot paths.
 Requires: cupy
 """
 
-import cupy as cp
+import importlib
+from typing import Any
+
+cp: Any = importlib.import_module("cupy")
 
 # ---------------------------------------------------------------------------
 # K1: Scatter penalty — vectorized LRI application
