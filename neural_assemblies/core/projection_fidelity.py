@@ -26,7 +26,7 @@ class ProjectionFidelity(str, Enum):
     COMPILED = "compiled"
 
     @classmethod
-    def normalize(cls, value: str | "ProjectionFidelity") -> "ProjectionFidelity":
+    def normalize(cls, value: str | ProjectionFidelity) -> ProjectionFidelity:
         if isinstance(value, cls):
             return value
         key = str(value).strip().lower()

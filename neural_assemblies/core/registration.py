@@ -12,22 +12,24 @@ def validate_area_registration(name, n, k, *, existing=(), reserved=()) -> tuple
     _validate_name(name, "area", existing, reserved)
     if any(isinstance(value, bool) or not isinstance(value, Integral) for value in (n, k)):
         raise ValueError("area n and k must be nonboolean integers")
-    if not 0 < k <= n <= 2**32:
+    n_value, k_value = int(n), int(k)
+    if not 0 < k_value <= n_value <= 2**32:
         raise ValueError("area dimensions require 0 < k <= n <= 2**32")
-    return int(n), int(k)
+    return n_value, k_value
 
 
 def validate_slot_configuration(n, slot_count, winner_policy=None) -> int:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-slot-options"""
+    n_value, slot_value = int(n), int(slot_count)
     if (isinstance(slot_count, bool) or not isinstance(slot_count, Integral)
-            or not 0 <= slot_count <= n):
+            or not 0 <= slot_value <= n_value):
         raise ValueError("slot_count must be an integer between zero and the population size")
-    if slot_count > 1:
-        if n % slot_count:
+    if slot_value > 1:
+        if int(n) % slot_value:
             raise ValueError("slots must partition the whole population evenly")
         if winner_policy is not None:
             raise NotImplementedError("custom winner policies combined with multiple slots are unsupported")
-    return int(slot_count)
+    return slot_value
 
 
 def _validate_name(name, kind, existing, reserved):
@@ -40,7 +42,7 @@ def _validate_name(name, kind, existing, reserved):
 def validate_stimulus_registration(name, size, *, existing=(), reserved=()) -> int:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-stimulus-registration"""
     _validate_name(name, "stimulus", existing, reserved)
-    if isinstance(size, bool) or not isinstance(size, Integral) or not 0 <= size <= 2**32:
+    if isinstance(size, bool) or not isinstance(size, Integral) or not 0 <= int(size) <= 2**32:
         raise ValueError("stimulus size must be a nonboolean integer in [0, 2**32]")
     return int(size)
 

@@ -24,7 +24,7 @@ Usage::
 from abc import ABC, abstractmethod
 from contextlib import contextmanager
 from dataclasses import dataclass
-from typing import Dict, List, Optional
+from typing import Any, Dict, List, Optional
 
 import numpy as np
 
@@ -78,6 +78,9 @@ class ProjectionResult:
 
 
 class ComputeEngine(ABC):
+    # Concrete engines populate this registry during setup.  Declaring the
+    # shared state at the interface boundary keeps optional hooks type-safe.
+    _areas: Dict[str, Any]
     """Abstract base for all compute backends.
 
     The engine owns ALL compute state: connectome weights, activation
@@ -417,7 +420,7 @@ class ComputeEngine(ABC):
         """
         del area  # Engines without refraction have no bias state to clear.
 
-    def normalize_weights(self, target: str, source: str = None) -> None:
+    def normalize_weights(self, target: str, source: Optional[str] = None) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-weight-normalization
 
         Column-normalize weights into *target* so each neuron sums to 1.0.
@@ -483,6 +486,7 @@ class ComputeEngine(ABC):
             result = self.project_into(
                 target, from_stimuli, from_areas, plasticity_enabled,
                 record_activation=record_activation)
+        assert result is not None
         return result
 
     # -- Projection fidelity (exact vs compiled topology) -----------------
