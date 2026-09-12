@@ -1,4 +1,3 @@
-# pyright: reportAttributeAccessIssue=false
 """Batched-forward mini-batch training for assembly-calculus sequence models.
 
 Turns the batched forward pass (Lever B, docs/gpu_scale_design.md) into a
@@ -26,6 +25,8 @@ Requires PyTorch + CUDA.
 
 from typing import Dict, List, Sequence
 
+from ..core.torch_engine._torch_ops import torch_ops
+
 
 class BatchedSeqTrainer:
     """GPU batched-forward mini-batch trainer for next-token sequence learning."""
@@ -39,22 +40,21 @@ class BatchedSeqTrainer:
             raise ValueError("vocab must contain at least one token")
         if not 0.0 <= p <= 1.0:
             raise ValueError("p must lie in [0, 1]")
-        import torch
-        self._torch = torch
+        self._torch = torch_ops
         self.device = device
         self.n, self.k = int(n), int(k)
         self.vocab = list(vocab)
         self.V = len(self.vocab)
         self.word_id: Dict[str, int] = {w: i for i, w in enumerate(self.vocab)}
         self.beta, self.stim = float(beta), float(stim)
-        g = torch.Generator(device=device).manual_seed(seed)
+        g = torch_ops.Generator(device=device).manual_seed(seed)
         # fixed per-word assembly, [V, n] indicator (a random k-subset each)
-        self.A = torch.zeros(self.V, self.n, device=device)
+        self.A = torch_ops.zeros(self.V, self.n, device=device)
         for w in range(self.V):
-            idx = torch.randperm(self.n, generator=g, device=device)[:self.k]
+            idx = torch_ops.randperm(self.n, generator=g, device=device)[:self.k]
             self.A[w, idx] = 1.0
         # bridge connectome, random G(n,p) init
-        self.W = (torch.rand(self.n, self.n, generator=g,
+        self.W = (torch_ops.rand(self.n, self.n, generator=g,
                              device=device) < p).float()
 
     # -- core batched dynamics ---------------------------------------------
@@ -68,9 +68,8 @@ class BatchedSeqTrainer:
         return self._torch.where(mx > 0, r / mx, r)
 
     def _topk_onehot(self, drive):
-        torch = self._torch
-        idx = torch.topk(drive, self.k, dim=-1).indices
-        out = torch.zeros_like(drive)
+        idx = torch_ops.topk(drive, self.k, dim=-1).indices
+        out = torch_ops.zeros_like(drive)
         out.scatter_(-1, idx, 1.0)
         return out
 
@@ -84,18 +83,17 @@ class BatchedSeqTrainer:
         potentiation pairs -- ``SRC[t]`` is the context before a token, ``TGT[t]``
         the next word's assembly. Ragged lengths handled by masking finished
         sentences."""
-        torch = self._torch
         B = len(sentences)
         ids = self._ids(sentences)
         lens = [len(s) for s in sentences]
         maxlen = max(lens)
-        first = torch.tensor([row[0] for row in ids], device=self.device)
+        first = torch_ops.tensor([row[0] for row in ids], device=self.device)
         ctx = self.A[first].clone()                      # [B, n]
         SRC, TGT = [], []
         for i in range(1, maxlen):
-            active = torch.tensor([i < lens[b] for b in range(B)],
+            active = torch_ops.tensor([i < lens[b] for b in range(B)],
                                   device=self.device)
-            wi = torch.tensor([ids[b][i] if i < lens[b] else 0
+            wi = torch_ops.tensor([ids[b][i] if i < lens[b] else 0
                                for b in range(B)], device=self.device)
             tgt = self.A[wi]                             # [B, n]
             if active.any():
@@ -103,11 +101,11 @@ class BatchedSeqTrainer:
                 TGT.append(tgt[active])
             drive = self.stim * tgt + self._rec(ctx)
             new_ctx = self._topk_onehot(drive)
-            ctx = torch.where(active.view(B, 1), new_ctx, ctx)
+            ctx = torch_ops.where(active.view(B, 1), new_ctx, ctx)
         if not SRC:
-            empty = torch.empty(0, self.n, device=self.device)
+            empty = torch_ops.empty(0, self.n, device=self.device)
             return empty, empty
-        return torch.cat(SRC), torch.cat(TGT)
+        return torch_ops.cat(SRC), torch_ops.cat(TGT)
 
     # -- training ----------------------------------------------------------
 
@@ -128,21 +126,20 @@ class BatchedSeqTrainer:
 
     def _build_contexts(self, prefixes: List[List[str]]):
         """Batched context assemblies [P, n] for P prefixes (ragged, masked)."""
-        torch = self._torch
         P = len(prefixes)
         ids = self._ids(prefixes)
         lens = [len(s) for s in prefixes]
         maxlen = max(lens)
-        first = torch.tensor([row[0] for row in ids], device=self.device)
+        first = torch_ops.tensor([row[0] for row in ids], device=self.device)
         ctx = self.A[first].clone()
         for i in range(1, maxlen):
-            active = torch.tensor([i < lens[b] for b in range(P)],
+            active = torch_ops.tensor([i < lens[b] for b in range(P)],
                                   device=self.device)
-            wi = torch.tensor([ids[b][i] if i < lens[b] else 0
+            wi = torch_ops.tensor([ids[b][i] if i < lens[b] else 0
                                for b in range(P)], device=self.device)
             drive = self.stim * self.A[wi] + self._rec(ctx)
             new_ctx = self._topk_onehot(drive)
-            ctx = torch.where(active.view(P, 1), new_ctx, ctx)
+            ctx = torch_ops.where(active.view(P, 1), new_ctx, ctx)
         return ctx
 
     def predict(self, prefixes: List[List[str]]) -> List[str]:
@@ -203,8 +200,7 @@ class SparseBatchedSeqTrainer:
 
     def __init__(self, n, k, vocab, *, m=1, beta=0.3, seed=0, device="cuda",
                  max_batch_rows=64):
-        import torch
-        self._torch = torch
+        self._torch = torch_ops
         self.device = device
         self.n, self.k, self.m = int(n), int(k), int(m)
         self.beta = float(beta)
@@ -212,37 +208,35 @@ class SparseBatchedSeqTrainer:
         self.vocab = list(vocab)
         self.V = len(self.vocab)
         self.word_id = {w: i for i, w in enumerate(self.vocab)}
-        g = torch.Generator(device=device).manual_seed(seed)
+        g = torch_ops.Generator(device=device).manual_seed(seed)
         # per-word assembly as INDICES [V, k] (no dense [V, n])
-        self.A_idx = torch.stack([
-            torch.randperm(self.n, generator=g, device=device)[:self.k]
+        self.A_idx = torch_ops.stack([
+            torch_ops.randperm(self.n, generator=g, device=device)[:self.k]
             for _ in range(self.V)])
         # flat word-assembly index table for batched readout
         self._A_flat = self.A_idx.reshape(-1)              # [V*k]
         # sparse bridge connectome, starts EMPTY (grows only real bridges)
-        self.W = torch.sparse_coo_tensor(
-            torch.empty(2, 0, dtype=torch.long, device=device),
-            torch.empty(0, device=device), (self.n, self.n)).coalesce()
+        self.W = torch_ops.sparse_coo_tensor(
+            torch_ops.empty(2, 0, dtype=torch_ops.long, device=device),
+            torch_ops.empty(0, device=device), (self.n, self.n)).coalesce()
 
     # -- bounded m-gram state ----------------------------------------------
 
     def _state_idx(self, word_ids):
         """Indices of the bounded state = union of the last m words' assemblies."""
-        torch = self._torch
         recent = word_ids[-self.m:]
-        return torch.unique(self.A_idx[torch.tensor(recent, device=self.device)])
+        return torch_ops.unique(self.A_idx[torch_ops.tensor(recent, device=self.device)])
 
     # -- sparse forward / recall -------------------------------------------
 
     def _recall_scores(self, states):
         """[P, V] readout scores for P bounded states (as index tensors)."""
-        torch = self._torch
         P = len(states)
-        act = torch.zeros(P, self.n, device=self.device)
+        act = torch_ops.zeros(P, self.n, device=self.device)
         for i, s in enumerate(states):
             act[i, s] = 1.0
         Wt = self.W.t().to_sparse_csr()
-        drive = torch.sparse.mm(Wt, act.t()).t()          # [P, n] successor drive
+        drive = torch_ops.sparse.mm(Wt, act.t()).t()          # [P, n] successor drive
         # readout: gather drive at each word's assembly, sum over its k neurons
         cols = drive[:, self._A_flat].view(P, self.V, self.k)
         return cols.sum(dim=2)                             # [P, V]
@@ -252,7 +246,6 @@ class SparseBatchedSeqTrainer:
     def _batch_edges(self, sentences):
         """(row, col) bridge edges every transition in the batch would grow:
         state(<=m*k) x next-word-assembly(k), for each position."""
-        torch = self._torch
         rows, cols = [], []
         for sent in sentences:
             ids = [self.word_id[w] for w in sent]
@@ -263,21 +256,20 @@ class SparseBatchedSeqTrainer:
                 cols.append(t.repeat(s.numel()))
         if not rows:
             return None
-        return torch.cat(rows), torch.cat(cols)
+        return torch_ops.cat(rows), torch_ops.cat(cols)
 
     def train(self, corpus, *, batch_size=16, epochs=1):
         """Mini-batch: freeze W across each batch, accumulate the bridge edges,
         add them once (grows/strengthens the sparse connectome)."""
-        torch = self._torch
         for _ in range(epochs):
             for start in range(0, len(corpus), batch_size):
                 edges = self._batch_edges(corpus[start:start + batch_size])
                 if edges is None:
                     continue
                 r, c = edges
-                add = torch.sparse_coo_tensor(
-                    torch.stack([r, c]),
-                    torch.full((r.numel(),), self.beta, device=self.device),
+                add = torch_ops.sparse_coo_tensor(
+                    torch_ops.stack([r, c]),
+                    torch_ops.full((r.numel(),), self.beta, device=self.device),
                     (self.n, self.n))
                 # coalesce sums duplicate edges -> W[i,j] += beta * count
                 self.W = (self.W + add).coalesce()
