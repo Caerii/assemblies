@@ -7584,3 +7584,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Reused `simulation._util.overlap` in `association_simulator` while preserving its intersection-count semantics.
 - Removed the stale fallback `brain` import and fixed unbound loop indices in verbose/final stabilization loops.
 - Validation: Pyright reported 0 errors; simulation utility/default tests passed (11 tests); small real association smoke run completed; `git diff --check` passed.
+
+
+## 2026-09-12 simulation overlap operation split
+
+- Split the overloaded simulation overlap helper into named `intersection_count` and `reference_fraction` operations, retaining `overlap` as a compatibility wrapper.
+- Updated `get_overlaps` to call the named operations directly, preserving count and second-collection denominator semantics.
+- Validation: simulation utility tests passed (11 tests); Pyright reported 0 errors; `git diff --check` passed.

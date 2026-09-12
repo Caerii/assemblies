@@ -22,11 +22,23 @@ def sim_load(file_name):
         return pickle.load(f)
 
 
+def intersection_count(a, b) -> int:
+    """Number of distinct shared items in two winner collections."""
+    return len(set(a) & set(b))
+
+
+def reference_fraction(a, b) -> float:
+    """Shared-item fraction relative to the second (reference) collection."""
+    if not len(b):
+        raise ValueError("reference fraction requires a non-empty reference collection")
+    return float(intersection_count(a, b)) / float(len(b))
+
+
 def overlap(a, b, percentage: bool = False):
-    """Item overlap of two winner lists viewed as sets; a fraction of ``b``
-    when ``percentage`` is set."""
-    o = len(set(a) & set(b))
-    return (float(o) / float(len(b))) if percentage else o
+    """Legacy wrapper for ``intersection_count`` or ``reference_fraction``."""
+    if type(percentage) is not bool:
+        raise ValueError("percentage must be boolean")
+    return reference_fraction(a, b) if percentage else intersection_count(a, b)
 
 
 def get_overlaps(winners_list: Sequence, base: int, percentage: bool = False):
@@ -46,6 +58,8 @@ def get_overlaps(winners_list: Sequence, base: int, percentage: bool = False):
         raise ValueError("percentage overlap requires a non-empty base winner set")
     out = []
     for w in winners_list:
-        o = overlap(w, base_winners)
-        out.append(float(o) / float(k) if percentage else o)
+        out.append(
+            reference_fraction(w, base_winners)
+            if percentage else intersection_count(w, base_winners)
+        )
     return out

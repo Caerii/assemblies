@@ -2,7 +2,18 @@
 
 import pytest
 
-from neural_assemblies.simulation._util import get_overlaps
+from neural_assemblies.simulation._util import (
+    get_overlaps,
+    intersection_count,
+    overlap,
+    reference_fraction,
+)
+
+
+def test_named_simulation_overlap_operations_preserve_legacy_wrapper():
+    a, b = [1, 2, 2], [2, 3]
+    assert intersection_count(a, b) == overlap(a, b) == 1
+    assert reference_fraction(a, b) == overlap(a, b, percentage=True) == 0.5
 
 
 def test_percentage_overlap_rejects_empty_base():
