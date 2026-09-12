@@ -7070,3 +7070,7 @@ Validation: 3,829 passed, 141 skipped, 8 xfailed, 10 subtests passed in 597.89s 
 ## Eight-worker benchmark (2026-09-12)
 
 A bounded eight-worker run also completed cleanly: 3,829 passed, 141 skipped, 8 xfailed, and 10 subtests passed in 476.43s (7:56), improving the four-worker run by 20.2%. The default maintained gate is therefore capped at eight; callers can lower it with --workers or ASSEMBLIES_TEST_WORKERS.
+
+## Public backend composition boundary (2026-09-12)
+
+Brain.engine now exposes the active ComputeEngine without requiring callers to depend on the private _engine storage slot. The batched next-token, context-choice, and morphosyntax paths use the public boundary; engine ownership and behavior are unchanged. Validation: backend suite 14 passed; Pyright on Brain and the three migrated callers reports 0 diagnostics.
