@@ -5650,3 +5650,12 @@ recruitment, alongside `active_count`; the compatibility method remains for
 existing callers. The property is verified across training, winner clearing,
 direct winner replacement, pickle round-trips, and old-checkpoint fallback:
 **10 passed**. Ruff and diff checks pass.
+
+### Runtime index-space brands (2026-09-12)
+
+`CompactIdx` and `NeuronIds` are now lightweight branded ndarray subclasses,
+so their semantic identity survives at runtime without abandoning NumPy array
+operations or device-compatible validation. `overlap` rejects mixed branded
+spaces before calculating a meaningless score, while unbranded arrays retain
+the compatibility path. Static Pyright checks plus runtime true-negative and
+assembly-calculus tests pass: **96 passed**. Ruff and diff checks pass.

@@ -6,12 +6,10 @@ defect is MIXING the two spaces, which needs dataflow analysis to detect
 properly."* A type checker IS that dataflow analysis. The ratchet contains the
 legacy sites; these types stop new ones being written.
 
-WHY THIS TEST SHELLS OUT TO PYRIGHT. A `NewType` is erased at runtime --
-`NeuronIds(x) is x` -- so nothing here can be checked by importing and calling.
-The guarantee lives entirely in the checker, which means a test that does not
-run the checker would assert nothing at all. That is the exact failure this
-repo keeps hitting (a guard whose true-negative case was never constructed has
-unmeasured power), so the test constructs both cases explicitly:
+WHY THIS TEST ALSO RUNS THE API. The branded arrays retain their index-space
+identity at runtime, so the public overlap boundary can reject mixed values
+before computing a meaningless number. Pyright checks the static contract as
+well, and the runtime test constructs both cases explicitly:
 
   * three calls that MUST error (one of each space, and Assembly vs raw array)
   * three calls that MUST NOT error (same space on both sides)
@@ -22,12 +20,17 @@ silent pass here would be indistinguishable from a working guard.
 from __future__ import annotations
 
 import json
+
+import numpy as np
 import os
 import shutil
 import subprocess
 import tempfile
 
 import pytest
+
+from neural_assemblies.assembly_calculus.assembly import overlap
+from neural_assemblies.core.index_spaces import CompactIdx, NeuronIds
 
 REPO = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
@@ -51,6 +54,15 @@ overlap(asm, asm)           # line 14 must be clean
 
 MUST_ERROR = {9, 10, 11}
 MUST_BE_CLEAN = {12, 13, 14}
+
+
+def test_mixing_index_spaces_is_rejected_at_runtime():
+    compact = CompactIdx(np.array([1, 2, 3], dtype=np.uint32))
+    neurons = NeuronIds(np.array([77, 88, 99], dtype=np.uint32))
+    with pytest.raises(TypeError, match="same index space"):
+        overlap(compact, neurons)
+    assert overlap(compact, compact) == 1.0
+    assert overlap(neurons, neurons) == 1.0
 
 
 def _pyright_error_lines(source: str) -> set:

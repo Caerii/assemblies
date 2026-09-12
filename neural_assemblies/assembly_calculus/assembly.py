@@ -162,6 +162,14 @@ def overlap(a, b) -> float:
     """
     assembly_a = isinstance(a, Assembly)
     assembly_b = isinstance(b, Assembly)
+    if not assembly_a and not assembly_b and type(a) is not type(b):
+        from ..core.index_spaces import CompactIdx, NeuronIds
+        branded = (CompactIdx, NeuronIds)
+        if isinstance(a, branded) or isinstance(b, branded):
+            raise TypeError(
+                "overlap requires two arrays from the same index space; "
+                "convert compact indices with to_neuron_ids() before comparing"
+            )
     if assembly_a != assembly_b:
         raise TypeError(
             "overlap requires two Assembly snapshots or two same-space arrays; "

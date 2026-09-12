@@ -16,8 +16,9 @@ DISJOINT, so a cross-space comparison is not merely noisy -- it is meaningless.
 
 WHY TYPES AND NOT MORE DOCUMENTATION. The hazard was already documented on
 `Assembly`, and a `neuron_ids` alias already existed, and the bug still
-happened. Prose cannot fail a build. These NewTypes cost nothing at runtime
-(`NeuronIds(x) is x`) and make the mistake a checker error.
+happened. Prose cannot fail a build. These branded ndarray subclasses preserve
+NumPy behavior and make the mistake both a checker error and a runtime error
+at boundaries that can observe the brand.
 
 HOW TO WRITE A FUNCTION OVER EITHER SPACE. Use `SameSpace`, not a union::
 
@@ -32,17 +33,26 @@ CONVERTING. `to_neuron_ids` is the one direction that is ever correct. There is
 deliberately no `to_compact`: compact indices are engine-internal and change
 whenever an area grows, so a stored one is a bug waiting to be dereferenced.
 """
-from typing import List, NewType, TypeVar
+from typing import List, TypeVar
 
 import numpy as np
 
-#: Engine-internal positions, ``0..w-1``. NOT stable: they are reassigned as an
-#: area materializes more neurons, so never persist one across a projection.
-CompactIdx = NewType("CompactIdx", np.ndarray)
+class _BrandedIndices(np.ndarray):
+    """Zero-copy runtime brand for one semantic index space."""
 
-#: Stable identities, ``0..n-1``. Safe to store, compare across time, and
-#: compare across areas (their ID spaces genuinely overlap).
-NeuronIds = NewType("NeuronIds", np.ndarray)
+    def __new__(cls, values):
+        return np.asarray(values).view(cls)
+
+    def __array_finalize__(self, _obj):
+        pass
+
+
+class CompactIdx(_BrandedIndices):
+    """Engine-internal compact positions; unstable across materialization."""
+
+
+class NeuronIds(_BrandedIndices):
+    """Stable neuron identities in the area population index space."""
 
 #: Binds to ONE of the two per call site. Use for functions valid within either
 #: space but never across them -- see the module docstring.
@@ -65,7 +75,10 @@ def validated_indices(values, *, upper: int | None = None, label: str = 'indices
         raise ValueError(f'{label} outside valid range [0, {limit})')
     if unique and xp.unique(arr).size != arr.size:
         raise ValueError(f'{label} must not contain duplicates')
-    return arr.astype(xp.uint32, copy=False)
+    result = arr.astype(xp.uint32, copy=False)
+    if isinstance(values, _BrandedIndices):
+        result = result.view(type(values))
+    return result
 
 
 def to_neuron_ids(
