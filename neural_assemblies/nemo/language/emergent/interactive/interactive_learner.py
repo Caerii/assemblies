@@ -275,7 +275,7 @@ class InteractiveLearner:
         elif category == "VERB":
             ctx.motor = [word]
         elif category == "ADJECTIVE":
-            ctx.property = [word]
+            ctx.properties = [word]
         
         # Present word in isolation first
         self.learner.present_word_with_grounding(word, ctx)

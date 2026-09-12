@@ -203,7 +203,7 @@ class ResponseGenerator:
         depending on use_emergent setting.
         """
         if self.use_emergent:
-            return self.emergent.generate_answer(words)
+            return self.emergent.generate(words)
         else:
             return self.qa.answer(words)
     

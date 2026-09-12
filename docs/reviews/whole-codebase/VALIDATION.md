@@ -6946,3 +6946,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Emergent parameter records now model unresolved k and optional sentence roles explicitly, with a runtime guard at max_learned. Focused Pyright: 0 errors.
 - 2026-09-12: Interactive grounding inference now writes to the actual `GroundingContext.properties` field (fixing a silent attribute mismatch) and explicitly types inferred optional roles. Focused Pyright: 0 errors.
 - 2026-09-12: Added regression coverage for adjective/adverb grounding inference (1 passed). Interactive package exports are lazy so importing GroundingInference remains CPU-safe without CuPy.
+- 2026-09-12: Interactive learner/response contracts now accept optional roles, write `GroundingContext.properties`, and call the actual emergent generator `generate` method. Focused Pyright: 0 errors.

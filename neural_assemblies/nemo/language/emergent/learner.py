@@ -208,7 +208,7 @@ class EmergentLanguageLearner:
     # =========================================================================
     
     def present_grounded_sentence(self, words: List[str], contexts: List[GroundingContext],
-                                   roles: Sequence[str] | None = None, mood: str = 'declarative',
+                                   roles: Sequence[str | None] | None = None, mood: str = 'declarative',
                                    learn: bool = True):
         """
         Present a sentence with grounding for each word.
