@@ -263,3 +263,11 @@ def main():
 if __name__ == '__main__':
     main()
 
+
+
+def test_grounded_word_rejects_unsupported_example_count():
+    import pytest
+    from neural_assemblies.lexicon.curriculum.grounded_training import GroundedCorpus
+    corpus = GroundedCorpus()
+    with pytest.raises(ValueError, match="fixed at 10"):
+        corpus.add_grounded_word("dog", ["DOG"], n_examples=3)

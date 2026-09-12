@@ -117,7 +117,7 @@ class GroundedCorpus:
         # Simple POS tagging rules (can be expanded)
         self.pos_rules = {
             'the': 'DET', 'a': 'DET', 'an': 'DET',
-            'my': 'DET', 'your': 'DET', 'his': 'DET', 'her': 'DET',
+            'my': 'DET', 'your': 'DET', 'his': 'DET',
             'this': 'DET', 'that': 'DET',
             'is': 'AUX', 'are': 'AUX', 'was': 'AUX', 'were': 'AUX',
             'am': 'AUX', 'be': 'AUX', 'been': 'AUX', 'being': 'AUX',
@@ -312,6 +312,11 @@ class GroundedCorpus:
         Add grounded examples for learning a single word.
         Creates ~10 varied examples as per learning protocol.
         """
+        if isinstance(n_examples, bool) or not isinstance(n_examples, int) or n_examples != 10:
+            raise ValueError(
+                "n_examples is fixed at 10 for the grounded curriculum; "
+                "vary the template set in a separate protocol"
+            )
         examples = []
         
         # Naming examples (3x)

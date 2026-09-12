@@ -5991,3 +5991,10 @@ brain. The public language parsing suite passes **8 tests**.
 `gap.confounded()` evaluates the same threshold that created the diagnostic.
 Callers can still override it explicitly. The ensemble diagnostic suite passes
 **27 tests**.
+
+### Grounded curriculum parameter contract (2026-09-12)
+
+`add_grounded_word` now rejects example counts other than the fixed ten-example
+protocol instead of accepting a parameter that cannot change the generated
+curriculum. The duplicate `her` lexicon key was removed so the intended pronoun
+classification is unambiguous. Lexicon curriculum tests pass **7 tests**.
