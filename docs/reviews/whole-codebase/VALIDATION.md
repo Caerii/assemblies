@@ -4936,3 +4936,7 @@ Added InputDrivePlan and INPUT_DRIVE_CONTRACT for the ERP/area-comparison diagno
 Added BindingStrengthPlan and BINDING_STRENGTH_CONTRACT for the overlap readout that scores active-source recovery against a stored target Assembly. The implementation keeps bind_strength compatibility and adds the descriptive binding_strength alias, both resolving to the same contract-decorated function. Source links, registry/export ratchets, and focused tests pass (175); Ruff is clean.
 
 Exported both bind_strength (compatibility) and binding_strength (descriptive canonical spelling) from the binding module and package __all__. Lazy-import and binding-strength tests pass (13); Ruff and evidence checks are clean.
+
+## Context accumulation contract (2026-09-11)
+
+Added ContextAccumulationPlan and CONTEXT_ACCUMULATION_CONTRACT for the word-to-context bridge. Ordered steps, optional core snapshots, topology, and round budget are validated before accumulation; malformed or empty schedules cannot partially mutate the brain. Source docstring, semantic card, public exports, registry, and decorator/source-link ratchets are aligned. Focused tests pass (182), Ruff is clean.

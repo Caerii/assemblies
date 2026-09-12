@@ -643,6 +643,45 @@ class ConsolidationProtocolPlan:
         object.__setattr__(self, "passes", int(self.passes))
 
 
+@dataclass(frozen=True)
+class ContextAccumulationPlan:
+    """Immutable ordered word-to-context accumulation schedule."""
+
+    word_steps: tuple[tuple[str, str], ...]
+    context_area: str
+    core_assemblies: tuple[Assembly | None, ...] | None = None
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.word_steps, tuple) or not self.word_steps:
+            raise ValueError("context accumulation requires a nonempty word schedule")
+        if any(not isinstance(step, tuple) or len(step) != 2
+               or any(not isinstance(name, str) or not name for name in step)
+               for step in self.word_steps):
+            raise ValueError("context accumulation steps must be (phon, core_area) tuples")
+        _require_name("context_area", self.context_area)
+        if self.core_assemblies is not None:
+            if not isinstance(self.core_assemblies, tuple) or len(self.core_assemblies) != len(self.word_steps):
+                raise ValueError("core_assemblies must match word_steps length")
+            if any(assembly is not None and not isinstance(assembly, Assembly)
+                   for assembly in self.core_assemblies):
+                raise TypeError("core_assemblies entries must be Assembly or None")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        if self.context_area not in brain.areas:
+            raise KeyError(f"context accumulation area is unknown: {self.context_area!r}")
+        for phon, core_area in self.word_steps:
+            if core_area not in brain.areas:
+                raise KeyError(f"context accumulation core area is unknown: {core_area!r}")
+            if self.core_assemblies is None and phon not in brain.stimuli:
+                raise KeyError(f"context accumulation stimulus is unknown: {phon!r}")
+        if self.core_assemblies is not None:
+            for (_, core_area), assembly in zip(self.word_steps, self.core_assemblies):
+                if assembly is not None and assembly.area != core_area:
+                    raise ValueError("context accumulation core assembly belongs to another area")
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 
@@ -1353,6 +1392,27 @@ CONSOLIDATION_PROTOCOL_CONTRACT = OperationContract(
 )
 
 
+CONTEXT_ACCUMULATION_CONTRACT = OperationContract(
+    operation_id="context-accumulation-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-accumulation",
+    plan_type=ContextAccumulationPlan,
+    inputs=("brain", "ordered word steps", "context_area", "core_assemblies", "rounds"),
+    reads=("phonological stimuli or core snapshots", "core and context winners", "context recurrence"),
+    mutates=("core/context winners", "core-to-context weights", "engine history"),
+    regime=("nonempty ordered schedule", "one context area", "fixed round budget"),
+    observed_outcome=("final context Assembly snapshot",),
+    failure_conditions=("empty/malformed schedule", "unknown topology", "stimulus or snapshot mismatch", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_matches_manual_steps",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_rejects_empty_schedule",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -1371,6 +1431,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "binding_recall": BINDING_RECALL_CONTRACT,
     "consolidate_pair": CONSOLIDATION_CONTRACT,
     "consolidate": CONSOLIDATION_PROTOCOL_CONTRACT,
+    "accumulate_context": CONTEXT_ACCUMULATION_CONTRACT,
     "learn_assembly": CONVERGENCE_CONTRACT,
     "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
 })

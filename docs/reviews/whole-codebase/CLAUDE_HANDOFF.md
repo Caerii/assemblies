@@ -2677,3 +2677,5 @@ The binding surface now distinguishes write and read protocols in the IR-facing 
 Input-drive measurement is now a named contract rather than an incidental helper. INPUT_DRIVE_CONTRACT fixes the topology, metric definition, shared projection, and read-only scope, making the quantity used by ERP calibration inspectable and composable with the other operation protocols.
 
 Binding strength is now a named observation protocol in the contract graph. The compatibility name bind_strength and the descriptive binding_strength alias share one implementation and one stable-neuron-ID readout contract, so callers can compose it without confusing score, drive, and binding-write semantics.
+
+The temporal context bridge now has a first-class contract: CONTEXT_ACCUMULATION_CONTRACT describes ordered word-step inputs, phonological versus lexicon-grounded sources, recurrence rounds, mutation, and final context snapshot. This makes context construction composable with the other Assembly Calculus schedules and catches malformed topology before the first step.

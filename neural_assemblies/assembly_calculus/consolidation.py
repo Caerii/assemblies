@@ -42,7 +42,13 @@ from typing import List, Sequence, Set, Tuple, Union
 
 from .assembly import Assembly
 from .ops import _fix, _snap, _unfix, activate_assembly, merge, project
-from .contracts import CONSOLIDATION_PROTOCOL_CONTRACT, ConsolidationProtocolPlan, implements
+from .contracts import (
+    CONTEXT_ACCUMULATION_CONTRACT,
+    CONSOLIDATION_PROTOCOL_CONTRACT,
+    ContextAccumulationPlan,
+    ConsolidationProtocolPlan,
+    implements,
+)
 
 # ---------------------------------------------------------------------------
 # Consolidation step types (declarative replay protocols)
@@ -416,6 +422,7 @@ def accumulate_context_step(
     return _snap(brain, context_area)
 
 
+@implements(CONTEXT_ACCUMULATION_CONTRACT)
 def accumulate_context(
     brain,
     word_steps: Sequence[Tuple[str, str]],
@@ -425,6 +432,8 @@ def accumulate_context(
     rounds: int = 10,
 ) -> Assembly:
     """Build a context assembly from an ordered list of words.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-accumulation
 
     Args:
         word_steps: ``(phon_stimulus, core_area)`` pairs in sentence order.
@@ -436,11 +445,17 @@ def accumulate_context(
     Returns:
         Final context assembly after processing all words.
     """
-    if not word_steps:
-        raise ValueError("accumulate_context requires at least one word step")
-
-    if core_assemblies is not None and len(core_assemblies) != len(word_steps):
-        raise ValueError("core_assemblies must match word_steps length")
+    plan = ContextAccumulationPlan(
+        tuple(tuple(step) for step in word_steps),
+        context_area,
+        None if core_assemblies is None else tuple(core_assemblies),
+        rounds,
+    )
+    plan.preflight(brain)
+    word_steps = plan.word_steps
+    context_area = plan.context_area
+    core_assemblies = plan.core_assemblies
+    rounds = plan.rounds
 
     result: Assembly | None = None
     for i, (phon, core_area) in enumerate(word_steps):

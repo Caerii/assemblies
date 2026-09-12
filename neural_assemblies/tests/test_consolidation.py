@@ -10,7 +10,10 @@ from neural_assemblies.assembly_calculus import (
     consolidate,
     project,
 )
-from neural_assemblies.assembly_calculus.contracts import ConsolidationProtocolPlan
+from neural_assemblies.assembly_calculus.contracts import (
+    ContextAccumulationPlan,
+    ConsolidationProtocolPlan,
+)
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
 from neural_assemblies.assembly_calculus.emergent.core.areas import (
     CONTEXT,
@@ -40,6 +43,11 @@ def test_consolidate_rejects_empty_protocol_or_invalid_passes():
         ConsolidationProtocolPlan((PathwayReplay("A", "B"),), passes=0)
     with pytest.raises(TypeError, match="PathwayReplay"):
         consolidate(_minimal_brain(), [object()])
+
+
+def test_accumulate_context_rejects_empty_schedule():
+    with pytest.raises(ValueError, match="nonempty word"):
+        ContextAccumulationPlan((), "CONTEXT")
 
 
 def _minimal_brain(seed=SEED):
