@@ -6012,3 +6012,9 @@ availability tests pass **13 tests**.
 are allocated per instance and supplied sequences are copied. Its language-area
 dependencies are explicit rather than wildcard-imported. Language parsing and
 constructor contract tests pass **9 tests**.
+
+### Simulation sweep defaults (2026-09-12)
+
+The density and pattern-completion sweep helpers no longer expose mutable list
+defaults. Omitted beta/alpha grids are created as immutable tuples per call,
+preventing accidental cross-run mutation. The default-contract test passes.

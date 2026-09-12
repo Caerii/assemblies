@@ -97,8 +97,7 @@ def pattern_com_repeated(n=100000, k=317, p=0.05, beta=0.05, project_iter=12, al
     return overlaps, rounds_to_completion
 
 def pattern_com_alphas(n=100000, k=317, p=0.01, beta=0.05,
-                       alphas=[0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0], 
-                       project_iter=25, comp_iter=5):
+                       alphas=None, project_iter=25, comp_iter=5):
     """
     Simulates pattern completion with varying percentages of active neurons in an established neural assembly.
 
@@ -114,6 +113,8 @@ def pattern_com_alphas(n=100000, k=317, p=0.01, beta=0.05,
     Returns:
     dict: Dictionary where keys are the alpha values and values are the overlap ratios of reactivated assembly with the initial winners.
     """
+    if alphas is None:
+        alphas = (0.1, 0.2, 0.3, 0.4, 0.5, 0.6, 0.7, 0.8, 0.9, 1.0)
     b = Brain(p, engine="numpy_sparse")
     b.add_stimulus("stim", k)
     b.add_area("A", n, k, beta)

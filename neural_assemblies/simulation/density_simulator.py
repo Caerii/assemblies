@@ -45,7 +45,7 @@ def density(n=100000, k=317, p=0.01, beta=0.05, rounds=20):
                 edges += 1
     return float(edges)/float(k**2), saved_w
 
-def density_sim(n=100000, k=317, p=0.01, beta_values=[0, 0.025, 0.05, 0.075, 0.1]):
+def density_sim(n=100000, k=317, p=0.01, beta_values=None):
     """
     Runs a series of density simulations over a range of beta values to determine how learning rates affect connectivity.
 
@@ -61,6 +61,8 @@ def density_sim(n=100000, k=317, p=0.01, beta_values=[0, 0.025, 0.05, 0.075, 0.1
     Description:
     This function iterates over a list of beta values, runs density calculations for each, and collects the results for analysis.
     """
+    if beta_values is None:
+        beta_values = (0, 0.025, 0.05, 0.075, 0.1)
     results = {}
     for beta in beta_values:
         print("Working on " + str(beta) + "\n")
