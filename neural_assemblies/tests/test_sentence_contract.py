@@ -19,3 +19,14 @@ def test_grounded_sentence_rejects_misaligned_roles():
 def test_grounded_sentence_normalizes_unannotated_roles():
     sentence = GroundedSentence(words=["dog"], contexts=[GroundingContext()])
     assert sentence.roles == [None]
+
+
+def test_grounded_utterance_rejects_misaligned_pos_tags():
+    from neural_assemblies.lexicon.curriculum.grounded_training import (
+        GroundedUtterance, SpeechAct,
+    )
+    with pytest.raises(ValueError, match="pos_tags"):
+        GroundedUtterance(
+            words=["dog"], pos_tags=[], speech_act=SpeechAct.NAMING,
+            context=GroundingContext(),
+        )

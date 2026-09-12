@@ -83,7 +83,13 @@ class GroundedUtterance:
     target_words: List[str] = field(default_factory=list)  # Words being taught
     requires_response: bool = False
     expected_response: Optional[str] = None
-    
+
+    def __post_init__(self):
+        if len(self.words) != len(self.pos_tags):
+            raise ValueError(
+                f"words ({len(self.words)}) != pos_tags ({len(self.pos_tags)})"
+            )
+
     @property
     def sentence(self) -> str:
         return ' '.join(self.words)

@@ -168,7 +168,7 @@ class AssemblyLanguageLearner:
         context = utterance.context
         
         # Learn each content word with its grounding
-        for word, pos in zip(words, pos_tags):
+        for word, pos in zip(words, pos_tags, strict=True):
             # Find relevant grounding for this word
             grounding = []
             for obj in context.visual_objects:

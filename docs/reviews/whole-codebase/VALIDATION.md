@@ -6095,3 +6095,6 @@ The theory evidence validator now uses strict treatment/control pairing after it
 ### Diagnostics validation-order gate (2026-09-12)
 
 `load_audit` validates its threshold before checking arm count, making invalid scalar input deterministic and preserving the documented error contract. The ensemble helper suite passes **27 tests** with three intentional sampled-engine warnings; diagnostics B905/F is clean. The broader H9 diagnostic module was stopped after repeated long-running duplicate invocations, so no pass is claimed for it.
+### Grounded utterance alignment gate (2026-09-12)
+
+`GroundedUtterance` now rejects word/POS length mismatches at construction, and the public assembly language learner uses strict pairing while learning. This prevents malformed curriculum examples from silently losing tokens. Focused sentence and CHILDES suites pass **9 tests**; B905/F scans are clean.
