@@ -28,37 +28,38 @@ metric that moves without the others is visible rather than averaged in.
 """
 from __future__ import annotations
 
-import os
 import random
-import sys
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
-from neural_assemblies.core.brain import Brain
+from neural_assemblies import Brain, describe_brain_model
 from neural_assemblies.programs.mod3_fsm import (
     END_SYMBOL, build_mod3_fsm, train_mod3_fsm,
 )
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from seq_a1_fsm_parity import (
+from research.experiments.seq_a1_fsm_parity import (
     BETA, K, N_ARC, N_STATE, NEGATIVE, POSITIVE, PRESENTATIONS, SEEDS,
 )
-from seq_a1_drift import true_trajectory
+from research.experiments.seq_a1_drift import true_trajectory
+from research.runner import experiment_parser, run_experiment
 
 P_VALUES = (0.2, 0.3, 0.4, 0.5)
 
 
-def trial(seed, p):
+def trial(seed, p, *, materialized=False, presentations=PRESENTATIONS):
     random.seed(seed)
-    np.random.seed(seed)
+    legacy_random: Any = np.random
+    legacy_random.seed(seed)
     brain = Brain(p=p, save_winners=True, seed=seed, engine="numpy_sparse",
                   norm_init=False)
     fsm = build_mod3_fsm(brain, n=N_ARC, k=K, n_state=N_STATE, beta=BETA)
-    if os.environ.get("NEMO_MATERIALIZE"):          # PREREG_sampler_audit.md
+    if materialized:                                # PREREG_sampler_audit.md
         brain.materialize_area(fsm.arc_area)
-    train_mod3_fsm(fsm, presentations=PRESENTATIONS)
+    train_mod3_fsm(fsm, presentations=presentations)
 
     out = {}
     for name, digits in (("pos", list(POSITIVE)), ("neg", list(NEGATIVE))):
@@ -89,16 +90,15 @@ def trial(seed, p):
     }
 
 
-def main():
-    seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
-    print("=== what makes recovery exact? sweeping p ===")
-    print(f"    state floor 3 ln {N_STATE} = {3 * np.log(N_STATE):.1f}, "
-          f"so kp crosses it at p = {3 * np.log(N_STATE) / K:.3f}")
-    print(f"\n  {'p':>5s} {'state kp':>9s} {'exact steps':>12s} "
-          f"{'traj ok':>8s} {'decided':>8s} {'mean ov':>8s}")
+def experiment(record):
+    parameters = record["parameters"]
+    seeds = record["seeds"]
+    presentations = parameters["presentations"]
+    materialized = parameters["materialized"]
     rows, summary = [], []
     for p in P_VALUES:
-        got = [trial(s, p) for s in seeds]
+        got = [trial(s, p, materialized=materialized,
+                     presentations=presentations) for s in seeds]
         rows.extend(got)
         exact = sum(r["exact_steps"] for r in got)
         total = sum(r["total_steps"] for r in got)
@@ -108,16 +108,32 @@ def main():
              "mean_overlap": float(np.mean([r["mean_overlap"] for r in got])),
              "n": len(got)}
         summary.append(s)
-        print(f"  {p:>5.2f} {K * p:>9.1f} {exact:>5d}/{total:<6d} "
-              f"{s['trajectory_correct']:>5d}/{len(got):<2d} "
-              f"{s['decided']:>5d}/{len(got):<2d} {s['mean_overlap']:>8.3f}",
-              flush=True)
+    return {"verdict": "VOID" if record["mode"] == "smoke" else "UNADOPTED",
+            "summary": summary, "rows": rows, "materialized": materialized,
+            "scope": "A1 exact-step recovery versus afferent probability"}
 
-    from _results import write_result
-    out = write_result("sequence", "seq_a1_exactness_sweep_results"
-                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json",
-                       {"summary": summary, "rows": rows})
-    print(f"\nwrote {out}")
+
+def main(argv=None):
+    parser = experiment_parser(
+        __doc__ or "A1 exact recovery sweep", engines=("numpy_sparse",),
+        default_seeds=tuple(SEEDS),
+    )
+    parser.add_argument("--materialized", action="store_true",
+                        help="draw the full arc connectome before training")
+    args = parser.parse_args(argv)
+    parameters = {"p_values": list(P_VALUES), "n_arc": N_ARC,
+                  "n_state": N_STATE, "k": K, "beta": BETA,
+                  "presentations": 2 if args.smoke else PRESENTATIONS,
+                  "materialized": args.materialized, "norm_init": False}
+    path = run_experiment(
+        script=Path(__file__), protocol="sequence.a1-exactness-sweep",
+        protocol_version="2", registration="research/notes/sequence/PREREG_sampler_audit.md",
+        engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
+        parameters=parameters,
+        model_semantics=describe_brain_model("numpy_sparse", p=P_VALUES[0], norm_init=False),
+        measure=experiment,
+    )
+    print(path)
 
 
 if __name__ == "__main__":
