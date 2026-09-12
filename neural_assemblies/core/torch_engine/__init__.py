@@ -30,7 +30,7 @@ from ._engine import TorchSparseEngine
 __all__ = ["TorchSparseEngine"]
 
 # Register engine (only succeeds if torch+CUDA available)
-import torch
-if torch.cuda.is_available():
+from .._torch_ops import torch_ops
+if torch_ops.cuda.is_available():
     from ..engine import register_engine
     register_engine("torch_sparse", TorchSparseEngine)

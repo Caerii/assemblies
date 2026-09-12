@@ -6853,3 +6853,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Scheduled hashed engine Torch boundary (2026-09-12)
 
 `torch_engine/_scheduled_aligner.py` now routes CUDA cache and synchronization calls through the shared lazy Torch operator protocol, and `_arc_core.py` no longer imports Torch solely for a tensor annotation. Scheduled-aligner and organ-semantics tests pass **18/18** with **4** expected CUDA skips; Pyright and Ruff report zero diagnostics.
+
+
+## Torch engine registration boundary (2026-09-12)
+
+`core/torch_engine/__init__.py` now discovers CUDA through the shared lazy Torch operator protocol before registering the optional engine, removing the package initializer's direct Torch capability probe. Specification-link tests pass **11/11**; Pyright and Ruff report zero diagnostics.
