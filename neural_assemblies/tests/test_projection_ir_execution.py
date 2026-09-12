@@ -103,7 +103,10 @@ def test_rejection_before_mutation(engine, fault):
     elif fault == "weights":
         engine._area_conns["S"]["T"].weights[0, 0] = np.nan
     elif fault == "beta":
-        engine.set_beta("T", "S", float("nan"))
+        # Seed the malformed state directly so the instruction's own
+        # preflight rejection remains tested now that set_beta rejects it at
+        # the runtime boundary.
+        engine._areas["T"].beta_by_source["S"] = float("nan")
     elif fault == "plasticity":
         engine._plasticity_enabled_global = False
     elif fault == "overflow":

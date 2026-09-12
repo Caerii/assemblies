@@ -7055,3 +7055,6 @@ The abstract `ComputeEngine.get_winners` contract and all NumPy/Torch implementa
 ## Winner setter validation parity (2026-09-12)
 
 Torch `set_winners` now validates dimensionality, integer type, range, and uniqueness before H2D conversion. NumPy sparse/exact/explicit setters normalize validated values to `CompactIdx`, so every backend stores the same semantic type. A true negative proves malformed Torch input cannot reach device state. Validation: winner-injection, index-space, and engine-parity suites 77 passed (Torch test skipped when CUDA unavailable); Pyright on the engine interface and four implementations 0 errors/warnings/information.
+## Full-gate compatibility repair after index-space tightening (2026-09-12)
+
+The repository-wide gate exposed three classes of fallout from stricter semantic boundaries. Historical noise injection now explicitly returns `CompactIdx` before mutating live Areas; the IR rejection test seeds malformed beta state directly so it still tests instruction preflight after runtime setters became fail-fast; and the shared policy validator uses an unquoted specification path accepted by the source-link checker. Validation: historical-noise suite 40 passed; IR execution plus specification-link suites 49 passed; `git diff --check` clean.

@@ -169,7 +169,7 @@ def validate_competition_policy(population: int, policy: WinnerPolicy | None) ->
     validator checks the contextual constraint that only the owning area can
     know (a winner cap cannot exceed its population).
 
-    Specification: ``neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy``
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-runtime-policy
     """
     if policy is None:
         return

@@ -40,6 +40,7 @@ project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import numpy as np
+from neural_assemblies.core.index_spaces import CompactIdx
 from dataclasses import dataclass
 from numbers import Integral, Real
 import math
@@ -81,7 +82,7 @@ def inject_noise(
     k = len(winners)
     n_replace = int(noise_frac * k)
     if n_replace == 0:
-        return winners.copy()
+        return CompactIdx(winners.copy())
 
     noisy = winners.copy()
     replace_idx = rng.choice(k, n_replace, replace=False)
@@ -89,7 +90,7 @@ def inject_noise(
     non_winners = np.array([i for i in range(n_neurons) if i not in winner_set])
     new_neurons = rng.choice(non_winners, n_replace, replace=False)
     noisy[replace_idx] = new_neurons.astype(np.uint32)
-    return noisy
+    return CompactIdx(noisy)
 
 
 # -- Core trial runners --------------------------------------------------------
