@@ -116,6 +116,10 @@ def compare_scaffold_vs_simple(
         raise ValueError(
             "compare_scaffold_vs_simple is standalone; omit brain and stimuli"
         )
+    if rounds_per_step != 1 or beta != 0.1:
+        raise ValueError(
+            "compare_scaffold_vs_simple fixes rounds_per_step=1 and beta=0.1"
+        )
     del rounds_per_step, beta
     return _compare_scaffold_vs_simple(
         n_presentations=n_presentations,

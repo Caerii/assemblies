@@ -264,6 +264,14 @@ class TestScaffoldComparisonContract(unittest.TestCase):
         with self.assertRaisesRegex(ValueError, "standalone"):
             compare_scaffold_vs_simple(brain=object())
 
+    def test_standalone_comparison_rejects_ignored_protocol_parameters(self):
+        from neural_assemblies.assembly_calculus.scaffold import compare_scaffold_vs_simple
+
+        with self.assertRaisesRegex(ValueError, "rounds_per_step=1"):
+            compare_scaffold_vs_simple(rounds_per_step=2)
+        with self.assertRaisesRegex(ValueError, "beta=0.1"):
+            compare_scaffold_vs_simple(beta=0.2)
+
 
 class TestScaffoldNetwork(unittest.TestCase):
     """Brain-native ScaffoldNetwork API."""
