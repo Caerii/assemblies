@@ -486,6 +486,13 @@ class CudaImplicitEngine(NumpySparseEngine):
                 col_end = min(limit, conn.weights.shape[1])
                 prev_winner_inputs[:col_end] += conn.weights[internal, :col_end].sum(axis=0)
 
+        # Keep the same pre-k-WTA observation contract as the CPU and torch
+        # engines. The CUDA path used to accept ``record_activation`` but drop
+        # it, producing a well-formed result with no measurable drive.
+        recorded_prev_only = (
+            prev_winner_inputs.copy() if record_activation else None
+        )
+
         # Zero signal — preserve current assembly
         # Use cp.any() to avoid GPU->CPU scalar transfer
         if len(prev_winner_inputs) > 0 and not bool(cp.any(prev_winner_inputs)):
@@ -656,6 +663,18 @@ class CudaImplicitEngine(NumpySparseEngine):
             # already being pulled to the host on the line above, so the sync
             # this needs has already happened.
             total_activation=float(all_inputs[winners_gpu].sum()),
+            pre_kwta_inputs=(
+                np.array(to_cpu(all_inputs), dtype=np.float32, copy=True)
+                if record_activation else None
+            ),
+            pre_kwta_prev_only=(
+                np.array(to_cpu(recorded_prev_only), dtype=np.float32, copy=True)
+                if recorded_prev_only is not None else None
+            ),
+            pre_kwta_total=(
+                float(all_inputs.sum()) if record_activation else 0.0
+            ),
+            pre_kwta_count=int(len(all_inputs)) if record_activation else 0,
         )
 
     # -- Override: fused GPU plasticity --------------------------------------

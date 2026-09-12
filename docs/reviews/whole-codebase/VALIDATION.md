@@ -5846,3 +5846,11 @@ tests**, including the missing-category true negative.
 The generation-only `_compete` helper no longer accepts a `mood_assembly` it
 does not read; mood remains part of the upstream syntactic cue and
 `_fire_constituent` contract. The module passes Ruff and compilation checks.
+
+### CUDA pre-k-WTA observation parity (2026-09-12)
+
+The CUDA projection path now populates `ProjectionResult` pre-k-WTA inputs,
+pre-penalty inputs, total, and candidate count when `record_activation=True`,
+matching the shared engine contract instead of returning an empty observation.
+Ruff and compilation checks pass; GPU execution remains a required environment
+gate.
