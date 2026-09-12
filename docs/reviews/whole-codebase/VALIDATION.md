@@ -6469,3 +6469,7 @@ POS inference now routes bootstrap and decomposition through `_distributional_sc
 ### POS inference score and aggregation completion gate (2026-09-12)
 
 The POS inference module now has no remaining Pyright diagnostics. Aggregate accuracies count only explicit `True` outcomes, bootstrap summaries round only numeric category scores, and frame category lookup narrows optional mappings before indexing. These changes complete the local score/provenance and evidence-domain cleanup without changing the compatibility result shape. Classification evidence tests pass **23 tests**, Pyright reports **0 diagnostics**, and `git diff --check` is clean.
+
+### Dialogue shared-state declaration gate (2026-09-12)
+
+Dialogue training and turn presentation now declare their shared parser state: stimulus map, grounded vocabulary, and bridge-round budget. Ownership remains at the composed parser initialization path, while the mixin exposes the exact data it reads for context resolution and bridge learning. Static diagnostics for the file dropped from **22 to 13**; dialogue tests pass **5 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.

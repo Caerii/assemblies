@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-from typing import List, Optional, TYPE_CHECKING
+from typing import Dict, List, Optional, TYPE_CHECKING
 
 from ..session.dialogue_state import DialogueState
 from ..structured_io import InstructionFrame
+from ..core.grounding import GroundingContext
 
 if TYPE_CHECKING:
     from ..curriculum.dialogue import DialoguePair
@@ -14,6 +15,13 @@ if TYPE_CHECKING:
 
 class DialogueMixin:
     """Chat tuning: dialogue curriculum, CONTEXT carryover, ``present_turn``."""
+
+    # Shared state read by dialogue training and turn presentation. The core
+    # parser initializes these fields; declaring them here makes the MRO
+    # boundary visible without allocating dialogue-only state in every parser.
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, GroundingContext]
+    bridge_rounds: int
 
     def train_dialogue(
         self,
