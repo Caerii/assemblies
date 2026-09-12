@@ -5450,3 +5450,10 @@ The registered ceiling-vs-size study now emits its fixed result artifact via
 the shared finite, exclusive JSON boundary. Its cell organization, output
 schema, and analysis remain unchanged; the direct overwrite exception is
 removed. Compilation, Ruff, and the result-writer ratchet pass: **1 passed**.
+### Drift-vs-crowding checkpoint migration (2026-09-12)
+
+The analyze-later drift-vs-crowding study now persists its keyed observations
+through `write_checkpoint_document`. Its arm/budget keys and analysis remain
+unchanged, while raw JSON overwrite is replaced by atomic checkpoint
+publication. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.

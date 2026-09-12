@@ -7,7 +7,6 @@
     "research/experiments/competition_dynamics.py": 1,
     "research/experiments/dead_fiber_hunt.py": 1,
     "research/experiments/dormant_mechanism_sweep.py": 1,
-    "research/experiments/drift_vs_crowding.py": 1,
     "research/experiments/drive_decomposition.py": 1,
     "research/experiments/episode_budget_recall.py": 1,
     "research/experiments/erp_pathway_vs_area_binding.py": 1,
