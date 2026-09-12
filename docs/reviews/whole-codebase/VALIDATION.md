@@ -6959,3 +6959,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Legacy NEMO core Area/Brain now routes Torch factories and top-k through the shared operator protocol, keeps Torch type imports static-only, and has explicit derived-k contracts. Focused Pyright: 0 errors.
 - 2026-09-12: NEMO core CUDA kernel module now has an explicit dynamic CuPy boundary; focused Pyright: 0 errors.
 - 2026-09-12: Top-level NEMO export gate now passes with 0 errors and 0 warnings; lazy symbols are documented to type check without dynamic __all__ construction.
+- 2026-09-12: Lexicon public API test now builds its own typed summary value instead of depending on a test function return; Pyright 0 errors and 7 tests passed.

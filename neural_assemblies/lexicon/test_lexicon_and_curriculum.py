@@ -214,7 +214,10 @@ def main():
     print("=" * 60)
     
     # Test lexicon
-    lexicon = test_lexicon()
+    test_lexicon()
+    # Build a typed value for the summary instead of relying on a test
+    # function's return value.
+    lexicon = build_lexicon()
     
     # Test grounded corpus
     test_grounded_corpus()
