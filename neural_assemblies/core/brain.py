@@ -968,8 +968,9 @@ class Brain:
         try:
             for engine, _ in flags:
                 engine._no_recruitment = True
-            for (rng, _), stream in zip(generators, streams):
-                rng.bit_generator.state = type(rng.bit_generator)(stream).state
+            if seed is not None:
+                for (rng, _), stream in zip(generators, streams, strict=True):
+                    rng.bit_generator.state = type(rng.bit_generator)(stream).state
             with self.frozen():
                 yield self
         finally:

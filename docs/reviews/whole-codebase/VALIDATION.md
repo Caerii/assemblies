@@ -6074,3 +6074,6 @@ Candidate pricing now rejects mismatched `input_sizes`/`src_pops`, and pooled-bi
 ### Grounded sentence constructor contract (2026-09-12)
 
 `GroundedSentence` now enforces words/contexts/roles alignment with unconditional `ValueError`s rather than Python assertions, so optimized runs cannot disable the model's core aligned-record invariant. The focused sentence and NEMO arc suites pass **8 tests**; F/E scans are clean.
+### Read-only seeded-stream gate (2026-09-12)
+
+`Brain.read_only` now applies strict generator/child-stream pairing only when a seed is supplied; the unseeded path correctly performs no stream installation. The initial blanket strict change exposed a real control-flow mismatch and was corrected before commit. Read-only and seeded-observation suites pass **23 tests**; B905/F is clean.
