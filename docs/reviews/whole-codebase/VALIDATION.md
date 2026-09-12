@@ -6223,3 +6223,7 @@ The parser now imports only the language-area symbols it actually uses; the full
 ### Recurrence-audit admission gate (2026-09-12)
 
 `diagnostics.recurrence_audit` now rejects unknown area names before attempting engine access; an invalid audit scope can no longer disappear as an empty report. The regression and ensemble-helper suite passes **28 tests** with three intentional sampled-recurrence warnings.
+
+### Language test vocabulary gate (2026-09-12)
+
+The language parsing tests now use the same explicit area vocabulary as production modules; the final wildcard import is gone. Package F403/F405/F821 checks are clean and parser tests pass **9 tests**.

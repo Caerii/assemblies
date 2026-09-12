@@ -11,7 +11,18 @@ import unittest
 
 from neural_assemblies.language.parser import ParserBrain, RussianParserBrain, EnglishParserBrain
 from neural_assemblies.language.grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT
-from neural_assemblies.language.language_areas import *
+from neural_assemblies.language.language_areas import (
+    ACC,
+    AREAS,
+    DAT,
+    ENGLISH_READOUT_RULES,
+    LEX,
+    NOM,
+    OBJ,
+    RECURRENT_AREAS,
+    SUBJ,
+    VERB,
+)
 from neural_assemblies.language.readout_methods import ReadoutMethod
 
 class TestLanguageParsing(unittest.TestCase):
