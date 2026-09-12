@@ -5150,6 +5150,15 @@ The contract decorator is now a generic callable protocol carrying its
 weakening decorated function signatures. The contract module is Pyright-clean
 and its focused suite passes: **163 passed**.
 
+### Sequence operator state and result typing (2026-09-11)
+
+`sequence_memorize` now snapshots the target beta before the optional scoped
+boost on every path, so exception cleanup cannot reference an uninitialized
+value. Both sequence operators pass an explicit tuple of snapshots to the
+immutable `Sequence` record, matching the contract's ordered-result shape.
+The operator module is Pyright-clean and sequence, memorization, beta-scope,
+and ordered-recall checks pass: **36 passed**.
+
 ### Emergent consolidation nullability boundary (2026-09-11)
 
 The emergent pathway builders previously relied on truthiness to imply that a

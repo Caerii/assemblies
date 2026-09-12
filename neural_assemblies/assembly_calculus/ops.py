@@ -1053,13 +1053,13 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
             # the within/bridge RATIO (1.11 at reps=5 vs 1.76 at reps=40): the
             # attractor grows faster than the bridge, and recall has to escape
             # the attractor to advance.
+            original_beta = brain.areas[target].beta
             if beta_boost is not None:
                 # NOTE: saves the AREA-WIDE default beta but restores it into
                 # the target->target pathway specifically.  If a caller had
                 # set a distinct target->target beta before calling, that
                 # value is not what gets restored.  Left as-is: current
                 # callers never do, and changing it would alter results.
-                original_beta = brain.areas[target].beta
                 brain.update_plasticity(target, target, beta_boost)
             try:
                 for _ in range(recur_rounds):
@@ -1073,7 +1073,7 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
 
             assemblies.append(_snap(brain, target))
 
-    return Sequence(area=target, assemblies=assemblies)
+    return Sequence(area=target, assemblies=tuple(assemblies))
 
 
 @implements(ORDERED_RECALL_CONTRACT)
@@ -1189,4 +1189,4 @@ def ordered_recall(brain, area, cue, max_steps=20,
 
         recalled.append(current)
 
-    return Sequence(area=area, assemblies=recalled)
+    return Sequence(area=area, assemblies=tuple(recalled))
