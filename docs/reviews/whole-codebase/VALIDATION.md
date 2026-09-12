@@ -6977,3 +6977,6 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 ## Refraction wander disposition (2026-09-12)
 
 Read `research/experiments/seq_refraction_wander.py` as an executable protocol. Its `run` function derives 16 brain seeds internally, mutates shared hashed fibers across 240 one-round episodes, and combines recurrent, feed-forward, and synaptic-scaling audits. That cannot be represented by the shared runner without changing the registered protocol (hashed studies require 20 explicit seed identities). The migration boundary and code-derived card now record it as historical/diagnostic; evidence check remains green.
+## Maintained gate rerun (2026-09-12)
+
+`uv run python scripts/verify_maintained.py` completed successfully. Pyright analyzed 286 maintained files with 0 errors, warnings, or informational diagnostics. The non-slow package suite passed 3778 tests, skipped 141, retained 8 expected failures, and passed 10 subtests (277 warnings; sampled-recurrence warnings are intentional provenance safeguards). Total test time was 1698.10 seconds.
