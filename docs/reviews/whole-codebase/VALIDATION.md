@@ -5984,3 +5984,10 @@ false undefined-name diagnostics is gone; language parsing remains **7/7**.
 `language.parse` now uses an exclusive English/Russian dispatch and raises a
 clear `ValueError` for unsupported languages before constructing or parsing a
 brain. The public language parsing suite passes **8 tests**.
+
+### Load-audit threshold provenance (2026-09-12)
+
+`load_audit` now validates and stores its threshold on each `LoadGap`, so
+`gap.confounded()` evaluates the same threshold that created the diagnostic.
+Callers can still override it explicitly. The ensemble diagnostic suite passes
+**27 tests**.

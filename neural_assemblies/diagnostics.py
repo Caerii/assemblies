@@ -1614,6 +1614,7 @@ class LoadGap:
     area: str
     by_arm: Dict[str, float]      # arm -> w / n, the fraction ever fired
     engine: str
+    threshold: float = 0.05       # threshold captured by load_audit
 
     @property
     def gap(self) -> float:
@@ -1637,10 +1638,16 @@ class LoadGap:
         """
         return self.engine == "mixed"
 
-    def confounded(self, threshold: float = 0.05) -> bool:
-        """Did two arms of ONE comparison fail to share the sampler's error?"""
+    def confounded(self, threshold: Optional[float] = None) -> bool:
+        """Did two arms fail to share the sampler's error?
+
+        ``load_audit`` captures its decision threshold on each result, so a
+        later call without an override evaluates the same protocol that
+        produced the result. Pass ``threshold`` to ask a different question.
+        """
+        limit = self.threshold if threshold is None else threshold
         return (self.sampler_bearing and not self.cross_engine
-                and self.gap > threshold)
+                and self.gap > limit)
 
     def __str__(self) -> str:
         arms = "  ".join(f"{a}={v:.3f}" for a, v in sorted(self.by_arm.items()))
@@ -1732,7 +1739,9 @@ def load_audit(brains: Dict[str, Any], threshold: float = 0.05
     shared = set.intersection(*(set(d) for d in loads.values()))
     engines = {getattr(b, "engine_name", "?") for b in brains.values()}
     engine = engines.pop() if len(engines) == 1 else "mixed"
-    gaps = [LoadGap(area=a, engine=engine,
+    if not isinstance(threshold, (int, float)) or not np.isfinite(threshold) or threshold < 0:
+        raise ValueError("threshold must be a finite nonnegative number")
+    gaps = [LoadGap(area=a, engine=engine, threshold=float(threshold),
                     by_arm={arm: loads[arm][a] for arm in brains})
             for a in sorted(shared)]
     return sorted(gaps, key=lambda g: -g.gap)

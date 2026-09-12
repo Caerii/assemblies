@@ -276,3 +276,10 @@ class TestRankStatistics:
         spec.loader.exec_module(mod)
         assert mod.spearman is diagnostics.spearman
         assert mod.partial_spearman is diagnostics.partial_spearman
+
+
+def test_load_audit_rejects_invalid_threshold():
+    import pytest
+    from neural_assemblies.diagnostics import load_audit
+    with pytest.raises(ValueError, match="finite nonnegative"):
+        load_audit({}, threshold=-1)
