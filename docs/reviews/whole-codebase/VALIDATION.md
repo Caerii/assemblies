@@ -5667,3 +5667,11 @@ The index-space tests now verify that canonical validation preserves a branded
 `CompactIdx` and that explicit conversion produces a branded `NeuronIds`.
 This prevents future normalization changes from silently erasing the runtime
 safety boundary. The focused static/runtime suite passes: **7 passed**.
+
+### Contract export consistency (2026-09-12)
+
+The public `assembly_calculus.__all__` now imports every advertised contract
+object, including read/binding, context, next-token, recovery, and fiber
+contracts. Import introspection reports no missing exports, and registry,
+research-contract, and operation-contract tests pass: **182 passed**. Ruff and
+diff checks pass.
