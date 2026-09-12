@@ -69,8 +69,6 @@ from ._shared import DistributionalStats
 if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex
     from .core import CoreParserMixin
-    from ..parser import EmergentParser
-    from ..training.compiled import CompiledTopologyParser
 
 # HAND-AUTHORED ENGLISH-SVO PRIOR.  Category -> typical normalised position
 # range.  This is NOT learned and is NOT typology-neutral: it encodes an SVO,

@@ -43,7 +43,7 @@ under-measured capacity permanently prevents CONTEXT from telling prefixes
 apart.
 """
 
-from typing import Any, Dict, List, Optional, Set, Tuple, TYPE_CHECKING, cast
+from typing import Any, Dict, List, Optional, Tuple, TYPE_CHECKING, cast
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import Assembly
