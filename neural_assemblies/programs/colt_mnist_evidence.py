@@ -128,7 +128,7 @@ def run_evidence_suite(
 
     clear_ventral_bundle_cache()
     kw = dict(seed=seed, n_examples=n_examples)
-    shared = load_ventral_bundle(**kw)
+    shared = load_ventral_bundle(seed=seed, n_examples=n_examples)
 
     simple = run_colt_mnist_hierarchical(**kw)
     rows.append(_row(
@@ -359,7 +359,7 @@ def run_evidence_suite(
     from neural_assemblies.programs.patch_merge import run_grid_patch_merge_mnist
 
     grid_merge = run_grid_patch_merge_mnist(
-        bundle=shared, grid=2, merge_mode="chain", **kw,
+        bundle=shared, grid=2, merge_mode="chain", seed=seed, n_examples=n_examples,
     )
     rows.append(_row(
         "tier_a_grid_patch_merge", "A", grid_merge.mean_accuracy,
@@ -371,7 +371,7 @@ def run_evidence_suite(
         n_patches=grid_merge.extra.get("n_patches"),
     ))
 
-    merge_h = run_merge_halves_mnist(bundle=shared, **kw)
+    merge_h = run_merge_halves_mnist(bundle=shared, seed=seed, n_examples=n_examples)
     rows.append(_row(
         "tier_a_merge_halves", "A", merge_h.mean_accuracy,
         (HypothesisId.CROSS_CLASS_OVERLAP.value,),
@@ -387,20 +387,22 @@ def run_evidence_suite(
     h9 = run_h9_diagnostic(seed=seed, n_examples=n_examples, k=200)
     merge_geo = next((s for s in h9.streams if s.name == "merge_halves"), None)
     base_geo = next((s for s in h9.streams if s.name == "recurrent_ventral"), None)
+    if merge_geo is None or base_geo is None:
+        raise RuntimeError("H9 diagnostic omitted a required merge or recurrent stream")
     rows.append(_row(
         "h9_merge_overlap_diagnostic", "A",
-        merge_geo.mean_accuracy if merge_geo else None,
+        merge_geo.mean_accuracy,
         (HypothesisId.PART_MERGE_REDUCES_OVERLAP.value,),
         ("merge", "separate"),
         "h9_diagnostic",
         f"H9 verdict={h9.h9_verdict}: merge confused overlap vs recurrent baseline.",
         h9_verdict=h9.h9_verdict,
-        merge_confused_overlap=merge_geo.mean_confused_overlap if merge_geo else None,
-        recurrent_confused_overlap=base_geo.mean_confused_overlap if base_geo else None,
+        merge_confused_overlap=merge_geo.mean_confused_overlap,
+        recurrent_confused_overlap=base_geo.mean_confused_overlap,
         overlap_delta=h9.pair_deltas.get("merge_halves_vs_recurrent", {}).get("mean_confused"),
     ))
 
-    pcomp = run_pattern_completion_mnist(bundle=shared, **kw)
+    pcomp = run_pattern_completion_mnist(bundle=shared, seed=seed, n_examples=n_examples)
     rows.append(_row(
         "tier_b_pattern_complete", "B", pcomp.mean_accuracy,
         (),
@@ -459,7 +461,7 @@ def run_evidence_suite(
         from neural_assemblies.programs.cross_domain_profile import profile_cross_domain_hub
         from neural_assemblies.programs.cross_domain_assemblies import _train_cross_domain_hub
 
-        hub = _train_cross_domain_hub(bundle=shared, **kw)
+        hub = _train_cross_domain_hub(bundle=shared, seed=seed, n_examples=n_examples)
         profile = profile_cross_domain_hub(hub=hub, **kw)
         profile_narrative = profile.narrative
         rows[-1].metrics["bottleneck_ids"] = [b.id for b in profile.bottlenecks]
