@@ -6653,3 +6653,8 @@ The deterministic hashed-connectome constructor `_hash.py` now routes generated 
 ## Torch state boundary migration (2026-09-12)
 
 `_state.py` now routes per-area tensor allocation through the shared `torch_ops` boundary. Pyright and Ruff report zero diagnostics, and Torch scaling plus parity regressions pass **38 tests**. State initialization and device behavior remain unchanged.
+
+
+## Torch hashed-aligner boundary migration (2026-09-12)
+
+`_hashed_aligner.py` now routes generated Torch allocation, gather, and scoring operations through `torch_ops`. Pyright and Ruff report zero diagnostics. Hashed aligner and substrate parity checks pass **2 tests with 22 expected skips**; the alignment and pinned-winner algorithms are unchanged.
