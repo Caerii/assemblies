@@ -43,5 +43,18 @@
     "research/experiments/what_variation_buys.py": 1,
     "research/experiments/wmax_census.py": 1,
     "research/experiments/zipf_synthesis.py": 1
+  },
+  "direct_json_write_text_sites": {
+    "research/experiments/ablate_developmental.py": 1,
+    "research/experiments/capacity/confirm_beta_rec.py": 1,
+    "research/experiments/capacity/lexicon_capacity.py": 1,
+    "research/experiments/capacity/norm_init_capacity.py": 1,
+    "research/experiments/capacity/parser_recruitment.py": 1,
+    "research/experiments/compare_training_paths.py": 1,
+    "research/experiments/epwta_capacity/beta_control.py": 1,
+    "research/experiments/epwta_capacity/capacity.py": 1,
+    "research/experiments/epwta_capacity/deep.py": 1,
+    "research/experiments/epwta_capacity/regime_map.py": 1,
+    "research/experiments/recruitment/recruitment_mechanisms.py": 2
   }
 }

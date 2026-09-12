@@ -5309,6 +5309,14 @@ finite, exclusive `write_new_document` boundary. Computation, output path, and
 payload schema are unchanged, and its direct-write ratchet exception is
 removed. Compilation, Ruff, and the result-writer ratchet pass: **1 passed**.
 
+### Result-writer bypass ratchet expansion (2026-09-12)
+
+The maintained experiment ratchet now detects both direct `json.dump` calls
+and `Path.write_text(json.dumps(...))` publication sites. The latter pattern
+was previously invisible and could silently overwrite evidence. Existing
+legacy sites are inventoried explicitly; new or increased sites fail until
+migrated or deliberately dispositioned. Both ratchet checks pass: **2 passed**.
+
 ### A1 FSM parity writer migration (2026-09-12)
 
 The A1 FSM parity CLI now writes its configurable `--out` artifact through
