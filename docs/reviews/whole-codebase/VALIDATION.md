@@ -5642,3 +5642,11 @@ The cite-only CHILDES fetch now publishes its metadata sidecar through the
 canonical exclusive writer. The streaming JSONL acquisition path remains
 unchanged, while fixed metadata reruns now fail safely instead of replacing
 provenance. Ruff, compilation, result-writer ratchets, and diff checks pass.
+
+### Explicit recruitment count API (2026-09-12)
+
+`Area.recruited_count` is now the public semantic spelling for lifetime neuron
+recruitment, alongside `active_count`; the compatibility method remains for
+existing callers. The property is verified across training, winner clearing,
+direct winner replacement, pickle round-trips, and old-checkpoint fallback:
+**10 passed**. Ruff and diff checks pass.

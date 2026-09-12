@@ -38,6 +38,11 @@ def trained():
     return b, area
 
 
+def test_recruited_count_is_the_public_semantic_name(trained):
+    _b, area = trained
+    assert area.recruited_count == area.get_num_ever_fired()
+
+
 def test_engine_and_area_agree_after_training(trained):
     b, area = trained
     assert area.get_num_ever_fired() == b._engine.get_num_ever_fired("A")

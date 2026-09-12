@@ -255,6 +255,16 @@ class Area(ActivityState):
             f"    brain.update_plasticity({area_name!r}, {self.name!r}, {new_beta})"
         )
 
+    @property
+    def recruited_count(self) -> int:
+        """Number of neurons recruited over the area lifetime.
+
+        This is the public semantic spelling of ``get_num_ever_fired()``.
+        It is distinct from :attr:`active_count` (current winners) and from
+        engine materialization extent.
+        """
+        return self.get_num_ever_fired()
+
     def get_num_ever_fired(self) -> int:
         """Neurons that have EVER fired -- recruitment, not current activity.
 
