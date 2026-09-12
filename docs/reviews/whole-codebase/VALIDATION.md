@@ -6913,3 +6913,8 @@ The legacy `neural_assemblies/lexicon/legacy_curriculum.py` curriculum now accep
 ## Curriculum namespace disambiguation (2026-09-12)
 
 The unreachable `lexicon/curriculum.py` implementation is now explicitly named `legacy_curriculum.py`, removing the collision with the package-owned `lexicon/curriculum/` namespace. Emergent curriculum documentation now names the active package data modules, and lexicon tests no longer return values to Pytest. Focused lexicon tests pass **7/7** with no warnings; Pyright, Ruff, and compilation are clean.
+
+
+## Instance-owned grounded corpus randomness (2026-09-12)
+
+`lexicon/curriculum/grounded_training.py` now accepts either an injected `random.Random` instance or a seed and routes adjective, action, and batch sampling through it. Seeded grounded-example determinism and global-RNG isolation probes pass; sentence/lexicon tests pass **11/11**, with Pyright and Ruff clean.

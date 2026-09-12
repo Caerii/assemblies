@@ -115,7 +115,15 @@ class GroundedCorpus:
     Allows adding free sentences with automatic grounding inference.
     """
     
-    def __init__(self):
+    def __init__(
+        self,
+        *,
+        rng: random.Random | None = None,
+        seed: int | None = None,
+    ):
+        if rng is not None and seed is not None:
+            raise ValueError("provide rng or seed, not both")
+        self.rng = rng if rng is not None else random.Random(seed)
         self.examples: List[GroundedUtterance] = []
         self.word_exposures: Dict[str, int] = {}
         self.structure_exposures: Dict[str, int] = {}
@@ -348,7 +356,7 @@ class GroundedCorpus:
         
         # Descriptive examples (2x)
         adjectives = ['big', 'little', 'nice', 'good']
-        for adj in random.sample(adjectives, min(2, len(adjectives))):
+        for adj in self.rng.sample(adjectives, min(2, len(adjectives))):
             ctx = GroundedContext(
                 visual_objects=visual_context,
                 visual_properties={visual_context[0]: [adj.upper()]} if visual_context else {},
@@ -365,7 +373,7 @@ class GroundedCorpus:
         # Action examples (2x)
         if visual_context:
             actions = ['see', 'look at', 'like', 'want']
-            for action in random.sample(actions, min(2, len(actions))):
+            for action in self.rng.sample(actions, min(2, len(actions))):
                 ctx = GroundedContext(
                     visual_objects=visual_context,
                     actions=[('I', action.upper(), visual_context[0])],
@@ -425,7 +433,7 @@ class GroundedCorpus:
         eligible = [ex for ex in self.examples if ex.complexity_level <= complexity_max]
         if len(eligible) <= batch_size:
             return eligible
-        return random.sample(eligible, batch_size)
+        return self.rng.sample(eligible, batch_size)
     
     def get_word_exposure_count(self, word: str) -> int:
         """How many times has this word been seen?"""
