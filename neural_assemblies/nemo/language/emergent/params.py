@@ -74,7 +74,9 @@ class GroundedSentence:
 class EmergentParams:
     """Parameters for emergent NEMO brain and learner"""
     n: int = 10000         # Neurons per area
-    k: int | None = None   # Winners (sqrt(n) if None)
+    # Resolved to an integer by __post_init__; None is accepted as the
+    # declarative "derive from n" input for backwards compatibility.
+    k: int = None  # type: ignore[assignment]
     p: float = 0.05        # Connection probability
     beta: float = 0.1      # Hebbian plasticity
     w_max: float = 10.0    # Weight saturation
