@@ -6367,3 +6367,7 @@ The ERP gates module now links its type-only parser import to the actual emergen
 ### Composition battery metric boundary gate (2026-09-12)
 
 The composition battery now validates its aggregate metric before including it in the returned score, preventing an unconstrained object from entering scientific result arithmetic. Pyright reports **0 diagnostics** for the module; Ruff F/E9 and `git diff --check` are clean. No dedicated regression existed for this isolated helper, so the change is limited to validation and static proof.
+
+### Curriculum surface realization typing gate (2026-09-12)
+
+Sentence generation now validates lexicon form and lemma shapes before constructing object surfaces and event participants. This makes optional plural-form handling explicit and prevents unknown values from entering determiner selection or sentence assembly. Pyright reports **0 diagnostics**; focused grammaticality generation tests pass **1 test**, and Ruff F/E9 plus `git diff --check` are clean.

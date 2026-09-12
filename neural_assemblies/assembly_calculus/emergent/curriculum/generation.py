@@ -298,6 +298,19 @@ class SentenceGenerator:
         def _feat(word) -> dict:
             return getattr(word, "features", None) or {}
 
+        def _form(word, name: str) -> Optional[str]:
+            forms = getattr(word, "forms", None)
+            if not isinstance(forms, dict):
+                return None
+            value = forms.get(name)
+            return value if isinstance(value, str) else None
+
+        def _lemma(word) -> str:
+            value = getattr(word, "lemma", None)
+            if not isinstance(value, str) or not value:
+                raise TypeError("lexicon entries must provide a nonempty lemma")
+            return value
+
         def _finite(verb) -> str:
             """3sg present, because every generated subject is `the <noun>`."""
             return (getattr(verb, "forms", None) or {}).get("3sg") or verb.lemma
@@ -486,6 +499,7 @@ class SentenceGenerator:
             # NOT gated on complexity: a transitive verb needs its object to
             # be grammatical at any sentence length.
             obj = None
+            obj_lemma = ""
             if _takes_object(verb):
                 obj_pool = [o for o in concrete if o.lemma != subj.lemma]
                 if obj_pool:
@@ -550,19 +564,22 @@ class SentenceGenerator:
             # the lemma: 'cakes' means what 'cake' means.
             obj_use_plural = False
             if obj is not None:
-                obj_plural_form = (getattr(obj, "forms", None)
-                                   or {}).get("plural")
+                obj_plural_form = _form(obj, "plural")
                 # Rate gate FIRST: at 0.0 no RNG draw may be consumed, or
                 # the "off" corpus is a different REALIZATION than the
                 # measured one (the off-switch lesson, in RNG form).
                 obj_use_plural = (OBJECT_PLURAL_RATE > 0
                                   and bool(obj_plural_form)
                                   and _rng.random() < OBJECT_PLURAL_RATE)
-                obj_surface = (obj_plural_form if obj_use_plural
-                               else obj.lemma)
+                obj_lemma = _lemma(obj)
+                obj_surface = (
+                    obj_plural_form
+                    if obj_use_plural and obj_plural_form is not None
+                    else obj_lemma
+                )
                 sent.extend([_choose_det(obj_surface, obj_use_plural),
                              obj_surface])
-                participants.append(self.scene_features(obj.lemma))
+                participants.append(self.scene_features(obj_lemma))
 
             # DITRANSITIVE: "the girl gives the ball to the boy". The third
             # participant is the transfer's RECIPIENT, causal slot 2 -> `goal`
@@ -576,7 +593,7 @@ class SentenceGenerator:
                     and complexity >= 4 and animate
                     and _feat(verb).get("ditransitive")):
                 rec_pool = [r for r in animate
-                            if r.lemma not in (subj_key, obj.lemma)]
+                            if r.lemma not in (subj_key, obj_lemma)]
                 if rec_pool:
                     rec = _rng.choice(rec_pool)
                     rfeats = self.scene_features(rec.lemma)
