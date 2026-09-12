@@ -6050,3 +6050,6 @@ vocabulary, and now passes the duplicate-literal scan.
 ### Hyperdimensional paired-data gate (2026-09-12)
 
 The legacy hyperdimensional calculus now uses strict pairing for unique-element counts, nonzero strengths, demo inputs, and sequence round trips. A malformed metadata sequence therefore raises instead of silently dropping entries. The focused contract suite passes **2 tests** and the B905 scan is clean.
+### Sparse synapse pairing gate (2026-09-12)
+
+`assign_synaptic_connections` now treats winner rows and input distributions as a total one-to-one relation. Mismatched lengths raise before any connectome copy or mutation, and the loop is strict. The sparse simulation, plasticity, and integration suites pass **42 tests**; the B905/F scan is clean.

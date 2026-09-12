@@ -319,11 +319,8 @@ class TestSparseSimulationExtremes(unittest.TestCase):
         conn = np.zeros((5, 3))
         input_sources = [np.array([2, 0, 1])]  # only one winner provided
         new_winners = [4, 3]  # two winners specified
-        updated = self.engine.assign_synaptic_connections(conn, input_sources, new_winners)
-        # Winner 4 gets assigned; winner 3 remains zero
-        self.assertEqual(updated[4, 0], 2)
-        self.assertEqual(updated[4, 2], 1)
-        self.assertTrue(np.all(updated[3, :] == 0))
+        with self.assertRaisesRegex(ValueError, "equal length"):
+            self.engine.assign_synaptic_connections(conn, input_sources, new_winners)
 
     def test_initialize_synapses_p_extremes(self):
         conn = np.zeros((6, 2), dtype=int)

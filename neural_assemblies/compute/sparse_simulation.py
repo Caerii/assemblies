@@ -236,10 +236,14 @@ class SparseSimulationEngine:
                 "assign_synaptic_connections does not sample background edges; "
                 "use the engine projection path for probabilistic initialization"
             )
+        if len(new_winner_indices) != len(input_sources):
+            raise ValueError(
+                "new_winner_indices and input_sources must have equal length"
+            )
         updated_connectome = connectome.copy()
 
         # Process each winner's input distribution
-        for winner_idx, input_distribution in zip(new_winner_indices, input_sources):
+        for winner_idx, input_distribution in zip(new_winner_indices, input_sources, strict=True):
             # Assign connections for this winner from all input sources
             for source_idx, strength in enumerate(input_distribution):
                 # Direct connection strength assignment
