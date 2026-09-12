@@ -10,7 +10,7 @@ import os
 import zlib
 
 import numpy as np
-from ..index_spaces import validated_indices, reserve_initial_neuron_ids
+from ..index_spaces import NeuronIds, validated_indices, reserve_initial_neuron_ids
 from typing import Any, Dict, List, Optional, Tuple, cast
 from collections import OrderedDict, defaultdict
 
@@ -2606,6 +2606,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs"""
+        if isinstance(winners, NeuronIds) and self.get_neuron_id_mapping(area):
+            raise TypeError("sparse engine winner inputs require compact indices")
         xp = self._xp
         st = self._areas[area]
         st.winners = validated_indices(winners, upper=st.n, label=f"{area} winners",

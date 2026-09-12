@@ -43,6 +43,7 @@ from .engine import (
     validate_engine_boolean_option,
 )
 from .registration import validate_round_count, validate_input_noise, validate_plasticity_rate, validate_area_registration, validate_stimulus_registration
+from .index_spaces import NeuronIds
 from ._homeostasis import (
     HomeostasisConfig,
     ScalingSpec,
@@ -1069,6 +1070,12 @@ class Brain:
         for name, winners in inputs.items():
             if name not in self.areas:
                 raise IndexError(f"Unknown winner input area {name!r}")
+            mapping = self._engine_for(self.areas[name]).get_neuron_id_mapping(name)
+            if isinstance(winners, NeuronIds) and mapping:
+                raise TypeError(
+                    f"{name} winner input requires compact indices; stable neuron "
+                    "IDs must be converted through the owning engine"
+                )
             validated[name] = validated_indices(to_cpu(winners), upper=self.areas[name].n,
                                                 label=f"{name} winners", unique=True)
         return validated

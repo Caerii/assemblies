@@ -45,7 +45,7 @@ from ..engine import (
     validate_deterministic_allocation,
     validate_engine_boolean_option,
 )
-from ..index_spaces import reserve_initial_neuron_ids
+from ..index_spaces import NeuronIds, reserve_initial_neuron_ids
 from ..registration import (validate_input_noise, validate_stimulus_registration,
                             validate_area_registration, validate_plasticity_rate)
 from ..semantics import (
@@ -1515,6 +1515,8 @@ class TorchSparseEngine(ComputeEngine):
         return st.winners.cpu().numpy().astype(np.uint32)
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
+        if isinstance(winners, NeuronIds) and self.get_neuron_id_mapping(area):
+            raise TypeError("torch sparse engine winner inputs require compact indices")
         st = self._areas[area]
         # torch_ops.tensor(uint32_array, dtype=int32, device=cuda) hits a slow
         # element-wise path -- uint32 is not a native torch dtype, so at large k

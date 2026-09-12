@@ -3,6 +3,7 @@ import numpy as np
 import pytest
 
 from neural_assemblies import Brain
+from neural_assemblies.core.index_spaces import NeuronIds
 
 
 @pytest.fixture(params=["numpy_sparse", "numpy_exact", "numpy_explicit"])
@@ -51,3 +52,13 @@ def test_valid_injection_and_clear(brain):
     np.testing.assert_array_equal(brain._engine.get_winners("A"), [0, 1])
     brain.project(external_inputs={"A": []}, projections={})
     assert len(brain._engine.get_winners("A")) == 0
+
+
+def test_stable_ids_cannot_be_laundered_through_public_sparse_injection():
+    brain = Brain(engine="numpy_sparse", p=.1, seed=51)
+    brain.add_area("A", 8, 2, .1)
+    brain.materialize_area("A")
+    brain.project(external_inputs={"A": [0, 1]}, projections={})
+    stable = NeuronIds(np.array([0, 1], dtype=np.uint32))
+    with pytest.raises(TypeError, match="compact indices"):
+        brain.project(external_inputs={"A": stable}, projections={})
