@@ -6271,3 +6271,7 @@ The lazy-import test now invokes an unknown export through `getattr`, making the
 ### Maintained test loop-binding gate (2026-09-12)
 
 Ruff's remaining B007 findings in maintained tests were replaced with `_` bindings where the iteration value was intentionally unused. The affected connectome, sequence, language, historical projection, and sparse-simulation tests pass **109 tests with 13 intentional sampled-recurrence warnings**; Ruff B007 is clean across `neural_assemblies/tests`.
+
+### Lazy API lint contract gate (2026-09-12)
+
+The unknown-export guard now keeps its attribute name in a variable, preserving an explicit dynamic lookup while satisfying Ruff's B009 rule against constant `getattr` calls. The lazy-import suite passes **12 tests** and Ruff B/F/E9 is clean.

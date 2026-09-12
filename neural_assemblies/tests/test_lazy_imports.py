@@ -75,8 +75,9 @@ def test_subpackages_are_reachable_as_attributes():
 
 def test_unknown_attribute_still_raises_attributeerror():
     """A typo must not be swallowed by the lazy path."""
+    unknown_name = "definitely_not_a_real_export"
     with pytest.raises(AttributeError, match="no attribute"):
-        getattr(neural_assemblies, "definitely_not_a_real_export")
+        getattr(neural_assemblies, unknown_name)
 
 
 def test_dir_lists_the_public_api():
