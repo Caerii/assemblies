@@ -6387,3 +6387,8 @@ Generalization parity now passes typed keyword arguments directly instead of con
 ### Batch training parser-type gate (2026-09-12)
 
 `BatchProjector` now declares the fully composed `EmergentParser` it actually requires, rather than the narrower `CoreParserMixin` that omitted methods supplied by the composed MRO. This removes a false static boundary and makes `_clear_role_activity` part of the correct parser surface. Pyright reports **0 diagnostics**; Ruff F/E9 and `git diff --check` are clean.
+
+### Compiled topology parser-surface gate (2026-09-12)
+
+Compiled topology sessions and topology-spec helpers now declare the fully composed EmergentParser they actually invoke. The previous CoreParserMixin annotation omitted compiled-mode and ring-management methods supplied by the composed MRO, producing six false static failures. Pyright reports 0 diagnostics for the module; Ruff F/E9 and git diff --check are clean.
+

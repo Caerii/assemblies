@@ -21,7 +21,7 @@ from dataclasses import dataclass, field
 from typing import TYPE_CHECKING, Dict, Iterator, Sequence, Tuple
 
 if TYPE_CHECKING:
-    from ..parser_mixins.core import CoreParserMixin
+    from ..parser import EmergentParser
 
 
 @dataclass(frozen=True)
@@ -39,7 +39,7 @@ class CompiledTopologySpec:
 class CompiledTopologySession:
     """Context manager: enable freeze + ring + compiled projection on areas."""
 
-    def __init__(self, parser: "CoreParserMixin", spec: CompiledTopologySpec):
+    def __init__(self, parser: "EmergentParser", spec: CompiledTopologySpec):
         self._parser = parser
         self._spec = spec
         self._entered = False
@@ -76,7 +76,7 @@ class CompiledTopologySession:
 
 @contextmanager
 def compiled_topology(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     spec: CompiledTopologySpec,
 ) -> Iterator[CompiledTopologySession]:
     """Functional wrapper around :class:`CompiledTopologySession`."""
@@ -85,7 +85,7 @@ def compiled_topology(
         yield session
 
 
-def prediction_topology_spec(parser: "CoreParserMixin") -> CompiledTopologySpec:
+def prediction_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
     """Spec for PREDICTION lexicon build after pregrow."""
     from ..core.areas import PREDICTION
 
@@ -102,7 +102,7 @@ def prediction_topology_spec(parser: "CoreParserMixin") -> CompiledTopologySpec:
     )
 
 
-def bridge_topology_spec(parser: "CoreParserMixin") -> CompiledTopologySpec:
+def bridge_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
     """Spec for CONTEXT/PREDICTION bridge training after pregrow."""
     from ..core.areas import CONTEXT, PREDICTION
 
@@ -122,7 +122,7 @@ def bridge_topology_spec(parser: "CoreParserMixin") -> CompiledTopologySpec:
     )
 
 
-def role_topology_spec(parser: "CoreParserMixin") -> CompiledTopologySpec:
+def role_topology_spec(parser: "EmergentParser") -> CompiledTopologySpec:
     """Spec for ROLE_AGENT / ROLE_PATIENT unsupervised training."""
     from ..core.areas import ROLE_AGENT, ROLE_PATIENT
 
@@ -137,7 +137,7 @@ def role_topology_spec(parser: "CoreParserMixin") -> CompiledTopologySpec:
 
 
 def lexicon_topology_spec(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     core_areas: Sequence[str],
 ) -> CompiledTopologySpec:
     """Spec for core-area lexicon training after pregrow."""
@@ -151,7 +151,7 @@ def lexicon_topology_spec(
     return CompiledTopologySpec(areas=areas, ring_capacity=ring)
 
 
-def link_bridge_topology_legacy(parser: "CoreParserMixin") -> CompiledTopologySpec:
+def link_bridge_topology_legacy(parser: "EmergentParser") -> CompiledTopologySpec:
     """Backward-compatible alias; prefer ``topology_linker.link_bridge_topology``."""
     from ..training.linker import link_preallocate_stim_targets
 
