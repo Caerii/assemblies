@@ -2679,3 +2679,9 @@ Input-drive measurement is now a named contract rather than an incidental helper
 Binding strength is now a named observation protocol in the contract graph. The compatibility name bind_strength and the descriptive binding_strength alias share one implementation and one stable-neuron-ID readout contract, so callers can compose it without confusing score, drive, and binding-write semantics.
 
 The temporal context bridge now has a first-class contract: CONTEXT_ACCUMULATION_CONTRACT describes ordered word-step inputs, phonological versus lexicon-grounded sources, recurrence rounds, mutation, and final context snapshot. This makes context construction composable with the other Assembly Calculus schedules and catches malformed topology before the first step.
+
+The latest semantic boundary is the incremental context primitive. `accumulate_context_step`
+is now governed by `ContextAccumulationStepPlan`/`CONTEXT_STEP_CONTRACT`, with a
+source-linked semantic card and a true-negative missing-source test. The batched
+and one-step paths therefore share admission rules before backend mutation.
+Focused validation is 183 passed; Ruff and the maintained evidence check pass.

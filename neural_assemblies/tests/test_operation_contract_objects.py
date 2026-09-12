@@ -420,7 +420,7 @@ def test_registry_and_public_callable_cannot_drift():
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
     from neural_assemblies.assembly_calculus.binding import bind as source_bind, binding_strength, input_drive, recall
-    from neural_assemblies.assembly_calculus.consolidation import accumulate_context, consolidate
+    from neural_assemblies.assembly_calculus.consolidation import accumulate_context, accumulate_context_step, consolidate
 
     names = {
         "projection": "project",
@@ -434,6 +434,7 @@ def test_registry_and_public_callable_cannot_drift():
                      recall if name == "binding_recall" else
                      input_drive if name == "input_drive" else
                      binding_strength if name == "binding_strength" else
+                     accumulate_context_step if name == "accumulate_context_step" else
                      accumulate_context if name == "accumulate_context" else
                      consolidate if name == "consolidate" else getattr(
             operations, names.get(name, name),

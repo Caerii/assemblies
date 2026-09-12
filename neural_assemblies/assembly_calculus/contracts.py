@@ -682,6 +682,42 @@ class ContextAccumulationPlan:
                     raise ValueError("context accumulation core assembly belongs to another area")
 
 
+@dataclass(frozen=True)
+class ContextAccumulationStepPlan:
+    """Immutable one-word context transition schedule."""
+
+    core_area: str
+    context_area: str
+    phon: str | None = None
+    core_assembly: Assembly | None = None
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        _require_name("core_area", self.core_area)
+        _require_name("context_area", self.context_area)
+        if self.core_area == self.context_area:
+            raise ValueError("context step requires distinct core and context areas")
+        if self.phon is not None and (not isinstance(self.phon, str) or not self.phon):
+            raise ValueError("context step phon must be a nonempty stimulus name or None")
+        if self.core_assembly is not None:
+            if not isinstance(self.core_assembly, Assembly):
+                raise TypeError("context step core_assembly must be an Assembly or None")
+            if self.core_assembly.area != self.core_area:
+                raise ValueError("context step core_assembly belongs to another area")
+        if self.phon is not None and self.core_assembly is not None:
+            raise ValueError("context step requires exactly one source representation")
+        if self.phon is None and self.core_assembly is None:
+            raise ValueError("context step requires phon or core_assembly")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        for label, area in (("core", self.core_area), ("context", self.context_area)):
+            if area not in brain.areas:
+                raise KeyError(f"context step {label} area is unknown: {area!r}")
+        if self.core_assembly is None and self.phon not in brain.stimuli:
+            raise KeyError(f"context step stimulus is unknown: {self.phon!r}")
+
+
 _COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
 
 
@@ -1413,6 +1449,27 @@ CONTEXT_ACCUMULATION_CONTRACT = OperationContract(
 )
 
 
+CONTEXT_STEP_CONTRACT = OperationContract(
+    operation_id="context-accumulation-step-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-accumulation-step",
+    plan_type=ContextAccumulationStepPlan,
+    inputs=("brain", "phon", "core_area", "context_area", "core_assembly", "rounds"),
+    reads=("phonological stimulus or core snapshot", "core/context winners", "context recurrence"),
+    mutates=("core/context winners", "core-to-context weights", "engine history"),
+    regime=("exactly one source representation", "distinct core and context areas", "fixed round budget"),
+    observed_outcome=("post-step context Assembly snapshot",),
+    failure_conditions=("missing source", "unknown topology", "snapshot/area mismatch", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_matches_manual_steps",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_step_rejects_missing_source",
+    ),
+)
+
+
 OPERATION_CONTRACTS = MappingProxyType({
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
@@ -1432,6 +1489,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "consolidate_pair": CONSOLIDATION_CONTRACT,
     "consolidate": CONSOLIDATION_PROTOCOL_CONTRACT,
     "accumulate_context": CONTEXT_ACCUMULATION_CONTRACT,
+    "accumulate_context_step": CONTEXT_STEP_CONTRACT,
     "learn_assembly": CONVERGENCE_CONTRACT,
     "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
 })

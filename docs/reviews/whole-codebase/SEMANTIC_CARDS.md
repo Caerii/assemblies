@@ -565,6 +565,47 @@ of candidates over which the summed drive was measured.
 
 <a id="contract-context-observation"></a>
 
+<a id="contract-context-accumulation"></a>
+
+## Context accumulation: ordered prefix construction
+
+Code: `consolidation.accumulate_context` and
+`consolidation.accumulate_context_step`.
+
+- **Reads:** an ordered phonological stimulus/core-area schedule, optional
+  stabilized core snapshots, and the core/context winner state.
+- **Mutates:** core and context activity, recruitment, core-to-context and
+  context-recurrent weights, and engine history during each step.
+- **Schedule:** each word is projected into its core (unless a supplied
+  snapshot is injected), then projected into context with context recurrence
+  for the declared number of rounds. The order is semantically significant.
+- **Returns:** the final context `Assembly` snapshot; it is a state result,
+  not a claim that a readout recovers the next token.
+- **Rejects before mutation:** an empty schedule, unknown areas or stimuli,
+  mismatched snapshot areas, missing/duplicate source representations, and
+  invalid round counts.
+- **Controls:** `test_accumulate_context_matches_manual_steps` constructs the
+  batched/manual equivalence; `test_accumulate_context_step_rejects_missing_source`
+  is the true negative for the formerly silent no-op source choice.
+
+The one-step primitive is public because callers such as prediction and bridge
+training need incremental state. Both entry points now share the same immutable
+plan validation, so direct use cannot bypass the batched operation's topology
+and source-choice contract.
+
+<a id="contract-context-accumulation-step"></a>
+
+## Context accumulation step: one transition
+
+`ContextAccumulationStepPlan` is the executable contract for one word. It
+requires exactly one of a named phon stimulus or a core `Assembly` snapshot,
+distinct core/context areas, and positive rounds. Its preflight resolves both
+areas and the stimulus before any activation or projection. The implementation
+then performs the same source activation, core-to-context drive, and recurrent
+context schedule used by the whole-sentence operation and returns a context
+snapshot. The true-negative missing-source test ensures an omitted source
+cannot degrade into a context-only update.
+
 ## CONTEXT: construction versus prefix observation
 
 Code: `IncrementalMixin.build_context_incremental`, `_reset_context_state`,

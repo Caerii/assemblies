@@ -50,6 +50,27 @@ def test_accumulate_context_rejects_empty_schedule():
         ContextAccumulationPlan((), "CONTEXT")
 
 
+def test_accumulate_context_step_rejects_missing_source():
+    with pytest.raises(ValueError, match="requires phon or core_assembly"):
+        accumulate_context_step(
+            _minimal_brain(),
+            core_area=NOUN_CORE,
+            context_area=ROLE_AGENT,
+        )
+
+
+def test_accumulate_context_step_rejects_ambiguous_source():
+    brain = _minimal_brain()
+    with pytest.raises(ValueError, match="exactly one source"):
+        accumulate_context_step(
+            brain,
+            phon="phon_dog",
+            core_area=NOUN_CORE,
+            context_area=ROLE_AGENT,
+            core_assembly=_snap(brain, NOUN_CORE),
+        )
+
+
 def _minimal_brain(seed=SEED):
     brain = Brain(p=P, save_winners=True, seed=seed, engine="numpy_sparse")
     brain.add_stimulus("phon_dog", K)

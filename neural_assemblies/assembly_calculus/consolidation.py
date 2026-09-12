@@ -44,8 +44,10 @@ from .assembly import Assembly
 from .ops import _fix, _snap, _unfix, activate_assembly, merge, project
 from .contracts import (
     CONTEXT_ACCUMULATION_CONTRACT,
+    CONTEXT_STEP_CONTRACT,
     CONSOLIDATION_PROTOCOL_CONTRACT,
     ContextAccumulationPlan,
+    ContextAccumulationStepPlan,
     ConsolidationProtocolPlan,
     implements,
 )
@@ -359,6 +361,7 @@ def consolidate(
 # Context accumulation (incremental prefix assembly)
 # ---------------------------------------------------------------------------
 
+@implements(CONTEXT_STEP_CONTRACT)
 def accumulate_context_step(
     brain,
     *,
@@ -390,7 +393,22 @@ def accumulate_context_step(
 
     Returns:
         Snapshot of the context assembly after this step.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-accumulation-step
     """
+    plan = ContextAccumulationStepPlan(
+        core_area=core_area,
+        context_area=context_area,
+        phon=phon,
+        core_assembly=core_assembly,
+        rounds=rounds,
+    )
+    plan.preflight(brain)
+    core_area = plan.core_area
+    context_area = plan.context_area
+    phon = plan.phon
+    core_assembly = plan.core_assembly
+    rounds = plan.rounds
     if core_assembly is not None:
         if core_assembly.area != core_area:
             raise ValueError(

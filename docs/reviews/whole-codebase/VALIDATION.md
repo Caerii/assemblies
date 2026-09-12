@@ -4940,3 +4940,14 @@ Exported both bind_strength (compatibility) and binding_strength (descriptive ca
 ## Context accumulation contract (2026-09-11)
 
 Added ContextAccumulationPlan and CONTEXT_ACCUMULATION_CONTRACT for the word-to-context bridge. Ordered steps, optional core snapshots, topology, and round budget are validated before accumulation; malformed or empty schedules cannot partially mutate the brain. Source docstring, semantic card, public exports, registry, and decorator/source-link ratchets are aligned. Focused tests pass (182), Ruff is clean.
+
+## Context accumulation step contract (2026-09-11)
+
+The public one-word `accumulate_context_step` primitive now has its own
+`ContextAccumulationStepPlan` and `CONTEXT_STEP_CONTRACT`. It validates exactly
+one source representation, distinct topology, stimulus membership, snapshot
+ownership, and positive rounds before activation or projection. The source
+docstring, semantic card, public exports, registry, and decorator ratchet are
+linked. A missing-source true negative protects against accidental context-only
+updates. Focused consolidation/contract/lazy-import tests pass: **183 passed**;
+Ruff and `python -m research.evidence check` are clean.
