@@ -8,6 +8,8 @@ import time
 from pathlib import Path
 from typing import Any
 
+from neural_assemblies.ir.protocol import write_json_document
+
 from .executors import EXECUTORS, RetractedProtocol, verify_against_golden
 from .protocol import Protocol, ProtocolResult
 from .registry import get_protocol, get_protocol_by_claim, resolve_golden_path
@@ -236,9 +238,6 @@ def run_claim(claim_id: str, **kwargs: Any) -> ProtocolResult:
 
 
 def write_manifest(result: ProtocolResult, path: str | Path) -> None:
-    path = Path(path)
-    path.parent.mkdir(parents=True, exist_ok=True)
     # A parity manifest is evidence, so replacing an existing file would erase
     # the provenance of an earlier run.  Callers must choose a new path/tag.
-    with path.open("x", encoding="utf-8") as stream:
-        stream.write(json.dumps(result.to_manifest(), indent=2) + "\n")
+    write_json_document(path, result.to_manifest())

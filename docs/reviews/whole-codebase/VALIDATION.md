@@ -6239,3 +6239,7 @@ The partitioned non-slow slice 1980:2120 passed **139 tests with 1 expected xfai
 ### Cross-language export create-only gate (2026-09-12)
 
 The cross-language PNAS scaling exporter now uses the canonical create-only IR writer. Its regression stubs the executor, validates the exported document, asserts deterministic finite JSON bytes, and proves a second export cannot overwrite the artifact. The combined IR/wire gate passes **58 tests with 1 expected Julia skip**; focused Ruff F/E9 checks are clean.
+
+### Parity manifest serialization gate (2026-09-12)
+
+Parity manifests now share the IR writer's finite, canonical, create-only JSON boundary while retaining their existing overwrite regression. The focused parity manifest test passes **1 test** and Ruff F/E9 checks are clean.
