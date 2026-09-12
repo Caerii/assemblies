@@ -6,6 +6,7 @@ from .protocol import (
     export_protocol_document,
     load_protocol_document,
     validate_protocol_document,
+    write_json_document,
 )
 
 __all__ = [
@@ -15,4 +16,5 @@ __all__ = [
     "load_protocol_document",
     "validate_explicit_round_document",
     "validate_protocol_document",
+    "write_json_document",
 ]

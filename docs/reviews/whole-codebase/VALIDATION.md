@@ -6195,3 +6195,7 @@ The parameterized PNAS claims recorder now writes its optional JSON output throu
 ### Parity recorder lint gate (2026-09-12)
 
 The parity recorder package now passes Ruff F checks with no unused imports, unresolved names, or dead f-strings. The PNAS claims recorder compiles after its create-only writer migration.
+
+### Canonical CLI JSON boundary (2026-09-12)
+
+Added `neural_assemblies.ir.write_json_document` and exported it from the IR package. MNIST evidence, geometry, regeneration, and cross-domain profile CLIs now share create-only canonical JSON serialization. The helper contract passes finite-number rejection, deterministic key ordering, and duplicate-write refusal checks; focused Ruff F/E9 and `git diff --check` are clean.

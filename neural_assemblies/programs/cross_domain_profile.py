@@ -7,6 +7,8 @@ and tie-break utility to identify information bottlenecks gating performance.
 
 from __future__ import annotations
 
+from neural_assemblies.ir.protocol import write_json_document
+
 from dataclasses import asdict, dataclass, field
 from typing import Any, Callable
 
@@ -443,7 +445,6 @@ def _build_narrative(
 
 def main() -> None:
     import argparse
-    import json
 
     parser = argparse.ArgumentParser(description="Profile cross-domain fusion bottlenecks")
     parser.add_argument("--seed", type=int, default=42)
@@ -454,9 +455,7 @@ def main() -> None:
     profile = profile_cross_domain_hub(seed=args.seed, n_examples=args.n_examples)
     print(profile.narrative)
     if args.export:
-        with open(args.export, "w", encoding="utf-8") as f:
-            json.dump(profile.to_dict(), f, indent=2)
-            f.write("\n")
+        write_json_document(args.export, profile.to_dict())
         print(f"Wrote {args.export}")
 
 

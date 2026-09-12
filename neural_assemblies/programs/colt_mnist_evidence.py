@@ -14,7 +14,8 @@ Usage::
 
 from __future__ import annotations
 
-import json
+from neural_assemblies.ir.protocol import write_json_document
+
 from dataclasses import asdict, dataclass, field
 from datetime import datetime, timezone
 from typing import Any
@@ -586,9 +587,7 @@ def _build_narrative(rows: list[EvidenceRow], checks: dict[str, bool]) -> str:
 
 def export_evidence_json(path: str, report: EvidenceReport) -> None:
     """Write evidence report to JSON for parity / documentation."""
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(report.to_dict(), f, indent=2)
-        f.write("\n")
+    write_json_document(path, report.to_dict())
 
 
 def export_evidence_golden(path: str, *, seed: int = 42, n_examples: int = 50) -> EvidenceReport:
@@ -610,9 +609,7 @@ def export_evidence_golden(path: str, *, seed: int = 42, n_examples: int = 50) -
             },
         },
     }
-    with open(path, "w", encoding="utf-8") as f:
-        json.dump(golden, f, indent=2)
-        f.write("\n")
+    write_json_document(path, golden)
     return report
 
 

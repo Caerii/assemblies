@@ -8,6 +8,8 @@ and occlusion recovery.  Used to gate cross-modal binding (H6).
 
 from __future__ import annotations
 
+from neural_assemblies.ir.protocol import write_json_document
+
 from dataclasses import asdict, dataclass, field
 from typing import Any
 
@@ -278,7 +280,6 @@ def _build_narrative(
 
 def main() -> None:
     import argparse
-    import json
 
     parser = argparse.ArgumentParser(description="Phase I geometry panel")
     parser.add_argument("--seed", type=int, default=42)
@@ -289,9 +290,7 @@ def main() -> None:
     panel = run_geometry_panel(seed=args.seed, n_examples=args.n_examples)
     print(panel.narrative)
     if args.export:
-        with open(args.export, "w", encoding="utf-8") as f:
-            json.dump(panel.to_dict(), f, indent=2)
-            f.write("\n")
+        write_json_document(args.export, panel.to_dict())
 
 
 if __name__ == "__main__":

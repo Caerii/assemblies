@@ -89,6 +89,26 @@ def export_protocol_document(
     return doc
 
 
+def write_json_document(path: str | Path, document: dict[str, Any]) -> None:
+    """Write a canonical JSON report without replacing an existing file.
+
+    Reports own their schema; this helper owns finite JSON encoding and the
+    create-only filesystem boundary. Protocol-shaped documents should use
+    :func:`write_protocol_document` for schema validation as well.
+    """
+    if not isinstance(document, dict):
+        raise TypeError("JSON documents must be mappings")
+    try:
+        text = json.dumps(document, indent=2, ensure_ascii=False,
+                          allow_nan=False, sort_keys=True) + "\n"
+    except (TypeError, ValueError, OverflowError) as exc:
+        raise ValueError(f"document is not finite JSON: {exc}") from exc
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    with path.open("x", encoding="utf-8") as stream:
+        stream.write(text)
+
+
 def write_protocol_document(path: str | Path, doc: dict[str, Any]) -> None:
     errors = validate_protocol_document(doc)
     if errors:
