@@ -6505,3 +6505,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Generation capability gate (2026-09-12)
 
 `GenerationMixin` now declares the neural state, lexical and role assembly stores, grounding and ordering metadata, and prediction/classification capabilities it consumes. This makes the comprehension-to-production boundary inspectable while retaining the existing symbolic ordering and neural reconstruction behavior. Pyright reports **0 diagnostics**; trained-order generation tests pass **5 tests**, with the intentional sampled-recurrence warnings preserved.
+
+### Lexicon training capability gate (2026-09-12)
+
+`LexiconTrainingMixin` now declares its Brain, stimulus, grounding, assembly-store, cache, and phonological registration surfaces. Compiler and topology calls are explicitly witnessed as full-parser capabilities, while the optional word subset is narrowed at the sequence boundary. Pyright reports **0 diagnostics**; parser composition tests pass **13 tests**, with the intentional sampled-recurrence warnings preserved.

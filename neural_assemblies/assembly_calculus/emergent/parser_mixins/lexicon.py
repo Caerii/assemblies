@@ -5,7 +5,9 @@ only their address is.
 """
 
 
-from typing import Dict, List, Optional, Set
+from typing import TYPE_CHECKING, Dict, List, Optional, Set, Sequence, cast
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
 from neural_assemblies.assembly_calculus.ops import _snap
 
 from ..core.areas import (
@@ -18,9 +20,26 @@ from ..core.grounding import GroundingContext
 from ..curriculum.data import GroundedSentence
 from ._shared import _MODALITY_FIELDS
 
+if TYPE_CHECKING:
+    from ..parser import EmergentParser
+    from ..training.compiled import CompiledTopologyParser
+
 
 class LexiconTrainingMixin:
     """Word forms into category areas: the first training stage."""
+
+    brain: Brain
+    k: int
+    rounds: int
+    fast_training: bool
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, GroundingContext]
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    _grounding_stim_names_set: Set[str]
+    _category_cache: Dict[str, str]
+
+    if TYPE_CHECKING:
+        def add_phon_stimulus(self, word: str) -> str: ...
 
     def _register_vocabulary(self, vocab: Dict[str, GroundingContext]):
         """Register all vocabulary words and their grounding stimuli."""
@@ -143,7 +162,7 @@ class LexiconTrainingMixin:
         from ..training.linker import link_lexicon_topology
 
         holdout = holdout_words or set()
-        batch = BatchProjector(self)
+        batch = BatchProjector(cast("EmergentParser", self))
 
         for core_area in CORE_AREAS:
             if core_area not in self.core_lexicons:
@@ -151,23 +170,27 @@ class LexiconTrainingMixin:
 
         compiled_enabled = getattr(self, "_compiled_training_enabled", True)
         plan = compile_lexicon_plan(
-            self,
+            cast("EmergentParser", self),
             holdout_words=holdout,
             skip_known=skip_known,
-            words=words,
+            words=cast(Optional[Sequence[str]], words),
         )
         if not plan.lexicon_ops:
             return
 
         if compiled_enabled:
-            link_lexicon_topology(self, plan)
-            plan.topology = lexicon_topology_spec(self, plan.core_areas)
+            link_lexicon_topology(cast("EmergentParser", self), plan)
+            plan.topology = lexicon_topology_spec(
+                cast("CompiledTopologyParser", self), plan.core_areas
+            )
             use_compiled = plan.topology.ready
             prev_fidelity = self.brain.projection_fidelity
             if self.fast_training and use_compiled:
                 self.brain.projection_fidelity = "compiled"
             try:
-                with compiled_topology(self, plan.topology):
+                with compiled_topology(
+                    cast("CompiledTopologyParser", self), plan.topology
+                ):
                     for op in plan.lexicon_ops:
                         ctx = self.word_grounding[op.word]
                         batch.apply_lexicon_word(
