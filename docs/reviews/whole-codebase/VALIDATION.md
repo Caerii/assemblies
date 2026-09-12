@@ -6199,3 +6199,7 @@ The parity recorder package now passes Ruff F checks with no unused imports, unr
 ### Canonical CLI JSON boundary (2026-09-12)
 
 Added `neural_assemblies.ir.write_json_document` and exported it from the IR package. MNIST evidence, geometry, regeneration, and cross-domain profile CLIs now share create-only canonical JSON serialization. The helper contract passes finite-number rejection, deterministic key ordering, and duplicate-write refusal checks; focused Ruff F/E9 and `git diff --check` are clean.
+
+### Canonical CLI writer integration gate (2026-09-12)
+
+The ventral evidence integration suite, covering the four migrated MNIST/profile programs, passed **17 tests with 2 optional skips in 574.03 seconds**. This confirms the serialization import path and program construction remain compatible; skips are dependency-gated.
