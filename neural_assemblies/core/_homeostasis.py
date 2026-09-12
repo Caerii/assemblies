@@ -291,7 +291,7 @@ def scaling_setpoint(rows: int, p: float) -> float:
     return max(float(rows) * float(p), 1e-12)
 
 
-def column_scale(sums, setpoint: float, *, xp: Any = None, eps: float = 1e-12):
+def column_scale(sums, setpoint: Any, *, xp: Any = None, eps: float = 1e-12):
     """Per-column factors that take ``sums`` to ``setpoint``: ``setpoint/sum``.
 
     A column whose summed mass is (numerically) zero is left at factor 1.0

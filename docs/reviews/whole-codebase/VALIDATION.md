@@ -6622,3 +6622,7 @@ eural_assemblies without eagerly importing the research stack. Lazy-import contr
 ## 2026-09-12 — sparse state and engine semantic types
 
 - Typed sparse area winners, neuron pools, refractory history, and cumulative bias as backend arrays/containers (Any at the NumPy/CuPy polymorphic boundary), and gave ComputeEngine.describe_model_semantics an explicit result type. Sparse static diagnostics reduced from 44 to 8; projection/connectome/materialization tests — 71 passed, 1 expected failure, 17 expected warnings.
+
+## 2026-09-12 â€” sparse operation boundary cleanup
+
+- Made sparse winner selection, virtual-weight access, candidate-stream bookkeeping, and homeostatic setpoints explicit at their backend boundaries. NumpySparseEngine Pyright: 0 diagnostics. Projection, cross-engine, CSR, fingerprint, conformance, and IR execution tests: 123 passed, 13 warnings in 30.17s. The full non-GPU suite was started but interrupted after unrelated long-running coverage; no result is claimed for that incomplete run.

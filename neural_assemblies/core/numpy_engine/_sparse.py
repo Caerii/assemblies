@@ -11,7 +11,7 @@ import zlib
 
 import numpy as np
 from ..index_spaces import validated_indices, reserve_initial_neuron_ids
-from typing import Dict, List, Optional, Tuple
+from typing import Any, Dict, List, Optional, Tuple, cast
 from collections import OrderedDict, defaultdict
 
 # `scipy.sparse` is imported ON FIRST USE via `scipy_sparse()`, not here --
@@ -1011,8 +1011,15 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         ):
             return self._winner_sel.heapq_select_top_k(inputs, tgt.k).tolist()
 
-        selected = self._winner_sel.select_with_policy(
-            inputs, policy, population_sigma=population_sigma)
+        # The selector requires a sigma only for sigma-window policies.  Keep
+        # the optional public parameter at this boundary, then narrow it
+        # explicitly instead of allowing an Unknown/None value to leak into
+        # the mathematical selection operation.
+        if population_sigma is None:
+            selected = self._winner_sel.select_with_policy(inputs, cast(Any, policy))
+        else:
+            selected = self._winner_sel.select_with_policy(
+                inputs, cast(Any, policy), population_sigma=float(population_sigma))
         return [int(i) for i in to_cpu(selected)]
 
     def _bootstrap_from_explicit_dense(
@@ -1043,7 +1050,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             ).astype(xp.float32)
 
         neuron_ids = self._winner_sel.select_with_policy(
-            act, tgt.winner_policy or TopKPolicy(k=tgt.k),
+            act, cast(Any, tgt.winner_policy or TopKPolicy(k=tgt.k)),
         )
         neuron_ids = [int(i) for i in to_cpu(neuron_ids)]
         compact = list(range(len(neuron_ids)))
@@ -1597,11 +1604,11 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                     # vector (the zero-signal check, total_activation) honest.
                     sub = _cand_cols[_cand_cols < col_end]
                     if len(sub) > 0:
-                        prev_winner_inputs[sub] += conn.weights[
+                        prev_winner_inputs[sub] += cast(Any, conn.weights)[
                             xp.ix_(internal, sub)].sum(axis=0)
                     continue
                 if contrib is None:
-                    contrib = conn.weights[internal, :col_end].sum(axis=0)
+                    contrib = cast(Any, conn.weights)[internal, :col_end].sum(axis=0)
                 nscale = self._norm_scale(
                     conn, self._areas[src_name].n,
                     self._areas[src_name].w, col_end,
@@ -1772,6 +1779,12 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                     ) if self.heterogeneous() else None
 
         draw_key = None
+        # These describe the stable candidate stream when recruitment is
+        # enabled.  Initialise them for the read-only branch as well so the
+        # state update below has one explicit, total control path.
+        fiber_sig = None
+        fiber_cur = {}
+        eff = 0.0
         if self._no_recruitment and tgt.w >= tgt.k:
             # A READ-ONLY probe answers "which of the neurons you already have
             # respond best?", so no candidates are offered and the area cannot
@@ -1999,7 +2012,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
         # nothing was recruited, because `fiber_cur` is what the NEXT round
         # measures rho against, and leaving it stale prices that round as if
         # this round's drift had not happened.
-        if draw_key is not None:
+        if draw_key is not None and fiber_sig is not None:
             if num_first > 0:
                 self._key_recruited[draw_key] = (
                     self._key_recruited.get(draw_key, 0) + num_first)
@@ -2394,7 +2407,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             # brain to 1/8 of its natural mass, while untouched columns kept
             # full mass -- inverting learning exactly like substrate B did.
             # Found by the substrate-C smoke run (every transition soft).
-            setpoint = scaling_setpoint(rows, self._p_for(src_name, target))
+            setpoint = float(scaling_setpoint(rows, self._p_for(src_name, target)))
             # RESEARCH KNOB, default "population" = the line above, unchanged.
             # "degree" restores neuron j to the mass IT started with rather
             # than to the mass an average neuron started with.
