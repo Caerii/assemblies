@@ -6945,3 +6945,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Package-level gate: `uv run pyright neural_assemblies/nemo/language/emergent/generation` analyzed 9 modules with 0 errors, 0 warnings, and 0 informational diagnostics after boundary cleanup.
 - 2026-09-12: Emergent parameter records now model unresolved k and optional sentence roles explicitly, with a runtime guard at max_learned. Focused Pyright: 0 errors.
 - 2026-09-12: Interactive grounding inference now writes to the actual `GroundingContext.properties` field (fixing a silent attribute mismatch) and explicitly types inferred optional roles. Focused Pyright: 0 errors.
+- 2026-09-12: Added regression coverage for adjective/adverb grounding inference (1 passed). Interactive package exports are lazy so importing GroundingInference remains CPU-safe without CuPy.

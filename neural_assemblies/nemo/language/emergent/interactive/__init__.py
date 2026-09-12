@@ -14,8 +14,22 @@ Key principles:
 
 from .dialogue import DialogueState, Turn
 from .grounding import GroundingInference
-from .response import ResponseGenerator
-from .interactive_learner import InteractiveLearner
+
+_LAZY_EXPORTS = {
+    "ResponseGenerator": (".response", "ResponseGenerator"),
+    "InteractiveLearner": (".interactive_learner", "InteractiveLearner"),
+}
+
+
+def __getattr__(name: str):
+    target = _LAZY_EXPORTS.get(name)
+    if target is None:
+        raise AttributeError(f"module {__name__!r} has no attribute {name!r}")
+    from importlib import import_module
+
+    value = getattr(import_module(target[0], __name__), target[1])
+    globals()[name] = value
+    return value
 
 __all__ = [
     'DialogueState',
