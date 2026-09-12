@@ -7169,3 +7169,11 @@ The attractor training protocol now declares its actual seven-value return contr
 - Replaced shared untyped loader dictionaries with explicit seed, example count, capacity, and cache arguments across both push phases.
 - `uv run pyright neural_assemblies/programs/colt_mnist_ventral_push.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_ventral_push.py -q`: 2 passed in 40.78s.
+
+
+## 2026-09-12 ? COLT multiassembly sampling
+
+- Typed the sampled stimulus path and normalized union outputs to integer neuron arrays.
+- Raised the default seed count from two to three and reject fewer than three seeds, matching the repository measurement rule.
+- `uv run pyright neural_assemblies/programs/colt_multiassembly_numpy.py`: 0 errors.
+- Smoke protocol: two seeds rejected; three-seed small run completed with explicit result.
