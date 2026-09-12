@@ -18,6 +18,7 @@ class TorchOps(Protocol):
     sparse_coo: Any
     int64: Any
     int32: Any
+    bfloat16: Any
     float32: Any
     float64: Any
     bool: Any
@@ -29,6 +30,8 @@ class TorchOps(Protocol):
     topk: Callable[..., Any]
     sparse_csr_tensor: Callable[..., Any]
     sparse_coo_tensor: Callable[..., Any]
+    tensor: Callable[..., Any]
+    meshgrid: Callable[..., Any]
     empty: Callable[..., Any]
     ones: Callable[..., Any]
     zeros_like: Callable[..., Any]
