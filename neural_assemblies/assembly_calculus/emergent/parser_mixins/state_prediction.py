@@ -54,6 +54,7 @@ from neural_assemblies.assembly_calculus.ops import (
 from neural_assemblies.assembly_calculus.readout import readout_all
 
 from ..core.areas import CORE_AREAS, MOOD, OBJ, PREDICTION, SUBJ
+from neural_assemblies.core.brain import Brain
 
 if TYPE_CHECKING:
     from ..curriculum.data import GroundedSentence
@@ -62,7 +63,18 @@ if TYPE_CHECKING:
 class StatePredictionMixin:
     """Next-token prediction from a bounded syntactic + lexical state."""
 
+    brain: Brain
+    stim_map: Dict[str, str]
+    core_lexicons: Dict[str, Dict]
+    inference_rounds: int
     _state_pred_bootstrapped: bool = False
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
+        def classify_word_cached(self, word: str) -> Tuple[str, Dict[str, float]]: ...
+        def _bootstrap_prediction_connectivity(self) -> None: ...
+        def _ensure_prediction_lexicon(self) -> None: ...
+        def _clear_prediction_activity(self) -> None: ...
 
     def _bootstrap_state_paths(self) -> None:
         """Materialize the state -> PREDICTION connectomes once, plasticity off.

@@ -6481,3 +6481,7 @@ DialogueMixin now declares, under `TYPE_CHECKING`, the sibling methods it consum
 ### Dialogue compiler composition witness gate (2026-09-12)
 
 Dialogue compiler calls now record the full-parser composition invariant explicitly at the two compiler boundaries. Named casts preserve the strict `EmergentParser` compiler contract; they do not broaden helpers to `Any` or alter runtime behavior. DialogueMixin now reports **0 Pyright diagnostics**; dialogue tests pass **5 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Bounded state-prediction surface gate (2026-09-12)
+
+`StatePredictionMixin` now declares its shared runtime surface: brain, stimulus map, core lexicons, inference rounds, bootstrap state, and the sibling methods used for lexical activation and prediction cleanup. These declarations make the paper-faithful bounded-state path statically composable without changing its additive behavior. Pyright reports **0 diagnostics**; state-prediction tests pass **10 tests**, and `git diff --check` is clean.
