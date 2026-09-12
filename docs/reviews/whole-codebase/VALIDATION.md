@@ -5569,3 +5569,10 @@ through the canonical finite, exclusive writer. Its default/ablation/null
 arms, feature readouts, and output schema are unchanged; reruns cannot
 silently replace the evidence. Compilation, Ruff, and both result-writer
 ratchets pass: **2 passed**.
+### Per-seed PL attribution writer migration (2026-09-12)
+
+The registered per-seed PL attribution study now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its reference read,
+word-level collision analysis, cross-n comparison, and output schema are
+unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.
