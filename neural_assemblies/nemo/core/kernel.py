@@ -13,7 +13,12 @@ CUDA kernels for assembly operations:
 Based on implicit random connectivity (hash-based, no storage).
 """
 
-import cupy as cp
+import importlib
+from typing import Any
+
+# This module is GPU-only by design; keep the dependency explicit while
+# avoiding a static-import diagnostic in CPU development environments.
+cp: Any = importlib.import_module("cupy")
 
 # =============================================================================
 # KERNEL 1: Simple projection (single area)
