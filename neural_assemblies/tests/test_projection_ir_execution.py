@@ -64,9 +64,11 @@ def test_program_preflights_all_rounds_before_mutating(engine):
          ExplicitRound("T", ("missing",), False)),
     )
     before = engine._area_conns["S"]["T"].weights.copy()
+    before_winners = engine._areas["T"].winners.copy()
     with pytest.raises(ValueError, match="unregistered area"):
         program.execute(engine)
     np.testing.assert_array_equal(engine._area_conns["S"]["T"].weights, before)
+    np.testing.assert_array_equal(engine._areas["T"].winners, before_winners)
 
 
 @pytest.mark.parametrize("case", EXPLICIT_ROUND_CASES, ids=lambda case: case["name"])

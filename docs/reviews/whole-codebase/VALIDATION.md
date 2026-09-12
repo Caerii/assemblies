@@ -7530,3 +7530,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - `ExplicitProgram.execute` now validates every round before mutating the standalone engine, then executes through a validated internal path.
 - Added a constructed negative proving an invalid later round leaves earlier engine state unchanged.
 - Validation: projection IR tests passed (42 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 atomic IR admission coverage
+
+- Strengthened the invalid-later-round program test to assert both weights and winners remain unchanged, covering all mutation channels of the explicit engine.
+- Validation: projection IR suite passed (42 tests); `git diff --check` passed.
