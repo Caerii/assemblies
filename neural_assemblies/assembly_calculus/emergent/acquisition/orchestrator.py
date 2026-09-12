@@ -4,7 +4,8 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import warnings
-from typing import Dict, List, Optional, Set, TYPE_CHECKING
+from numbers import Real
+from typing import Dict, List, Mapping, Optional, Set, TYPE_CHECKING
 
 from .adaptive import AdaptiveHint, RemediationResult
 from .stage_gates import StageGateResult, evaluate_stage_gate, inter_stage_sleep
@@ -56,6 +57,15 @@ class AcquisitionReport:
     gate_results: List[StageGateResult] = field(default_factory=list)
     blocked_at_stage: Optional[str] = None
     final_generalization: Optional[Dict[str, object]] = None
+
+
+def _metric_float(metrics: Mapping[str, object], key: str,
+                  default: float = 0.0) -> float:
+    """Validate a reflection metric before it drives a recommendation."""
+    value = metrics.get(key, default)
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"acquisition metric {key!r} must be a real number")
+    return float(value)
 
 
 def reflect_after_stage(
@@ -128,9 +138,13 @@ def reflect_after_stage(
             hints.append(AdaptiveHint("remedial_pos"))
         try:
             decomp = decompose_holdout_classification(parser, holdout_map)
-            metrics["holdout_bootstrap"] = decomp["accuracy_bootstrapped"]
-            if decomp["accuracy_bootstrapped"] < 1.0:
-                for word, mode in decomp.get("failure_modes", {}).items():
+            holdout_bootstrap = _metric_float(decomp, "accuracy_bootstrapped")
+            metrics["holdout_bootstrap"] = holdout_bootstrap
+            if holdout_bootstrap < 1.0:
+                failure_modes = decomp.get("failure_modes", {})
+                if not isinstance(failure_modes, Mapping):
+                    raise TypeError("failure_modes must be a mapping")
+                for word, mode in failure_modes.items():
                     recs.append(f"holdout {word}: {mode}")
                     expected = holdout_map.get(word, "NOUN")
                     hints.append(
@@ -415,13 +429,17 @@ def run_developmental_acquisition(
                             "remedial_sentences": 0,
                             "skipped": "p600_not_ready",
                         }
-                    if wb.get("episodes", 0) > 0:
+                    episodes = _metric_float(wb, "episodes")
+                    assigned = wb.get("assigned", {})
+                    if not isinstance(assigned, Mapping):
+                        raise TypeError("wobbly assigned categories must be a mapping")
+                    if episodes > 0:
                         reflection.wobbly_bootstrap = wb
                         wobbly_bootstraps.append(wb)
-                        reflection.metrics["wobbly_episodes"] = float(wb["episodes"])
+                        reflection.metrics["wobbly_episodes"] = episodes
                         reflection.observations.append(
-                            f"wobbly-parse bootstrap: {wb['episodes']} episodes, "
-                            f"{len(wb.get('assigned', {}))} category commits",
+                            f"wobbly-parse bootstrap: {episodes:g} episodes, "
+                            f"{len(assigned)} category commits",
                         )
 
                 if gate.passed or not gate_enforcement:

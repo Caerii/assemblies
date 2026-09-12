@@ -6339,3 +6339,7 @@ The continual-learning stability boundary now validates evaluation metrics as re
 ### Acquisition stage-gate metric boundary (2026-09-12)
 
 Stage-gate evaluation now validates every externally produced metric before threshold comparison, covering novel composition, holdout bootstrap, and bridge top-five scores. This removes implicit `object` to `float` coercion at a scientific decision boundary. Pyright reports **0 diagnostics**; focused gate tests pass **4 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Acquisition orchestrator reflection boundary (2026-09-12)
+
+Reflection and wobbly-bootstrap outputs now validate numeric metrics and mapping-shaped detail before using them in recommendations or evidence rows. This removes implicit object arithmetic and unchecked `.items()`/`len()` calls at the curriculum orchestration boundary. Pyright reports **0 diagnostics**; focused acquisition reflection/gate tests pass **7 tests**, and Ruff F/E9 plus `git diff --check` are clean.
