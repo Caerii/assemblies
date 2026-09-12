@@ -6243,3 +6243,7 @@ The cross-language PNAS scaling exporter now uses the canonical create-only IR w
 ### Parity manifest serialization gate (2026-09-12)
 
 Parity manifests now share the IR writer's finite, canonical, create-only JSON boundary while retaining their existing overwrite regression. The focused parity manifest test passes **1 test** and Ruff F/E9 checks are clean.
+
+### Maintained production code-smell gate (2026-09-12)
+
+Removed unused loop bindings from maintained consolidation, language, acquisition, and sparse-engine paths, and replaced the decorator's constant `setattr` with direct contract assignment. The focused consolidation, language, and operation-contract suites pass **184 tests with 2 intentional sampled-recurrence warnings**; Ruff B007/B010/F/E9 checks on the changed files are clean.

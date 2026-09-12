@@ -155,7 +155,7 @@ def parseHelper(b, sentence, project_rounds, verbose, debug,
                     if verbose:
                         print("FIXED assembly bc not DEP_CLAUSE area in: " + area)
             b.area_by_name[DEP_CLAUSE].unfix_assembly()
-            for i in range(project_rounds):
+            for _ in range(project_rounds):
                 b.parse_project()
             if verbose:
                 print("Finished DEP_CLAUSE projecting")

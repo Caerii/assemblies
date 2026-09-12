@@ -297,7 +297,7 @@ def drop_stale_assemblies(parser) -> int:
         lexicons = getattr(parser, attr, None)
         if not isinstance(lexicons, dict):
             continue
-        for area, entries in lexicons.items():
+        for _area, entries in lexicons.items():
             if not isinstance(entries, dict):
                 continue
             stale = [w for w, asm in entries.items()

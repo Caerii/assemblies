@@ -135,7 +135,7 @@ def register_early_fuzzy_variants(
     mapping: Dict[str, List[str]] = {}
     targets = canonical_words or list(EARLY_FUZZY_LEMMAS)
 
-    for i, canonical in enumerate(targets):
+    for _i, canonical in enumerate(targets):
         if canonical not in parser.word_grounding and hasattr(parser, "auto_ground"):
             parser.register_word(canonical)
         variants = fuzzy_variants(canonical, max_variants=3)

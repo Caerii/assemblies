@@ -2623,7 +2623,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             return
         xp = self._xp
         n = self._areas[target].n
-        for stim_name, tgt_map in self._stim_conns.items():
+        for _stim_name, tgt_map in self._stim_conns.items():
             conn = tgt_map.get(target)
             if conn is None or not conn.sparse:
                 continue

@@ -103,7 +103,7 @@ class GroundedUtterance:
         }
         
         # Add properties
-        for obj, props in self.context.visual_properties.items():
+        for _obj, props in self.context.visual_properties.items():
             activations['VISUAL'].extend(props)
         
         return activations
