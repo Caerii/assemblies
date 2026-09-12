@@ -6128,3 +6128,6 @@ The ERP runner now completes whole-sentence category maps after early-stop probe
 ### Broad non-slow integration gate (2026-09-12)
 
 The corrected suite reached 16% without a failure after the earlier 474-test boundary, then stalled with no CPU or output progress across repeated live-process polls. It was stopped to release the test environment; this is partial evidence, not a suite pass. The targeted checkpoint cell and all focused contract suites remain the authoritative green gates.
+### Broad-gate stall localization (2026-09-12)
+
+Collection identified 3,910 runnable non-slow tests (144 deselected); the stalled 16% region is near `test_context_choice.py`. That module passes independently (**41 tests in 10.97 seconds**), so the broad stall is an order/resource interaction rather than a deterministic module failure. File-level gates remain the reliable continuation strategy until the suite can be partitioned or its shared resource is isolated.
