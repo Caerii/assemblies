@@ -7134,3 +7134,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Corrected `_fuse_visual_prediction`'s route payload annotation to include its measured float margin.
 - `uv run pyright neural_assemblies/programs/cross_domain_profile.py neural_assemblies/programs/cross_domain_assemblies.py`: 0 errors.
 - Focused `test_ventral_evidence.py` collection succeeded (19 tests). Runtime execution was stopped after the training-backed test exceeded the bounded audit window; no pass is claimed.
+
+
+## 2026-09-12 ? evidence-suite call contracts
+
+- Replaced ambiguous `**kw` expansion with explicit `seed` and `n_examples` arguments for shared bundle, merge, completion, and cross-domain training calls.
+- H9 evidence now fails loudly when a required merge or recurrent stream is absent instead of passing `None` into a numeric evidence row.
+- `uv run pyright neural_assemblies/programs/colt_mnist_evidence.py`: 0 errors.
