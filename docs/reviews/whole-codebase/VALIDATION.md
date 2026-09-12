@@ -7106,3 +7106,7 @@ Parser winner clearing now writes through Brain.engine_for(area_name) only. The 
 ## Duck-typed owner compatibility repair (2026-09-12)
 
 The full maintained gate exposed four contract-fixture failures after owner migration: lightweight Brain-like test doubles intentionally provide only the legacy resolver. esolve_area_engine now centralizes the narrow compatibility fallback while real Brain instances always use engine_for; Ops, PFA, and ERP adapters share it. Validation: coin-seed and ERP index-space suites 28 passed; Pyright on four changed modules reports 0 diagnostics.
+
+## Stochastic parity gate repair (2026-09-12)
+
+The full xdist gate exposed a contradiction in 	est_projection_parity: it allowed a one-winner stochastic count difference, then required equal sequence lengths with strict zip. The assertion now compares matched winners while preserving the count tolerance. Validation: the seed-sweep parity test passed twice; the full-gate failure was isolated to this test and no engine code changed.
