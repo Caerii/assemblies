@@ -245,6 +245,33 @@ Code: `core/torch_engine/_memory.py:AssemblyMemory`, `recurrent_fiber`;
 - **Control:** strength=0 with matched cue and readout, plus masked/net readout
   contrast. Preserve the distinction between representation and accessibility.
 
+<a id="diagnostic-refraction-wander"></a>
+
+## Historical diagnostic: refraction wander
+
+Code: `research/experiments/seq_refraction_wander.py` (`run`, `main`).
+
+- **State read:** hashed area winners and fill, recurrent and stimulus fiber
+  stores, refraction bias, and per-round winner history.
+- **Schedule:** one-round episodes for 240 rounds; the same mutable fibers and
+  area persist across episodes. At round 10 the current winners become the
+  reference. Consecutive-round overlap and reference overlap are then measured.
+- **Mutates:** area winners, recurrent/stimulus potentiation counters, and
+  refraction charges; optional area-driven and synaptic-scaling arms alter the
+  schedule further.
+- **Readout:** first round below 0.5 reference overlap, first suffix with
+  consecutive overlap at least 0.95, late mean overlap, and mean area fill.
+- **Claim/diff:** the registered wander claim is descriptive evidence about a
+  strength sweep. It does not identify a single operation contract, and the
+  source has no immutable result record. The 16-brain internal seed scheme
+  also conflicts with the shared runner's hashed-substrate minimum of 20.
+- **Disposition:** historical/diagnostic until its mixed arms are split into a
+  preregistered protocol with explicit seed identities, engine profile, and
+  immutable output. Do not cite a rerun as reproducing the registered number.
+- **True negative required for migration:** disable refraction at matched
+  strength and preserve the same recurrent schedule; the stability metric must
+  move before any wander mechanism is adopted.
+
 <a id="contract-transition-machine"></a>
 
 ## F: assigned-state transition machine

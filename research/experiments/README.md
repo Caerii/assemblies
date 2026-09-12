@@ -52,6 +52,16 @@ captured by a runner execution profile. They remain available for forensic
 reproduction only; migrate them after their backend identity and protocol
 inputs are made explicit.
 
+`seq_refraction_wander.py` is also intentionally outside the supported runner.
+It is a post-hoc GPU diagnostic rather than a reproducible registered study:
+the committed observation used 16 brains (while hashed study records require
+20 independent seeds), derives brain identities from an internal `42 + b`
+scheme instead of accepting runner seed identities, and mixes recurrent,
+feed-forward, and scaling audits in one mutable procedure. Migrating it as-is
+would change the protocol. Treat it as historical evidence until a
+preregistration splits those arms and specifies seed identities and an
+execution profile.
+
 ## Shared modules
 
 - `_substrate.py`: the measurement standards (ceiling from a curve, distinctness checks, seed handling).
