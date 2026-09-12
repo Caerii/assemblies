@@ -9,6 +9,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -68,11 +69,22 @@ def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-tests", action="store_true",
                         help="only run the maintained-source static gate")
+    parser.add_argument(
+        "--workers", default=os.environ.get("ASSEMBLIES_TEST_WORKERS", "auto"),
+        help="pytest-xdist worker count (default: ASSEMBLIES_TEST_WORKERS or auto)",
+    )
+    parser.add_argument(
+        "--serial", action="store_true",
+        help="disable xdist and run the test suite in one process",
+    )
     args = parser.parse_args()
 
     ok = check_pyright()
     if not args.skip_tests:
-        tests = run(["uv", "run", "pytest", "neural_assemblies/tests", "-q", "-m", "not slow"])
+        test_command = ["uv", "run", "pytest", "neural_assemblies/tests", "-q", "-m", "not slow"]
+        if not args.serial:
+            test_command[3:3] = ["-n", args.workers, "--dist", "loadfile"]
+        tests = run(test_command)
         ok = ok and tests.returncode == 0
     return 0 if ok else 1
 

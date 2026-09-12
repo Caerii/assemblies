@@ -7058,3 +7058,6 @@ Torch `set_winners` now validates dimensionality, integer type, range, and uniqu
 ## Full-gate compatibility repair after index-space tightening (2026-09-12)
 
 The repository-wide gate exposed three classes of fallout from stricter semantic boundaries. Historical noise injection now explicitly returns `CompactIdx` before mutating live Areas; the IR rejection test seeds malformed beta state directly so it still tests instruction preflight after runtime setters became fail-fast; and the shared policy validator uses an unquoted specification path accepted by the source-link checker. Validation: historical-noise suite 40 passed; IR execution plus specification-link suites 49 passed; `git diff --check` clean.
+## Parallel maintained test gate (2026-09-12)
+
+`verify_maintained.py` now runs the non-slow package suite with pytest-xdist by default (`-n auto --dist loadfile`), matching the repository's documented fast path. `--workers N` and `ASSEMBLIES_TEST_WORKERS` bound parallelism, while `--serial` preserves the one-process diagnostic path. The static gate remains unchanged. Validation: xdist smoke (`test_area.py` plus index-space tests) 11 passed in 13.23s; maintained Pyright gate 286 files, 0 diagnostics.
