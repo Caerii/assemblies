@@ -6493,3 +6493,7 @@ Dialogue compiler calls now record the full-parser composition invariant explici
 ### Parser composition contract gate (2026-09-12)
 
 The composition root now declares the stage methods it orchestrates (raw ingestion, morphology, prediction, word-order evidence, and readout), and the dynamic Brain option boundary is explicitly isolated at the constructor call. This removes an untyped conditional kwargs expansion from the scientific orchestration path and makes the cross-mixin schedule visible to static tooling. Pyright reports **0 diagnostics** for `core.py`; parser composition and emergent parser tests pass **166 tests with 1 existing xfail**. The expected sampled-recurrence warnings remain visible.
+
+### Phrase composition capability gate (2026-09-12)
+
+`PhraseStructureMixin` now declares the brain, stimulus map, training rounds, phrase store, and lexical core lookup it consumes. The phrase stage is therefore statically composable at its actual boundary instead of relying on implicit MRO knowledge. Pyright reports **0 diagnostics**; phrase composition tests pass **13 tests**, with the intentional sampled-recurrence warnings preserved.

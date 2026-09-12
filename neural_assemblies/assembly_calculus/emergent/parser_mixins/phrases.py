@@ -5,7 +5,7 @@ only their address is.
 """
 
 
-from typing import Dict, List
+from typing import TYPE_CHECKING, Dict, List
 from neural_assemblies.assembly_calculus.ops import project, merge, _snap
 
 from ..core.areas import (
@@ -13,6 +13,9 @@ from ..core.areas import (
 )
 from ..curriculum.data import GroundedSentence
 from ._shared import MERGE_ROUNDS
+
+if TYPE_CHECKING:
+    from neural_assemblies.core.brain import Brain
 
 
 #: Phrase area -> the core area that feeds it, mirroring the fibers
@@ -28,6 +31,14 @@ _PHRASE_SOURCES = {
 
 class PhraseStructureMixin:
     """Composing constituents into phrase assemblies."""
+
+    brain: "Brain"
+    stim_map: Dict[str, str]
+    rounds: int
+    vp_assemblies: Dict[str, object]
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
 
     _phrase_paths_bootstrapped: bool = False
 
