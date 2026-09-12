@@ -7052,3 +7052,6 @@ All NumPy and Torch engine `get_winners` implementations now preserve the `Compa
 ## Typed engine winner getter interface (2026-09-12)
 
 The abstract `ComputeEngine.get_winners` contract and all NumPy/Torch implementations now advertise `CompactIdx`, matching the runtime brand returned by each getter. Static callers therefore retain index-space information when composing directly with an engine. Validation: winner-injection, engine-parity, and index-space suites 76 passed; Pyright on the engine interface and four implementations 0 errors/warnings/information.
+## Winner setter validation parity (2026-09-12)
+
+Torch `set_winners` now validates dimensionality, integer type, range, and uniqueness before H2D conversion. NumPy sparse/exact/explicit setters normalize validated values to `CompactIdx`, so every backend stores the same semantic type. A true negative proves malformed Torch input cannot reach device state. Validation: winner-injection, index-space, and engine-parity suites 77 passed (Torch test skipped when CUDA unavailable); Pyright on the engine interface and four implementations 0 errors/warnings/information.

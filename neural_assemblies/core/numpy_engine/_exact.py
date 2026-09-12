@@ -1120,8 +1120,9 @@ class NumpyExactEngine(ComputeEngine):
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-winner-inputs"""
         st = self._areas[area]
-        st.winners = validated_indices(winners, upper=st.n, label=f"{area} winners",
-                                       xp=np, unique=True)
+        st.winners = CompactIdx(validated_indices(winners, upper=st.n,
+                                                  label=f"{area} winners",
+                                                  xp=np, unique=True))
         if st.winners.size:
             st.ever_fired[np.asarray(st.winners, dtype=np.int64)] = True
 

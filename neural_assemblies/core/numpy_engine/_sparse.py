@@ -2610,8 +2610,9 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
             raise TypeError("sparse engine winner inputs require compact indices")
         xp = self._xp
         st = self._areas[area]
-        st.winners = validated_indices(winners, upper=st.n, label=f"{area} winners",
-                                       xp=xp, unique=True)
+        st.winners = CompactIdx(validated_indices(winners, upper=st.n,
+                                                  label=f"{area} winners",
+                                                  xp=xp, unique=True))
 
     def get_num_ever_fired(self, area: str) -> int:
         return self._areas[area].w

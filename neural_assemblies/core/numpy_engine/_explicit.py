@@ -378,7 +378,7 @@ class NumpyExplicitEngine(ComputeEngine):
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-inputs"""
         ids = self._validated_winners(area, winners)
         st = self._areas[area]
-        st.winners = ids
+        st.winners = CompactIdx(ids)
         st.w = len(ids)
 
     def get_num_ever_fired(self, area: str) -> int:

@@ -45,7 +45,7 @@ from ..engine import (
     validate_deterministic_allocation,
     validate_engine_boolean_option,
 )
-from ..index_spaces import CompactIdx, NeuronIds, reserve_initial_neuron_ids
+from ..index_spaces import CompactIdx, NeuronIds, reserve_initial_neuron_ids, validated_indices
 from ..registration import (validate_input_noise, validate_stimulus_registration,
                             validate_area_registration, validate_plasticity_rate)
 from ..semantics import (
@@ -1523,7 +1523,8 @@ class TorchSparseEngine(ComputeEngine):
         # this dominated the whole projection (measured 32ms/round at k=100k).
         # Route through int64 (torch-native) so from_numpy is zero-copy, then a
         # single fused H2D + cast kernel.
-        arr = np.ascontiguousarray(winners, dtype=np.int64)
+        valid = validated_indices(winners, upper=st.n, label=f"{area} winners", unique=True)
+        arr = np.ascontiguousarray(valid, dtype=np.int64)
         st.winners = torch_ops.from_numpy(arr).to(
             self._device, dtype=torch_ops.int32, non_blocking=True)
 
