@@ -6688,3 +6688,8 @@ The primary hashed fiber implementation `_hashed.py` now uses the explicit `torc
 ## Torch memory boundary migration (2026-09-12)
 
 `_memory.py` now uses the shared `torch_ops` namespace for its runtime dtype boundary. Pyright and Ruff report zero diagnostics. Refracted-memory, hashed substrate, Torch parity, and hash-finalizer regressions pass **47 tests with 19 expected skips**. An audit of the full Torch engine package finds no remaining generated `torch` calls outside `torch_ops`; remaining direct references are intentional tensor annotations, type checks, or CUDA lifecycle operations.
+
+
+## Torch operator protocol type strengthening (2026-09-12)
+
+The shared `TorchOps` protocol now distinguishes tensor-returning factories/operators from structured-return operations and polymorphic sampling calls. This preserves static tensor flow without pretending to model `topk`, `sort`, or `unique_consecutive` results. Pyright and Ruff report zero diagnostics; the combined Torch/hashed parity suite passes **40 tests with 24 expected skips**.
