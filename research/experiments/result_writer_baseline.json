@@ -1,12 +1,6 @@
 {
   "direct_json_dump_sites": {
-    "research/experiments/applications/explore_agreement_params.py": 1,
-    "research/experiments/fetch_childes_brown.py": 1,
-    "research/experiments/primitives/explore_binding_params.py": 1,
-    "research/experiments/primitives/explore_composed_params.py": 1,
-    "research/experiments/primitives/explore_forward_prediction_params.py": 1,
-    "research/experiments/primitives/explore_role_discovery_params.py": 1,
-    "research/experiments/primitives/explore_self_org_params.py": 1
+    "research/experiments/fetch_childes_brown.py": 1
   },
   "direct_json_write_text_sites": {}
 }

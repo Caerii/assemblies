@@ -18,11 +18,12 @@ Usage:
 import sys
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import argparse
-import json
 from dataclasses import asdict
 from datetime import datetime
 
@@ -204,8 +205,7 @@ def main():
     suffix = "_quick" if args.quick else ""
     output_path = results_dir / f"role_discovery_exploration_{timestamp}{suffix}.json"
 
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2, default=str)
+    write_new_document(output_path, results)
 
     print(f"\nResults saved to {output_path}")
 

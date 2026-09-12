@@ -13,11 +13,12 @@ Usage:
 import sys
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import argparse
-import json
 from dataclasses import asdict
 from datetime import datetime
 
@@ -142,12 +143,12 @@ def main():
                f"{fmt(km['verb_inst_success'])}{fmt(km['verb_margin_success'])}")
         print(row)
 
-    print(f"\nLegend:")
-    print(f"  VerbI = Verb instability agree>gram (d, p)")
-    print(f"  VerbM = Verb margin gram>agree (d, p)")
-    print(f"  VPdst = Object VP distance cat>agree (d, p)")
-    print(f"  Inst? = Verb instability success")
-    print(f"  Marg? = Verb margin success")
+    print("\nLegend:")
+    print("  VerbI = Verb instability agree>gram (d, p)")
+    print("  VerbM = Verb margin gram>agree (d, p)")
+    print("  VPdst = Object VP distance cat>agree (d, p)")
+    print("  Inst? = Verb instability success")
+    print("  Marg? = Verb margin success")
 
     # Save full results
     results_dir = Path(__file__).parent.parent.parent / "results" / "applications"
@@ -156,8 +157,7 @@ def main():
     suffix = "_quick" if args.quick else ""
     output_path = results_dir / f"agreement_exploration_{timestamp}{suffix}.json"
 
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2, default=str)
+    write_new_document(output_path, results)
 
     print(f"\nFull results saved to {output_path}")
 

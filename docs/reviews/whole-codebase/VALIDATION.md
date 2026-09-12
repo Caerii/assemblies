@@ -5628,3 +5628,10 @@ and flush-rate studies, which intentionally support analyze-and-extend runs,
 now use atomic checkpoint replacement. The role-recipe extension likewise uses
 checkpoint semantics. No registered computation or output schema changed;
 Ruff, compilation, result-writer ratchets, and diff checks pass.
+
+### Exploratory writer and lint cleanup (2026-09-12)
+
+Application agreement and all five primitive parameter exploration scripts now
+use the canonical immutable writer for their timestamped artifacts. The
+migration also removed stale JSON-only imports and latent unused code exposed
+by linting. Ruff, compilation, result-writer ratchets, and diff checks pass.

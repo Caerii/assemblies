@@ -18,23 +18,20 @@ Usage:
 import sys
 from pathlib import Path
 
+from research.json_documents import write_new_document
+
 project_root = Path(__file__).parent.parent.parent.parent
 sys.path.insert(0, str(project_root))
 
 import argparse
-import json
 from dataclasses import asdict
 from datetime import datetime
 
 from research.experiments.primitives.test_area_self_organization import (
-    SelfOrganizationExperiment,
     SelfOrgConfig,
     get_ground_truth,
     compute_chance_purity,
     run_trial,
-    compute_purity,
-    compute_completeness,
-    build_contingency_table,
 )
 import numpy as np
 from research.experiments.base import summarize, ttest_vs_null
@@ -44,7 +41,6 @@ def run_sweep_point(label, cfg, n_seeds, base_seed=42):
     """Run one parameter configuration and return summary metrics."""
     ground_truth = get_ground_truth()
     chance_pur = compute_chance_purity(ground_truth, cfg.n_core_areas)
-    core_areas = [f"CORE_{i}" for i in range(cfg.n_core_areas)]
 
     purity_vals = []
     complete_vals = []
@@ -180,8 +176,7 @@ def main():
     suffix = "_quick" if args.quick else ""
     output_path = results_dir / f"self_org_exploration_{timestamp}{suffix}.json"
 
-    with open(output_path, "w") as f:
-        json.dump(results, f, indent=2, default=str)
+    write_new_document(output_path, results)
 
     print(f"\nResults saved to {output_path}")
 
