@@ -7122,3 +7122,7 @@ The post-repair maintained gate is green: 3,830 passed, 141 skipped, 8 xfailed, 
 ## Legacy program typing cleanup (2026-09-12)
 
 The explicit-owner API migration exposed latent Pyright failures in Tier A and patch-merge helpers. Optional teacher data is now narrowed before indexing, patch-merge's typed parameters are passed explicitly, and the fuzzy digit reducer uses a typed key function. Validation: Pyright on the two legacy programs reports 0 diagnostics; patch-merge and reinforcement suites 26 passed in 185.76s.
+
+## Attractor program typing (2026-09-12)
+
+The attractor training protocol now declares its actual seven-value return contract, narrows the Brain returned by the legacy bundle builder, and uses a typed fuzzy-readout key function. Validation: Pyright on `colt_mnist_attractor.py` reports 0 diagnostics.
