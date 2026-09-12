@@ -6465,3 +6465,7 @@ The composition root now declares the lazy evidence stores shared by acquisition
 ### Centralized optional distributional boundary gate (2026-09-12)
 
 POS inference now routes bootstrap and decomposition through `_distributional_scores`, a single guarded capability adapter for the optional distributional classifier. This removes duplicated `getattr`/cast logic and ensures absent distributional support has the same `UNKNOWN`/empty-score behavior everywhere. Pyright diagnostics dropped from **12 to 8**; classification evidence tests pass **23 tests**, and `git diff --check` is clean.
+
+### POS inference score and aggregation completion gate (2026-09-12)
+
+The POS inference module now has no remaining Pyright diagnostics. Aggregate accuracies count only explicit `True` outcomes, bootstrap summaries round only numeric category scores, and frame category lookup narrows optional mappings before indexing. These changes complete the local score/provenance and evidence-domain cleanup without changing the compatibility result shape. Classification evidence tests pass **23 tests**, Pyright reports **0 diagnostics**, and `git diff --check` is clean.

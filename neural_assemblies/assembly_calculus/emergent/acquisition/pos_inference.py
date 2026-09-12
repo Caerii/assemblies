@@ -253,7 +253,9 @@ def _frame_pos_scores(
     if not frame_cat or frame_conf <= 0:
         return {}
 
-    category = CORE_TO_CATEGORY.get(FUNC_SUBCAT_TO_CORE.get(frame_cat), frame_cat)
+    frame_category = str(frame_cat)
+    core = FUNC_SUBCAT_TO_CORE.get(frame_category)
+    category = CORE_TO_CATEGORY.get(core, frame_category) if core else frame_category
     if category in CORE_TO_CATEGORY.values():
         return {category: frame_conf}
     return {}
@@ -655,12 +657,18 @@ def decompose_holdout_classification(
     n = len(per_word)
     return {
         "per_word": per_word,
-        "accuracy_neural": sum(v["correct_neural"] for v in per_word.values()) / n,
+        "accuracy_neural": sum(
+            1 for value in per_word.values() if value.get("correct_neural") is True
+        ) / n,
         "accuracy_distributional": sum(
-            v["correct_distributional"] for v in per_word.values()
+            1
+            for value in per_word.values()
+            if value.get("correct_distributional") is True
         ) / n,
         "accuracy_bootstrapped": sum(
-            v["correct_bootstrapped"] for v in per_word.values()
+            1
+            for value in per_word.values()
+            if value.get("correct_bootstrapped") is True
         ) / n,
         "failure_modes": {
             w: v["failure_mode"] for w, v in per_word.items() if not v["correct_bootstrapped"]
