@@ -67,6 +67,7 @@ from .training import (
 if TYPE_CHECKING:
     from .evaluation.erp.calibration import ErpCalibrationReport
     from .evaluation.erp.gates import ErpBaseline, ErpThresholds
+    from .acquisition.wobbly.memory import WobblyMemory
 
 
 class EmergentParser(
@@ -93,6 +94,7 @@ class EmergentParser(
     _erp_baseline: Optional["ErpBaseline"]
     _erp_report: Optional["ErpCalibrationReport"]
     _fresh_integration_cache: Dict[tuple[str, str], float]
+    _wobbly_memory: Optional["WobblyMemory"]
 
 
 __all__ = [

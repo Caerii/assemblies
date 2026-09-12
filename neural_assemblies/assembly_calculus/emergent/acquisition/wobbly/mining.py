@@ -33,10 +33,11 @@ def mine_wobbly_episodes(
     from ...evaluation.erp.probe_util import critical_probe_measure_fn
 
     mem = memory if memory is not None else WobblyMemory()
-    if not hasattr(parser, "_wobbly_memory"):
+    stored = getattr(parser, "_wobbly_memory", None)
+    if stored is None:
         parser._wobbly_memory = mem
     else:
-        mem = parser._wobbly_memory
+        mem = stored
 
     readiness = assess_erp_readiness(parser)
     if not readiness.any_ready:
