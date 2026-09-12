@@ -2,7 +2,7 @@
 
 from collections import deque
 from dataclasses import dataclass, field
-from typing import Optional
+from typing import Any, Optional
 
 import numpy as np
 import torch
@@ -23,25 +23,29 @@ class TorchAreaState(ActivityState):
     k: int
     beta: float
     w: int = 0
-    winners: Optional[torch.Tensor] = None  # int32 on CUDA
+    # These values are established by __post_init__ (or by the lazy-ID
+    # constructor path). Any is intentional at the NumPy/CUDA boundary: the
+    # runtime tensor/device type varies, while the state invariant is that the
+    # fields are usable after construction.
+    winners: Any = None  # int32 on CUDA
     compact_to_neuron_id: list = field(default_factory=list)
-    neuron_id_pool: Optional[np.ndarray] = None  # pre-computed for small n
+    neuron_id_pool: Any = None  # pre-computed for small n
     neuron_id_pool_ptr: int = 0
     # Lazy ID generation for large n (avoids O(n) permutation)
     _lazy_ids: bool = False
-    _used_ids: Optional[set] = None
-    _id_rng: Optional[np.random.Generator] = None
+    _used_ids: Any = None
+    _id_rng: Any = None
     fixed_assembly: bool = False
     beta_by_source: dict = field(default_factory=dict)
     # LRI
     refractory_period: int = 0
     inhibition_strength: float = 0.0
-    _refractory_history: Optional[deque] = None
+    _refractory_history: Any = None
     # Refracted mode
     refracted: bool = False
     refracted_strength: float = 0.0
-    _cumulative_bias: Optional[torch.Tensor] = None
-    winner_policy: object = None
+    _cumulative_bias: Any = None
+    winner_policy: Any = None
     input_noise_std: float = 0.0
     explicit_source: bool = False
 
