@@ -6259,3 +6259,7 @@ Conformance helpers now bind the brain/engine they inspect at definition time, a
 ### Historical closure binding gate (2026-09-12)
 
 Historical association, merge, projection, scaling, noise, and operation-contract tests now bind loop-scoped replacement, brain, engine, sequence, and AST mapping values explicitly. This removes late-binding ambiguity from controls that compare alternate mechanisms. Ruff B023/F/E9 is clean across the maintained test suite, and the combined regression set passes **343 tests**.
+
+### Warning provenance gate (2026-09-12)
+
+Projection parity warnings now include `stacklevel=2`, so tolerated numerical divergence points to the parity call site rather than the warning helper. The projection parity suite passes **3 tests with 1 expected tolerance warning**; Ruff B028/F/E9 is clean.

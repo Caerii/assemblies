@@ -287,7 +287,8 @@ class TestProjectIntoParityFull(unittest.TestCase):
             max_diff_fwi = float(np.max(diff_fwi))
             if max_diff_fwi > 3:  # larger tolerance for rare tails
                 warnings.warn(
-                    f"First-winner inputs differ by up to {max_diff_fwi}; acceptable due to RNG/rounding path differences"
+                    f"First-winner inputs differ by up to {max_diff_fwi}; acceptable due to RNG/rounding path differences",
+                    stacklevel=2,
                 )
         # Set sparse RNG to the same dedicated generator for parity
         sparse.rng = np.random.default_rng(seed + 12345)
@@ -296,7 +297,8 @@ class TestProjectIntoParityFull(unittest.TestCase):
             diff_alloc = np.abs(np.array(e) - np.array(r))
             if diff_alloc.size > 0 and float(np.max(diff_alloc)) > 3:
                 warnings.warn(
-                    f"Per-winner input allocations differ by up to {float(np.max(diff_alloc))}; acceptable"
+                    f"Per-winner input allocations differ by up to {float(np.max(diff_alloc))}; acceptable",
+                    stacklevel=2,
                 )
         ext_vec = plastic.scale_stimulus_to_area(root_vec.copy(), ext_new_winners, beta=beta)
         ext_mat = plastic.scale_area_to_area(root_mat.copy(), pre_rows, ext_new_winners, beta=beta)
