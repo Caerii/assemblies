@@ -5541,3 +5541,10 @@ artifact through the canonical finite, exclusive writer. Its FAST reference
 read, repetition arms, paired comparisons, and output schema are unchanged;
 reruns cannot silently replace the evidence. Compilation, Ruff, and both
 result-writer ratchets pass: **2 passed**.
+### Sampler-overlap amplification writer migration (2026-09-12)
+
+The registered sampler-overlap comparison now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its exact,
+materialized, and sparse arms, overlap deltas, and null controls are
+unchanged; reruns cannot silently replace the evidence. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.

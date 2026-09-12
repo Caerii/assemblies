@@ -43,12 +43,14 @@ makes the input overlap an independent variable instead of an outcome.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.diagnostics import (
@@ -156,8 +158,7 @@ def main():
     }
     path = os.path.join(os.path.dirname(os.path.abspath(__file__)),
                         "sampler_overlap_amplification_results.json")
-    with open(path, "w") as fh:
-        json.dump(out, fh, indent=2)
+    write_new_document(Path(path), out)
     print(f"\nwrote {path}")
 
 
