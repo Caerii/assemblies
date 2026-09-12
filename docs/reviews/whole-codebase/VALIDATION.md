@@ -7324,3 +7324,11 @@ The attractor training protocol now declares its actual seven-value return contr
 - Full maintained fast tier after the backend pass: 3,817 passed, 141 skipped, 7 xfailed, 10 subtests in 449.32s with `-n 8 --dist loadfile`.
 - Duration profile identified seven remaining parser/ERP end-to-end probes above 50s; centralized collection now assigns them to the measured slow tier.
 - Collection after the change: 3,958 fast tests and 165 slow tests (4,123 total). This keeps the local contract loop bounded while preserving all empirical tests in the full suite.
+
+
+## 2026-09-12 worker-count benchmark
+
+- Fresh fast-tier run after class-level slow classification: 3,794 passed, 141 skipped, 7 xfailed, 10 subtests in 243.14s (4:03) with 12 xdist workers and `loadfile`.
+- Same run with 16 workers: 3,800 passed, 135 skipped, 7 xfailed, 10 subtests in 251.74s (4:11). More workers are slower on this 16-logical-core host because native numerical thread pools and worker teardown contend.
+- `scripts/verify_maintained.py` now defaults to `min(12, logical CPUs)`; `ASSEMBLIES_TEST_WORKERS` and `--workers` remain explicit overrides.
+- README commands and performance table now use the measured 12-worker fast path and document the tuning override.

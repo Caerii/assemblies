@@ -518,9 +518,10 @@ class TestColt2022Halfspace:
 
 
 class TestColtMultiAssembly:
-    # NOT marked slow: measured 4.1s for the whole class, so it runs in the
-    # default `-m "not slow"` selection. A parity check that only runs in the
-    # slow tier is a parity check that does not run.
+    # Centrally classified slow because its class-scoped experiment currently
+    # costs about a minute to construct under the maintained suite. The full
+    # parity class still runs in CI; the fast loop should not pay its setup
+    # cost for every contract scan.
     """[COLT22] Theorems 1/3/4 -- creation, recall, and MULTIPLE assemblies.
 
     The point of this class is that it does THREE DIFFERENT THINGS with three

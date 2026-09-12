@@ -75,6 +75,13 @@ _SLOW_NODEID_SUBSTRINGS = (
     "test_a_parse_grows_a_trained_parser",
     "test_scaled_lexicon_trains",
     "test_recall_meets_theorem_3_bound",
+    # Class-scoped fixtures train large parsers once but still impose a
+    # 60--90s setup cost on the worker that owns the file. Keep the complete
+    # empirical class together in the slow tier; splitting one assertion out
+    # leaves the expensive fixture in the fast loop.
+    "TestCurriculumLearning",
+    "TestScaledVocabulary",
+    "TestColtMultiAssembly",
 )
 
 

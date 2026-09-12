@@ -239,8 +239,8 @@ From a checkout:
 ```bash
 uv sync
 uv run pytest neural_assemblies/tests -q
-uv run pytest neural_assemblies/tests -q -m "not slow" -n 8 --dist loadfile
-uv run pytest neural_assemblies/tests -q -m slow -n 8 --dist loadfile
+uv run pytest neural_assemblies/tests -q -m "not slow" -n 12 --dist loadfile
+uv run pytest neural_assemblies/tests -q -m slow -n 12 --dist loadfile
 uv run python scripts/verify_maintained.py --skip-tests
 uv run python -m research.evidence check
 ```
@@ -250,8 +250,10 @@ maintained runtime packages plus the research runner, evidence, and provenance
 infrastructure with Pyright while excluding archived and historical study tests;
 omit `--skip-tests` to run the non-slow package tests afterward.
 
-The default parallel developer gate uses eight workers and `--dist loadfile`;
-the current measured run is about 6.5 minutes for 3,965 fast-tier tests.
+The default parallel developer gate uses twelve workers on machines with at
+least twelve logical CPUs and `--dist loadfile`; the current measured run is
+about four minutes for 3,794 fast-tier tests. Set `ASSEMBLIES_TEST_WORKERS` or
+use `scripts/verify_maintained.py --workers N` to tune smaller machines.
 Long empirical calibration, bootstrap, and curriculum gates are kept in the
 `slow` tier and remain part of the complete verification surface.
 

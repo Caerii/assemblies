@@ -45,14 +45,14 @@ def default_test_workers() -> str:
 
     ``pytest -n auto`` starts one worker per logical CPU.  That is often slower
     for this NumPy/Torch-heavy suite and can leave worker teardown contending
-    for native thread pools.  Eight workers are the measured stable default on
-    the 16-core development machine;
+    for native thread pools. Twelve workers are the measured fastest default on
+    the 16-logical-core development machine;
     callers can override it with ``ASSEMBLIES_TEST_WORKERS`` or ``--workers``.
     """
     configured = os.environ.get("ASSEMBLIES_TEST_WORKERS")
     if configured:
         return configured
-    return str(min(8, os.cpu_count() or 1))
+    return str(min(12, os.cpu_count() or 1))
 
 
 def run(command: list[str], *, capture_output: bool = False) -> subprocess.CompletedProcess[str]:
@@ -86,7 +86,7 @@ def main() -> int:
                         help="only run the maintained-source static gate")
     parser.add_argument(
         "--workers", default=default_test_workers(),
-        help="pytest-xdist worker count (default: ASSEMBLIES_TEST_WORKERS or 8)",
+        help="pytest-xdist worker count (default: ASSEMBLIES_TEST_WORKERS or min(12, CPUs))",
     )
     parser.add_argument(
         "--serial", action="store_true",
