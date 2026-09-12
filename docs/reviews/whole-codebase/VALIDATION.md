@@ -6614,3 +6614,7 @@ eural_assemblies without eagerly importing the research stack. Lazy-import contr
 ## 2026-09-12 — shared Connectome state contract
 
 - Declared lazy growth watermarks, degree caches, and capacity buffers on Connectome, removing backend implementations' dynamic-attribute ambiguity. NumPy engine static diagnostics fell from 166 to 48; remaining errors are concentrated in long legacy sparse routines and optional typing overloads. Connectome/backend isolation tests — 7 passed, 3 skipped.
+
+## 2026-09-12 — sparse projection trace state
+
+- Initialized optional pre-k-WTA trace fields at the start of NumpySparseEngine.project_into, so recording is branch-independent and result metadata is always defined. Sparse projection, probe-state, and materialization tests — 78 passed, 1 expected failure, 17 expected sampled warnings. Static diagnostics in _sparse.py reduced from 48 to 44.

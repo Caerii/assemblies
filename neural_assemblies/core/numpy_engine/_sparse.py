@@ -1361,6 +1361,13 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                 )
                 self._sampled_recurrence_warned = True
         rng = np.random.default_rng(self._rng.integers(0, 2**32))
+        # Optional trace fields have stable defaults even when recording is
+        # disabled, so the result assembly below never depends on branch-local
+        # variables.
+        _pre_kwta_snapshot: Optional[np.ndarray] = None
+        _raw_prev: Optional[np.ndarray] = None
+        _pre_kwta_total_val = 0.0
+        _pre_kwta_count_val = 0
 
         # A learning round may rewrite any block, so no CSR mirror survives it.
         # This is the PRIMARY guarantee that `_csr_row_sum` cannot read stale
