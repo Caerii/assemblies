@@ -7212,3 +7212,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - This removes list-invariance friction for ordinary tuple/list transition tables while preserving symbolic validation.
 - `uv run pyright` on FSM and dependent program modules: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_fsm.py neural_assemblies/tests/test_transitions.py neural_assemblies/tests/test_transition_contract.py -q`: 65 passed in 2.17s.
+
+
+## 2026-09-12 ? patch absence randomness
+
+- Replaced truthiness-based optional RNG selection with an explicit generator boundary, preserving deterministic default noise and avoiding optional-member ambiguity.
+- `uv run pyright neural_assemblies/programs/patch_graph.py`: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_patch_graph.py -q`: 5 passed in 2.14s.
