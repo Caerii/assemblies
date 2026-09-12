@@ -9,7 +9,7 @@ from enum import Enum
 import math
 import numbers
 from types import MappingProxyType
-from typing import ClassVar, Mapping
+from typing import Any, ClassVar, Mapping, cast
 
 
 BRAIN_ENGINE_NAMES = frozenset({
@@ -153,7 +153,7 @@ class _SemanticRecord:
             raise TypeError(
                 f"{cls._document_name} must be {cls.__name__} or a mapping"
             )
-        expected = {field.name for field in fields(cls)}
+        expected = {field.name for field in fields(cast(Any, cls))}
         supplied = set(value)
         missing, extra = expected - supplied, supplied - expected
         if missing or extra:
@@ -170,7 +170,7 @@ class _SemanticRecord:
     def to_dict(self) -> dict[str, object]:
         return {
             field.name: _wire_value(getattr(self, field.name))
-            for field in fields(self)
+            for field in fields(cast(Any, self))
         }
 
     def mismatch(self, actual) -> dict[str, tuple[object, object]]:

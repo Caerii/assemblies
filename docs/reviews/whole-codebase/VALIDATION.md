@@ -6573,3 +6573,8 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 ## 2026-09-12 — core engine and registration contracts
 
 - Declared ComputeEngine._areas at the interface boundary, made projection-fidelity normalization use a valid union annotation, and canonicalized integral registration inputs before comparison. Targeted Pyright checks — 0 diagnostics. Area registration, projection-fidelity admission, projection-round, and engine-availability tests — 268 passed in 5.54s.
+
+## 2026-09-12 — semantic record reflection boundary
+
+- _SemanticRecord now casts its dataclass reflection inputs at the generic base boundary, preserving runtime validation while making 
+ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0 diagnostics; model/organ semantics tests: 36 passed in 3.98s.
