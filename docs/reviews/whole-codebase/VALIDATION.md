@@ -5159,6 +5159,14 @@ immutable `Sequence` record, matching the contract's ordered-result shape.
 The operator module is Pyright-clean and sequence, memorization, beta-scope,
 and ordered-recall checks pass: **36 passed**.
 
+### Context-choice score shape (2026-09-11)
+
+The context-choice observation now constructs its two-arm overlap tuple
+explicitly. This records the protocol invariant at the measurement boundary
+and prevents a variadic tuple from being mistaken for an arbitrary score
+vector. The module is Pyright/Ruff-clean and context-choice tests pass:
+**41 passed**.
+
 ### Emergent consolidation nullability boundary (2026-09-11)
 
 The emergent pathway builders previously relied on truthiness to imply that a

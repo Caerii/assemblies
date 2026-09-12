@@ -133,7 +133,9 @@ class ContextAttractorChoice:
                 # A zero-sized stimulus schedules even the noise-only control.
                 brain.project({self._zero_stimulus: [self.outcome_area]}, sources)
             observed = _snap(brain, self.outcome_area)
-            scores = tuple(float(overlap(observed, target))
-                           for target in (self.attractors.asm0, self.attractors.asm1))
+            scores = (
+                float(overlap(observed, self.attractors.asm0)),
+                float(overlap(observed, self.attractors.asm1)),
+            )
             label = None if scores[0] == scores[1] else (0 if scores[0] > scores[1] else 1)
             return ContextChoiceObservation(label, scores)
