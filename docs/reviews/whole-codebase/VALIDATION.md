@@ -7010,3 +7010,6 @@ Added `validate_refraction_strength` to the homeostasis owner and applied it bef
 ## Competition policy boundary validation (2026-09-12)
 
 Added a shared Brain-side validator for competition policies. Area registration and runtime updates now accept only the supported policy objects or `None`, and reject winner caps larger than the population before mutating Brain/backend state. Validation: area-registration plus winner-policy suites 235 passed; Pyright on Brain 0 errors/warnings/information.
+## Emergent parser boolean configuration (2026-09-12)
+
+`CoreParserMixin` now validates `fast_training`, `norm_init`, `synaptic_scaling_deferred`, and `split_feature_areas` as explicit booleans (with `None` retained only where the API defines an automatic default). Truthy nonbooleans can no longer silently select a different training or feature-area protocol. Validation: split-feature suite 13 passed; Pyright 0 errors/warnings/information.

@@ -57,6 +57,15 @@ if TYPE_CHECKING:
 from contextlib import nullcontext
 from typing import Dict, List, Optional
 
+
+def _explicit_bool(value: object, label: str, *, allow_none: bool = False):
+    """Reject truthy configuration values that would change a protocol."""
+    if allow_none and value is None:
+        return None
+    if type(value) is not bool:
+        raise TypeError(f"{label} must be a bool")
+    return value
+
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.assembly_calculus.assembly import (
     Assembly,
@@ -154,8 +163,14 @@ class CoreParserMixin(
             resolve_engine,
         )
 
+        fast_training = _explicit_bool(fast_training, "fast_training", allow_none=True)
+        norm_init = _explicit_bool(norm_init, "norm_init", allow_none=True)
+        synaptic_scaling_deferred = cast(bool, _explicit_bool(
+            synaptic_scaling_deferred, "synaptic_scaling_deferred"))
+        split_feature_areas = cast(bool, _explicit_bool(
+            split_feature_areas, "split_feature_areas"))
         self.fast_training = (
-            fast_training_enabled() if fast_training is None else fast_training
+            fast_training_enabled() if fast_training is None else cast(bool, fast_training)
         )
         train_r, infer_r, bridge_r = budget_rounds(
             rounds,
@@ -193,7 +208,7 @@ class CoreParserMixin(
         # compiled training is disabled under norm_init (see
         # _compiled_training_enabled below).
         if norm_init is not None:
-            brain_kwargs["norm_init"] = norm_init
+            brain_kwargs["norm_init"] = cast(bool, norm_init)
         # Homeostatic scaling, forwarded verbatim: False (default), True
         # (every area -- carries the documented attractor-cancellation
         # hazard), or a collection of TARGET area names. The scoped form is
@@ -261,7 +276,7 @@ class CoreParserMixin(
         #: not only at the zipf-200 scale where E15/E19b measured 0.700/
         #: 0.727. False = the legacy shared-area path, byte-identical to
         #: pre-E15, kept reachable for parity reproductions.
-        self.split_feature_areas = bool(split_feature_areas)
+        self.split_feature_areas = split_feature_areas
         #: #149: which readout recall_tense/recall_number RETURN under the
         #: split ("mi" | "overlap"). E15 measured the two CROSSING: MI
         #: (cross-area drive competition) wins at the 50-frame default

@@ -40,6 +40,13 @@ SENTS = [
 ]
 
 
+def test_boolean_parser_options_reject_truthy_non_booleans():
+    with pytest.raises(TypeError, match="split_feature_areas"):
+        EmergentParser(n=100, k=10, split_feature_areas=1)
+    with pytest.raises(TypeError, match="fast_training"):
+        EmergentParser(n=100, k=10, fast_training=1)
+
+
 def _register_plurals(p):
     # Inflected surfaces enter stim_map sharing the lemma's grounding --
     # the register_surface_forms contract, done by hand for this tiny corpus.
