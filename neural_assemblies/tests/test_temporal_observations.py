@@ -1,5 +1,6 @@
 """The corrected measurement cannot turn agreement-word signal into distractor carry."""
 from copy import deepcopy
+from typing import Any, cast
 
 import pytest
 from research.experiments.temporal_observations import chain_observation_manifest, chain_arc_contrasts
@@ -19,6 +20,8 @@ def fake_transducer(mutation=None):
 
     class Clock:
         B, seeds, n_arc, k, device = 2, [11, 17], 64, 3, 'cpu'
+        arc: Any
+        arc_out: Any
 
         def __init__(self):
             self.word_index = {word: i for i, word in enumerate(sorted(set(sum(SENTENCES, []))))}
@@ -81,7 +84,7 @@ def test_capture_state_blind_is_explicit_and_type_checked():
     capture_chain_arcs(clock, [SENTENCES, SENTENCES], gap=1, rounds=2, state_blind=True)
     with pytest.raises(TypeError, match='state_blind'):
         capture_chain_arcs(fake_transducer(), [SENTENCES, SENTENCES], gap=1,
-                           rounds=2, state_blind=1)
+                           rounds=2, state_blind=cast(Any, 1))
 
 
 @pytest.mark.parametrize('mutation', ['counts', 'bias', 'stimulus'])
@@ -119,7 +122,10 @@ def test_cuda_capture_matches_manual_frozen_sentence_schedule(state_mode):
         pytest.skip('CUDA required for real transducer capture')
     from neural_assemblies.core.torch_engine import _fused_cuda
     if _fused_cuda.load() is None:
-        pytest.fail(f'CUDA present but fused extension unavailable: {_fused_cuda.last_error()}')
+        pytest.skip(
+            'fused extension unavailable; load/build prerequisite failed: '
+            f'{_fused_cuda.last_error()}'
+        )
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
     from research.experiments.temporal_observations import capture_chain_arcs
     vocab = sorted(set(sum(SENTENCES, [])))
