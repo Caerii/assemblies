@@ -530,6 +530,7 @@ class Brain:
                 increment in refracted mode.
         """
         n, k = validate_area_registration(area_name, n, k, existing=self.areas, reserved=self.stimuli)
+        beta = validate_plasticity_rate(beta)
         input_noise_std = validate_input_noise(input_noise_std)
         refracted_strength = validate_refraction_strength(refracted_strength)
         self._validate_competition_policy(n, winner_policy)

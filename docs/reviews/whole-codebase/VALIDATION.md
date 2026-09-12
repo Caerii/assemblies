@@ -7013,3 +7013,6 @@ Added a shared Brain-side validator for competition policies. Area registration 
 ## Emergent parser boolean configuration (2026-09-12)
 
 `CoreParserMixin` now validates `fast_training`, `norm_init`, `synaptic_scaling_deferred`, and `split_feature_areas` as explicit booleans (with `None` retained only where the API defines an automatic default). Truthy nonbooleans can no longer silently select a different training or feature-area protocol. Validation: split-feature suite 13 passed; Pyright 0 errors/warnings/information.
+## Canonical beta validation at area registration (2026-09-12)
+
+`Brain.add_area` and direct `Area` construction now validate and canonicalize beta through `validate_plasticity_rate` before creating descriptors or backend state. Invalid negative, nonfinite, boolean, and string rates cannot enter the model under one facade and fail later under another. Validation: area-registration plus area suites 215 passed; Pyright on Brain and Area 0 errors/warnings/information.

@@ -243,6 +243,14 @@ def test_competition_policy_cap_cannot_exceed_population():
         brain.add_area('bad', 4, 2, winner_policy=TopKPolicy(k=5))
 
 
+@pytest.mark.parametrize('beta', [-1.0, float('nan'), float('inf'), True, '0.1'])
+def test_area_beta_rejects_nonfinite_negative_and_boolean(beta):
+    brain = Brain(p=.1, norm_init=False, engine='numpy_sparse')
+    with pytest.raises(ValueError):
+        brain.add_area('bad', 4, 2, beta=beta)
+    assert 'bad' not in brain.areas
+
+
 @pytest.mark.parametrize('path', ['primary', 'auxiliary', 'direct'])
 def test_runtime_policy_cannot_bypass_slot_contract(path):
     from neural_assemblies import ThresholdPolicy
