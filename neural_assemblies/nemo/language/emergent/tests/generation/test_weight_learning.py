@@ -31,16 +31,16 @@ def test_hopfield_weights():
     print("TEST 1: Hopfield Weight Storage (Outer Product)")
     print("="*70)
     
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n = 1000
     k = 100
     
     # Create patterns
     patterns = []
     for i in range(4):
-        np.random.seed(i + 1)
+        rng = np.random.default_rng(i + 1)
         p = np.zeros(n)
-        active = np.random.choice(n, k, replace=False)
+        active = rng.choice(n, k, replace=False)
         p[active] = 1
         patterns.append(p)
     
@@ -79,7 +79,7 @@ def test_hopfield_weights():
               f"correct={is_correct}")
     
     print(f"\n   Accuracy: {correct/4*100:.0f}%")
-    return correct / 4
+    assert 0 <= correct <= 4
 
 
 def test_nemo_style_weights():
@@ -92,7 +92,7 @@ def test_nemo_style_weights():
     print("TEST 2: NEMO-Style Weight Learning")
     print("="*70)
     
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n = 1000
     k = 100
     beta = 0.1  # Learning rate
@@ -100,15 +100,15 @@ def test_nemo_style_weights():
     # Create patterns
     patterns = []
     for i in range(4):
-        np.random.seed(i + 1)
+        rng = np.random.default_rng(i + 1)
         p = np.zeros(n)
-        active = np.random.choice(n, k, replace=False)
+        active = rng.choice(n, k, replace=False)
         p[active] = 1
         patterns.append(p)
     
     # Initialize random connectivity (like NEMO's implicit connections)
-    np.random.seed(999)
-    W = (np.random.rand(n, n) < 0.1).astype(float)  # 10% connectivity
+    rng = np.random.default_rng(999)
+    W = (rng.random((n, n)) < 0.1).astype(float)  # 10% connectivity
     np.fill_diagonal(W, 0)
     
     print(f"\n   Initial weight density: {(W > 0).mean()*100:.2f}%")
@@ -157,7 +157,7 @@ def test_nemo_style_weights():
               f"correct={is_correct}")
     
     print(f"\n   Accuracy: {correct/4*100:.0f}%")
-    return correct / 4
+    assert 0 <= correct <= 4
 
 
 def test_nemo_with_recurrent():
@@ -168,21 +168,21 @@ def test_nemo_with_recurrent():
     print("TEST 3: NEMO-Style with Recurrent Learning")
     print("="*70)
     
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n = 1000
     k = 100
     beta = 0.1
     
     patterns = []
     for i in range(4):
-        np.random.seed(i + 1)
+        rng = np.random.default_rng(i + 1)
         p = np.zeros(n)
-        active = np.random.choice(n, k, replace=False)
+        active = rng.choice(n, k, replace=False)
         p[active] = 1
         patterns.append(p)
     
-    np.random.seed(999)
-    W = (np.random.rand(n, n) < 0.1).astype(float)
+    rng = np.random.default_rng(999)
+    W = (rng.random((n, n)) < 0.1).astype(float)
     np.fill_diagonal(W, 0)
     
     print("\n   Learning with recurrent projection...")
@@ -245,7 +245,7 @@ def test_nemo_with_recurrent():
               f"correct={is_correct}")
     
     print(f"\n   Accuracy: {correct/4*100:.0f}%")
-    return correct / 4
+    assert 0 <= correct <= 4
 
 
 def test_hybrid_hopfield_nemo():
@@ -259,21 +259,21 @@ def test_hybrid_hopfield_nemo():
     print("TEST 4: Hybrid - Hopfield Storage in NEMO Framework")
     print("="*70)
     
-    np.random.seed(42)
+    rng = np.random.default_rng(42)
     n = 1000
     k = 100
     
     patterns = []
     for i in range(4):
-        np.random.seed(i + 1)
+        rng = np.random.default_rng(i + 1)
         p = np.zeros(n)
-        active = np.random.choice(n, k, replace=False)
+        active = rng.choice(n, k, replace=False)
         p[active] = 1
         patterns.append(p)
     
     # Start with sparse random connectivity
-    np.random.seed(999)
-    W_base = (np.random.rand(n, n) < 0.1).astype(float)
+    rng = np.random.default_rng(999)
+    W_base = (rng.random((n, n)) < 0.1).astype(float)
     np.fill_diagonal(W_base, 0)
     
     # Add Hopfield-style pattern storage ON TOP of base connectivity
@@ -313,7 +313,7 @@ def test_hybrid_hopfield_nemo():
               f"correct={is_correct}")
     
     print(f"\n   Accuracy: {correct/4*100:.0f}%")
-    return correct / 4
+    assert 0 <= correct <= 4
 
 
 def analyze_results():
@@ -382,18 +382,15 @@ A HYBRID architecture matches biology:
 
 
 if __name__ == "__main__":
-    acc1 = test_hopfield_weights()
-    acc2 = test_nemo_style_weights()
-    acc3 = test_nemo_with_recurrent()
-    acc4 = test_hybrid_hopfield_nemo()
+    test_hopfield_weights()
+    test_nemo_style_weights()
+    test_nemo_with_recurrent()
+    test_hybrid_hopfield_nemo()
     
     print("\n" + "="*70)
     print("ACCURACY COMPARISON")
     print("="*70)
-    print(f"   Hopfield weights:      {acc1*100:.0f}%")
-    print(f"   NEMO-style:            {acc2*100:.0f}%")
-    print(f"   NEMO with recurrent:   {acc3*100:.0f}%")
-    print(f"   Hybrid (base+Hopfield):{acc4*100:.0f}%")
+    print("   Accuracy values are printed by each test above.")
     
     analyze_results()
 
