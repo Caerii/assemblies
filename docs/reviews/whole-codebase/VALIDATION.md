@@ -6137,3 +6137,6 @@ Collection identified 3,910 runnable non-slow tests (144 deselected); the stalle
 ### Stateful integration slice gate (2026-09-12)
 
 The verbose slice spanning computation, connectome, consolidation, context observation, and conversation curriculum passed **140 tests in 144.22 seconds**. This explains the earlier aggregate 16% pause as a long stateful integration region rather than a deterministic failure. The full 3,910-test aggregate remains partitioned because its shared process stalls; this slice is independently green evidence.
+### Cross-repo and emergent parser slice gate (2026-09-12)
+
+The next partitioned non-slow slice, covering cross-repository parity and early emergent parser tests, passed **125 tests with 15 optional skips in 48.74 seconds**. Five sampled-recurrence warnings are intentional provenance guards. No failures occurred.
