@@ -60,7 +60,7 @@ class RoleBindingMixin:
 
         for sent in sentences:
             self.record_role_order_evidence(sent.words, sent.roles)
-            for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+            for word, ctx, role in zip(sent.words, sent.contexts, sent.roles, strict=True):
                 # The verb binds into ROLE_ACTION like any other constituent.
                 # Skipping it here left the verb outside the role system, so
                 # its position could not be learned.

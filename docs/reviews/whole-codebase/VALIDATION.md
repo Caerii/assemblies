@@ -6086,3 +6086,6 @@ The hashed Torch fiber emitter now rejects mismatched previous/new round histori
 ### NumPy projection density alignment gate (2026-09-12)
 
 The sparse projection path now validates that per-fiber density metadata has one entry per input-size entry before computing population sigma, and uses strict pairing in the calculation. Cross-engine projection and pricing suites pass **35 tests**; the four sampled-recurrence warnings are intentional provenance guards, and B905/F is clean.
+### Parser mixin alignment gate (2026-09-12)
+
+Role binding, lexicon registration, phrase training, and constituent sequencing now use strict iteration over aligned sentence records. The shared constructor supplies the invariant; each consumer now preserves it explicitly. Parser composition, fork, and cache identity suites pass **48 tests**; sampled recurrence warnings remain intentional provenance guards and focused B905/F scans are clean.

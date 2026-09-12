@@ -64,7 +64,7 @@ class LexiconTrainingMixin:
             contexts = getattr(sent, "contexts", None)
             if not contexts or len(contexts) != len(sent.words):
                 continue
-            for word, ctx in zip(sent.words, contexts):
+            for word, ctx in zip(sent.words, contexts, strict=True):
                 if ctx is None or word in self.word_grounding:
                     continue
                 self._register_vocabulary({word: ctx})
@@ -118,7 +118,7 @@ class LexiconTrainingMixin:
         Presenting them in separate steps would build two assemblies and no
         link.
 
-        Pattern follows readout.py:build_lexicon() — clear core winners
+        Pattern follows readout.py:build_lexicon() â€” clear core winners
         between words without wiping learned connectomes.  The distinction
         matters: winners must be cleared so the next word does not inherit
         this one's activity, but the connectome must NOT be reset, because

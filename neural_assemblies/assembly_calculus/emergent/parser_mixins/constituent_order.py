@@ -446,7 +446,7 @@ class ConstituentOrderMixin:
     ) -> List[Tuple[str, str]]:
         """Annotated (word, role_area) pairs in surface order."""
         out: List[Tuple[str, str]] = []
-        for word, role in zip(sent.words, sent.roles):
+        for word, role in zip(sent.words, sent.roles, strict=True):
             if role == "agent":
                 out.append((word, ROLE_AGENT))
             elif role == "action":

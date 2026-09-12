@@ -100,7 +100,7 @@ class PhraseStructureMixin:
             verb_word = None
             obj_word = None
 
-            for word, role in zip(sent.words, sent.roles):
+            for word, role in zip(sent.words, sent.roles, strict=True):
                 if role == "agent":
                     subj_word = word
                 elif role == "action":
