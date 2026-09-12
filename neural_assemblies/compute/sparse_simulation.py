@@ -63,7 +63,9 @@ def _binom_ppf_cached(quantile_num: int, quantile_den: int,
     landing exactly on an integer, and dropping it is what would make this an
     approximation rather than a reimplementation.
     """
-    from scipy.special import bdtr, bdtrik
+    import scipy.special as special
+    bdtr = getattr(special, "bdtr")
+    bdtrik = getattr(special, "bdtrik")
 
     q = quantile_num / quantile_den
     vals = np.ceil(bdtrik(q, total_k, p))
@@ -134,7 +136,9 @@ class SparseSimulationEngine:
         total_k = sum(input_sizes)
         num_first_winners = len(first_winner_inputs)
 
-        inputs_by_first_winner_index = [None] * num_first_winners
+        inputs_by_first_winner_index: List[np.ndarray] = [
+            np.empty(0, dtype=float) for _ in range(num_first_winners)
+        ]
 
         for i in range(num_first_winners):
             input_strength = int(first_winner_inputs[i])
@@ -458,7 +462,9 @@ class SparseSimulationEngine:
         Returns:
             1D array of length k with sampled input strengths for new candidates.
         """
-        from scipy.special import ndtr, ndtri
+        import scipy.special as special
+        ndtr = getattr(special, "ndtr")
+        ndtri = getattr(special, "ndtri")
 
         total_k = sum(input_sizes)
         # PER-FIBER `p`. The pooled count is Binomial(total_k, p) only when
@@ -609,13 +615,14 @@ class SparseSimulationEngine:
         (n, w, mu, std) alone. Competition is against materialised incumbents,
         which do differ per area, so this does not make areas interchangeable.
         """
-        from scipy.special import ndtri
+        import scipy.special as special
+        ndtri = getattr(special, "ndtri")
 
         if k_eff <= 0:
             return np.empty(0)
         quantiles = self._uniform_order_stats(key, n, w + k_eff)[w:w + k_eff]
         quantiles = np.clip(quantiles, 1e-12, 1.0 - 1e-12)
-        samples = (mu + ndtri(quantiles) * std).round(0)
+        samples = np.asarray(mu + ndtri(quantiles) * std).round(0)
         np.clip(samples, 0, total_k, out=samples)
         return samples
 
@@ -676,7 +683,8 @@ class SparseSimulationEngine:
         samples = truncnorm.rvs(
             a, np.inf, loc=mu, scale=std, size=k_eff,
             random_state=self._draw_rng(key),
-        ).round(0)
+        )
+        samples = np.asarray(samples).round(0)
         np.clip(samples, 0, total_k, out=samples)
         return self._xp.asarray(samples)
 
