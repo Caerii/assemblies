@@ -5998,3 +5998,10 @@ Callers can still override it explicitly. The ensemble diagnostic suite passes
 protocol instead of accepting a parameter that cannot change the generated
 curriculum. The duplicate `her` lexicon key was removed so the intended pronoun
 classification is unambiguous. Lexicon curriculum tests pass **7 tests**.
+
+### Engine reset hook contract (2026-09-12)
+
+The abstract engine's implicit-backend `reset_area_connections` default now
+marks its intentional no-op explicitly, removing an empty-hook ambiguity while
+preserving the concrete reset implementations. Owner-routing and engine
+availability tests pass **13 tests**.

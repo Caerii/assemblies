@@ -439,6 +439,7 @@ class ComputeEngine(ABC):
         Default is a no-op (suitable for engines without persistent
         area->area connectivity, e.g. implicit hash-based engines).
         """
+        del area  # Implicit engines have no persistent area fibers to reset.
 
     def project_into_batch(
         self,
