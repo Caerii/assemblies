@@ -5514,3 +5514,9 @@ artifact through the canonical finite, exclusive writer. Its form/lemma
 measurements, error fingerprint, and output schema are unchanged; reruns
 cannot silently replace the evidence. Compilation, Ruff, and both
 result-writer ratchets pass: **2 passed**.
+### Gain-max sweep writer migration (2026-09-12)
+
+The registered gain-max sweep now publishes its fixed result artifact through
+the canonical finite, exclusive writer. Its gain arms, paired comparisons,
+and output schema are unchanged; reruns cannot silently replace the evidence.
+Compilation, Ruff, and both result-writer ratchets pass: **2 passed**.
