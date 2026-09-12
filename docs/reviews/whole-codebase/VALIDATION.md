@@ -5283,3 +5283,12 @@ exclusive `write_new_document` boundary while retaining its existing result
 path and JSON payload. A latent unused `worker` import was removed at the same
 boundary. The study compiles, Ruff is clean, and the result-writer ratchet
 passes: **1 passed**.
+
+### S5 substrate-C writer migration (2026-09-12)
+
+The substrate-C census now writes both its ordinary and `--scoped` result
+files through the shared finite, exclusive `write_new_document` boundary.
+Its scoped filename selection and payload are unchanged, while direct
+overwrite mode and the corresponding ratchet baseline entry are removed.
+The study compiles, Ruff is clean, and the result-writer ratchet passes:
+**1 passed**.
