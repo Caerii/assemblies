@@ -5343,6 +5343,14 @@ was removed so invalid numeric values fail at publication. The migration also
 removed two stale imports. Compilation, Ruff, and both result-writer ratchets
 pass: **2 passed**.
 
+### Parser-recruitment writer migration (2026-09-12)
+
+The parser-recruitment capacity sweep now publishes its one-shot JSON
+artifact through the canonical finite, exclusive writer. Its quick/full modes,
+output path, and result structure are unchanged; permissive `default=float`
+coercion is removed, and a stale type import was cleaned up. Compilation,
+Ruff, and both result-writer ratchets pass: **2 passed**.
+
 ### A1 FSM parity writer migration (2026-09-12)
 
 The A1 FSM parity CLI now writes its configurable `--out` artifact through

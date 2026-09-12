@@ -37,14 +37,15 @@ Usage:
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import time
 from pathlib import Path
-from typing import Dict, List, Sequence, Tuple
+from typing import Dict, List, Sequence
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 _REPO = Path(__file__).resolve().parents[3]
 if str(_REPO) not in sys.path:
@@ -271,7 +272,7 @@ def main() -> int:
     out = Path(args.out) if args.out else (
         Path(__file__).parent / ("results_parser_quick.json" if args.quick
                                  else "results_parser_recruitment.json"))
-    out.write_text(json.dumps(results, indent=1, default=float))
+    write_new_document(out, results)
     print(f"wrote {out}")
     return 0
 
