@@ -7550,3 +7550,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added construction-time validation for immutable schedule edges: tuple shape, nonempty names/targets, unique sources, and unique targets.
 - Added malformed-step negative cases so plan corruption fails before execution or serialization.
 - Validation: operation contract suite passed (173 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 compact capacity overlap migration
+
+- Migrated `research/experiments/capacity/lexicon_capacity.py` from a private overlap formula to the named `compact_overlap` kernel, preserving its documented sparse compact-index semantics.
+- Validation: Pyright on the capacity experiment reported 0 errors; direct helper smoke check returned the expected 0.5 overlap; `git diff --check` passed.

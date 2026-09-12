@@ -80,6 +80,8 @@ if str(_REPO) not in sys.path:
     sys.path.insert(0, str(_REPO))
 
 from neural_assemblies.core.brain import Brain  # noqa: E402
+from neural_assemblies.assembly_calculus.assembly import compact_overlap  # noqa: E402
+from neural_assemblies.core.index_spaces import CompactIdx  # noqa: E402
 from neural_assemblies.compute.winner_policies import (  # noqa: E402
     EPercentPolicy,
 )
@@ -125,12 +127,8 @@ DEFAULT_CHECKPOINTS: Tuple[int, ...] = (25, 50, 100, 200, 300, 400)
 # ======================================================================
 
 def _overlap(a: np.ndarray, b: np.ndarray) -> float:
-    """|A n B| / min(|A|,|B|).  Comparable across variable assembly sizes."""
-    if len(a) == 0 or len(b) == 0:
-        return 0.0
-    sa, sb = set(a.tolist()), set(b.tolist())
-    m = min(len(sa), len(sb))
-    return len(sa & sb) / m if m else 0.0
+    """Compact-index overlap for this sparse-engine protocol."""
+    return compact_overlap(CompactIdx(np.asarray(a)), CompactIdx(np.asarray(b)))
 
 
 def _cosine(a: np.ndarray, b: np.ndarray) -> float:
