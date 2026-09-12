@@ -7198,3 +7198,9 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Replaced shared untyped bundle kwargs with explicit seed, example count, capacity, and cache arguments for recurrent and attractor scorecards.
 - `uv run pyright neural_assemblies/programs/colt_mnist_synthesis.py`: 0 errors.
+
+
+## 2026-09-12 ? fashion ventral brain boundary
+
+- Made the dynamically returned spatial brain explicit at the generative capture and plasticity mutation boundary.
+- `uv run pyright neural_assemblies/programs/fashion_ventral.py`: 0 errors.
