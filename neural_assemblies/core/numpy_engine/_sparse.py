@@ -11,7 +11,7 @@ import zlib
 
 import numpy as np
 from ..index_spaces import validated_indices, reserve_initial_neuron_ids
-from typing import Dict, List
+from typing import Dict, List, Tuple
 from collections import OrderedDict, defaultdict
 
 # `scipy.sparse` is imported ON FIRST USE via `scipy_sparse()`, not here --

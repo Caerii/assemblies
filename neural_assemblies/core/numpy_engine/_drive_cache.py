@@ -13,6 +13,7 @@ import numpy as np
 
 from ._csr_weights import scipy_sparse
 from ._virtual_weights import VirtualWeights
+from ..backend import get_xp
 
 def _csr_storage_available(xp=None) -> bool:
     """CSR storage needs scipy AND a numpy-backed engine.

@@ -17,6 +17,7 @@ that is the point of this file; the rest are guards on the bookkeeping.
 import numpy as np
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.core.numpy_engine._drive_cache import _csr_storage_available
 
 N, K, P, BETA = 400, 40, 0.05, 0.1
 
@@ -155,3 +156,8 @@ def test_projection_still_works_afterwards():
         b.project({"s": ["A"]}, {})
     assert len(b.areas["A"].winners) == K
     assert int(eng._areas["A"].w) == N
+
+
+def test_csr_storage_fallback_resolves_process_backend():
+    """The module-level fallback must resolve the active array module."""
+    assert isinstance(_csr_storage_available(), bool)

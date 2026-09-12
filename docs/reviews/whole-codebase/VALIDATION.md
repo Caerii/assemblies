@@ -5929,3 +5929,9 @@ area and parameter inputs are validated or named in errors, dense engines docume
 that mapping/materialization queries do not apply, and hashed anchor hooks discard
 shared arguments deliberately. Ruff's ARG scan is clean across `core` and
 `assembly_calculus`; index-space and projection contract tests pass **53 tests**.
+
+### CSR fallback import contract (2026-09-12)
+
+The module-level CSR availability probe now imports the canonical `get_xp`
+resolver instead of relying on an accidental global. Its fallback path has a
+focused regression test, and the materialization suite passes **8 tests**.
