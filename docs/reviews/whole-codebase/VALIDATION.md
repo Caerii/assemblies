@@ -6567,3 +6567,5 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 ## 2026-09-12 — PFA seed helper typing
 
 - Typed the _mixed_seed NumPy result with an explicit array cast, resolving the final PFA Pyright diagnostic without changing sampling semantics. uv run pyright neural_assemblies/assembly_calculus/pfa.py — 0 diagnostics; PFA choice/seed contracts — 45 passed in 1.55s.
+
+- Whole assembly-calculus static gate: uv run pyright neural_assemblies/assembly_calculus — 0 errors, 0 warnings, 0 informations.
