@@ -88,6 +88,12 @@ the default tie rule, arithmetic precision, normalization, and plasticity. The
 engine remains explicit; this object does not silently choose a backend. See the
 [model-semantics contract](../neural_assemblies/ir/VERIFICATION.md#contract-model-semantics).
 
+For mixed brains, `brain.engine_for(area_name)` returns the backend that owns
+that area. Use this resolver when a composition or diagnostic needs a backend
+capability; do not inspect the private `_engine` or `_explicit_engine` slots.
+The primary backend is also available as `brain.engine` for backend-wide
+capabilities.
+
 Registration requires unique, nonempty names across both areas and stimuli.
 Registering an existing name raises `ValueError`; it does not reset or resize a
 population. Area dimensions require integer `0 < k <= n <= 2**32`; stimulus sizes
