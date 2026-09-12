@@ -12,13 +12,16 @@ Note: Parsing and comprehension have been moved to the parser submodule.
 Use SentenceParser and QuestionAnswerer from .parser for those features.
 """
 
-import cupy as cp
-from typing import Dict, List, Tuple, Optional
+import importlib
+from typing import Dict, List, Tuple, Optional, Sequence, Any
 from collections import defaultdict
 
 from .areas import Area, GROUNDING_TO_CORE
 from .params import EmergentParams, GroundingContext
 from .brain import EmergentNemoBrain
+
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
 
 __all__ = ['EmergentLanguageLearner']
 
@@ -39,7 +42,7 @@ class EmergentLanguageLearner:
     7. High frequency + no grounding → FUNCTION WORD
     """
     
-    def __init__(self, params: EmergentParams = None, verbose: bool = True):
+    def __init__(self, params: EmergentParams | None = None, verbose: bool = True):
         self.brain = EmergentNemoBrain(params, verbose=verbose)
         self.p = self.brain.p
         self.verbose = verbose
@@ -73,7 +76,7 @@ class EmergentLanguageLearner:
     # =========================================================================
     
     def present_word_with_grounding(self, word: str, context: GroundingContext, 
-                                     position: int = 0, role: str = None,
+                                     position: int = 0, role: str | None = None,
                                      learn: bool = True):
         """Present a word with its grounding context."""
         phon = self.brain._get_or_create(Area.PHON, word)
@@ -205,7 +208,7 @@ class EmergentLanguageLearner:
     # =========================================================================
     
     def present_grounded_sentence(self, words: List[str], contexts: List[GroundingContext],
-                                   roles: List[str] = None, mood: str = 'declarative',
+                                   roles: Sequence[str] | None = None, mood: str = 'declarative',
                                    learn: bool = True):
         """
         Present a sentence with grounding for each word.
@@ -223,15 +226,14 @@ class EmergentLanguageLearner:
         self.brain._project(Area.MOOD, mood_assembly, learn=learn)
         self.brain._project(Area.SEQ, mood_assembly, learn=learn)
         
-        if roles is None:
-            roles = [None] * len(words)
+        effective_roles: Sequence[str | None] = roles if roles is not None else [None] * len(words)
         
         prev_word = None
         prev_category = None
         current_subject = None
         current_verb = None
         
-        for i, (word, context, role) in enumerate(zip(words, contexts, roles, strict=True)):
+        for i, (word, context, role) in enumerate(zip(words, contexts, effective_roles, strict=True)):
             self.present_word_with_grounding(word, context, position=i, role=role, learn=learn)
             
             current_category, _ = self.get_emergent_category(word)
@@ -314,14 +316,14 @@ class EmergentLanguageLearner:
         grounding = self.word_grounding[word]
         if not grounding:
             return 'NONE'
-        return max(grounding, key=grounding.get)
+        return max(grounding, key=lambda modality: grounding[modality])
     
     # =========================================================================
     # PHRASE COMPOSITION
     # =========================================================================
     
     def build_noun_phrase(self, words: List[str], contexts: List[GroundingContext],
-                          learn: bool = True) -> Optional[cp.ndarray]:
+                          learn: bool = True) -> Optional[CpArray]:
         """Build a noun phrase by merging words into NP area."""
         if len(words) != len(contexts):
             raise ValueError("words and contexts must have equal length")
@@ -355,8 +357,8 @@ class EmergentLanguageLearner:
         return self.brain.current[Area.NP]
     
     def build_verb_phrase(self, verb: str, verb_ctx: GroundingContext,
-                          object_np: Optional[cp.ndarray] = None,
-                          learn: bool = True) -> Optional[cp.ndarray]:
+                          object_np: Optional[CpArray] = None,
+                          learn: bool = True) -> Optional[CpArray]:
         """Build a verb phrase."""
         self.brain._clear_area(Area.VP)
         
@@ -377,8 +379,8 @@ class EmergentLanguageLearner:
         
         return self.brain.current[Area.VP]
     
-    def build_sentence(self, subject_np: cp.ndarray, vp: cp.ndarray,
-                       mood: str = 'declarative', learn: bool = True) -> Optional[cp.ndarray]:
+    def build_sentence(self, subject_np: CpArray, vp: CpArray,
+                       mood: str = 'declarative', learn: bool = True) -> Optional[CpArray]:
         """Build a complete sentence."""
         self.brain._clear_area(Area.SENT)
         
@@ -422,7 +424,7 @@ class EmergentLanguageLearner:
         if scores.get('NONE', 0) > 0.7:
             return 'FUNCTION', scores
         
-        max_modality = max(scores, key=scores.get)
+        max_modality = max(scores, key=lambda modality: scores[modality])
         
         category_map = {
             'VISUAL': 'NOUN',
@@ -453,7 +455,7 @@ class EmergentLanguageLearner:
             'ACTION': self.word_as_action[word] / total,
         }
         
-        best_role = max(scores, key=scores.get)
+        best_role = max(scores, key=lambda role: scores[role])
         return best_role, scores[best_role]
     
     def get_vocabulary_by_category(self) -> Dict[str, List[str]]:
