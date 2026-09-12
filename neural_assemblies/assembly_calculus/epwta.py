@@ -179,23 +179,30 @@ def form_assembly(
     Passing ``adjacency``/``recurrent``/``stim_weights`` reuses an existing
     network, which is how multiple assemblies are stored in one area.
     """
-    rng = rng if rng is not None else np.random.default_rng(seed)
+    generator = rng if rng is not None else np.random.default_rng(seed)
     eps = epsilon if epsilon is not None else DEFAULT_D_MS / DEFAULT_TAU_M_MS
 
     # Eq. 7: present with prob p_s; inhibitory among those with prob p_i.
     if recurrent is None:
-        present = rng.random((n, n)) < p_s
+        present = generator.random((n, n)) < p_s
         recurrent = present.astype(np.float64)
-        inh = present & (rng.random((n, n)) < p_i)
+        inh = present & (generator.random((n, n)) < p_i)
+        assert recurrent is not None
         recurrent[inh] = w_inh
         np.fill_diagonal(recurrent, 0.0)
     if adjacency is None:
         adjacency = (recurrent != 0.0)
     if stim_weights is None:
-        present_s = rng.random((stimulus_size, n)) < p_s
+        present_s = generator.random((stimulus_size, n)) < p_s
         stim_weights = present_s.astype(np.float64)
-        inh_s = present_s & (rng.random((stimulus_size, n)) < p_i)
+        inh_s = present_s & (generator.random((stimulus_size, n)) < p_i)
+        assert stim_weights is not None
         stim_weights[inh_s] = w_inh
+
+    # The branches above establish these arrays; make that invariant visible
+    # to both type checkers and callers reading the formation loop.
+    assert recurrent is not None
+    assert stim_weights is not None
 
     # The three matrices are guaranteed by the construction branches above;
     # make that postcondition explicit before entering the measured dynamics.
