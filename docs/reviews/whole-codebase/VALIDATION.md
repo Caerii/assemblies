@@ -7536,3 +7536,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Strengthened the invalid-later-round program test to assert both weights and winners remain unchanged, covering all mutation channels of the explicit engine.
 - Validation: projection IR suite passed (42 tests); `git diff --check` passed.
+
+
+## 2026-09-12 atomic Brain IR program admission
+
+- `ExplicitProgram.execute_on_brain` now preflights every round with `validate_on_brain` before executing any lowering.
+- Added a negative test covering weights, winners, and saved history for invalid later rounds across explicit and sparse Brain fixtures.
+- Validation: Brain IR tests passed (28 tests); Pyright reported 0 errors; `git diff --check` passed.

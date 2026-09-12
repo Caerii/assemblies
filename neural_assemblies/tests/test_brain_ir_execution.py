@@ -4,7 +4,7 @@ import pytest
 
 from neural_assemblies import Brain
 from neural_assemblies.diagnostics import read_assembly
-from neural_assemblies.ir.projection import ExplicitRound
+from neural_assemblies.ir.projection import ExplicitProgram, ExplicitRound
 
 
 @pytest.fixture(params=[False, True])
@@ -42,6 +42,20 @@ def test_external_only_round(brain):
     winners = ExplicitRound("T", [], False, [0, 0, 10, 9]).execute_on_brain(brain)
     assert list(winners) == [2, 3]
     np.testing.assert_array_equal(brain.areas["T"].saved_winners[-1], winners)
+
+
+def test_program_preflights_all_brain_rounds_before_mutation(brain):
+    program = ExplicitProgram((
+        ExplicitRound("T", ["S"], True),
+        ExplicitRound("T", ["missing"], False),
+    ))
+    before_weights = brain.connectomes["S"]["T"].weights.copy()
+    before_winners = np.asarray(brain.areas["T"].winners).copy()
+    with pytest.raises(ValueError, match="unregistered Brain area"):
+        program.execute_on_brain(brain)
+    np.testing.assert_array_equal(brain.connectomes["S"]["T"].weights, before_weights)
+    np.testing.assert_array_equal(brain.areas["T"].winners, before_winners)
+    assert not brain.areas["T"].saved_winners
 
 
 @pytest.mark.parametrize("fault", ["clamp", "frozen", "indices", "mask"])

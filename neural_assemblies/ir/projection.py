@@ -116,6 +116,11 @@ class ExplicitRound:
         Lower through ordinary projection so descriptors and history stay coherent.
         Returns a detached winner array. No full-program rollback is promised.
         """
+        self.validate_on_brain(brain)
+        return self._execute_on_brain_validated(brain)
+
+    def validate_on_brain(self, brain) -> None:
+        """Validate Brain lowering without changing activity or learning state."""
         names = (self.target, *self.from_areas)
         if any(name not in brain.areas for name in names):
             raise ValueError("instruction references an unregistered Brain area")
@@ -137,6 +142,9 @@ class ExplicitRound:
         for name in self.from_areas:
             if brain.connectomes[name][self.target] is not engine._area_conns[name][self.target]:
                 raise ValueError("Brain and engine disagree on fiber ownership")
+
+    def _execute_on_brain_validated(self, brain):
+        """Execute after :meth:`validate_on_brain` has admitted the round."""
         saved = brain.disable_plasticity
         brain.disable_plasticity = not self.plasticity
         try:
@@ -205,7 +213,9 @@ class ExplicitProgram:
 
     def execute_on_brain(self, brain):
         """Lower rounds in order through the coherent Brain boundary."""
+        for round_ in self.rounds:
+            round_.validate_on_brain(brain)
         result = None
         for round_ in self.rounds:
-            result = round_.execute_on_brain(brain)
+            result = round_._execute_on_brain_validated(brain)
         return result
