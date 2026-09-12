@@ -3,7 +3,7 @@
 Uses PyTorch CUDA tensors for all state and computation.  Eliminates
 CuPy entirely from the hot path, gaining:
 - Lower per-op dispatch overhead (~50us vs ~200us for CuPy)
-- torch.topk: single fused CUDA kernel for winner selection
+- torch_ops.topk: single fused CUDA kernel for winner selection
 - torch advanced indexing for Hebbian updates
 - Zero CuPy<->torch conversion overhead
 - Hash-based deterministic initialization (ported from cuda_engine.py)
@@ -11,7 +11,7 @@ CuPy entirely from the hot path, gaining:
 The same statistical sparse algorithm as NumpySparseEngine: truncated
 normal sampling, Hebbian w *= (1+beta), amortised buffer growth, lazy
 expansion.  Truncated normal sampling defaults to GPU-native
-(torch.erfinv) but can fall back to CPU (scipy) for deterministic mode
+(torch_ops.erfinv) but can fall back to CPU (scipy) for deterministic mode
 or via gpu_sampling=False.
 
 Requires: torch with CUDA support.
@@ -23,6 +23,8 @@ from collections import defaultdict, deque
 from typing import Any, Dict, List, Optional, cast
 
 import torch
+
+from ._torch_ops import torch_ops
 
 from .._pricing import (
     area_fiber_activity, candidate_divisor, inverse_indegree,
@@ -84,11 +86,11 @@ class TorchSparseEngine(ComputeEngine):
 
     Same statistical sparse algorithm as NumpySparseEngine but all arrays
     are torch.cuda tensors.  Key performance advantages:
-    - torch.topk: single fused kernel (vs argpartition + argsort)
+    - torch_ops.topk: single fused kernel (vs argpartition + argsort)
     - Lower per-op dispatch overhead than CuPy
     - No CuPy<->torch conversion for operations
     - Hash-based deterministic initialization
-    - Optional GPU-native truncated normal sampling via torch.erfinv
+    - Optional GPU-native truncated normal sampling via torch_ops.erfinv
 
     Parameters:
         p:             Connection probability.
@@ -96,7 +98,7 @@ class TorchSparseEngine(ComputeEngine):
         w_max:         Hebbian weight ceiling.
         deterministic: If True, use legacy exact-fit expansion.
         gpu_sampling:  If True (default), sample truncated normal on GPU
-                       using torch.erfinv instead of CPU scipy.  Falls
+                       using torch_ops.erfinv instead of CPU scipy.  Falls
                        back to CPU path when deterministic=True.
     """
 
@@ -231,7 +233,7 @@ class TorchSparseEngine(ComputeEngine):
         self._global_seed = seed
         self._pair_seeds: Dict[tuple, int] = {}
 
-        self._device = torch.device('cuda')
+        self._device = torch_ops.device('cuda')
 
         # Internal state
         self._areas: Dict[str, TorchAreaState] = {}
@@ -293,7 +295,7 @@ class TorchSparseEngine(ComputeEngine):
         have = 0 if base is None else int(base.numel())
         if have < cols:
             add = w[have:cols].detach().float()
-            base = add if (base is None or have == 0) else torch.cat([base, add])
+            base = add if (base is None or have == 0) else torch_ops.cat([base, add])
             conn._norm_deg_base = base
         assert base is not None
         deg = base[:cols]
@@ -332,7 +334,7 @@ class TorchSparseEngine(ComputeEngine):
 
         WHY THIS EXISTS.  Both candidate samplers below took an
         ``rng: np.random.Generator`` argument and then drew from torch's
-        PROCESS-GLOBAL stream instead -- ``torch.rand`` and ``torch.normal``
+        PROCESS-GLOBAL stream instead -- ``torch_ops.rand`` and ``torch_ops.normal``
         with no ``generator=``.  ``_sample_truncated_normal_gpu`` declared the
         parameter and never referenced it at all; ``_sample_dense_candidates``
         used it only on the ``_deterministic`` branch.
@@ -360,7 +362,7 @@ class TorchSparseEngine(ComputeEngine):
         """
         gen = self._torch_gen
         if gen is None:
-            gen = torch.Generator(device=self._device)
+            gen = torch_ops.Generator(device=self._device)
             self._torch_gen = gen
         if rng is not None:
             gen.manual_seed(int(rng.integers(0, 2 ** 63 - 1)))
@@ -379,22 +381,22 @@ class TorchSparseEngine(ComputeEngine):
         the full population and let topk over n choose, so selection is exact.
         """
         if n_unmat <= 0:
-            return torch.empty(0, dtype=torch.float32, device=self._device)
+            return torch_ops.empty(0, dtype=torch_ops.float32, device=self._device)
         M = float(sum(input_sizes))
         mu = M * self.p
         sigma = math.sqrt(max(M * self.p * (1.0 - self.p), 0.0))
         if self._deterministic:
             draw = rng.normal(mu, sigma or 1e-6, size=int(n_unmat))
-            cand = torch.from_numpy(
+            cand = torch_ops.from_numpy(
                 np.asarray(draw, dtype=np.float32)).to(self._device)
         else:
             # Same defect as `_sample_truncated_normal_gpu` had: without an
             # explicit generator this reads torch's process-global stream while
             # `rng` -- already threaded in, and used on the branch above -- is
             # ignored. See `_device_rng`.
-            cand = torch.normal(
+            cand = torch_ops.normal(
                 mu, sigma or 1e-6, size=(int(n_unmat),),
-                device=self._device, dtype=torch.float32,
+                device=self._device, dtype=torch_ops.float32,
                 generator=self._device_rng(rng))
         return cand.clamp_(min=0.0)
 
@@ -406,7 +408,7 @@ class TorchSparseEngine(ComputeEngine):
         w = conn.weights
         if isinstance(w, torch.Tensor):
             return w.float()
-        return torch.from_numpy(np.asarray(w, dtype=np.float32)).to(self._device)
+        return torch_ops.from_numpy(np.asarray(w, dtype=np.float32)).to(self._device)
 
     # -- Registration -------------------------------------------------------
 
@@ -439,7 +441,7 @@ class TorchSparseEngine(ComputeEngine):
 
         for stim_name in self._stimuli:
             conn = TorchConn(
-                torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device),
+                torch_ops.empty(0, dtype=WEIGHT_DTYPE, device=self._device),
                 sparse=True)
             self._stim_conns[stim_name][name] = conn
             area.beta_by_source[stim_name] = beta
@@ -462,7 +464,7 @@ class TorchSparseEngine(ComputeEngine):
         self._stimuli[name] = StimulusState(name=name, size=size)
         for area_name, area in self._areas.items():
             conn = TorchConn(
-                torch.empty(0, dtype=WEIGHT_DTYPE, device=self._device),
+                torch_ops.empty(0, dtype=WEIGHT_DTYPE, device=self._device),
                 sparse=True)
             self._stim_conns[name][area_name] = conn
             area.beta_by_source[name] = area.beta
@@ -535,7 +537,7 @@ class TorchSparseEngine(ComputeEngine):
     ) -> torch.Tensor:
         """Sample new-winner input strengths entirely on GPU.
 
-        Uses torch.erfinv for the inverse-CDF transform, avoiding the
+        Uses torch_ops.erfinv for the inverse-CDF transform, avoiding the
         scipy dependency and CPU-to-GPU transfer.  The binom.ppf
         threshold (alpha) is still computed on CPU via the cached
         scipy call -- it's O(1) per unique parameter set.
@@ -572,14 +574,14 @@ class TorchSparseEngine(ComputeEngine):
         # changes.
         k_eff = min(k, max(0, effective_n - 1))
         if k_eff <= 0:
-            return torch.empty(0, dtype=torch.float32, device=self._device)
+            return torch_ops.empty(0, dtype=torch_ops.float32, device=self._device)
 
         alpha = _binom_ppf_cached(effective_n - k_eff, effective_n, total_k, p)
 
         mu = total_k * p
         std = math.sqrt(total_k * p * (1.0 - p))
         if std == 0:
-            return torch.full((k_eff,), mu, dtype=torch.float32,
+            return torch_ops.full((k_eff,), mu, dtype=torch_ops.float32,
                               device=self._device)
 
         a = (alpha - mu) / std
@@ -587,12 +589,12 @@ class TorchSparseEngine(ComputeEngine):
         _SQRT2 = math.sqrt(2.0)
         phi_a = 0.5 * (1.0 + math.erf(a / _SQRT2))
 
-        u = torch.rand(k_eff, dtype=torch.float32, device=self._device,
+        u = torch_ops.rand(k_eff, dtype=torch_ops.float32, device=self._device,
                        generator=self._device_rng(rng))
         u = phi_a + (1.0 - phi_a) * u
         u.clamp_(phi_a + 1e-12, 1.0 - 1e-12)
 
-        samples = mu + std * _SQRT2 * torch.erfinv(2.0 * u - 1.0)
+        samples = mu + std * _SQRT2 * torch_ops.erfinv(2.0 * u - 1.0)
         samples.round_()
         samples.clamp_(0, total_k)
 
@@ -653,8 +655,8 @@ class TorchSparseEngine(ComputeEngine):
                             beta,
                         )
 
-        tgt.winners = torch.tensor(
-            compact, dtype=torch.int32, device=self._device,
+        tgt.winners = torch_ops.tensor(
+            compact, dtype=torch_ops.int32, device=self._device,
         )
         tgt.w = len(compact)
         total_act = float(act[neuron_ids].sum().item()) if neuron_ids else 0.0
@@ -718,8 +720,8 @@ class TorchSparseEngine(ComputeEngine):
                             max(int(tgt.w), csr._log_cols))
                         if r:
                             csr.expand(csr._log_rows, csr._log_cols,
-                                       torch.cat(r), torch.cat(c),
-                                       torch.cat(v))
+                                       torch_ops.cat(r), torch_ops.cat(c),
+                                       torch_ops.cat(v))
                 self._apply_plasticity(
                     target, from_stimuli, from_areas, tgt.winners)
             return ProjectionResult(
@@ -735,8 +737,8 @@ class TorchSparseEngine(ComputeEngine):
                 num_ever_fired=tgt.w)
 
         # --- Accumulate inputs from previous winners ---
-        prev_winner_inputs = torch.zeros(
-            tgt.w, dtype=torch.float32, device=self._device)
+        prev_winner_inputs = torch_ops.zeros(
+            tgt.w, dtype=torch_ops.float32, device=self._device)
         explicit_dense_act = None
         empty_fibers = []
 
@@ -782,9 +784,9 @@ class TorchSparseEngine(ComputeEngine):
                         explicit_dense_act += contrib
                     continue
                 if tgt.compact_to_neuron_id:
-                    id_t = torch.tensor(
+                    id_t = torch_ops.tensor(
                         tgt.compact_to_neuron_id,
-                        dtype=torch.long,
+                        dtype=torch_ops.long,
                         device=self._device,
                     )
                     valid_cols = id_t[id_t < w.shape[1]]
@@ -874,7 +876,7 @@ class TorchSparseEngine(ComputeEngine):
                     max(int(tgt.w), csr._log_cols))
                 if r:
                     csr.expand(csr._log_rows, csr._log_cols,
-                               torch.cat(r), torch.cat(c), torch.cat(v))
+                               torch_ops.cat(r), torch_ops.cat(c), torch_ops.cat(v))
                     grew = True
             if grew:
                 # Once: the fibers are non-empty now, so this cannot recur.
@@ -909,7 +911,7 @@ class TorchSparseEngine(ComputeEngine):
             # engine's lifetime. Gated on w >= k exactly like the numpy
             # engine -- below k there is nothing to select from, and a
             # silently short assembly would be worse than growing.
-            potential_new = torch.empty(0, dtype=torch.float32,
+            potential_new = torch_ops.empty(0, dtype=torch_ops.float32,
                                         device=self._device)
         elif self.dense_drive:
             # Score EVERY unmaterialized neuron, not just k order statistics, so
@@ -946,7 +948,7 @@ class TorchSparseEngine(ComputeEngine):
             if hasattr(potential_new_np, 'get'):
                 potential_new_np = cast(Any, potential_new_np).get()
             potential_new_np = np.asarray(potential_new_np, dtype=np.float32)
-            potential_new = torch.from_numpy(potential_new_np).to(self._device)
+            potential_new = torch_ops.from_numpy(potential_new_np).to(self._device)
 
         # norm_init: candidates are sampled on the unit-weight scale; bring them
         # onto the normalized scale by dividing by the mean in-degree (n*p), so
@@ -957,7 +959,7 @@ class TorchSparseEngine(ComputeEngine):
                 tgt.n, input_sizes, src_pops)
 
         if prev_winner_inputs.numel() > 0:
-            all_inputs = torch.cat([prev_winner_inputs, potential_new])
+            all_inputs = torch_ops.cat([prev_winner_inputs, potential_new])
         else:
             all_inputs = potential_new
 
@@ -985,9 +987,9 @@ class TorchSparseEngine(ComputeEngine):
                         pen_indices.append(cidx)
                         pen_values.append(penalty)
             if pen_indices:
-                idx_t = torch.tensor(pen_indices, dtype=torch.long,
+                idx_t = torch_ops.tensor(pen_indices, dtype=torch_ops.long,
                                      device=self._device)
-                val_t = torch.tensor(pen_values, dtype=torch.float32,
+                val_t = torch_ops.tensor(pen_values, dtype=torch_ops.float32,
                                      device=self._device)
                 all_inputs.scatter_add_(
                     0, idx_t, -val_t)
@@ -1007,7 +1009,7 @@ class TorchSparseEngine(ComputeEngine):
 
         # --- Select winners (policy-aware or default top-k) ---
         policy = tgt.winner_policy or TopKPolicy(k=tgt.k)
-        # On-device fast path for the default top-k policy: run torch.topk on
+        # On-device fast path for the default top-k policy: run torch_ops.topk on
         # the GPU-resident drive vector so it never crosses to host, then bring
         # back only the k selected indices for compact-id bookkeeping. The CPU
         # path below copies the whole W-sized drive vector and runs numpy
@@ -1016,8 +1018,8 @@ class TorchSparseEngine(ComputeEngine):
         # keep the CPU path, which owns those semantics.
         if isinstance(policy, TopKPolicy) and tgt.input_noise_std == 0.0:
             k_sel = min(int(policy.k), int(all_inputs.numel()))
-            _, sel = torch.topk(all_inputs, k_sel, sorted=True)
-            winners_gpu = sel.to(torch.int32)
+            _, sel = torch_ops.topk(all_inputs, k_sel, sorted=True)
+            winners_gpu = sel.to(torch_ops.int32)
         else:
             inputs_cpu = all_inputs.detach().cpu().numpy().astype(np.float64)
             if tgt.input_noise_std > 0:
@@ -1026,9 +1028,9 @@ class TorchSparseEngine(ComputeEngine):
                 )
             winner_indices = self._winner_sel.select_with_policy(
                 inputs_cpu, policy)
-            winners_gpu = torch.tensor(
+            winners_gpu = torch_ops.tensor(
                 [int(i) for i in winner_indices],
-                dtype=torch.int32,
+                dtype=torch_ops.int32,
                 device=self._device,
             )
         k = int(winners_gpu.numel())
@@ -1068,8 +1070,8 @@ class TorchSparseEngine(ComputeEngine):
                 num_first += 1
 
         new_w = tgt.w + num_first
-        remapped_gpu = torch.tensor(
-            new_winner_indices, dtype=torch.int32, device=self._device)
+        remapped_gpu = torch_ops.tensor(
+            new_winner_indices, dtype=torch_ops.int32, device=self._device)
 
         # --- Apply plasticity ---
         if plasticity_enabled and self._plasticity_enabled_global:
@@ -1100,12 +1102,12 @@ class TorchSparseEngine(ComputeEngine):
                 and plasticity_enabled and self._plasticity_enabled_global):
             if len(tgt._cumulative_bias) < new_w:
                 old = tgt._cumulative_bias
-                tgt._cumulative_bias = torch.zeros(
-                    new_w, dtype=torch.float32, device=self._device)
+                tgt._cumulative_bias = torch_ops.zeros(
+                    new_w, dtype=torch_ops.float32, device=self._device)
                 if len(old) > 0:
                     tgt._cumulative_bias[:len(old)] = old
             bias = tgt._cumulative_bias
-            widx = torch.as_tensor(
+            widx = torch_ops.as_tensor(
                 np.asarray(new_winner_indices, dtype=np.int64),
                 device=bias.device)
             widx = widx[widx < len(bias)]
@@ -1338,7 +1340,7 @@ class TorchSparseEngine(ComputeEngine):
                     self._stimuli[stim_name].size, old, n,
                     self._get_pair_seed(stim_name, area),
                     self._p_for(stim_name, area), device=self._device)
-                conn.weights = torch.cat([conn.weights, add])
+                conn.weights = torch_ops.cat([conn.weights, add])
 
         # 3. Area fibers: hash-grow every block touching this area to full
         #    extent. IN-fibers gain columns; OUT-fibers gain rows; the self
@@ -1349,7 +1351,7 @@ class TorchSparseEngine(ComputeEngine):
                 self._p_for(src_name, tgt_name), needed_rows, needed_cols)
             if r:
                 csr.expand(csr._log_rows, csr._log_cols,
-                           torch.cat(r), torch.cat(c), torch.cat(v))
+                           torch_ops.cat(r), torch_ops.cat(c), torch_ops.cat(v))
 
         for src_name, conns in self._area_conns.items():
             csr = conns.get(area)
@@ -1398,9 +1400,9 @@ class TorchSparseEngine(ComputeEngine):
                             pair_seed, self._p_for(stim_name, target),
                             device=self._device)
                     else:
-                        add = torch.zeros(add_len, dtype=WEIGHT_DTYPE,
+                        add = torch_ops.zeros(add_len, dtype=WEIGHT_DTYPE,
                                           device=self._device)
-                    conn.weights = torch.cat([conn.weights, add])
+                    conn.weights = torch_ops.cat([conn.weights, add])
 
         # Write allocations for firing stimuli
         for idx, win in enumerate(new_indices):
@@ -1452,7 +1454,7 @@ class TorchSparseEngine(ComputeEngine):
             # instead of appended element by element: the inner Python loop
             # ran once per synapse -- 1.78M list appends in a 4-presentation
             # build -- and then paid again handing a multi-million-element
-            # Python list to `torch.tensor`. Same values, same order, one
+            # Python list to `torch_ops.tensor`. Same values, same order, one
             # host->device copy.
             exp_rows_parts, exp_cols_parts = [], []
             for idx, win in enumerate(new_indices):
@@ -1482,24 +1484,24 @@ class TorchSparseEngine(ComputeEngine):
                 exp_cols = np.concatenate(exp_cols_parts).astype(
                     np.int32, copy=False)
                 coo_r_parts.append(
-                    torch.from_numpy(exp_rows).to(self._device))
+                    torch_ops.from_numpy(exp_rows).to(self._device))
                 coo_c_parts.append(
-                    torch.from_numpy(exp_cols).to(self._device))
-                coo_v_parts.append(torch.ones(
+                    torch_ops.from_numpy(exp_cols).to(self._device))
+                coo_v_parts.append(torch_ops.ones(
                     exp_rows.size, dtype=WEIGHT_DTYPE,
                     device=self._device))
 
             # Merge into CSR
             if coo_r_parts:
-                new_r = torch.cat(coo_r_parts)
-                new_c = torch.cat(coo_c_parts)
-                new_v = torch.cat(coo_v_parts)
+                new_r = torch_ops.cat(coo_r_parts)
+                new_c = torch_ops.cat(coo_c_parts)
+                new_v = torch_ops.cat(coo_v_parts)
                 csr.expand(needed_rows, needed_cols, new_r, new_c, new_v)
             elif needed_rows > csr._nrows or needed_cols > csr._ncols:
-                e = torch.empty(0, dtype=torch.int32, device=self._device)
+                e = torch_ops.empty(0, dtype=torch_ops.int32, device=self._device)
                 csr.expand(needed_rows, needed_cols,
                            e, e.clone(),
-                           torch.empty(0, dtype=WEIGHT_DTYPE,
+                           torch_ops.empty(0, dtype=WEIGHT_DTYPE,
                                        device=self._device))
 
     # -- State accessors ----------------------------------------------------
@@ -1510,14 +1512,14 @@ class TorchSparseEngine(ComputeEngine):
 
     def set_winners(self, area: str, winners: np.ndarray) -> None:
         st = self._areas[area]
-        # torch.tensor(uint32_array, dtype=int32, device=cuda) hits a slow
+        # torch_ops.tensor(uint32_array, dtype=int32, device=cuda) hits a slow
         # element-wise path -- uint32 is not a native torch dtype, so at large k
         # this dominated the whole projection (measured 32ms/round at k=100k).
         # Route through int64 (torch-native) so from_numpy is zero-copy, then a
         # single fused H2D + cast kernel.
         arr = np.ascontiguousarray(winners, dtype=np.int64)
-        st.winners = torch.from_numpy(arr).to(
-            self._device, dtype=torch.int32, non_blocking=True)
+        st.winners = torch_ops.from_numpy(arr).to(
+            self._device, dtype=torch_ops.int32, non_blocking=True)
 
     def materialized_count(self, area: str):
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-cue-recovery"""
@@ -1593,13 +1595,13 @@ class TorchSparseEngine(ComputeEngine):
         st.refracted = enabled
         st.refracted_strength = strength
         if enabled and st._cumulative_bias.numel() == 0:
-            st._cumulative_bias = torch.zeros(
-                max(st.w, 0), dtype=torch.float32, device=self._device)
+            st._cumulative_bias = torch_ops.zeros(
+                max(st.w, 0), dtype=torch_ops.float32, device=self._device)
 
     def clear_refracted_bias(self, area: str) -> None:
         st = self._areas[area]
-        st._cumulative_bias = torch.zeros(
-            max(st.w, 0), dtype=torch.float32, device=self._device)
+        st._cumulative_bias = torch_ops.zeros(
+            max(st.w, 0), dtype=torch_ops.float32, device=self._device)
 
     # -- Weight normalization -----------------------------------------------
 

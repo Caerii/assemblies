@@ -37,6 +37,13 @@ class TorchOps(Protocol):
     einsum: Callable[..., Any]
     full: Callable[..., Any]
     as_tensor: Callable[..., Any]
+    device: Callable[..., Any]
+    Generator: Any
+    long: Any
+    normal: Callable[..., Any]
+    rand: Callable[..., Any]
+    erfinv: Callable[..., Any]
+    topk: Callable[..., Any]
     where: Callable[..., Any]
     full_like: Callable[..., Any]
     empty: Callable[..., Any]
