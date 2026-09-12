@@ -7019,3 +7019,6 @@ Added a shared Brain-side validator for competition policies. Area registration 
 ## Backend beta registration parity (2026-09-12)
 
 Applied `validate_plasticity_rate` to NumPy sparse, NumPy exact, NumPy explicit, and Torch engine `add_area` implementations. Direct engine construction now has the same beta acceptance contract as Brain and Area. Validation: area-registration suite 213 passed, including direct-engine cases; Pyright on all four engine modules 0 errors/warnings/information.
+## Runtime refraction validation parity (2026-09-12)
+
+Applied the shared refraction-strength validator and exact boolean check to the abstract engine boundary, NumPy sparse backend, and Torch backend. Direct backend runtime controls now reject malformed refraction settings consistently with Brain before mutating area state. Validation: homeostasis suite 13 passed; Pyright on engine backends 0 errors/warnings/information.

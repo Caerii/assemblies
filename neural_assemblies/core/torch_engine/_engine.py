@@ -35,7 +35,8 @@ from .._pricing import (
 from ..numpy_engine._sparse import (
     _fixed_target_plasticity_enabled as _np_fixed_target_plasticity_enabled,
 )
-from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_lri_parameters, refraction_increment, scaling_applies,
+from .._homeostasis import (HomeostasisConfig, check_area_homeostasis, validate_lri_parameters,
+                            validate_refraction_strength, refraction_increment, scaling_applies,
                             scaling_setpoint)
 from ..connectome import Connectome
 from ..engine import (
@@ -1592,6 +1593,9 @@ class TorchSparseEngine(ComputeEngine):
 
     def set_refracted(self, area: str, enabled: bool,
                       strength: float = 0.0) -> None:
+        if type(enabled) is not bool:
+            raise TypeError("refracted enabled flag must be a bool")
+        strength = validate_refraction_strength(strength)
         st = self._areas[area]
         check_area_homeostasis(area, refracted=enabled, synaptic_scaling=self.synaptic_scaling)
         st.refracted = enabled

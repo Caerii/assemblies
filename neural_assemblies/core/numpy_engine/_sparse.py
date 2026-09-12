@@ -27,6 +27,7 @@ from .._pricing import (
     area_fiber_activity,
 )
 from .._homeostasis import (column_scale, refraction_increment,
+                             validate_refraction_strength,
                             scaling_applies, scaling_setpoint, HomeostasisConfig, check_area_homeostasis, validate_lri_parameters)
 from ..engine import (
     ComputeEngine,
@@ -2757,6 +2758,9 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
     def set_refracted(self, area: str, enabled: bool,
                       strength: float = 0.0) -> None:
         """Enable or disable refracted mode for an area."""
+        if type(enabled) is not bool:
+            raise TypeError("refracted enabled flag must be a bool")
+        strength = validate_refraction_strength(strength)
         st = self._areas[area]
         check_area_homeostasis(area, refracted=enabled, synaptic_scaling=self.synaptic_scaling)
         st.refracted = enabled

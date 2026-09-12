@@ -423,9 +423,12 @@ class ComputeEngine(ABC):
         Requesting the DEFAULT (``enabled=False``) is not a request for the
         mechanism and stays a no-op everywhere, matching `_reject_unsupported`.
         """
-        del strength  # Unsupported engines reject enabling before strength applies.
+        from ._homeostasis import validate_refraction_strength
+        strength = validate_refraction_strength(strength)
         if not isinstance(area, str) or not area:
             raise ValueError("area must be a nonempty string")
+        if type(enabled) is not bool:
+            raise TypeError("refracted enabled flag must be a bool")
         if enabled:
             raise NotImplementedError(
                 f"{type(self).__name__}.set_refracted({area!r}, enabled=True) "

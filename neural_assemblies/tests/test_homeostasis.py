@@ -87,6 +87,14 @@ class TestLaws(unittest.TestCase):
             b.set_refracted("A", True, strength=float("nan"))
         self.assertFalse(b.areas["A"].refracted)
 
+    def test_direct_engine_refraction_updates_share_strength_validation(self):
+        from neural_assemblies.core.numpy_engine import NumpyExactEngine, NumpySparseEngine
+        for factory in (NumpyExactEngine, NumpySparseEngine):
+            engine = factory(p=P)
+            engine.add_area("A", N, K, BETA)
+            with self.assertRaises(ValueError):
+                engine.set_refracted("A", True, strength=float("nan"))
+
 
 class TestConflictIsUnspellable(unittest.TestCase):
 
