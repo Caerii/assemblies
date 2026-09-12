@@ -6227,3 +6227,7 @@ The parser now imports only the language-area symbols it actually uses; the full
 ### Language test vocabulary gate (2026-09-12)
 
 The language parsing tests now use the same explicit area vocabulary as production modules; the final wildcard import is gone. Package F403/F405/F821 checks are clean and parser tests pass **9 tests**.
+
+### Metrics, NEMO patterns, and next-token slice (2026-09-12)
+
+The partitioned non-slow slice 1980:2120 passed **139 tests with 1 expected xfail in 83.03 seconds**. It covers metric kernels, NEMO pattern learning, next-token prediction, and noise/recovery input contracts. Ten sampled-recurrence warnings are intentional provenance guards.
