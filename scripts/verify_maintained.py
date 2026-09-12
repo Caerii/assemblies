@@ -59,8 +59,13 @@ def default_test_workers() -> str:
     return str(min(12, os.cpu_count() or 1))
 
 
-def run(command: list[str], *, capture_output: bool = False) -> subprocess.CompletedProcess[str]:
-    print("$", " ".join(command), flush=True)
+def run(
+    command: list[str],
+    *,
+    capture_output: bool = False,
+    display_command: str | None = None,
+) -> subprocess.CompletedProcess[str]:
+    print("$", display_command or " ".join(command), flush=True)
     return subprocess.run(command, cwd=ROOT, check=False, text=True,
                           capture_output=capture_output)
 
@@ -91,7 +96,13 @@ def maintained_sources(root: Path = ROOT) -> list[str]:
 
 def check_pyright() -> bool:
     files = maintained_sources()
-    result = run(["uv", "run", "pyright", *files, "--outputjson"], capture_output=True)
+    result = run(
+        ["uv", "run", "pyright", *files, "--outputjson"],
+        capture_output=True,
+        display_command=(
+            f"uv run pyright <{len(files)} maintained sources> --outputjson"
+        ),
+    )
     if result.stdout:
         report = json.loads(result.stdout)
         print(json.dumps(report["summary"], sort_keys=True))
