@@ -116,7 +116,7 @@ class WinnerSelector:
         return part_idx[sorted_order]
 
     def select_winners_with_threshold(self, inputs, k: int,
-                                    threshold: float = None,
+                                    threshold: float | None = None,
                                     tie_policy: str = "value_then_index"):
         """Select winners above a threshold, up to k winners."""
         xp = get_xp()
@@ -147,7 +147,7 @@ class WinnerSelector:
             return xp.asarray(chosen, dtype=int)
 
     def select_with_policy(self, features, policy: WinnerPolicy,
-                           population_sigma: float = None):
+                           population_sigma: float | None = None):
         """Select winners using an explicit winner policy object.
 
         ``population_sigma`` is an optional analytic estimate of the spread of
@@ -302,18 +302,21 @@ class WinnerSelector:
             candidate_indices = np.arange(n)
 
         k = min(target_area_k, n)
+        new_indices: List[int]
 
         if tie_policy == "value_then_index":
             if k >= len(candidate_indices):
-                new_indices = list(candidate_indices)
+                new_indices = [int(value) for value in candidate_indices]
             elif method == "heapq":
                 # Keep the heap path genuinely distinct while preserving the
                 # same deterministic value/index ordering as the vector path.
                 import heapq
-                new_indices = heapq.nsmallest(
-                    k, candidate_indices,
-                    key=lambda idx: (-all_inputs_cpu[idx], int(idx)),
-                )
+                new_indices = [
+                    int(idx) for idx in heapq.nsmallest(
+                        k, candidate_indices,
+                        key=lambda idx: (-all_inputs_cpu[idx], int(idx)),
+                    )
+                ]
             else:
                 # lexsort: primary key = -value (descending), secondary = index (ascending)
                 cand_vals = all_inputs_cpu[candidate_indices]
@@ -321,7 +324,7 @@ class WinnerSelector:
                 new_indices = [int(candidate_indices[pos]) for pos in order[:k]]
         else:
             if k >= len(candidate_indices):
-                new_indices = list(candidate_indices)
+                new_indices = [int(value) for value in candidate_indices]
             else:
                 cand_vals = all_inputs_cpu[candidate_indices]
                 order = np.argsort(-cand_vals)
