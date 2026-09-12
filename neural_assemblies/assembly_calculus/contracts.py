@@ -43,6 +43,24 @@ class ProjectionStep:
     stimuli: tuple[tuple[str, tuple[str, ...]], ...]
     fibers: tuple[tuple[str, tuple[str, ...]], ...]
 
+    def __post_init__(self) -> None:
+        for label, edges in (("stimuli", self.stimuli), ("fibers", self.fibers)):
+            if not isinstance(edges, tuple):
+                raise TypeError(f"{label} must be a tuple of edges")
+            seen: set[str] = set()
+            for edge in edges:
+                if (not isinstance(edge, tuple) or len(edge) != 2
+                        or not isinstance(edge[0], str) or not edge[0]
+                        or not isinstance(edge[1], tuple)
+                        or not edge[1]
+                        or any(not isinstance(target, str) or not target for target in edge[1])):
+                    raise ValueError(f"{label} edges must be (name, nonempty target tuple)")
+                if edge[0] in seen:
+                    raise ValueError(f"{label} cannot contain duplicate source names")
+                if len(set(edge[1])) != len(edge[1]):
+                    raise ValueError(f"{label} cannot contain duplicate target names")
+                seen.add(edge[0])
+
     def stimuli_dict(self) -> dict[str, list[str]]:
         return {source: list(targets) for source, targets in self.stimuli}
 

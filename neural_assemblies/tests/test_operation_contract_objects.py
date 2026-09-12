@@ -120,6 +120,20 @@ def test_projection_plan_is_immutable_and_canonicalizes_numpy_integer():
         plan.rounds = 3
 
 
+@pytest.mark.parametrize(
+    "stimuli, fibers, message",
+    [
+        ((["s"], ("T",)), (), "tuple"),
+        (("s", ()), (), "nonempty target"),
+        ((("s", ("T", "T")),), (), "duplicate target"),
+        ((("s", ("T",)), ("s", ("U",))), (), "duplicate source"),
+    ],
+)
+def test_projection_step_rejects_malformed_edge_values(stimuli, fibers, message):
+    with pytest.raises((TypeError, ValueError), match=message):
+        ProjectionStep(stimuli=stimuli, fibers=fibers)
+
+
 @pytest.mark.parametrize("recurrent", [False, True])
 def test_execution_is_exactly_the_inspectable_schedule(recurrent):
     brain = RecordingBrain()

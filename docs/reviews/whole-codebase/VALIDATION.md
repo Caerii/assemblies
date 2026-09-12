@@ -7543,3 +7543,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - `ExplicitProgram.execute_on_brain` now preflights every round with `validate_on_brain` before executing any lowering.
 - Added a negative test covering weights, winners, and saved history for invalid later rounds across explicit and sparse Brain fixtures.
 - Validation: Brain IR tests passed (28 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 ProjectionStep construction contract
+
+- Added construction-time validation for immutable schedule edges: tuple shape, nonempty names/targets, unique sources, and unique targets.
+- Added malformed-step negative cases so plan corruption fails before execution or serialization.
+- Validation: operation contract suite passed (173 tests); Pyright reported 0 errors; `git diff --check` passed.
