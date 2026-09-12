@@ -25,6 +25,8 @@ DAT = "DAT"
 # Fixed area stats for explicit areas
 LEX_SIZE = 20
 RUSSIAN_LEX_SIZE = 8
+# DET reserves one assembly per determiner plus a final null-determiner slot.
+DET_SIZE = 2
 
 # Actions
 DISINHIBIT = "DISINHIBIT"
@@ -80,6 +82,7 @@ __all__ = (
     "DAT",
     "LEX_SIZE",
     "RUSSIAN_LEX_SIZE",
+    "DET_SIZE",
     "DISINHIBIT",
     "INHIBIT",
     "ACTIVATE_ONLY",

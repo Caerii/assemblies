@@ -6211,3 +6211,7 @@ All remaining B905 sites in maintained tests now declare their cardinality law: 
 ### Explicit language vocabulary gate (2026-09-12)
 
 The legacy language grammar, readout, and debugger modules no longer use wildcard imports. `language_areas.__all__` defines the stable vocabulary and each consumer imports only the symbols it uses. Language parsing passes **9 tests**, reconstruction/readout passes **20 tests** with one intentional sampled-recurrence warning, and focused Ruff F plus bytecode compilation are clean.
+
+### Language parser symbol admission gate (2026-09-12)
+
+The explicit language vocabulary exposed one latent production defect: `EnglishParserBrain.getWord` referenced an undefined `DET_SIZE`, so its null-determiner fallback could fail only at runtime. `DET_SIZE` is now a named language-area constant and is imported explicitly. Language F403/F405/F821 checks are clean and parser tests pass **9 tests**.
