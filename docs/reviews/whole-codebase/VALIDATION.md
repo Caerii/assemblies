@@ -5583,3 +5583,10 @@ the canonical finite, exclusive writer. Its compact-index weight census,
 seed/config keys, and output schema are unchanged; reruns cannot silently
 replace the evidence. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
+### Zipf synthesis checkpoint migration (2026-09-12)
+
+The analyze-later Zipf synthesis study now persists its arm/seed observations
+through `write_checkpoint_document`. Its `ZS_ANALYZE` read path, fixed exam,
+and output schema remain unchanged, while raw JSON overwrite is replaced by
+atomic checkpoint publication. Compilation, Ruff, and both result-writer
+ratchets pass: **2 passed**.
