@@ -47,7 +47,8 @@ def test_program_execution_is_ordered_and_empty_program_is_identity(monkeypatch)
         calls.append((self.target, self.plasticity))
         return len(calls)
 
-    monkeypatch.setattr(ExplicitRound, "execute", record)
+    monkeypatch.setattr(ExplicitRound, "validate", lambda self, engine: None)
+    monkeypatch.setattr(ExplicitRound, "_execute_validated", record)
     program = ExplicitProgram(
         (ExplicitRound("first", (), False, (1,)),
          ExplicitRound("second", (), True, (2,)))
@@ -55,6 +56,17 @@ def test_program_execution_is_ordered_and_empty_program_is_identity(monkeypatch)
     assert program.execute(object()) == 2
     assert calls == [("first", False), ("second", True)]
     assert ExplicitProgram().execute(object()) is None
+
+
+def test_program_preflights_all_rounds_before_mutating(engine):
+    program = ExplicitProgram(
+        (ExplicitRound("T", ("S",), True),
+         ExplicitRound("T", ("missing",), False)),
+    )
+    before = engine._area_conns["S"]["T"].weights.copy()
+    with pytest.raises(ValueError, match="unregistered area"):
+        program.execute(engine)
+    np.testing.assert_array_equal(engine._area_conns["S"]["T"].weights, before)
 
 
 @pytest.mark.parametrize("case", EXPLICIT_ROUND_CASES, ids=lambda case: case["name"])

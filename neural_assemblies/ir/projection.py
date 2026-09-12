@@ -102,6 +102,10 @@ class ExplicitRound:
     def execute(self, engine):
         """Execute on a standalone engine; use execute_on_brain for a Brain."""
         self.validate(engine)
+        return self._execute_validated(engine)
+
+    def _execute_validated(self, engine):
+        """Execute after validation has already established the profile."""
         return engine.project_into(self.target, [], list(self.from_areas),
                                    plasticity_enabled=self.plasticity,
                                    external_drive=self.external_drive or None)
@@ -188,10 +192,16 @@ class ExplicitProgram:
 
     def execute(self, engine):
         """Execute rounds in order and return the final round's observation."""
+        self.validate(engine)
         result = None
         for round_ in self.rounds:
-            result = round_.execute(engine)
+            result = round_._execute_validated(engine)
         return result
+
+    def validate(self, engine) -> None:
+        """Admit every round before the first round can mutate the engine."""
+        for round_ in self.rounds:
+            round_.validate(engine)
 
     def execute_on_brain(self, brain):
         """Lower rounds in order through the coherent Brain boundary."""

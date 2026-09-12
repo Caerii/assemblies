@@ -7523,3 +7523,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Added structural tests for associative `Sequence.then` composition and the empty same-area sequence as a left and right identity.
 - Validation: Sequence data-model tests passed (13 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 whole-program IR preflight
+
+- `ExplicitProgram.execute` now validates every round before mutating the standalone engine, then executes through a validated internal path.
+- Added a constructed negative proving an invalid later round leaves earlier engine state unchanged.
+- Validation: projection IR tests passed (42 tests); Pyright reported 0 errors; `git diff --check` passed.
