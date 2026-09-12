@@ -6295,3 +6295,7 @@ The fused CUDA tests and hashed-transducer parity test now use local `torch.allc
 ### Lean assembly IR proof gate (2026-09-12)
 
 The formal bridge compiles cleanly with Lean **v4.30.0**: `lake env lean AssemblyIR.lean` and `lake env lean CheckWireCases.lean` both exit successfully from `formal/`. The initial repository-root invocation correctly failed on module search path, so the recorded command uses the project directory explicitly.
+
+### Rust assembly-IR bridge gate (2026-09-12)
+
+The Rust workspace and the packaged Python IR crate compile and test against the shared v1 wire corpus. `cargo test --manifest-path neural_assemblies/ir/Cargo.toml` passes **4 Rust tests plus doc-tests**, and `cargo test --manifest-path crates/Cargo.toml` passes **4 assembly-IR tests, 0 na-kernels tests, and doc-tests**.
