@@ -47,9 +47,11 @@ failure was silent -- scores shifted rather than an error being raised.
 """
 
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Any, Dict, List, Optional, Set, Tuple, TYPE_CHECKING, cast
 
 from neural_assemblies.assembly_calculus.ops import _snap
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
 from ..core.areas import (
     CORE_TO_CATEGORY, CATEGORY_TO_CORE, GROUNDING_TO_CORE,
     FUNC_DET, FUNC_AUX, FUNC_COMP, FUNC_CONJ, FUNC_MARKER, FUNC_SUBCAT_TO_CORE,
@@ -62,9 +64,13 @@ from ..core.word_order import (
 )
 from ..curriculum.data import GroundedSentence
 from ..parser_mixins.core import _MODALITY_FIELDS
+from ._shared import DistributionalStats
 
 if TYPE_CHECKING:
     from ..core.corpus_index import CorpusIndex
+    from .core import CoreParserMixin
+    from ..parser import EmergentParser
+    from ..training.compiled import CompiledTopologyParser
 
 # HAND-AUTHORED ENGLISH-SVO PRIOR.  Category -> typical normalised position
 # range.  This is NOT learned and is NOT typology-neutral: it encodes an SVO,
@@ -95,6 +101,31 @@ _PROFILE_MIN_OCCURRENCES = 3
 class DistributionalMixin:
     """Distributional learning, raw text pipeline, and word order typology."""
 
+    brain: Brain
+    n: int
+    k: int
+    rounds: int
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, GroundingContext]
+    dist_stats: DistributionalStats
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    _category_cache: Dict[str, str]
+    _grounding_stim_names_set: Set[str]
+
+    if TYPE_CHECKING:
+        def add_phon_stimulus(self, word: str) -> str: ...
+        def _invalidate_category_cache(self, word: Optional[str] = None) -> None: ...
+        def _clear_core_activity(self, core_area: Optional[str] = None) -> None: ...
+        def train_lexicon(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_unsupervised(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_phrases(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_word_order(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_tense(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_mood(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_polarity(self, *args: Any, **kwargs: Any) -> None: ...
+        def train_conjunctions(self, *args: Any, **kwargs: Any) -> None: ...
+        def classify_word_cached(self, word: str, grounding: Optional[GroundingContext] = None) -> Tuple[str, Any]: ...
+
     def ingest_raw_sentence(self, words: List[str]) -> None:
         """Ingest a raw sentence (no grounding) to build distributional stats.
 
@@ -109,7 +140,7 @@ class DistributionalMixin:
         n = len(words)
 
         from ..acquisition.pos_inference import record_exposure_sentence
-        record_exposure_sentence(self, words)
+        record_exposure_sentence(cast("CoreParserMixin", self), words)
 
         # Find verb position (using known categories or distributional)
         verb_pos = None
@@ -148,15 +179,21 @@ class DistributionalMixin:
         # Update category transitions for known words
         cats = [self._quick_category(w) for w in words]
         for idx in range(len(cats) - 1):
-            if cats[idx] and cats[idx + 1]:
-                stats.category_transitions[(cats[idx], cats[idx + 1])] += 1
+            left, right = cats[idx], cats[idx + 1]
+            if left is not None and right is not None:
+                stats.category_transitions[(left, right)] += 1
 
     def _quick_category(self, word: str) -> Optional[str]:
         """Return known category for a word (from grounding or lexicon), or None."""
         ctx = self.word_grounding.get(word)
         if ctx is not None:
-            return CORE_TO_CATEGORY.get(GROUNDING_TO_CORE.get(
-                ctx.dominant_modality))
+            modality = ctx.dominant_modality
+            if modality is None:
+                return None
+            core = GROUNDING_TO_CORE.get(cast(str, modality))
+            if core is None:
+                return None
+            return CORE_TO_CATEGORY.get(core)
         # Check if word has a distributional classification cached
         if hasattr(self, '_dist_categories') and word in self._dist_categories:
             return self._dist_categories[word]
@@ -192,8 +229,9 @@ class DistributionalMixin:
         # Update category transitions
         cats = [self._quick_category(w) for w in words]
         for idx in range(len(cats) - 1):
-            if cats[idx] and cats[idx + 1]:
-                stats.category_transitions[(cats[idx], cats[idx + 1])] += 1
+            left, right = cats[idx], cats[idx + 1]
+            if left is not None and right is not None:
+                stats.category_transitions[(left, right)] += 1
 
     def classify_by_frame(self, word: str
                           ) -> Tuple[Optional[str], float]:
@@ -292,7 +330,7 @@ class DistributionalMixin:
         noun_right = right_cats.get("NOUN", 0) / right_total
         frame_scores["ADJ"] = min(det_left, noun_right) * 1.1
 
-        best = max(frame_scores, key=frame_scores.get)
+        best = max(frame_scores, key=lambda key: frame_scores[key])
         confidence = frame_scores[best]
 
         return best, confidence
@@ -408,7 +446,12 @@ class DistributionalMixin:
 
         # Stage 1: Frame-based classification (always computed)
         frame_cat, frame_conf = self.classify_by_frame(word)
-        pos_cat = CORE_TO_CATEGORY.get(FUNC_SUBCAT_TO_CORE.get(frame_cat), frame_cat)
+        if frame_cat is None:
+            pos_cat = None
+        else:
+            subcore = FUNC_SUBCAT_TO_CORE.get(cast(str, frame_cat))
+            mapped_cat = CORE_TO_CATEGORY.get(subcore) if subcore else frame_cat
+            pos_cat = mapped_cat if mapped_cat is not None else frame_cat
 
         # For ungrounded words, frame classification is authoritative
         # (analogous to ELAN rapid categorization)
@@ -418,7 +461,8 @@ class DistributionalMixin:
                 self._func_subcategories: Dict[str, str] = {}
             self._func_subcategories[word] = frame_cat
 
-            return pos_cat, {pos_cat: frame_conf}
+            category = cast(str, pos_cat)
+            return category, {category: frame_conf}
 
         scores: Dict[str, float] = {}
 
@@ -426,7 +470,7 @@ class DistributionalMixin:
         if frame_cat is not None:
             # Get all frame scores by re-running frame analysis
             # and using the confidence as a feature
-            scores[pos_cat] = frame_conf * 2.0
+            scores[cast(str, pos_cat)] = frame_conf * 2.0
 
         # 2. Verb-relative position scores
         pre = stats.word_as_pre_verb.get(word, 0)
@@ -495,7 +539,7 @@ class DistributionalMixin:
         if not scores:
             return "UNKNOWN", scores
 
-        best = max(scores, key=scores.get)
+        best = max(scores, key=lambda key: scores[key])
         return best, scores
 
     def get_func_subcategory(self, word: str) -> Optional[str]:
@@ -567,7 +611,7 @@ class DistributionalMixin:
                             classify_word_bootstrapped,
                         )
 
-                        cat, _ = classify_word_bootstrapped(self, word, ctx)
+                        cat, _ = classify_word_bootstrapped(cast("CoreParserMixin", self), word, ctx)
                         if cat != "UNKNOWN":
                             if not hasattr(self, "_bootstrap_categories"):
                                 self._bootstrap_categories = {}
@@ -578,7 +622,7 @@ class DistributionalMixin:
                 if ctx is not None and ctx.is_grounded:
                     from ..acquisition.pos_inference import classify_word_bootstrapped
 
-                    cat, _ = classify_word_bootstrapped(self, word, ctx)
+                    cat, _ = classify_word_bootstrapped(cast("CoreParserMixin", self), word, ctx)
                 else:
                     cat, scores = self.classify_distributional(word)
                 if cat != "UNKNOWN":
@@ -609,7 +653,7 @@ class DistributionalMixin:
         from ..core.corpus_index import category_oracle, ingest_index_stats
 
         for _rep in range(repetitions):
-            ingest_index_stats(self, corpus_index)
+            ingest_index_stats(cast("CoreParserMixin", self), corpus_index)
 
         self._dist_categories = {}
         min_count = max(2, max(1, self.dist_stats.sentences_seen // 10))
@@ -625,11 +669,11 @@ class DistributionalMixin:
                 if ctx is not None and ctx.is_grounded and not in_lex:
                     from ..acquisition.pos_inference import infer_holdout_categories
 
-                    infer_holdout_categories(self, {word}, min_count=0)
+                    infer_holdout_categories(cast("CoreParserMixin", self), {word}, min_count=0)
                 continue
 
             if ctx is not None and ctx.is_grounded and in_lex:
-                cat = category_oracle(self, word, ctx)
+                cat = category_oracle(cast("CoreParserMixin", self), word, ctx)
                 self._category_cache[word] = cat
                 continue
 
@@ -640,13 +684,13 @@ class DistributionalMixin:
                         infer_holdout_categories,
                     )
 
-                    infer_holdout_categories(self, {word}, min_count=0)
+                    infer_holdout_categories(cast("CoreParserMixin", self), {word}, min_count=0)
                 continue
 
             if ctx is not None and ctx.is_grounded and not in_lex:
                 from ..acquisition.pos_inference import classify_word_bootstrapped
 
-                cat, _ = classify_word_bootstrapped(self, word, ctx)
+                cat, _ = classify_word_bootstrapped(cast("CoreParserMixin", self), word, ctx)
             else:
                 cat, _ = self.classify_distributional(word)
 

@@ -6521,3 +6521,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Morphosyntax capability gate (2026-09-12)
 
 `MorphosyntaxMixin` now declares the feature-training state it reads and mutates: Brain dimensions and plasticity, grounding/stimulus maps, core assemblies, exposure counters, and feature-image caches. Fiber-gain brackets use an explicit context-manager contract, optional engine scaling hooks are capability-checked, and engine connection inspection uses a guarded lookup. Pyright reports **0 diagnostics**; morphology and multi-mood tests pass **10 tests with 1 existing xfail**.
+
+### Distributional evidence capability gate (2026-09-12)
+
+`DistributionalMixin` now declares its raw-text evidence store, grounding/stimulus maps, assembly stores, category cache, and registration capabilities. Calls into acquisition and compiled topology helpers explicitly witness the composed parser; category transitions and optional frame categories are narrowed before indexing, and score selection uses typed key functions. Pyright reports **0 diagnostics**; classification, observation, and word-order tests pass **47 tests with 2 existing xfails**.
