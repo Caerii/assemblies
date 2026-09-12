@@ -364,6 +364,11 @@ def phrase_stability(
     the last piece of the chain it recorded as unthreaded. A default of
     `from_environment()` would have kept that door open while looking closed.
     """
+    if rounds != 3 or k is not None:
+        raise ValueError(
+            "phrase_stability fixes rounds=3 and does not accept k; "
+            "energy is a single-projection measurement"
+        )
     if protocol.afferent_energy:
         return afferent_energy(brain, area)
     return _self_recurrent_energy(brain, area)
@@ -513,6 +518,12 @@ def anchored_p600_live(
     bottom must pick one of them. `detail["legacy"]` carries the old value so
     callers reproduce the arithmetic exactly while the choice stays visible.
     """
+    if subject_core is not None or n_settling != P600_SETTLING_ROUNDS:
+        raise ValueError(
+            "anchored_p600_live fixes subject_core=None and "
+            f"n_settling={P600_SETTLING_ROUNDS}; pre-k-WTA energy does not "
+            "settle or add a subject source"
+        )
     brain = parser.brain
     missing = [a for a in (core_area, role_area) if a not in brain.areas]
     if missing:

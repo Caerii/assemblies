@@ -5770,3 +5770,10 @@ implemented by the requested backend, and a contract test covers the mapping.
 Operational benchmark output now records the concrete materialization
 representation (`dense` or `csr`) alongside the materialized/sampled label, so
 performance numbers identify the storage protocol they actually ran.
+
+### ERP compatibility parameters are now guarded (2026-09-12)
+
+`phrase_stability` rejects legacy `rounds` and `k` values that cannot affect
+its single-projection energy. `anchored_p600_live` rejects the retired
+`subject_core` and settling override rather than allowing callers to believe
+the measurement includes them.
