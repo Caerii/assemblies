@@ -31,7 +31,7 @@ Reference:
     arXiv:2306.15364.
 """
 
-from typing import List, Mapping, Optional, Sequence, Tuple
+from typing import Dict, List, Mapping, Optional, Sequence, Tuple
 
 from .assembly import Assembly, overlap
 from .ops import project
@@ -39,11 +39,13 @@ from .contracts import LEXICON_BUILD_CONTRACT, READOUT_CONTRACT, LexiconBuildPla
 
 
 # Type alias: word string → Assembly snapshot
-Lexicon = Mapping[str, Assembly]
+# A built lexicon is owned mutable state (builders add entries); readout
+# functions accept the narrower ``Mapping`` view at their boundaries.
+Lexicon = Dict[str, Assembly]
 
 
 @implements(READOUT_CONTRACT)
-def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
+def fuzzy_readout(assembly: Assembly, lexicon: Mapping[str, Assembly],
                   threshold: float = 0.7) -> Optional[str]:
     """Return the best-matching word above *threshold*, or None.
 
@@ -85,7 +87,7 @@ def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
 
 
 def readout_all(assembly: Assembly,
-                lexicon: Lexicon) -> List[Tuple[str, float]]:
+                lexicon: Mapping[str, Assembly]) -> List[Tuple[str, float]]:
     """Return all words with their overlaps, sorted descending.
 
     Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-readout
