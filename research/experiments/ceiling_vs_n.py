@@ -26,11 +26,13 @@ REGISTERED READINGS:
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
 from collections import defaultdict
+from pathlib import Path
+
+from research.json_documents import write_new_document
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
@@ -137,9 +139,10 @@ def main():
     for (config, seed), res in cell_results.items():
         results[config][seed] = res
 
-    with open(OUT_PATH, "w") as f:
-        json.dump({c: {str(s): v for s, v in by.items()}
-                   for c, by in results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        c: {str(s): v for s, v in by.items()}
+        for c, by in results.items()
+    })
 
     from neural_assemblies.diagnostics import ensemble
 

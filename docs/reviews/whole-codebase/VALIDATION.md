@@ -5334,3 +5334,10 @@ shared finite, exclusive JSON boundary. Its analysis output, stdout report,
 and output path are unchanged; reruns can no longer silently replace the
 adoption evidence. Compilation, Ruff, and the result-writer ratchet pass:
 **1 passed**.
+
+### E5 ceiling-size writer migration (2026-09-12)
+
+The registered ceiling-vs-size study now emits its fixed result artifact via
+the shared finite, exclusive JSON boundary. Its cell organization, output
+schema, and analysis remain unchanged; the direct overwrite exception is
+removed. Compilation, Ruff, and the result-writer ratchet pass: **1 passed**.
