@@ -24,6 +24,19 @@ MAINTAINED_SCOPES = (
     "neural_assemblies/text_generation",
     "neural_assemblies/visualization",
 )
+# Research infrastructure is part of the supported developer surface.  Keep
+# this list explicit while the historical experiment tree is being migrated;
+# adding the whole tree would turn unresolved legacy studies into a noisy,
+# non-actionable gate.
+MAINTAINED_FILES = (
+    "research/runner.py",
+    "research/evidence.py",
+    "research/harness.py",
+    "research/json_documents.py",
+    "research/source_archive.py",
+    "research/compare_migration.py",
+    "research/experiments/_historical.py",
+)
 
 
 def run(command: list[str], *, capture_output: bool = False) -> subprocess.CompletedProcess[str]:
@@ -40,6 +53,8 @@ def check_pyright() -> bool:
         if "\\tests\\" not in str(path).lower()
         and "\\archive\\" not in str(path).lower()
     ]
+    files.extend(MAINTAINED_FILES)
+    files = sorted(set(files))
     result = run(["uv", "run", "pyright", *files, "--outputjson"], capture_output=True)
     if result.stdout:
         report = json.loads(result.stdout)

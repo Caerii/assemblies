@@ -43,7 +43,7 @@ from __future__ import annotations
 import os
 import random
 from dataclasses import dataclass, field
-from typing import Callable, Dict, List, Mapping, Optional, Sequence
+from typing import Any, Callable, Dict, List, Mapping, Optional, Sequence
 
 from neural_assemblies.diagnostics import Ensemble, ensemble, paired_delta
 
@@ -340,7 +340,11 @@ def reseed_everything(seed: int) -> None:
     random.seed(seed)
     try:
         import numpy as np
-        np.random.seed(seed)
+        # NumPy's legacy module-level seeder is intentionally used here to
+        # reset third-party code that still consumes the global stream.  Keep
+        # the dynamic boundary explicit; new studies should use Generator.
+        legacy_random: Any = np.random
+        legacy_random.seed(seed)
     except Exception:                                        # noqa: BLE001
         pass
     try:

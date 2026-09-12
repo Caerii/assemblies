@@ -244,8 +244,9 @@ uv run python -m research.evidence check
 ```
 
 `scripts/verify_maintained.py` is the single static contract gate. It checks all
-maintained runtime packages with Pyright while excluding archived and historical
-study tests; omit `--skip-tests` to run the non-slow package tests afterward.
+maintained runtime packages plus the research runner, evidence, and provenance
+infrastructure with Pyright while excluding archived and historical study tests;
+omit `--skip-tests` to run the non-slow package tests afterward.
 
 `research.evidence check` is the maintained-surface gate: it validates recorded
 run provenance and registration edges, comparison receipts, and every source
