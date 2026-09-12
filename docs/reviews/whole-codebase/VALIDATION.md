@@ -6425,3 +6425,7 @@ Training compiler entry points now consistently require the fully composed `Emer
 ### Prediction lexicon optional-state gate (2026-09-12)
 
 Next-token inference now snapshots the optional prediction lexicon through `getattr` once and uses that validated local for the readout. A parser without a trained prediction lexicon therefore exits through one explicit empty-state boundary instead of mixing `hasattr` with an unguarded attribute read. The prediction parity test passes **1 test with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean. The mixin still has broader unresolved cross-mixin typing diagnostics tracked by the ongoing parser-surface audit.
+
+### Prediction shared-state declaration gate (2026-09-12)
+
+Prediction operations now declare the runtime state initialized by the core parser: brain, stimulus map, training and inference rounds, fast-training policy, prediction lexicon, and bridge-topology status. This removes dynamic-state ambiguity and exposes the remaining method-capability/compiler seams to static tooling instead of conflating them with missing fields. The prediction parity test passes **1 test with 1 intentional sampled-recurrence warning**; the focused file's diagnostics dropped from **44 to 11**, and `git diff --check` is clean.

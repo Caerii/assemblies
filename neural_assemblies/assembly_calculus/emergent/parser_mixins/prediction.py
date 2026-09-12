@@ -42,10 +42,12 @@ through the approximation.
 """
 
 from contextlib import nullcontext
-from typing import List, Optional, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Tuple, TYPE_CHECKING
 
 from neural_assemblies.assembly_calculus.ops import project, _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
 
 from ..core.areas import (
     CONTEXT,
@@ -66,6 +68,17 @@ if TYPE_CHECKING:
 
 class PredictionMixin:
     """Structural next-token prediction using context assemblies."""
+
+    # These fields are initialized by CoreParserMixin, but are invariant
+    # requirements of every prediction operation. Declaring them here makes
+    # the cross-mixin state contract visible to static tooling and readers.
+    brain: Brain
+    stim_map: Dict[str, str]
+    rounds: int
+    inference_rounds: int
+    fast_training: bool
+    prediction_lexicon: Dict[str, Assembly]
+    _bridge_topology_linked: bool
 
     _prediction_paths_bootstrapped: bool = False
 
