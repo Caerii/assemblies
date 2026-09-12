@@ -651,11 +651,11 @@ def test_merge_creates_two_way_connectivity_with_bounded_support():
         b.add_stimulus("sb", k)
         b.add_stimulus("sc", k)
 
-        def _form(stim, area):
-            b.project({stim: [area]}, {})
+        def _form(stim, area, brain=b):
+            brain.project({stim: [area]}, {})
             for _ in range(9):
-                b.project({stim: [area]}, {area: [area]})
-            return _snap(b, area)
+                brain.project({stim: [area]}, {area: [area]})
+            return _snap(brain, area)
 
         x = _form("sb", "B")
         y = _form("sc", "C")
@@ -665,15 +665,15 @@ def test_merge_creates_two_way_connectivity_with_bounded_support():
         eng = b._engine
         supports.append(max(eng._areas[a].w for a in ("A", "B", "C")))
 
-        def _ratio(src, dst, src_asm, dst_asm):
-            conn = eng._area_conns.get(src, {}).get(dst)
+        def _ratio(src, dst, src_asm, dst_asm, engine=eng):
+            conn = engine._area_conns.get(src, {}).get(dst)
             if conn is None:
                 return None
             W = np.asarray(conn.weights)
             if W.ndim != 2 or W.size == 0:
                 return None
-            s2c = {int(v): i for i, v in enumerate(eng.get_neuron_id_mapping(src))}
-            d2c = {int(v): i for i, v in enumerate(eng.get_neuron_id_mapping(dst))}
+            s2c = {int(v): i for i, v in enumerate(engine.get_neuron_id_mapping(src))}
+            d2c = {int(v): i for i, v in enumerate(engine.get_neuron_id_mapping(dst))}
             r = [s2c[int(v)] for v in src_asm.winners
                  if int(v) in s2c and s2c[int(v)] < W.shape[0]]
             c = [d2c[int(v)] for v in dst_asm.winners

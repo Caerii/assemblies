@@ -35,7 +35,7 @@ def probe_branches(network):
     for state in STATES:
         for bit in (0, 1):
             network._current = state
-            network.coin = SimpleNamespace(flip=lambda **kw: bit)
+            network.coin = SimpleNamespace(flip=lambda bit=bit, **kw: bit)
             observed.append(network.sample_step(seed=11))
             expected.append(f'q{(int(state[1])+bit+1)%3}')
     return observed, expected
