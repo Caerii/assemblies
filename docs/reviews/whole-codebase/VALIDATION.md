@@ -7383,3 +7383,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Cached the two source ratchet inventories for the duration of a test process; repeated baseline/staleness checks now reuse the same immutable checkout scan.
 - Focused validation: 8 passed in 10.66s; the slowest scan was 6.21s, versus roughly 27s per scan in the prior fast-tier profile.
 - Both compact-index and `.w` ratchets remain active, including their positive controls and stale-baseline checks.
+
+
+## 2026-09-12 ratchet inventory caching
+
+- Added process-local caching to the index-space and methodology ratchet inventories. Repeated assertions now share one immutable source scan per worker.
+- Combined ratchet validation: 14 passed in 19.29s; compact-index and `.w` scans remain active, and methodology seed/engine checks remain active.

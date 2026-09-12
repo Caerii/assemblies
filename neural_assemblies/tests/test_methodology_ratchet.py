@@ -123,6 +123,7 @@ import ast
 import json
 import os
 import re
+from functools import lru_cache
 
 from ._source_scan import blank_prose, python_sources
 
@@ -205,6 +206,7 @@ def _unpinned_brain_constructions(source):
     return count
 
 
+@lru_cache(maxsize=1)
 def _scan():
     hand, unpinned = {}, {}
     for full in python_sources(REPO):
