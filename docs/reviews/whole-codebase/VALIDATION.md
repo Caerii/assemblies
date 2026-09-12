@@ -7437,3 +7437,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added `ExplicitProgram.execute` and `execute_on_brain`, so composed rounds are executed by one ordered implementation rather than caller-written loops.
 - The empty program returns `None` as the identity; execution returns the final round observation.
 - Validation: projection IR tests passed (41 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 specification anchor integrity
+
+- Added a registry-wide construction check that every operation contract resolves to an existing specification file and explicit anchor.
+- This catches deleted or renamed semantic cards before any runtime experiment.
+- `uv run pytest neural_assemblies/tests/test_operation_contract_objects.py -q -x` passed: 169 tests.

@@ -502,6 +502,19 @@ def test_constructed_control_node_resolves():
             assert f"def {function}(" in source
 
 
+def test_every_contract_specification_resolves_to_a_real_anchor():
+    """A contract cannot quietly point at a deleted or renamed specification."""
+    root = Path(__file__).resolve().parents[2]
+    for contract in OPERATION_CONTRACTS.values():
+        relative, anchor = contract.specification.split("#", 1)
+        specification = root / relative
+        assert specification.is_file(), contract.specification
+        source = specification.read_text(encoding="utf-8")
+        assert f'id="{anchor}"' in source or f"id='{anchor}'" in source, (
+            f"missing specification anchor: {contract.specification}"
+        )
+
+
 def test_every_operation_contract_names_a_true_negative_control():
     for contract in OPERATION_CONTRACTS.values():
         assert contract.true_negative_controls
