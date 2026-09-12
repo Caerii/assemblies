@@ -125,12 +125,11 @@ def overlap(a, b) -> float:
     Specification: neural_assemblies/ir/VERIFICATION.md#contract-overlap-space
 
     THE OVERLOADS ARE THE POINT, and they encode a rule prose could not enforce:
-    both arguments must be in the SAME index space. ``SameSpace`` is a
-    value-restricted TypeVar, so it binds to ONE of ``CompactIdx``/``NeuronIds``
-    per call -- two compact arrays are fine, two neuron-ID arrays are fine, and
-    ONE OF EACH is a checker error. A union parameter would wrongly accept the
-    mixed call; a bare ``np.ndarray`` on both accepts everything, which is the
-    status quo that cost this project three results (see
+    both arguments must be in the SAME index space. Explicit overloads enumerate
+    the two legal raw-array pairs -- two compact arrays or two neuron-ID arrays
+    -- so ONE OF EACH is a checker error. A union parameter would wrongly accept
+    the mixed call; a bare ``np.ndarray`` on both accepts everything, which is
+    the status quo that cost this project three results (see
     ``core/index_spaces``).
 
     Passing an ``Assembly`` alongside a raw array is also rejected: say
