@@ -14,14 +14,6 @@ This allows training on realistic language data following
 the developmental trajectory of human language acquisition.
 """
 
-import sys
-import os
-
-# Add parent directories to path for imports
-_src_dir = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
-if _src_dir not in sys.path:
-    sys.path.insert(0, _src_dir)
-
 import numpy as np
 import time
 from typing import List, Set
@@ -34,13 +26,13 @@ from neural_assemblies.nemo.language.nemo_learner import (
 )
 
 # Import lexicon
-from lexicon.build_lexicon import build_lexicon
+from neural_assemblies.lexicon.build_lexicon import build_lexicon
 
 # Import curriculum
-from lexicon.curriculum.stage1_first_words import STAGE1_CORPUS
-from lexicon.curriculum.stage2_vocabulary_spurt import STAGE2_CORPUS
-from lexicon.curriculum.stage3_two_word import STAGE3_CORPUS
-from lexicon.curriculum.stage4_sentences import STAGE4_CORPUS
+from neural_assemblies.lexicon.curriculum.stage1_first_words import STAGE1_CORPUS
+from neural_assemblies.lexicon.curriculum.stage2_vocabulary_spurt import STAGE2_CORPUS
+from neural_assemblies.lexicon.curriculum.stage3_two_word import STAGE3_CORPUS
+from neural_assemblies.lexicon.curriculum.stage4_sentences import STAGE4_CORPUS
 
 
 @dataclass

@@ -6898,3 +6898,8 @@ The evidence graph now recognizes committed `.log` and `.txt` study artifacts as
 ## Instance-owned emergent generator randomness (2026-09-12)
 
 `nemo/language/emergent/generator.py` now accepts either an injected NumPy generator or a seed, routes all stochastic word and transition choices through that generator, and uses explicit numeric score selectors. Pyright, Ruff, and compilation are clean. Runtime generation remains gated by the optional legacy/CuPy learner stack.
+
+
+## Integrated trainer package import boundary (2026-09-12)
+
+`nemo/language/integrated_trainer.py` no longer mutates `sys.path` or imports a launch-directory-dependent top-level `lexicon` package. Lexicon and curriculum dependencies resolve through `neural_assemblies.lexicon`; Pyright, Ruff, and compilation are clean. Full runtime import remains gated by the optional legacy CuPy learner.
