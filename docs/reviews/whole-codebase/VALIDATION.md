@@ -5333,6 +5333,14 @@ fields, and analysis remain unchanged; reruns cannot silently replace the
 long-horizon artifact. Compilation, Ruff, and both result-writer ratchets
 pass: **2 passed**.
 
+### E%-WTA regime-map writer migration (2026-09-12)
+
+The one-shot E%-WTA regime map now emits `results_regime_map.json` through
+the canonical finite, exclusive writer. Its parameter grid, failure anatomy,
+and output schema are unchanged; reruns cannot silently replace the regime
+evidence. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls

@@ -19,13 +19,14 @@ Output: ``results_regime_map.json``.
 
 from __future__ import annotations
 
-import json
 import sys
 import time
 from collections import Counter
 from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 ROOT = Path(__file__).resolve().parents[3]
 if str(ROOT) not in sys.path:
@@ -83,7 +84,7 @@ def main() -> None:
     out = {"params": {"n": N, "beta": BETA, "p_i": P_I, "w_inh": W_INH,
                       "seeds": len(SEEDS), "min_size": 6},
            "rows": rows, "duration_s": time.time() - t0}
-    (HERE / "results_regime_map.json").write_text(json.dumps(out, indent=1))
+    write_new_document(HERE / "results_regime_map.json", out)
     print(f"done in {out['duration_s']:.1f}s")
 
 
