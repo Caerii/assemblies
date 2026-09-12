@@ -6828,3 +6828,8 @@ Visualization helpers now use compatible tick-label calls and normalize subplot 
 ## Text-generation compatibility boundaries (2026-09-12)
 
 Text-generation prototypes now load the optional legacy brain module dynamically, annotate nullable generation inputs, normalize NumPy choice results to strings, and default optional feature maps before use. All three modules compile; Pyright and Ruff report zero diagnostics.
+
+
+## Assembly language learner API alignment (2026-09-12)
+
+`lexicon/assembly_language_learner.py` now uses the packaged `Brain`, an isolated NumPy generator, and the keyword-only `verbose` project argument required by the unified API. Pyright and Ruff report zero diagnostics; module-focused collection remains empty because no legacy tests target this prototype.
