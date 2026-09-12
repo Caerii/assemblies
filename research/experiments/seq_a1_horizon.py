@@ -29,7 +29,6 @@ bias is charged and step t cannot alter step t+1 through that channel.
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
@@ -40,6 +39,7 @@ from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.core.brain import Brain
 from neural_assemblies.programs.mod3_fsm import build_mod3_fsm, train_mod3_fsm
+from _results import write_result
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from seq_a1_fsm_parity import BETA, K, N_ARC, N_STATE, PRESENTATIONS
@@ -111,10 +111,7 @@ def main():
             n_ok = sum(r["prefix_correct"].get(c, False) for r in got)
             print(f"       first {c:>5} steps perfect: {n_ok}/{len(got)}")
 
-    from _results import results_path
-    out = results_path("sequence", "seq_a1_horizon_results.json")
-    with open(out, "w") as fh:
-        json.dump(rows, fh, indent=2)
+    out = write_result("sequence", "seq_a1_horizon_results.json", rows)
     print(f"\nwrote {out}")
 
 

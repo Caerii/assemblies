@@ -5159,6 +5159,14 @@ quantiles, engine semantics, and the current commit identity. This confirms
 that the documented command exposes diagnostic performance while preserving
 the distinction between throughput and scientific evidence.
 
+### A1 legacy result writer migration (2026-09-12)
+
+The superseded NumPy A1 horizon script no longer writes its historical result
+with direct `json.dump`/overwrite mode. It now uses the shared exclusive
+`write_result` boundary, preserving the canonical filename while refusing to
+replace an existing artifact. The script compiles, passes Ruff, and the result
+writer ratchet passes: **1 passed**.
+
 ### Maintained-suite regression baseline (2026-09-11)
 
 The fresh non-slow maintained run completed with **3708 passed, 139 skipped,
