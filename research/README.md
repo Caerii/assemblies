@@ -125,6 +125,16 @@ uv run python research/core_questions/validate_index.py
 
 ## Where To Start
 
+List the supported shared-runner commands before choosing a study:
+
+```bash
+python -m research.runner --list
+```
+
+The listing is registry-only and does not import experiment modules or load GPU
+extensions. Each command then owns its protocol-specific options while the
+shared runner owns tags, seed identities, provenance, and immutable storage.
+
 If you are new to this tree:
 
 1. Read `open_questions.md`.

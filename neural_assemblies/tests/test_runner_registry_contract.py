@@ -45,3 +45,13 @@ def test_registered_experiments_use_the_shared_runner_contract():
         assert "experiment_parser" in source or "_historical" in source, (
             f"{command} bypasses the shared experiment parser"
         )
+
+
+def test_runner_list_is_discoverable_without_importing_experiments(capsys):
+    from research import runner
+
+    assert runner.main(["--list"]) == 0
+    lines = capsys.readouterr().out.splitlines()
+    assert len(lines) == len(runner.EXPERIMENTS)
+    assert all("\t" in line for line in lines)
+    assert lines == sorted(lines)

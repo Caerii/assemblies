@@ -364,9 +364,17 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
 
 def main(argv=None):
     parser = argparse.ArgumentParser(description='Run a migrated experiment with immutable provenance.')
-    parser.add_argument('experiment', choices=sorted(EXPERIMENTS))
+    parser.add_argument('--list', action='store_true', dest='list_experiments',
+                        help='list registered experiment commands without importing them')
+    parser.add_argument('experiment', nargs='?', choices=sorted(EXPERIMENTS))
     parser.add_argument('arguments', nargs=argparse.REMAINDER)
     args = parser.parse_args(argv)
+    if args.list_experiments:
+        for command, module in sorted(EXPERIMENTS.items()):
+            print(f'{command}\t{module}')
+        return 0
+    if args.experiment is None:
+        parser.error('an experiment command is required (use --list to inspect the registry)')
     module = importlib.import_module(EXPERIMENTS[args.experiment])
     module.main(args.arguments)
     return 0
