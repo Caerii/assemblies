@@ -6723,3 +6723,8 @@ The Torch boundary ratchet now also checks that every member declared by `TorchO
 ## Canonical lazy Torch boundary (2026-09-12)
 
 Moved the canonical lazy `torch_ops` protocol to `neural_assemblies.core._torch_ops`; `core.torch_engine._torch_ops` is now a compatibility shim. Higher-level calculus modules import the core boundary directly, avoiding `torch_engine.__init__` and its CUDA registration on CPU-only imports. A subprocess test with `torch` unavailable proves `assembly_calculus.batched_trainer` imports successfully. Boundary tests pass **4/4**, and Ruff/Pyright remain clean.
+
+
+## Exact-engine option admission (2026-09-12)
+
+`NumpyExactEngine.add_area` now accepts unknown keyword options long enough to route them through the standardized admission error, instead of leaking Python's raw unexpected-keyword exception. Constructor-admission tests pass **5/5**; Ruff and Pyright report zero diagnostics.
