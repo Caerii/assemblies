@@ -6449,3 +6449,7 @@ Category classification now declares the shared parser state it observes: brain,
 ### POS inference deterministic selection gate (2026-09-12)
 
 POS inference now selects maxima through explicit value lambdas across grounding, fused, and evidence score maps. This removes overloaded `dict.get` callback typing and makes the selected-score contract visible at every branch without changing tie behavior. Pyright diagnostics for the module dropped from **33 to 22**; existing classification evidence/observation tests remain the behavioral gate, and `git diff --check` is clean.
+
+### Bootstrap evidence score/provenance boundary gate (2026-09-12)
+
+Bootstrap classification now names its compatibility result as `BootstrapScores`, whose values may be numeric category scores or string provenance metadata. The new `numeric_category_scores` projection is the only input to confidence and rounded score summaries, so provenance can no longer enter score arithmetic accidentally. The focused module diagnostics dropped from **22 to 14**; classification evidence tests pass **23 tests**, and `git diff --check` is clean.

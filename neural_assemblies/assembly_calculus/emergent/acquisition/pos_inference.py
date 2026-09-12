@@ -36,7 +36,7 @@ from __future__ import annotations
 
 import math
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple, TYPE_CHECKING
+from typing import Dict, List, Mapping, Optional, Set, Tuple, TYPE_CHECKING
 
 from ..core.areas import ADV_CORE, CORE_TO_CATEGORY, GROUNDING_TO_CORE, FUNC_SUBCAT_TO_CORE
 
@@ -56,6 +56,18 @@ _GROUNDING_MODALITY_TO_CORE = {
 }
 
 _EXPOSURE_LOG_LIMIT = 4000
+
+ScoreValue = float | str
+BootstrapScores = Dict[str, ScoreValue]
+
+
+def numeric_category_scores(scores: Mapping[str, ScoreValue]) -> Dict[str, float]:
+    """Extract numeric category scores from a result carrying provenance."""
+    return {
+        key: float(value)
+        for key, value in scores.items()
+        if not key.startswith("_") and isinstance(value, (int, float))
+    }
 
 
 def is_word_in_lexicon(parser: "CoreParserMixin", word: str) -> bool:
@@ -249,7 +261,7 @@ def classify_word_bootstrapped(
     parser: "CoreParserMixin",
     word: str,
     grounding: Optional["GroundingContext"] = None,
-) -> Tuple[str, Dict[str, float]]:
+) -> Tuple[str, BootstrapScores]:
     """Classify by competing emergent evidence — no fixed fusion constants.
 
     Signals (when available):
@@ -292,7 +304,8 @@ def classify_word_bootstrapped(
             )
             signals.append(("wobbly", wobbly_scores, wobbly_exp))
         if signals:
-            cat, fused = emergent_fuse_signals(signals)
+            cat, fused_numeric = emergent_fuse_signals(signals)
+            fused: BootstrapScores = dict(fused_numeric)
             fused["_source"] = "distributional+frame"
             return cat, fused
         evidence = parser.classify_word_evidence(word, grounding=None)
@@ -333,7 +346,8 @@ def classify_word_bootstrapped(
             "_confidence": signal_confidence(neural_by_cat),
         }
 
-    cat, fused = emergent_fuse_signals(signals)
+    cat, fused_numeric = emergent_fuse_signals(signals)
+    fused: BootstrapScores = dict(fused_numeric)
     if cat == "UNKNOWN":
         cat = neural_cat if neural_cat != "UNKNOWN" else cat
     fused["_source"] = "bootstrap"
@@ -343,7 +357,7 @@ def classify_word_bootstrapped(
     )
     if dist_scores:
         fused["_distributional"] = max(dist_scores, key=lambda key: dist_scores[key])
-    fused["_confidence"] = signal_confidence(fused)
+    fused["_confidence"] = signal_confidence(numeric_category_scores(fused))
     return cat, fused
 
 
@@ -475,9 +489,9 @@ def ingest_holdout_sentence_stats(
     return len(token_lists)
 
 
-def pos_inference_confidence(scores: Dict[str, float]) -> float:
+def pos_inference_confidence(scores: Mapping[str, ScoreValue]) -> float:
     """Confidence of a POS inference classification for cache gating."""
-    return signal_confidence(scores)
+    return signal_confidence(numeric_category_scores(scores))
 
 
 def infer_holdout_categories(
@@ -599,8 +613,8 @@ def decompose_word_classification(
         "modality_prior": prior_cat,
         "bootstrapped": boot_cat,
         "bootstrapped_scores": {
-            k: round(v, 3) for k, v in boot_scores.items()
-            if not str(k).startswith("_")
+            k: round(v, 3)
+            for k, v in numeric_category_scores(boot_scores).items()
         },
         "bootstrap_confidence": round(pos_inference_confidence(boot_scores), 4),
         "correct_neural": neural_cat == expected,
