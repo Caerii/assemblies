@@ -7090,3 +7090,7 @@ Area-aware calculus, PFA, recovery, ERP, incremental parser, role traversal, and
 ## Owner resolver migration repair (2026-09-12)
 
 The first IR migration passed an Area object to the new name-based resolver; the focused IR suite caught the type/semantic mismatch immediately. The caller now passes the registered area name, preserving the resolver's unspellable public contract. Validation: Brain IR execution suite 26 passed; Pyright on ir/projection.py reports 0 diagnostics.
+
+## Parser schedule normalization (2026-09-12)
+
+The legacy parser now converts its set-valued projection map into a deterministic ordered mapping before calling the typed Brain projection boundary. This removes a container-type mismatch and makes schedule order explicit without changing the projection contract. Validation: language parsing and parser composition suites 22 passed; Pyright on language/parser.py reports 0 diagnostics.
