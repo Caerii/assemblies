@@ -6441,3 +6441,7 @@ The `CompiledTopologyParser` capability interface is now exported from the publi
 ### Topology linker parser-surface gate (2026-09-12)
 
 All topology-linking helpers now consistently require the fully composed `EmergentParser`. The linker calls prediction, context, role, lexicon, and compiler capabilities across multiple mixins, so its previous `CoreParserMixin` annotations were unsound and hid 25 static errors. The annotation now reflects the actual operation boundary rather than a narrower nominal base. Pyright reports **0 diagnostics**; topology tests pass **4 tests with expected sampled-recurrence warnings**, and `git diff --check` is clean.
+
+### Classification shared-state and deterministic readout gate (2026-09-12)
+
+Category classification now declares the shared parser state it observes: brain, stimulus and grounding maps, rounds, core lexicons, distributional statistics, and category caches. Neural winner selection uses an explicit value lambda, avoiding the overloaded dictionary method form and making tie selection statically total. The focused file's diagnostics dropped from **31 to 8**; classification evidence and observation tests pass **36 tests**, and `git diff --check` is clean. Remaining diagnostics are cross-mixin capability calls and are tracked separately.

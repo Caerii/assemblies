@@ -4,14 +4,29 @@
 from typing import Dict, Optional, Tuple
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.assembly_calculus.readout import readout_all
+from neural_assemblies.core.brain import Brain
 
 from ..core.areas import CORE_AREAS, CORE_TO_CATEGORY
 from ..core.grounding import GroundingContext
 from ..core.classification import ClassificationEvidence
+from ._shared import DistributionalStats
 
 
 class CategoryClassificationMixin:
     """Which category area holds a word's assembly."""
+
+    # Shared parser state used by classification. These fields are initialized
+    # by the core/lexicon/distributional mixins; declaring them here makes the
+    # read-only observation boundary explicit for composed implementations.
+    brain: Brain
+    stim_map: Dict[str, str]
+    rounds: int
+    word_grounding: Dict[str, GroundingContext]
+    core_lexicons: Dict[str, Dict]
+    dist_stats: DistributionalStats
+    _category_cache: Dict[str, str]
+    _bootstrap_categories: Dict[str, str]
+    _dist_categories: Dict[str, str]
 
     def classify_word_cached(
         self,
@@ -145,6 +160,6 @@ class CategoryClassificationMixin:
                 return evidence(category, "distributional", scores)
             return evidence("UNKNOWN", "neural", scores)
 
-        best_area = max(scores, key=scores.get)
+        best_area = max(scores, key=lambda area: scores[area])
         return evidence(CORE_TO_CATEGORY[best_area], "neural", scores)
 
