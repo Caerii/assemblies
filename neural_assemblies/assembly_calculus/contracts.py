@@ -50,6 +50,11 @@ class ProjectionStep:
         return {source: list(targets) for source, targets in self.fibers}
 
 
+def _schedule(first: ProjectionStep, tail: ProjectionStep, rounds: int) -> tuple[ProjectionStep, ...]:
+    """Build a finite immutable schedule with one distinguished entry step."""
+    return (first,) + (tail,) * (rounds - 1)
+
+
 @dataclass(frozen=True)
 class ActivationPlan:
     """Validated injection of a stable-neuron Assembly snapshot."""
@@ -366,7 +371,7 @@ class ProjectionPlan:
             stimuli=stimulus,
             fibers=((self.target, (self.target,)),) if self.recurrent else (),
         )
-        return (first,) + (tail,) * (self.rounds - 1)
+        return _schedule(first, tail, self.rounds)
 
     def execute(self, brain) -> None:
         """Preflight the named topology, then execute the declared steps."""
@@ -408,7 +413,7 @@ class ReciprocalProjectionPlan:
                 (self.target, (self.target, self.source)),
             ),
         )
-        return (first,) + (tail,) * (self.rounds - 1)
+        return _schedule(first, tail, self.rounds)
 
     def preflight(self, brain) -> None:
         for name in (self.source, self.target):
@@ -630,7 +635,7 @@ class MergePlan:
             ((self.target, target_targets),) if target_targets else ()
         )
         tail = ProjectionStep(stimuli=stimuli, fibers=tail_fibers)
-        return (first,) + (tail,) * (self.rounds - 1)
+        return _schedule(first, tail, self.rounds)
 
     def preflight(self, brain) -> None:
         for name in (self.source_a, self.source_b, self.target):
@@ -1080,7 +1085,7 @@ class CompletionPlan:
     @property
     def steps(self) -> tuple[ProjectionStep, ...]:
         step = ProjectionStep(stimuli=(), fibers=((self.area, (self.area,)),))
-        return (step,) * self.rounds
+        return _schedule(step, step, self.rounds)
 
     def observation_scope(self, brain):
         """Return the one state policy named by this protocol."""

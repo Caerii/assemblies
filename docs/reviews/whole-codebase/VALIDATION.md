@@ -7416,3 +7416,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Added a construction-level permutation invariant for the pure attention readout: insertion order of key/value mappings cannot change candidates, selected labels, or the aggregate assembly.
 - `uv run pytest neural_assemblies/tests/test_attention_operator.py -q` passed: 13 tests.
+
+
+## 2026-09-12 centralized immutable schedule construction
+
+- Centralized the repeated `(first, tail, ..., tail)` schedule rule used by projection, reciprocal projection, merge, and completion plans.
+- This removes duplicated schedule assembly logic while preserving the immutable `ProjectionStep` representation.
+- Validation: 181 focused tests passed; `pyright neural_assemblies/assembly_calculus/contracts.py` reported 0 errors; `git diff --check` passed.
