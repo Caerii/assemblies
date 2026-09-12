@@ -5978,3 +5978,9 @@ it actually uses. Language parsing tests pass **7 tests**.
 The language facade now imports its exact area constants and readout rules
 explicitly. The star import that obscured the module namespace and generated
 false undefined-name diagnostics is gone; language parsing remains **7/7**.
+
+### Language dispatch contract (2026-09-12)
+
+`language.parse` now uses an exclusive English/Russian dispatch and raises a
+clear `ValueError` for unsupported languages before constructing or parsing a
+brain. The public language parsing suite passes **8 tests**.

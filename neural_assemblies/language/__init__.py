@@ -45,12 +45,16 @@ def parse(sentence="cats chase mice", language="English", p=0.1, LEX_k=20,
         explicit_areas = EXPLICIT_AREAS
         readout_rules = ENGLISH_READOUT_RULES
 
-    if language == "Russian":
+    elif language == "Russian":
         b = RussianParserBrain(p, non_LEX_n=non_LEX_n, LEX_k=LEX_k, verbose=verbose, engine=engine)
         lexeme_dict = RUSSIAN_LEXEME_DICT
         all_areas = RUSSIAN_AREAS
         explicit_areas = RUSSIAN_EXPLICIT_AREAS
         readout_rules = RUSSIAN_READOUT_RULES
+    else:
+        raise ValueError(
+            f"unsupported language {language!r}; expected 'English' or 'Russian'"
+        )
 
     return parseHelper(b, sentence, project_rounds, verbose, debug, 
                       lexeme_dict, all_areas, explicit_areas, readout_method, readout_rules)

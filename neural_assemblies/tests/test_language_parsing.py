@@ -1,3 +1,5 @@
+import pytest
+import neural_assemblies.language as language
 """
 Tests for language parsing modules.
 
@@ -78,3 +80,9 @@ class TestLanguageParsing(unittest.TestCase):
 
 if __name__ == '__main__':
     unittest.main()
+
+
+
+def test_parse_rejects_unknown_language_before_dispatch():
+    with pytest.raises(ValueError, match="unsupported language"):
+        language.parse(language="Klingon")
