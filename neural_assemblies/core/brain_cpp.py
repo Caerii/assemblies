@@ -93,6 +93,14 @@ class BrainCPP:
             dst_areas_by_src_area: Mapping from source area names to target area names
             verbose: Verbosity level
         """
+        if type(verbose) is not int or verbose not in (0, 1, 2):
+            raise ValueError("verbose must be one of 0, 1, or 2")
+        if verbose:
+            print(
+                f"project: stimuli={list(areas_by_stim)} "
+                f"areas={list(dst_areas_by_src_area)}",
+                flush=True,
+            )
         # Convert to C++ format
         graph = {}
         

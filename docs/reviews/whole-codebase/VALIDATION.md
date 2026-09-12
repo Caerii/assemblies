@@ -5884,3 +5884,10 @@ no-op, with a true-negative acceptance-ladder test.
 `Brain.project` now validates verbosity levels and emits concise basic or
 detailed routing diagnostics when requested. Previously the value was threaded
 through private methods but discarded. Five invalid-level true negatives pass.
+
+### C++ projection verbosity contract (2026-09-12)
+
+The legacy C++ wrapper now validates and emits the same basic projection
+diagnostic levels as the Python Brain wrapper, instead of discarding `verbose`.
+The wrapper passes Ruff and compilation checks; the extension remains an
+environment-dependent execution gate.
