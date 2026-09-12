@@ -59,9 +59,9 @@ class GroundingInference:
         elif category == "VERB":
             ctx.motor = [word]  # Verbs are motor grounded
         elif category == "ADJECTIVE":
-            ctx.property = [word]  # Adjectives are property grounded
+            ctx.properties = [word]  # Adjectives are property grounded
         elif category == "ADVERB":
-            ctx.property = [word]  # Adverbs modify properties
+            ctx.properties = [word]  # Adverbs modify properties
         elif category == "PREPOSITION":
             ctx.spatial = [word]  # Prepositions are spatial
         elif category == "PRONOUN":
@@ -99,7 +99,7 @@ class GroundingInference:
             # After VERB → could be NOUN (object) or ADVERB
             elif prev_cat == "VERB":
                 if next_word and next_word in ["the", "a", "an"]:
-                    ctx.property = [word]  # Adverb before determiner
+                    ctx.properties = [word]  # Adverb before determiner
                 else:
                     ctx.visual = [word]  # Object noun
         
@@ -119,7 +119,7 @@ class GroundingInference:
         
         Uses learned patterns about word order and categories.
         """
-        roles = [None] * len(words)
+        roles: List[Optional[str]] = [None for _ in words]
         
         found_verb = False
         found_agent = False
