@@ -6833,3 +6833,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Assembly language learner API alignment (2026-09-12)
 
 `lexicon/assembly_language_learner.py` now uses the packaged `Brain`, an isolated NumPy generator, and the keyword-only `verbose` project argument required by the unified API. Pyright and Ruff report zero diagnostics; module-focused collection remains empty because no legacy tests target this prototype.
+
+
+## GPU lexicon operator boundary (2026-09-12)
+
+`lexicon/gpu_language_learner.py` now routes all Torch operations through the shared lazy operator protocol, keeps GPU-only device discovery explicit, and avoids global NumPy RNG mutation in its helper calls. The module compiles; Pyright and Ruff report zero diagnostics. Runtime validation remains CUDA-gated by the prototype's explicit availability assertion.
