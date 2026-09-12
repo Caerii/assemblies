@@ -6995,3 +6995,6 @@ Added `Brain.temporary_plasticity`, an exception-safe context manager that snaps
 ## Remaining parser beta ownership audit (2026-09-12)
 
 Searched maintained package paths for direct beta reads/writes. The only non-test engine lookup in the emergent parser was `role_bind_gain`; it now uses `Brain.plasticity_rate`. Remaining engine-level beta access is confined to the standalone explicit-round IR validator and backend internals, where the engine is intentionally the execution authority. Role-gain validation: 3 passed; Pyright clean.
+## Fiber plasticity mask validation (2026-09-12)
+
+`Brain.set_fiber_plasticity` now validates source identity (area or registered stimulus), target identity (area), and exact boolean type before changing the mask. Unknown or truthy-but-nonboolean controls can no longer create inert protocol entries. Validation: `test_fiber_learning_contract.py` 13 passed; Pyright on Brain 0 errors/warnings/information.

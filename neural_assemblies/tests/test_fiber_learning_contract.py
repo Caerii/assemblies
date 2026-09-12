@@ -33,6 +33,16 @@ def test_mask_preserves_drive_and_blocks_only_selected_learning(brain):
     assert brain.connectomes["A"]["T"].weights[0, 2] > a[0, 2]
 
 
+def test_mask_rejects_unknown_endpoints_and_non_boolean_values(brain):
+    with pytest.raises(KeyError, match="unknown plasticity source"):
+        brain.set_fiber_plasticity("missing", "T", False)
+    with pytest.raises(KeyError, match="unknown plasticity target"):
+        brain.set_fiber_plasticity("A", "missing", False)
+    with pytest.raises(TypeError, match="must be a bool"):
+        brain.set_fiber_plasticity("A", "T", 1)
+    assert ("missing", "T") not in brain.plasticity_mask
+
+
 def test_failed_projection_does_not_leave_engine_mask(brain):
     brain.set_fiber_plasticity("A", "T", False)
     with pytest.raises(ValueError):

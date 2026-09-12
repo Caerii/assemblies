@@ -403,7 +403,19 @@ class Brain:
         ))
 
     def set_fiber_plasticity(self, src: str, dst: str, enabled: bool) -> None:
-        """Enable or disable Hebbian updates on one directed fiber (E6)."""
+        """Enable or disable Hebbian updates on one directed fiber (E6).
+
+        Validation completes before the mask is changed. Sources may be areas
+        or registered stimuli; destinations must be areas. This keeps a typo
+        from creating an inert mask entry that looks like a real protocol
+        control.
+        """
+        if src not in self.areas and src not in self.stimuli:
+            raise KeyError(f"unknown plasticity source {src!r}")
+        if dst not in self.areas:
+            raise KeyError(f"unknown plasticity target {dst!r}")
+        if type(enabled) is not bool:
+            raise TypeError("enabled must be a bool")
         self.plasticity_mask[(src, dst)] = enabled
 
     def fiber_plasticity_enabled(self, src: str, dst: str) -> bool:
