@@ -145,6 +145,14 @@ class TestWinnerSelection(unittest.TestCase):
         self.assertNotIn(1, original_indices)
         self.assertEqual(len(original_indices), 2)
 
+
+    def test_unknown_combined_selection_method_rejected(self):
+        with self.assertRaisesRegex(ValueError, "method must be"):
+            self.selector.select_combined_winners(
+                np.array([1.0, 2.0]), target_area_w=0, target_area_k=1,
+                method="not-a-selector",
+            )
+
     def test_nan_inputs_raise(self):
         # NaN/Inf in inputs should raise
         x = np.array([1., np.nan, 2.])

@@ -5943,3 +5943,10 @@ explicit, the MNIST helper now imports `Assembly`, and the patch-merge singleton
 branch uses its declared `scale0_ids` variable instead of an undefined `ids`.
 The affected parser, materialization, and structured-agent tests pass **49 tests**.
 Importing the legacy `nemo` test helper still requires its optional CuPy runtime.
+
+### Winner-selection method contract (2026-09-12)
+
+`select_combined_winners` now validates the configured selection method and
+implements the requested `heapq` path instead of silently running the argsort
+path for both values. Unknown methods fail before input processing; the winner
+selection suite passes **12 tests**.

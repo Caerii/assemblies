@@ -283,6 +283,8 @@ class WinnerSelector:
         Returns:
             (new_winner_indices, first_winner_inputs, num_first, original_indices)
         """
+        if method not in {"heapq", "argsort"}:
+            raise ValueError("method must be 'heapq' or 'argsort'")
         # Move to CPU for tie-breaking logic (small arrays)
         all_inputs_cpu = np.asarray(to_cpu(all_inputs), dtype=np.float64)
         if all_inputs_cpu.ndim != 1:
@@ -304,6 +306,14 @@ class WinnerSelector:
         if tie_policy == "value_then_index":
             if k >= len(candidate_indices):
                 new_indices = list(candidate_indices)
+            elif method == "heapq":
+                # Keep the heap path genuinely distinct while preserving the
+                # same deterministic value/index ordering as the vector path.
+                import heapq
+                new_indices = heapq.nsmallest(
+                    k, candidate_indices,
+                    key=lambda idx: (-all_inputs_cpu[idx], int(idx)),
+                )
             else:
                 # lexsort: primary key = -value (descending), secondary = index (ascending)
                 cand_vals = all_inputs_cpu[candidate_indices]
