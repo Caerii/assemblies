@@ -6179,3 +6179,7 @@ The partitioned non-slow slice 1840:1980 passed **136 tests, 2 optional skips, a
 ### Explicit neural-coin construction gate (2026-09-12)
 
 `RandomChoiceArea` now requires an explicit construction choice. Omitting it cannot silently instantiate the measured-broken legacy instrument; callers must select the validated attractor construction or opt into legacy inspection deliberately. Coin construction, seed, and PFA contract suites pass **52 tests**.
+
+### Specification graph validation (2026-09-12)
+
+The maintained specification graph resolves all discovered implementation and formal-module links with **0 errors**. The `research.evidence specifications` command emitted the complete edge set and an empty error list; the attempted obsolete `graph` subcommand is not part of the current CLI and is left unclaimed.
