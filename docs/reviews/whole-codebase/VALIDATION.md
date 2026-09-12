@@ -6863,3 +6863,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Hashed sequence API import boundary (2026-09-12)
 
 `_hashed_fsm.py` and `_hashed_transducer.py` no longer import Torch at runtime solely to annotate tensors; their public tensor values remain capability-provided by the hashed engine. Pyright and Ruff report zero diagnostics, and the parity modules collect with **4** expected CUDA skips.
+
+
+## Legacy experiment result identity boundary (2026-09-12)
+
+`ExperimentBase.save_result` now accepts an optional path-safe `tag` for compatibility callers while retaining the exclusive result writer and overwrite refusal. Statistical helpers normalize arrays and scalarize SciPy results, eliminating the prior research-base Pyright errors. Legacy result-storage tests pass **34/34**; Pyright and Ruff report zero diagnostics.

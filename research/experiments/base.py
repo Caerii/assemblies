@@ -12,6 +12,7 @@ from abc import ABC, abstractmethod
 from dataclasses import dataclass, field, asdict
 from datetime import datetime
 from pathlib import Path
+import re
 from typing import Any, Dict, List, Optional
 
 import numpy as np
@@ -135,10 +136,31 @@ class ExperimentBase(ABC):
         self._start_time = None
         return duration
     
-    def save_result(self, result: ExperimentResult, suffix: str = "") -> Path:
-        """Save experiment result to file."""
+    def save_result(
+        self,
+        result: ExperimentResult,
+        suffix: str = "",
+        *,
+        tag: str | None = None,
+    ) -> Path:
+        """Save an immutable experiment result.
+
+        ``tag`` is an optional run identity for compatibility with the legacy
+        experiment classes.  When supplied it is included in the filename and
+        restricted to one path-safe component; the exclusive JSON writer still
+        refuses replacement.  New studies should use :func:`research.runner.run_experiment`,
+        where tags are required and provenance is captured automatically.
+        """
+        if tag is not None:
+            if not isinstance(tag, str) or not re.fullmatch(
+                r"[A-Za-z0-9][A-Za-z0-9_.-]*", tag
+            ):
+                raise ValueError(
+                    "tag must be a nonempty path-safe name (letters, digits, dot, dash, underscore)"
+                )
         timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-        filename = f"{self.name}_{timestamp}{suffix}.json"
+        tag_suffix = f"_{tag}" if tag is not None else ""
+        filename = f"{self.name}_{timestamp}{tag_suffix}{suffix}.json"
         path = self.results_dir / filename
         result.save(path)
         self.log(f"Results saved to {path}")
@@ -269,7 +291,7 @@ def summarize(values: List[float]) -> Dict[str, float]:
 
 def ttest_vs_null(values: List[float], null_mean: float) -> Dict[str, Any]:
     """One-sample t-test against null mean. Returns t, p, Cohen's d."""
-    arr = np.array(values)
+    arr = np.asarray(values, dtype=float)
     if len(arr) < 2:
         return {"t": float("nan"), "p": float("nan"), "d": float("nan"),
                 "significant": False, "degenerate": "too_few_samples"}
@@ -281,20 +303,24 @@ def ttest_vs_null(values: List[float], null_mean: float) -> Dict[str, Any]:
                 "significant": False,
                 "degenerate": "at_null" if at_null else "zero_variance"}
     t_stat, p_val = stats.ttest_1samp(arr, null_mean)
+    t_value = float(np.asarray(t_stat).item())
+    p_value = float(np.asarray(p_val).item())
     d = (np.mean(arr) - null_mean) / np.std(arr, ddof=1)
-    return {"t": float(t_stat), "p": float(p_val), "d": float(d),
-            "significant": bool(p_val < 0.05)}
+    return {"t": t_value, "p": p_value, "d": float(d),
+            "significant": bool(p_value < 0.05)}
 
 
 def paired_ttest(values1: List[float], values2: List[float]) -> Dict[str, Any]:
     """Paired t-test between two matched conditions. Returns t, p, Cohen's d."""
-    arr1 = np.array(values1)
-    arr2 = np.array(values2)
+    arr1 = np.asarray(values1, dtype=float)
+    arr2 = np.asarray(values2, dtype=float)
     diff = arr1 - arr2
     if len(diff) < 2 or np.std(diff, ddof=1) == 0:
         return {"t": 0.0, "p": 1.0, "d": 0.0, "significant": False}
     t_stat, p_val = stats.ttest_rel(arr1, arr2)
+    t_value = float(np.asarray(t_stat).item())
+    p_value = float(np.asarray(p_val).item())
     d = float(np.mean(diff) / np.std(diff, ddof=1))
-    return {"t": float(t_stat), "p": float(p_val), "d": d,
-            "significant": bool(p_val < 0.05)}
+    return {"t": t_value, "p": p_value, "d": d,
+            "significant": bool(p_value < 0.05)}
 

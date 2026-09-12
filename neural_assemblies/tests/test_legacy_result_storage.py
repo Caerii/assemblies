@@ -68,6 +68,18 @@ def test_same_second_save_result_cannot_replace_evidence(tmp_path, monkeypatch):
     assert json.loads(path.read_text())['metrics']['value'] == 1
 
 
+def test_legacy_save_result_accepts_safe_tag_without_overwrite(tmp_path, monkeypatch):
+    fixed = base.datetime(2026, 1, 1)
+    monkeypatch.setattr(base, 'datetime', SimpleNamespace(now=lambda: fixed))
+    experiment = NoiseRobustnessExperiment(results_dir=tmp_path, verbose=False)
+    path = experiment.save_result(
+        base.ExperimentResult('fixture', metrics={'value': 1}), tag='cell-a'
+    )
+    assert path.name == 'noise_robustness_20260101_000000_cell-a.json'
+    with pytest.raises(ValueError, match='path-safe'):
+        experiment.save_result(base.ExperimentResult('fixture'), tag='../unsafe')
+
+
 @pytest.mark.parametrize('test', [base.ttest_vs_null([.1, .2, .3], .0), base.paired_ttest([.1, .4, .3], [.0, .1, .2])])
 def test_finite_statistics_keep_boolean_types_on_disk(tmp_path, test):
     path = tmp_path / 'stats.json'
