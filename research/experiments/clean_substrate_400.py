@@ -49,12 +49,15 @@ import json
 import os
 import random
 import sys
+from pathlib import Path
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+
+from research.json_documents import write_checkpoint_document
 
 SEEDS = list(range(42, 52))
 BUDGETS = (200, 400)
@@ -201,9 +204,10 @@ def main():
         results = {}
         for (frames, seed), res in cell_results.items():
             results.setdefault(frames, {})[seed] = res
-        with open(OUT_PATH, "w") as f:
-            json.dump({str(b): {str(s): v for s, v in by.items()}
-                       for b, by in results.items()}, f, indent=2)
+        write_checkpoint_document(Path(OUT_PATH), {
+            str(b): {str(s): v for s, v in by.items()}
+            for b, by in results.items()
+        })
 
     if len(SEEDS) < 3:
         print("\n(smoke mode: too few seeds for ensembles -- see JSON)")

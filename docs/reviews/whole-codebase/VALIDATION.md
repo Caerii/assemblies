@@ -5360,6 +5360,14 @@ post-hoc evidence and registered results while preventing accidental
 replacement. Compilation, Ruff, and both result-writer ratchets pass:
 **2 passed**.
 
+### Clean-substrate study checkpoint migration (2026-09-12)
+
+The clean-substrate E17 study now writes its resumable/analyze-later artifact
+through `write_checkpoint_document`. Its `CS_ANALYZE` read path, output shape,
+and budget/seed keys remain unchanged, while raw `json.dump` publication is
+removed. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls
