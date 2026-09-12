@@ -6110,3 +6110,6 @@ The sequence sweep now compares recalled and memorized assemblies over their exp
 ### Patch merge field cardinality gate (2026-09-12)
 
 Patch merge now requires exactly one feature field per graph patch before mutating any area winners. This prevents extra fields from being ignored and missing fields from producing partial merges. The reinforcement contract suite passes **23 tests**; the grid smoke exceeded the bounded test window and was stopped, so no pass is claimed for it. Focused B905/F scan is clean.
+### NEMO learner input-contract gate (2026-09-12)
+
+NEMO grounded sentence presentation now rejects word/context or word/role cardinality mismatches before clearing or mutating brain state. Noun-phrase construction and integrated role filtering use strict pairing. Focused B905/F scans are clean; runtime NEMO tests remain environment-gated because CuPy is unavailable, so no GPU pass is claimed.

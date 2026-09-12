@@ -225,7 +225,7 @@ class IntegratedNemoTrainer:
                 # Filter out 'OTHER' roles
                 filtered_words = []
                 filtered_roles = []
-                for w, r in zip(known_words, roles):
+                for w, r in zip(known_words, roles, strict=True):
                     if r != 'OTHER':
                         filtered_words.append(w)
                         filtered_roles.append(r)
@@ -315,7 +315,7 @@ class IntegratedNemoTrainer:
             print(f"  Words learned: {stats.words_learned}")
             print(f"  Noun accuracy: {stats.noun_accuracy:.1%}")
             print(f"  Verb accuracy: {stats.verb_accuracy:.1%}")
-            print(f"  Word order: {word_order} ({'✓' if stats.word_order_correct else '✗'})")
+            print(f"  Word order: {word_order} ({'âœ“' if stats.word_order_correct else 'âœ—'})")
         
         return stats
     

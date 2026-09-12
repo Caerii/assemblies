@@ -213,6 +213,10 @@ class EmergentLanguageLearner:
         Key addition: We also learn VP assemblies that link subjects and verbs,
         and verbs and objects. This is what enables NEMO-style generation.
         """
+        if len(words) != len(contexts):
+            raise ValueError("words and contexts must have equal length")
+        if roles is not None and len(words) != len(roles):
+            raise ValueError("words and roles must have equal length")
         self.brain.clear_all()
         
         mood_assembly = self.brain._get_or_create(Area.MOOD, mood)
@@ -227,7 +231,7 @@ class EmergentLanguageLearner:
         current_subject = None
         current_verb = None
         
-        for i, (word, context, role) in enumerate(zip(words, contexts, roles)):
+        for i, (word, context, role) in enumerate(zip(words, contexts, roles, strict=True)):
             self.present_word_with_grounding(word, context, position=i, role=role, learn=learn)
             
             current_category, _ = self.get_emergent_category(word)
@@ -319,9 +323,11 @@ class EmergentLanguageLearner:
     def build_noun_phrase(self, words: List[str], contexts: List[GroundingContext],
                           learn: bool = True) -> Optional[cp.ndarray]:
         """Build a noun phrase by merging words into NP area."""
+        if len(words) != len(contexts):
+            raise ValueError("words and contexts must have equal length")
         self.brain._clear_area(Area.NP)
         
-        for word, ctx in zip(words, contexts):
+        for word, ctx in zip(words, contexts, strict=True):
             phon = self.brain._get_or_create(Area.PHON, word)
             
             if ctx.visual:
