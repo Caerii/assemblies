@@ -90,21 +90,6 @@ def to_neuron_ids(
     return NeuronIds(table[arr])
 
 
-def same_space(a: np.ndarray, b: np.ndarray) -> bool:
-    """Best-effort RUNTIME companion to the static check, for probe code.
-
-    Returns False only when the two arrays provably cannot be in the same
-    space. It is a smoke alarm, not a proof: equal-looking ranges do not
-    establish sameness, so a True here means "not obviously wrong", nothing
-    more. Prefer the types; reach for this only where a value crosses a
-    dynamically-typed boundary (a dict, JSON, a saved golden).
-    """
-    if a.size == 0 or b.size == 0:
-        return True
-    return not (int(a.max()) < b.min() or int(b.max()) < a.min())
-
-
-
 def reserve_initial_neuron_ids(pool, selected, *, n: int) -> np.ndarray:
     """Specification: neural_assemblies/ir/VERIFICATION.md#contract-initial-recruitment
 

@@ -103,7 +103,10 @@ is MIXING the two spaces, which needs dataflow analysis to detect properly."*
 types stop new ones. This EXTENDS the existing mechanism, it does not replace it.
 
 - `core/index_spaces.py`: `CompactIdx`, `NeuronIds` NewTypes; `SameSpace`
-  value-restricted TypeVar; `to_neuron_ids`; `same_space` runtime smoke check.
+  value-restricted TypeVar; and `to_neuron_ids`. There is deliberately no
+  runtime `same_space` heuristic: an array's values cannot prove its index
+  space, so the typed boundary and explicit conversion are the only reliable
+  routes.
   **Done.**
 - Annotate the producers: `Area.winners -> CompactIdx`,
   `Assembly.winners: NeuronIds`, `Assembly.neuron_ids -> NeuronIds`,

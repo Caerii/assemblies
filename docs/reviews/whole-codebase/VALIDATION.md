@@ -5109,3 +5109,7 @@ Three primitive ERP studies carried the same deterministic matched-triple constr
 ### Protocol helper readability pass (2026-09-11)
 
 The shared SVO and matched-ERP generators now use explicit named loops rather than walrus expressions and repeated indexing inside comprehensions. The generated order and seed behavior are unchanged, while the no-self-patient and matched-condition invariants are visible directly in the implementation. Compilation, Ruff, diff checks, and both protocol invariant probes pass.
+
+### Remove misleading runtime index-space heuristic (2026-09-11)
+
+`core.index_spaces.same_space` was unused and could only compare numeric ranges; it could return `True` for arrays from different semantic spaces. That made its name stronger than its evidence. The heuristic is removed, and the canonical refactor note now states the sound boundary: static `CompactIdx`/`NeuronIds` types plus explicit `to_neuron_ids` conversion. Index-space, overlap-admission, and public-boundary checks pass: **119 passed**; Ruff and diff checks are clean.
