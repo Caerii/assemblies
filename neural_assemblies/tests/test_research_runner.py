@@ -282,6 +282,24 @@ def test_history_resolves_parent_relative_links(tmp_path, monkeypatch):
     assert audit['preregistrations_without_resolved_result_links'] == []
 
 
+def test_history_classifies_explicitly_unrun_preregistration(tmp_path, monkeypatch):
+    from research import evidence
+
+    (tmp_path / 'research' / 'notes').mkdir(parents=True)
+    (tmp_path / 'research' / 'notes' / 'PREREG_future.md').write_text(
+        '# PREREG future\n\nThe data does not exist yet.\n', encoding='utf-8')
+    monkeypatch.setattr(
+        evidence.subprocess,
+        'check_output',
+        lambda *a, **kw: b'research/notes/PREREG_future.md\0',
+    )
+    audit = evidence.audit_history(tmp_path)
+    assert audit['preregistrations_without_resolved_result_links'] == []
+    assert audit['preregistrations_pending_results'] == [
+        'research/notes/PREREG_future.md'
+    ]
+
+
 @pytest.mark.parametrize('field,value', [('mode', []), ('parameters', []),
                                         ('git_commit', 'unknown'), ('engine', 'auto')])
 def test_malformed_record_is_reported_without_crashing(run, field, value):

@@ -6868,3 +6868,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Legacy experiment result identity boundary (2026-09-12)
 
 `ExperimentBase.save_result` now accepts an optional path-safe `tag` for compatibility callers while retaining the exclusive result writer and overwrite refusal. Statistical helpers normalize arrays and scalarize SciPy results, eliminating the prior research-base Pyright errors. Legacy result-storage tests pass **34/34**; Pyright and Ruff report zero diagnostics.
+
+
+## Evidence graph planned versus missing edges (2026-09-12)
+
+`research/evidence.py` now classifies preregistrations that explicitly declare unrun work as `preregistrations_pending_results`, leaving `preregistrations_without_resolved_result_links` for actual missing edges. The live audit currently reports **4** missing links and **22** pending preregistrations out of the previously conflated set of 26. The evidence validator now has zero Pyright diagnostics; research-runner tests pass **98/98**.

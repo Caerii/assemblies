@@ -161,7 +161,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 expected_organ = ORGAN_ENGINE_KINDS.get(record['engine'])
                 if expected_organ is None:
                     errors.append('execution_semantics names an unknown organ engine')
-                elif any(profile.organ is not expected_organ
+                elif any(getattr(profile, 'organ', None) is not expected_organ
                          for profile in normalized.profiles.values()):
                     errors.append('organ profile kind disagrees with engine')
             elif (normalized.kind is ExecutionKind.ALIGNMENT
@@ -222,11 +222,13 @@ def audit_history(root: Path = ROOT) -> dict:
     for name in files:
         by_basename[Path(name).name].append(name)
     edges, unresolved = [], []
+    source_text = {}
     incoming = set()
     for source in sorted(files):
         if Path(source).suffix not in {'.md', '.py'}:
             continue
         content = (root / source).read_text(encoding='utf-8-sig', errors='replace')
+        source_text[source] = content
         for ref in sorted(set(_FILE_REF.findall(content))):
             candidates = []
             if ref in files:
@@ -251,10 +253,31 @@ def audit_history(root: Path = ROOT) -> dict:
     preregs = sorted(name for name in files if Path(name).name.startswith('PREREG_')
                      and Path(name).suffix == '.md')
     reports_results = {edge['from'] for edge in edges if edge['to'] in results}
+    # A preregistration that explicitly says it has not run yet is a planned
+    # node, not a dangling evidence edge. Keep it visible in a separate list so
+    # the audit distinguishes missing links from work that has no result by
+    # design. Once a result section or a concrete result link appears, it is
+    # subject to the normal link check.
+    pending_markers = re.compile(
+        r"(?:data|results?)\s+(?:does not|do not)\s+exist\s+yet|"
+        r"before\s+(?:implementing|running)|nothing\s+has\s+been\s+run|"
+        r"not\s+yet\s+run",
+        re.IGNORECASE,
+    )
+    pending = [
+        name for name in preregs
+        if name not in reports_results
+        and pending_markers.search(source_text.get(name, ''))
+    ]
+    missing = [
+        name for name in preregs
+        if name not in reports_results and name not in pending
+    ]
     return {'scope': 'literal-reference inventory, not semantic validity or exhaustive dynamic reachability',
             'tracked_files': len(files), 'resolved_edges': edges, 'unresolved_references': unresolved,
             'candidate_orphan_results': [name for name in results if name not in incoming],
-            'preregistrations_without_resolved_result_links': [name for name in preregs if name not in reports_results]}
+            'preregistrations_without_resolved_result_links': missing,
+            'preregistrations_pending_results': pending}
 
 
 def validate_active_evidence_graph(root: Path = ROOT) -> list[str]:
