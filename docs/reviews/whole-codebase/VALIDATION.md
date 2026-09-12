@@ -7102,3 +7102,7 @@ The API guide now names Brain.engine and Brain.engine_for(area_name) as the supp
 ## Parser owner-only state writes (2026-09-12)
 
 Parser winner clearing now writes through Brain.engine_for(area_name) only. The former mirrored write to both primary and explicit private engines could leave a non-owner state authoritative; the owner boundary removes that ambiguity. Validation: language parsing, parser composition, and TACL parser suites 39 passed.
+
+## Duck-typed owner compatibility repair (2026-09-12)
+
+The full maintained gate exposed four contract-fixture failures after owner migration: lightweight Brain-like test doubles intentionally provide only the legacy resolver. esolve_area_engine now centralizes the narrow compatibility fallback while real Brain instances always use engine_for; Ops, PFA, and ERP adapters share it. Validation: coin-seed and ERP index-space suites 28 passed; Pyright on four changed modules reports 0 diagnostics.
