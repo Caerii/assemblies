@@ -7034,3 +7034,6 @@ NumPy sparse/exact/explicit and Torch `add_area` now invoke the shared competiti
 ## Preregistration result-edge enforcement (2026-09-12)
 
 The evidence graph now treats a non-pending `PREREG_*.md` without a resolved result artifact as a maintained-graph error. `PREREG_agreement_corpus.md` was repaired with a link to the retained gap-2 result JSON. Pending preregistrations remain explicit planned nodes. Validation: active-evidence and evidence-check tests 4 passed; Pyright on `research/evidence.py` and graph tests 0 errors/warnings/information; audit reports zero non-pending preregistrations without result links.
+## Assembly snapshot index-space admission (2026-09-12)
+
+`Assembly` construction now rejects `CompactIdx` inputs and brands every accepted raw winner array as `NeuronIds`. A compact engine position therefore cannot silently become a stable snapshot, and unbranded callers are normalized at the boundary. Validation: index-space, overlap, and assembly-calculus suites 37 passed; Pyright on assembly/index-space modules 0 errors/warnings/information.

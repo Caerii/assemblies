@@ -29,7 +29,7 @@ import tempfile
 
 import pytest
 
-from neural_assemblies.assembly_calculus.assembly import overlap
+from neural_assemblies.assembly_calculus.assembly import Assembly, overlap
 from neural_assemblies.core.index_spaces import (
     CompactIdx, NeuronIds, to_neuron_ids, validated_indices,
 )
@@ -81,6 +81,13 @@ def test_stable_neuron_ids_cannot_be_remapped_as_compact_indices():
     neurons = NeuronIds(np.array([77, 88], dtype=np.uint32))
     with pytest.raises(TypeError, match="requires CompactIdx"):
         to_neuron_ids(neurons, [77, 88, 99])
+
+
+def test_assembly_brands_raw_ids_and_rejects_compact_indices():
+    raw = Assembly("A", np.array([1, 2], dtype=np.uint32))
+    assert type(raw.neuron_ids) is NeuronIds
+    with pytest.raises(TypeError, match="stable neuron IDs"):
+        Assembly("A", CompactIdx(np.array([1, 2], dtype=np.uint32)))
 
 
 def _pyright_error_lines(source: str) -> set:

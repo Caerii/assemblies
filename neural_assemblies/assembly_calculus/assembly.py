@@ -68,14 +68,19 @@ class Assembly:
         return self.winners
 
     def __post_init__(self):
+        if isinstance(self.winners, CompactIdx):
+            raise TypeError(
+                "Assembly requires stable neuron IDs; convert compact indices "
+                "with to_neuron_ids() before constructing a snapshot"
+            )
         # Store an immutable copy so the snapshot can't be mutated
         # through the original array. frozen=True prevents attribute
         # reassignment but ndarray contents are still mutable, so we
         # copy on construction.
         object.__setattr__(
-            self, "winners", validated_indices(
+            self, "winners", NeuronIds(validated_indices(
                 self.winners, label='assembly neuron IDs', unique=True
-            ).copy()
+            ).copy())
         )
         self.winners.flags.writeable = False
 
