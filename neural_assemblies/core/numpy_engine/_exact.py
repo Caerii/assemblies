@@ -555,7 +555,7 @@ class NumpyExactEngine(ComputeEngine):
                  inhibition_strength: float = 0.0,
                  winner_policy=None,
                  input_noise_std: float = 0.0,
-                 *, slot_count: int = 0) -> None:
+                 *, slot_count: int = 0, **options: object) -> None:
         """`winner_policy` selects the competition rule; None is plain k-WTA.
 
         SUPPORTED HERE, and it matters where it is supported. E%-WTA (Hoff et
@@ -577,6 +577,12 @@ class NumpyExactEngine(ComputeEngine):
         an RNG stream, and this engine deliberately has none -- that is what
         makes it reproducible by content-addressing rather than by seeding.
         """
+        if options:
+            names = ", ".join(sorted(options))
+            raise TypeError(
+                f"NumpyExactEngine.add_area({name!r}) got unsupported "
+                f"constructor options: {names}"
+            )
         validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         _reject_unsupported(
