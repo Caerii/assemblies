@@ -6155,3 +6155,7 @@ The partitioned non-slow slice 1140:1280 passed **140 tests in 22.83 seconds** w
 ### Production strict-pairing cleanup (2026-09-12)
 
 The remaining maintained B905 sites were eliminated in reference NEMO area aggregation, plotting annotation, and archived GPU batch dispatch by making their parallel cardinality explicit (`strict=True`). Production `ruff check neural_assemblies --select B905` is now clean; only test fixtures retain intentional unspecified zip behavior. The four touched modules compile successfully.
+
+### Fiber and historical association slice (2026-09-12)
+
+The partitioned non-slow slice 1280:1420 passed **70 tests with 70 optional skips in 27.89 seconds**. The skips are dependency or hardware gated; no unexpected failures occurred.
