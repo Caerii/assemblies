@@ -279,6 +279,23 @@ def test_direct_numpy_engines_validate_runtime_policy_before_mutation(engine_nam
     }[engine_name](p=.1)
     engine.add_area('A', 4, 2, .1)
     assert engine._areas['A'].winner_policy is None
+
+
+@pytest.mark.parametrize('engine_name', ['numpy_sparse', 'numpy_exact', 'numpy_explicit'])
+def test_direct_numpy_engines_validate_policy_at_registration(engine_name):
+    from neural_assemblies import TopKPolicy
+    from neural_assemblies.core.numpy_engine import (
+        NumpyExactEngine, NumpyExplicitEngine, NumpySparseEngine,
+    )
+    engine = {
+        'numpy_sparse': NumpySparseEngine,
+        'numpy_exact': NumpyExactEngine,
+        'numpy_explicit': NumpyExplicitEngine,
+    }[engine_name](p=.1)
+    with pytest.raises(TypeError, match='competition policy'):
+        engine.add_area('bad', 4, 2, .1, winner_policy=object())
+    assert not engine._areas
+    engine.add_area('A', 4, 2, .1)
     with pytest.raises(TypeError, match='competition policy'):
         engine.set_competition_policy('A', object())
     with pytest.raises(ValueError, match='population'):

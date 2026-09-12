@@ -744,6 +744,7 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                  input_noise_std: float = 0.0) -> None:
         input_noise_std = validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
+        validate_competition_policy(n, winner_policy)
         beta = validate_plasticity_rate(beta)
         refractory_period, inhibition_strength = validate_lri_parameters(
             refractory_period, inhibition_strength)

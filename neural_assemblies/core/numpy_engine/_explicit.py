@@ -132,6 +132,8 @@ class NumpyExplicitEngine(ComputeEngine):
         """
         input_noise_std = validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
+        from ...compute.winner_policies import validate_competition_policy
+        validate_competition_policy(n, winner_policy)
         beta = validate_plasticity_rate(beta)
         slot_count = validate_slot_configuration(n, slot_count, winner_policy)
         _reject_unsupported(

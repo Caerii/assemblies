@@ -7028,3 +7028,6 @@ Moved contextual competition-policy validation into `compute.winner_policies.val
 ## Direct-engine beta mutation parity (2026-09-12)
 
 Runtime `set_beta` now canonicalizes through `validate_plasticity_rate` in NumPy sparse/exact/explicit and Torch engines before inserting a per-fiber override. Direct backend callers therefore share Brain's rejection of negative, nonfinite, boolean, and string rates and cannot leave a partial override. Validation: area-registration suite 231 passed; Pyright on all four engines 0 errors/warnings/information; `git diff --check` clean.
+## Backend registration policy parity (2026-09-12)
+
+NumPy sparse/exact/explicit and Torch `add_area` now invoke the shared competition-policy validator before allocating or publishing area state. Direct engine registration therefore has the same policy contract as Brain. True negatives cover unknown policy objects and preserve an empty engine. Validation: area-registration plus winner-policy suites 264 passed; Pyright on affected engines 0 errors/warnings/information; `git diff --check` clean.

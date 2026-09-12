@@ -586,6 +586,8 @@ class NumpyExactEngine(ComputeEngine):
             )
         validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
+        from ...compute.winner_policies import validate_competition_policy
+        validate_competition_policy(n, winner_policy)
         beta = validate_plasticity_rate(beta)
         _reject_unsupported(
             f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
