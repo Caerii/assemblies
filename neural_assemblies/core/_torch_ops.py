@@ -33,6 +33,7 @@ class TorchOps(Protocol):
     # Dtypes and layout sentinels are dynamically exposed values.
     bool: Any
     bfloat16: Any
+    float16: Any
     float32: Any
     float64: Any
     int8: Any

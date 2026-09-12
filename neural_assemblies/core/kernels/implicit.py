@@ -50,14 +50,17 @@ Changelog:
 - 1.0.0: Initial implicit connectivity implementation
 """
 
-import cupy as cp
+import importlib
 import time
-import torch
+from typing import Any
 
 from ...constants.default_params import CUDA_HASH_TABLE_SIZE
+from .._torch_ops import torch_ops
+
+cp = importlib.import_module("cupy")
 
 # Use PyTorch for fast top-k (3x faster than CuPy argpartition)
-USE_TORCH_TOPK = torch.cuda.is_available()
+USE_TORCH_TOPK = torch_ops.cuda.is_available()
 if USE_TORCH_TOPK:
     print("Using PyTorch top-k acceleration")
 
@@ -220,7 +223,7 @@ void select_above_threshold(
 ''', 'select_above_threshold')
 
 
-def fast_topk(values: cp.ndarray, k: int) -> cp.ndarray:
+def fast_topk(values: Any, k: int) -> Any:
     """
     Fast O(n) top-k selection using radix/histogram approach.
     
@@ -478,14 +481,15 @@ class ImplicitAssemblyArea:
         
         # Pre-allocate PyTorch tensor for top-k (avoids conversion overhead)
         if USE_TORCH_TOPK:
-            self._torch_activations = torch.zeros(n, device='cuda', 
-                                                   dtype=torch.float16 if self.use_fp16 else torch.float32)
+            self._torch_activations = torch_ops.zeros(
+                n, device='cuda',
+                dtype=torch_ops.float16 if self.use_fp16 else torch_ops.float32)
         
         # Block/grid sizes - optimized for RTX 4090
         self.block_size = 512  # Larger blocks for better occupancy
         self.grid_size = (n + self.block_size - 1) // self.block_size
     
-    def project(self, input_indices: cp.ndarray, learn: bool = True) -> cp.ndarray:
+    def project(self, input_indices: Any, learn: bool = True) -> Any:
         """
         Project from input indices to new winners.
         
@@ -527,11 +531,14 @@ class ImplicitAssemblyArea:
             # Copy to pre-allocated PyTorch tensor (faster than as_tensor)
             if self.use_fp16:
                 # Convert to FP16 for faster top-k
-                self._torch_activations.copy_(torch.as_tensor(self.activations, device='cuda'))
+                self._torch_activations.copy_(
+                    torch_ops.as_tensor(self.activations, device='cuda'))
             else:
-                self._torch_activations.copy_(torch.as_tensor(self.activations, device='cuda'))
+                self._torch_activations.copy_(
+                    torch_ops.as_tensor(self.activations, device='cuda'))
             # sorted=False gives 1.3x speedup
-            _, top_idx = torch.topk(self._torch_activations, self.k, sorted=False)
+            _, top_idx = torch_ops.topk(
+                self._torch_activations, self.k, sorted=False)
             winners = cp.asarray(top_idx)
         else:
             winners = cp.argpartition(self.activations, -self.k)[-self.k:]
