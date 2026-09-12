@@ -24,6 +24,7 @@ from neural_assemblies.assembly_calculus.assembly import (
     overlap as _canonical_overlap,
 )
 from neural_assemblies.core.index_spaces import NeuronIds
+from neural_assemblies.assembly_calculus.metrics import jaccard_similarity
 
 
 def _validate_execution_success(value):
@@ -178,28 +179,8 @@ def measure_overlap(winners_a: np.ndarray, winners_b: np.ndarray) -> float:
 
 
 def measure_jaccard(winners_a: np.ndarray, winners_b: np.ndarray) -> float:
-    """
-    Measure Jaccard similarity between two assemblies.
-    
-    Args:
-        winners_a: Array of neuron indices in assembly A
-        winners_b: Array of neuron indices in assembly B
-    
-    Returns:
-        Jaccard index (intersection / union)
-    """
-    if len(winners_a) == 0 and len(winners_b) == 0:
-        return 1.0
-    if len(winners_a) == 0 or len(winners_b) == 0:
-        return 0.0
-    
-    set_a = set(winners_a.tolist() if isinstance(winners_a, np.ndarray) else winners_a)
-    set_b = set(winners_b.tolist() if isinstance(winners_b, np.ndarray) else winners_b)
-    
-    intersection = len(set_a & set_b)
-    union = len(set_a | set_b)
-    
-    return intersection / union if union > 0 else 0.0
+    """Compatibility name for the canonical set Jaccard kernel."""
+    return jaccard_similarity(winners_a, winners_b)
 
 
 def convergence_metric(history: List[np.ndarray]) -> Dict[str, Any]:

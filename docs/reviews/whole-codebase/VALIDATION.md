@@ -7464,3 +7464,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Replaced the duplicate `research.experiments.base.measure_overlap` implementation with the package overlap kernel and explicit `NeuronIds` conversion.
 - Added a parity assertion tying the research helper to the package kernel; historical projection/scaling callers remain green.
 - Validation: metric-kernel tests passed (7 tests); Pyright reported 0 errors.
+
+
+## 2026-09-12 canonical Jaccard kernel
+
+- Added package-level `jaccard_similarity` with explicit empty-set identity and disjoint-set zero laws.
+- Reused it inside instability calculations and routed the research `measure_jaccard` helper through the same kernel.
+- Validation: metric-kernel tests passed (9 tests); Pyright reported 0 errors; `git diff --check` passed.

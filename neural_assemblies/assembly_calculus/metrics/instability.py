@@ -41,7 +41,14 @@ References:
 
 from __future__ import annotations
 
-from typing import Any, Dict, List, Set
+from typing import Any, Dict, Iterable, List, Set
+
+
+def jaccard_similarity(a: Iterable[int], b: Iterable[int]) -> float:
+    """Return set Jaccard similarity, with the empty/empty identity of 1."""
+    left, right = set(a), set(b)
+    union = left | right
+    return 1.0 if not union else len(left & right) / len(union)
 
 
 def compute_jaccard_instability(round_winners: List[Set[int]]) -> float:
@@ -50,12 +57,7 @@ def compute_jaccard_instability(round_winners: List[Set[int]]) -> float:
     for i in range(1, len(round_winners)):
         prev_set = round_winners[i - 1]
         curr_set = round_winners[i]
-        union = prev_set | curr_set
-        if len(union) > 0:
-            jaccard = len(prev_set & curr_set) / len(union)
-        else:
-            jaccard = 1.0
-        instability += 1.0 - jaccard
+        instability += 1.0 - jaccard_similarity(prev_set, curr_set)
     return instability
 
 

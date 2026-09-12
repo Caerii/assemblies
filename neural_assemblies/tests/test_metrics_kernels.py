@@ -4,6 +4,7 @@ import numpy as np
 
 from neural_assemblies.assembly_calculus.metrics.instability import (
     compute_jaccard_instability,
+    jaccard_similarity,
     mean_jaccard_instability,
 )
 from neural_assemblies.assembly_calculus.metrics.prediction import measure_n400
@@ -37,6 +38,18 @@ class TestMetricKernels:
     def test_mean_jaccard_empty_or_single_round(self):
         assert mean_jaccard_instability([]) == 0.0
         assert mean_jaccard_instability([{1, 2, 3}]) == 0.0
+
+    def test_jaccard_kernel_has_identity_and_zero_laws(self):
+        assert jaccard_similarity([], []) == 1.0
+        assert jaccard_similarity([1, 2], [3, 4]) == 0.0
+        assert jaccard_similarity([1, 2], [2, 3]) == 1 / 3
+
+    def test_research_jaccard_helper_is_the_package_kernel(self):
+        from research.experiments.base import measure_jaccard
+
+        a = np.array([1, 2, 3], dtype=np.uint32)
+        b = np.array([2, 3, 4], dtype=np.uint32)
+        assert measure_jaccard(a, b) == jaccard_similarity(a, b)
 
     def test_research_instability_reexports_package_kernel(self):
         from research.experiments.metrics.instability import (
