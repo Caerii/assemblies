@@ -6663,3 +6663,8 @@ The deterministic hashed-connectome constructor `_hash.py` now routes generated 
 ## Torch hashed-FSM boundary migration (2026-09-12)
 
 `_hashed_fsm.py` now keeps real Torch tensor annotations while routing generated factories, dtypes, and selection masks through `torch_ops`. Pyright and Ruff report zero diagnostics. Hashed transducer, Nemo arc, and transition contract regressions pass **60 tests with 2 expected skips**; assigned-state semantics are unchanged.
+
+
+## Torch hashed-transducer boundary migration (2026-09-12)
+
+`_hashed_transducer.py` now separates real Torch tensor annotations from generated runtime operators via `torch_ops`. Pyright and Ruff report zero diagnostics. Hashed transducer, FSM, and sequence contract tests pass **15 tests with 2 expected skips**. The temporal capture pair remains blocked before execution because this shell lacks `cl.exe` and `ninja`; `scripts/check_cuda_toolchain.py` reports those exact missing tools.
