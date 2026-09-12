@@ -75,8 +75,6 @@ def run_patch_binding_panel(
 
     clear_ventral_bundle_cache()
     ensure_fashion_mnist_csv()
-    kw = dict(seed=seed, n_examples=n_examples, k=k, use_cache=False)
-
     graphs = {
         "halves": _graph_summary(build_halves_patch_graph()),
         "grid_4x4": _graph_summary(build_grid_patch_graph(grid=4, radii=(2,))),
@@ -86,16 +84,16 @@ def run_patch_binding_panel(
 
     rows: list[PatchBindingRow] = []
 
-    rec = load_recurrent_bundle(**kw)
+    rec = load_recurrent_bundle(seed=seed, n_examples=n_examples, k=k, use_cache=False)
     rows.append(_audit_row("recurrent", rec, seed=seed))
 
-    spatial = load_spatial_ventral_bundle(**kw)
+    spatial = load_spatial_ventral_bundle(seed=seed, n_examples=n_examples, k=k, use_cache=False)
     rows.append(_audit_row("spatial_single_rf", spatial, seed=seed))
 
-    ms = load_multiscale_spatial_bundle(**kw)
+    ms = load_multiscale_spatial_bundle(seed=seed, n_examples=n_examples, k=k, use_cache=False)
     rows.append(_audit_row("spatial_multiscale_gen", ms, seed=seed))
 
-    ventral_ref = load_ventral_bundle(**kw)
+    ventral_ref = load_ventral_bundle(seed=seed, n_examples=n_examples, k=k, use_cache=False)
     grid_merge = run_grid_patch_merge_mnist(
         bundle=ventral_ref, seed=seed, n_examples=n_examples, k=k, grid=2,
         merge_mode="chain",
