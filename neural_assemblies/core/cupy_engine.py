@@ -20,13 +20,16 @@ Requires: cupy (``pip install cupy-cuda12x`` or appropriate variant).
 Falls back gracefully: module loads but engine is not registered without CuPy.
 """
 
+import importlib
+from typing import Any, Dict, List
+
 import numpy as np
-from typing import Dict, List
 
 from .engine import ProjectionResult, register_engine
 
+cp: Any = None
 try:
-    import cupy as cp
+    cp = importlib.import_module("cupy")
     _HAS_CUPY = True
 except ImportError:
     _HAS_CUPY = False
