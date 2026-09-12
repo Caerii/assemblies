@@ -70,14 +70,18 @@ class DialogueMixin:
         speaker: str = "user",
         learn: bool = True,
     ) -> InstructionFrame:
-        """Ingest one dialogue turn; optionally apply lightweight Hebbian update."""
+        """Ingest one dialogue turn and preserve its speaker in the frame."""
+        if not isinstance(speaker, str) or not speaker.strip():
+            raise ValueError("speaker must be a nonempty string")
         known = [w for w in words if w in self.stim_map]
         if known:
             self.parse_incremental(known, light=True)
             if learn:
                 for w in known:
                     self.ingest_raw_sentence([w])
-        return self.parse_instruction(words)
+        frame = self.parse_instruction(words)
+        frame.speaker = speaker
+        return frame
 
     def parse_instruction_with_context(
         self,

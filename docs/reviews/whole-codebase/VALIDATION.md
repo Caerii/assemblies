@@ -5808,3 +5808,10 @@ protocol.
 The private stage implementation no longer receives the stage config object it
 never read; derived beta, complexity, and phases remain explicit arguments. A
 signature test and the holdout cache true negative pass.
+
+### Dialogue speaker provenance (2026-09-12)
+
+`present_turn` now validates and preserves its speaker in `InstructionFrame`,
+so the previously ignored `speaker` argument is part of the returned structured
+record. Structured IO and dialogue tests pass, including an empty-speaker true
+negative.

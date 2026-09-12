@@ -32,6 +32,7 @@ from typing import Any, Dict, Optional
 class InstructionFrame:
     """Semantic frame extracted from user language."""
 
+    speaker: str = "user"
     intent: Optional[str] = None
     mood: str = "DECLARATIVE"
     agent: Optional[str] = None

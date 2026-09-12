@@ -129,6 +129,15 @@ class TestDialoguePhase2:
         frame = agent_parser.present_turn(["the", "dog", "runs"], learn=False)
         assert frame.action == "runs"
         assert frame.agent == "dog"
+        assert frame.speaker == "user"
+
+    def test_present_turn_preserves_speaker_and_rejects_empty(self, agent_parser):
+        frame = agent_parser.present_turn(
+            ["the", "dog", "runs"], speaker="assistant", learn=False
+        )
+        assert frame.speaker == "assistant"
+        with pytest.raises(ValueError, match="nonempty"):
+            agent_parser.present_turn(["the"], speaker="", learn=False)
 
     def test_evaluate_dialogue_pinned(self, agent_parser):
         suite = EvaluationSuite(agent_parser)
