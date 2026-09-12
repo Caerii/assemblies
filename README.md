@@ -239,6 +239,7 @@ From a checkout:
 ```bash
 uv sync
 uv run pytest neural_assemblies/tests -q
+uv run pytest neural_assemblies/tests -q -m "not slow" -n 4 --dist loadfile
 uv run python scripts/verify_maintained.py --skip-tests
 uv run python -m research.evidence check
 ```

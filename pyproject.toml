@@ -80,10 +80,8 @@ include = ["neural_assemblies*"]
 dev = [
     "pytest>=7.0.0",
     "pytest-cov>=4.0.0",
-    # The pytest config below documents `-n auto --dist loadfile` as THE way to
-    # run the full suite, and said "pytest-xdist is installed" -- it was not, in
-    # any group, so the documented command failed with "unrecognized arguments"
-    # and every suite run since has been serial on a 16-core machine.
+    # Keep xdist in the development environment so the maintained gate can run
+    # the full package suite in parallel.
     "pytest-xdist>=3.6",
     "ruff>=0.1.0",
     "ipython>=8.0.0",
@@ -150,14 +148,15 @@ norecursedirs = [".worktrees"]
 # scipy.stats and eager scipy.sparse left the import path -- see
 # docs/RUST_KERNELS.md and `_csr_weights.scipy_sparse`.)
 #
-# Full suite:   pytest -n auto --dist loadfile
+# Full suite:   pytest -n 4 --dist loadfile
 # Single file:  pytest neural_assemblies/tests/test_foo.py      (serial, fast)
 #
 # Use `--dist loadfile` rather than the default `load`: the session-scoped
 # parser fixtures in conftest.py are instantiated PER WORKER, so scattering one
 # file's tests across workers retrains its backbone once per worker. Verified
 # equivalent -- the four parser-heavy files give 166 passed both serially and
-# under `-n 4` (545s -> 424s).
+# under `-n 4` (545s -> 424s).  Larger worker counts can oversubscribe native
+# numerical thread pools; the maintained gate therefore defaults to four.
 markers = [
     "legacy: repo-root compatibility and historical experiment tests",
     "gpu: optional CUDA/C++/accelerator tests",

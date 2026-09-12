@@ -40,6 +40,20 @@ MAINTAINED_FILES = (
 )
 
 
+def default_test_workers() -> str:
+    """Return a bounded default that avoids oversubscribing numerical tests.
+
+    ``pytest -n auto`` starts one worker per logical CPU.  That is often slower
+    for this NumPy/Torch-heavy suite and can leave worker teardown contending
+    for native thread pools.  Four workers are the measured stable default;
+    callers can override it with ``ASSEMBLIES_TEST_WORKERS`` or ``--workers``.
+    """
+    configured = os.environ.get("ASSEMBLIES_TEST_WORKERS")
+    if configured:
+        return configured
+    return str(min(4, os.cpu_count() or 1))
+
+
 def run(command: list[str], *, capture_output: bool = False) -> subprocess.CompletedProcess[str]:
     print("$", " ".join(command), flush=True)
     return subprocess.run(command, cwd=ROOT, check=False, text=True,
@@ -70,8 +84,8 @@ def main() -> int:
     parser.add_argument("--skip-tests", action="store_true",
                         help="only run the maintained-source static gate")
     parser.add_argument(
-        "--workers", default=os.environ.get("ASSEMBLIES_TEST_WORKERS", "auto"),
-        help="pytest-xdist worker count (default: ASSEMBLIES_TEST_WORKERS or auto)",
+        "--workers", default=default_test_workers(),
+        help="pytest-xdist worker count (default: ASSEMBLIES_TEST_WORKERS or 4)",
     )
     parser.add_argument(
         "--serial", action="store_true",
