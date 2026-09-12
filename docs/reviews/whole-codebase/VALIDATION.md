@@ -6405,3 +6405,7 @@ Structured conversion now declares the parser protocol it consumes: instruction 
 ### Instruction mixin composed-surface gate (2026-09-12)
 
 Instruction parsing now declares the parser state and helper it consumes: the base parse operation, grounded vocabulary, and imperative frame constructor. This turns implicit MRO coupling into an explicit protocol while preserving frame behavior. Pyright reports **0 diagnostics**; instruction tests pass **4 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Blocks mixin composed-surface gate (2026-09-12)
+
+Blocks-world training now declares the composed parser state and operations it requires: fast-training policy, stimulus and grounding maps, vocabulary registration, core training, and dialogue training. The fluent return is cast at the boundary after those operations complete, keeping the public chainable API while making the dependency surface visible to static tooling. Pyright reports **0 diagnostics**; block-focused emergent tests pass **6 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.

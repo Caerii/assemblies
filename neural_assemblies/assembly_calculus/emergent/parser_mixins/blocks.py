@@ -2,14 +2,31 @@
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Protocol, cast
 
 if TYPE_CHECKING:
     from ..core.sentence import GroundedSentence
     from ..train_progress import TrainProgress
+    from ..core.grounding import GroundingContext
 
 from ..blocks_bridge import is_blocks_command, normalize_blocks_command, parse_blocks_command
 from ..structured_io import InstructionFrame
+
+
+class _BlocksTrainingSurface(Protocol):
+    """Composed parser state and operations required by agent training."""
+
+    fast_training: bool
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, "GroundingContext"]
+
+    def _register_vocabulary(
+        self, vocab: Dict[str, "GroundingContext"]
+    ) -> None: ...
+
+    def train(self, *args: object, **kwargs: object) -> object: ...
+
+    def train_dialogue(self) -> None: ...
 
 
 class BlocksMixin:
@@ -30,7 +47,7 @@ class BlocksMixin:
         return frame
 
     def train_for_agent(
-        self,
+        self: _BlocksTrainingSurface,
         sentences: Optional[List["GroundedSentence"]] = None,
         holdout_words: Optional[set] = None,
         include_dialogue: bool = True,
@@ -86,4 +103,4 @@ class BlocksMixin:
         if include_extra_dialogue:
             with prog.phase("dialogue"):
                 self.train_dialogue()
-        return self
+        return cast("BlocksMixin", self)
