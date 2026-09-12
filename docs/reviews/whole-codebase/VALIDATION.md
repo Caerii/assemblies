@@ -6610,3 +6610,7 @@ eural_assemblies without eagerly importing the research stack. Lazy-import contr
 ## 2026-09-12 — high-performance API discoverability
 
 - Exported BatchedLM and BatchedSeqTrainer through ssembly_calculus and the lazy package root. Importing the names does not import Torch or initialize CUDA; backend capability checks remain inside construction. Lazy-import and batched-admission tests: 13 passed; root and assembly-calculus Pyright: 0 diagnostics.
+
+## 2026-09-12 — shared Connectome state contract
+
+- Declared lazy growth watermarks, degree caches, and capacity buffers on Connectome, removing backend implementations' dynamic-attribute ambiguity. NumPy engine static diagnostics fell from 166 to 48; remaining errors are concentrated in long legacy sparse routines and optional typing overloads. Connectome/backend isolation tests — 7 passed, 3 skipped.

@@ -12,6 +12,14 @@ class Connectome:
     Represents synaptic connections between neurons in different areas or stimuli.
     """
 
+    # Optional growth/normalization metadata shared by sparse, hashed and
+    # dense backends.  They are populated lazily by the owning engine.
+    _log_rows: int
+    _log_cols: int
+    _deg_rows: int
+    _deg_counts_arr: Any
+    _cap_buf: Any
+
     def __init__(self, source_size: int, target_size: int, p: float,
                  sparse: bool = False, rng=None, pair_seed=None):
         """
