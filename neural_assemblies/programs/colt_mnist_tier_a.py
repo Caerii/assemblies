@@ -98,7 +98,7 @@ def predict_multi_prototype(
     for key, ov in ranked:
         d = int(key.split("_")[0])
         digit_scores[d] = max(digit_scores[d], ov)
-    return int(max(digit_scores, key=digit_scores.get))
+    return int(max(digit_scores, key=lambda digit: digit_scores[digit]))
 
 
 @dataclass
@@ -312,7 +312,8 @@ def run_merge_halves_mnist(
                     bot = np.zeros_like(bot)
                 else:
                     top = np.zeros_like(top)
-            teacher = ref_outputs[digit, j] if do_teacher else None
+            teacher = (ref_outputs[digit, j]
+                       if do_teacher and ref_outputs is not None else None)
             _merge_halves_step(
                 brain, top, bot, high_bias,
                 merge_rounds=merge_rounds, mid_high_rounds=mid_high_rounds,

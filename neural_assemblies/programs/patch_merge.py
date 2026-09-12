@@ -91,7 +91,7 @@ def _merge_two_active(
 
 def _teacher_align_high_to_mid(
     brain,
-    teacher_high: np.ndarray,
+    teacher_high: np.ndarray | None,
     mid_area: str,
     *,
     teacher_beta: float = 2.5,
@@ -305,9 +305,15 @@ def run_grid_patch_merge_mnist(
                 n_drop = int(occ_rng.integers(1, max(n_patches, 2)))
                 for drop in occ_rng.choice(n_patches, size=min(n_drop, n_patches), replace=False):
                     fields[int(drop)] = np.zeros_like(fields[int(drop)])
-            teacher = ref_outputs[digit, j] if do_teacher else None
+            teacher = (ref_outputs[digit, j]
+                       if do_teacher and ref_outputs is not None else None)
             _patch_merge_chain_step(
-                brain, graph, fields, high_bias, teacher_high=teacher, **step_kw,
+                brain, graph, fields, high_bias,
+                merge_rounds=merge_rounds,
+                mid_high_rounds=mid_high_rounds,
+                teacher_beta=teacher_beta,
+                merge_mode=merge_mode,
+                teacher_high=teacher,
             )
         snap = _snap(brain, HIGH)
         if snap.winners.size:
