@@ -37,7 +37,7 @@ training length and a study's cost quadratic in it.
 """
 from __future__ import annotations
 
-import torch
+from ._torch_ops import torch_ops
 from typing import Any
 
 from . import _fused_cuda
@@ -113,14 +113,14 @@ def _gain_table(beta, rounds):
 def _local_index(idx):
     """Map raw ids to per-brain local ids. ``idx`` [B, L] -> loc, values, W."""
     B, L = idx.shape
-    srt, order = torch.sort(idx, dim=1)
-    fresh = torch.ones_like(srt, dtype=torch.bool)
+    srt, order = torch_ops.sort(idx, dim=1)
+    fresh = torch_ops.ones_like(srt, dtype=torch_ops.bool)
     fresh[:, 1:] = srt[:, 1:] != srt[:, :-1]
-    loc_sorted = torch.cumsum(fresh, dim=1) - 1
-    loc = torch.empty_like(loc_sorted)
+    loc_sorted = torch_ops.cumsum(fresh, dim=1) - 1
+    loc = torch_ops.empty_like(loc_sorted)
     loc.scatter_(1, order, loc_sorted)
     W = int(fresh.sum(1).max())
-    vals = torch.full((B, W), -1, dtype=torch.int64, device=idx.device)
+    vals = torch_ops.full((B, W), -1, dtype=torch_ops.int64, device=idx.device)
     vals.scatter_(1, loc_sorted, srt)      # duplicates write the same value
     return loc, vals, W
 
@@ -167,8 +167,8 @@ class RunStore:
         if need <= cap:
             return
         cap = max(need, 2 * cap, 1 << 16)
-        k = torch.empty(cap, dtype=torch.int64, device=self.device)
-        c = torch.empty(cap, dtype=torch.int32, device=self.device)
+        k = torch_ops.empty(cap, dtype=torch_ops.int64, device=self.device)
+        c = torch_ops.empty(cap, dtype=torch_ops.int32, device=self.device)
         if self.used:
             k[:self.used] = self.keys[:self.used]
             c[:self.used] = self.cnts[:self.used]
@@ -178,7 +178,7 @@ class RunStore:
         """Add one episode's block, then collapse comparable tail runs."""
         if nkey is None or nkey.numel() == 0:
             return
-        order = torch.argsort(nkey)
+        order = torch_ops.argsort(nkey)
         self.max_count = max(self.max_count, int(ncnt.max()))
         self._reserve(nkey.numel())
         a = self.used
@@ -196,11 +196,11 @@ class RunStore:
         """Merge the last two runs in place; only the TAIL moves, so nothing
         after them needs shifting."""
         seg_k, seg_c = self.keys[a:c], self.cnts[a:c]
-        order = torch.argsort(seg_k)
+        order = torch_ops.argsort(seg_k)
         sk, sc = seg_k[order], seg_c[order]
-        uk, inv, _ = torch.unique_consecutive(sk, return_inverse=True,
+        uk, inv, _ = torch_ops.unique_consecutive(sk, return_inverse=True,
                                               return_counts=True)
-        uv = torch.zeros(uk.numel(), dtype=torch.int32, device=self.device)
+        uv = torch_ops.zeros(uk.numel(), dtype=torch_ops.int32, device=self.device)
         uv.scatter_add_(0, inv, sc)
         self.max_count = max(self.max_count, int(uv.max()))
         m = uk.numel()
@@ -212,7 +212,7 @@ class RunStore:
     def view(self):
         """(keys, counts, run offsets) for the reader."""
         return (self.keys[:self.used], self.cnts[:self.used],
-                torch.tensor(self.offs, dtype=torch.int64, device=self.device))
+                torch_ops.tensor(self.offs, dtype=torch_ops.int64, device=self.device))
 
 
 class AreaFiber:
@@ -267,13 +267,13 @@ class AreaFiber:
         B = len(seeds)
         self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
         self.beta, self.w_max = float(beta), w_max
-        self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.device = device
         self.learns = bool(beta)
-        self.tab = torch.from_numpy(
+        self.tab = torch_ops.from_numpy(
             _chain_table(beta, w_max, max_rounds)).to(device)
-        self.colids = torch.arange(n_post, dtype=torch.int32,
+        self.colids = torch_ops.arange(n_post, dtype=torch_ops.int32,
                                    device=device).expand(B, n_post)
         # `_pricing.inverse_indegree` prices unknown rows at
         # `p * (n_pre - rows_known)`; a generated connectome HAS every row, so
@@ -282,7 +282,7 @@ class AreaFiber:
         self.dj = (self.mod.hashed_indegree(self.seeds, n_post,
                                             self.threshold, 1.0)
                    if norm_init else None)
-        self.scale = (torch.ones(B, n_post, dtype=torch.float32, device=device)
+        self.scale = (torch_ops.ones(B, n_post, dtype=torch_ops.float32, device=device)
                       if synaptic_scaling else None)
         # MAX-RELATIVE PRICING (see `_rel_table`). With scaling and no clip
         # the absolute chain overflows float32 on long training; the relative
@@ -292,8 +292,8 @@ class AreaFiber:
         # columns of every write.
         self.relative = bool(synaptic_scaling) and w_max is None
         if self.relative:
-            self.rel = torch.from_numpy(_rel_table(beta, max_rounds)).to(device)
-            self.cmax = torch.zeros(B, n_post, dtype=torch.int32, device=device)
+            self.rel = torch_ops.from_numpy(_rel_table(beta, max_rounds)).to(device)
+            self.cmax = torch_ops.zeros(B, n_post, dtype=torch_ops.int32, device=device)
         else:
             self.rel = self.cmax = None
         self.setpoint = scaling_setpoint(n_pre, self.p)
@@ -319,28 +319,28 @@ class AreaFiber:
         """
         if rows.shape[1] == 0:
             return
-        r = rows.to(torch.int32).contiguous()
+        r = rows.to(torch_ops.int32).contiguous()
         d = self.mod.hashed_drive(r, self.seeds, self.n, self.threshold)
         has_mask = self._rowmask is not None and self._t > 0
         if self.store.nnz or has_mask:
             k_src = int(r.shape[1])
             need = self.B * k_src * self.n
             if self._scratch is None or self._scratch.numel() < need:
-                self._scratch = torch.zeros(need, dtype=torch.int32,
+                self._scratch = torch_ops.zeros(need, dtype=torch_ops.int32,
                                             device=self.device)
             else:
                 self._scratch[:need].zero_()
             sk, sc, so = (self.store.view() if self.store.nnz else
-                          (torch.zeros(0, dtype=torch.int64,
+                          (torch_ops.zeros(0, dtype=torch_ops.int64,
                                        device=self.device),
-                           torch.zeros(0, dtype=torch.int32,
+                           torch_ops.zeros(0, dtype=torch_ops.int32,
                                        device=self.device),
-                           torch.zeros(1, dtype=torch.int64,
+                           torch_ops.zeros(1, dtype=torch_ops.int64,
                                        device=self.device)))
             rm = (self._rowmask if has_mask else
-                  torch.zeros(0, dtype=torch.int64, device=self.device))
+                  torch_ops.zeros(0, dtype=torch_ops.int64, device=self.device))
             cm = (self._colmask if has_mask else
-                  torch.zeros(0, dtype=torch.int64, device=self.device))
+                  torch_ops.zeros(0, dtype=torch_ops.int64, device=self.device))
             if self.relative:
                 # d <- rel[cmax] * base + SUM_touched base * (rel[cmax-c] - rel[cmax])
                 d = d * self.rel[self.cmax.long()]
@@ -377,11 +377,11 @@ class AreaFiber:
         depth = int(depth)
         if self.relative:
             if self.rel.numel() < depth + 1:
-                self.rel = torch.from_numpy(
+                self.rel = torch_ops.from_numpy(
                     _rel_table(self.beta, depth)).to(self.device)
                 self.tab = self.rel          # the guard reads one table
         elif self.tab.numel() < depth + 1:
-            self.tab = torch.from_numpy(
+            self.tab = torch_ops.from_numpy(
                 _chain_table(self.beta, self.w_max, depth)).to(self.device)
 
     # -- writing ---------------------------------------------------------
@@ -389,9 +389,9 @@ class AreaFiber:
         """One 64-bit round mask covers an episode; the store holds the rest."""
         if not (self.learns or self.scale is not None):
             return
-        self._rowmask = torch.zeros(self.B, 1, self.n_pre, dtype=torch.int64,
+        self._rowmask = torch_ops.zeros(self.B, 1, self.n_pre, dtype=torch_ops.int64,
                                     device=self.device)
-        self._colmask = torch.zeros(self.B, 1, self.n, dtype=torch.int64,
+        self._colmask = torch_ops.zeros(self.B, 1, self.n, dtype=torch_ops.int64,
                                     device=self.device)
         self._prevs, self._news, self._t = [], [], 0
 
@@ -464,31 +464,31 @@ class AreaFiber:
         only while the `w_max` clip never binds, checked against the ACTUAL
         deepest cell.
         """
-        c = cols.to(torch.int32).contiguous()
+        c = cols.to(torch_ops.int32).contiguous()
         B, K = c.shape
         need = B * K * self.n
         if self._cscratch is None or self._cscratch.numel() < need:
-            self._cscratch = torch.zeros(need, dtype=torch.int32,
+            self._cscratch = torch_ops.zeros(need, dtype=torch_ops.int32,
                                          device=self.device)
         else:
             self._cscratch[:need].zero_()
         if self.store.nnz:
             if self._colmap is None:
-                self._colmap = torch.full((B, self.n), -1, dtype=torch.int32,
+                self._colmap = torch_ops.full((B, self.n), -1, dtype=torch_ops.int32,
                                           device=self.device)
             else:
                 self._colmap.fill_(-1)
             self._colmap.scatter_(
-                1, cols, torch.arange(K, dtype=torch.int32,
+                1, cols, torch_ops.arange(K, dtype=torch_ops.int32,
                                       device=self.device).expand(B, K))
             sk, sc, _ = self.store.view()
         else:
-            sk = torch.zeros(0, dtype=torch.int64, device=self.device)
-            sc = torch.zeros(0, dtype=torch.int32, device=self.device)
+            sk = torch_ops.zeros(0, dtype=torch_ops.int64, device=self.device)
+            sc = torch_ops.zeros(0, dtype=torch_ops.int32, device=self.device)
         if self.relative:
             mass, colmax = self.mod.column_mass_rel(
                 c, sk, sc,
-                self._colmap if self.store.nnz else sk.to(torch.int32),
+                self._colmap if self.store.nnz else sk.to(torch_ops.int32),
                 self._rowmask, self._colmask,
                 self._cscratch[:need].view(B, K, self.n),
                 self.rel, self.seeds, self.n, self.threshold)
@@ -498,7 +498,7 @@ class AreaFiber:
             return
         mass, cellmax = self.mod.column_mass_exact(
             c, sk, sc,
-            self._colmap if self.store.nnz else sk.to(torch.int32),
+            self._colmap if self.store.nnz else sk.to(torch_ops.int32),
             self._rowmask, self._colmask,
             self._cscratch[:need].view(B, K, self.n),
             self.tab, self.seeds, self.n, self.threshold)
@@ -529,24 +529,24 @@ class AreaFiber:
         T, B, dev = len(keep), self.B, self.device
 
         def ind(per_round):
-            cat = torch.cat(per_round, dim=1)
-            rid = torch.cat([
-                torch.full((c.shape[1],), t, dtype=torch.int64, device=dev)
+            cat = torch_ops.cat(per_round, dim=1)
+            rid = torch_ops.cat([
+                torch_ops.full((c.shape[1],), t, dtype=torch_ops.int64, device=dev)
                 for t, c in enumerate(per_round)])
             loc, vals, W = _local_index(cat)
-            flat = torch.zeros(B, T * W, device=dev)
+            flat = torch_ops.zeros(B, T * W, device=dev)
             flat.scatter_(1, rid.view(1, -1) * W + loc, 1.0)
             return flat.view(B, T, W), vals, W
 
         Rind, rows, _ = ind([a for a, _ in keep])
         Cind, cols, _ = ind([b for _, b in keep])
-        counts = torch.bmm(Rind.transpose(1, 2), Cind)      # [B, R, C]
+        counts = torch_ops.bmm(Rind.transpose(1, 2), Cind)      # [B, R, C]
         bi, ri, ci = (counts > 0).nonzero(as_tuple=True)
         if bi.numel() == 0:
             return None, None
-        key = (bi.to(torch.int64) * self.n_pre * self.n
+        key = (bi.to(torch_ops.int64) * self.n_pre * self.n
                + rows[bi, ri] * self.n + cols[bi, ci])
-        return key, counts[bi, ri, ci].to(torch.int32)
+        return key, counts[bi, ri, ci].to(torch_ops.int32)
 
     @property
     def nnz(self):
@@ -599,7 +599,7 @@ class PresentFiber:
         self.absolute = not synaptic_scaling
         self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
         self.beta, self.w_max = float(beta), w_max
-        self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.device = device
         self.learns = bool(beta)
@@ -613,31 +613,31 @@ class PresentFiber:
                              "GiB; use AreaFiber (the store) at this size")
         self.ent = self.mod.present_fill(pres, n_post, self.DMAX)    # [B, n_pre, DMAX]
         del pres
-        self.err = torch.zeros(1, dtype=torch.int32, device=device)
+        self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
         self.max_rounds = int(max_rounds)
         self.rel = self._table(self.max_rounds)
         self.tab = self.rel
         self._nnz_of = None
-        self.cmax = torch.zeros(B, n_post, dtype=torch.int32, device=device)
+        self.cmax = torch_ops.zeros(B, n_post, dtype=torch_ops.int32, device=device)
         deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
         self.dj = deg if norm_init else None
-        self.invdj = (1.0 / deg) if norm_init else torch.zeros(
-            0, dtype=torch.float32, device=device)
+        self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
+            0, dtype=torch_ops.float32, device=device)
         self.scaling = bool(synaptic_scaling)
         self.setpoint = scaling_setpoint(n_pre, self.p)
-        self.mass = deg.to(torch.float64).clone()
-        self.scale = torch.ones(B, n_post, dtype=torch.float32, device=device)
+        self.mass = deg.to(torch_ops.float64).clone()
+        self.scale = torch_ops.ones(B, n_post, dtype=torch_ops.float32, device=device)
 
     # -- the lists, unpacked --------------------------------------------------
     def columns(self):
         """[B, n_pre, DMAX] int64 column per entry, -1 where padded."""
-        return torch.where(self.ent == -1, torch.full_like(self.ent, -1),
-                           self.ent & 0xFFFF).to(torch.int64)
+        return torch_ops.where(self.ent == -1, torch_ops.full_like(self.ent, -1),
+                           self.ent & 0xFFFF).to(torch_ops.int64)
 
     def counts(self):
         """[B, n_pre, DMAX] int16 count per entry, 0 where padded."""
         c = (self.ent >> 16) & 0xFFFF
-        return torch.where(self.ent == -1, torch.zeros_like(c), c).to(torch.int16)
+        return torch_ops.where(self.ent == -1, torch_ops.zeros_like(c), c).to(torch_ops.int16)
 
     @property
     def nnz(self):
@@ -662,8 +662,8 @@ class PresentFiber:
 
     def _table(self, depth):
         if self.absolute:
-            return torch.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
-        return torch.from_numpy(_rel_table(self.beta, depth)).to(self.device)
+            return torch_ops.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+        return torch_ops.from_numpy(_rel_table(self.beta, depth)).to(self.device)
 
     def ensure_depth(self, depth):
         depth = int(depth)
@@ -684,7 +684,7 @@ class PresentFiber:
         if rows.shape[1] == 0:
             return
         nnz, _ = self.price_head()
-        self.mod.present_drive(self.ent, rows.to(torch.int32), self.cmax,
+        self.mod.present_drive(self.ent, rows.to(torch_ops.int32), self.cmax,
                                self.scale, self.invdj, self.rel, nnz, drive,
                                1 if self.absolute else 0)
 
@@ -695,7 +695,7 @@ class PresentFiber:
         if not (self.learns and prev.shape[1] and new.shape[1]):
             return
         nnz, _ = self.price_head()
-        self.mod.present_write(prev.to(torch.int32), new.to(torch.int32),
+        self.mod.present_write(prev.to(torch_ops.int32), new.to(torch_ops.int32),
                                self.ent, self.cmax, self.mass, self.scale,
                                self.rel, nnz, float(self.setpoint),
                                1 if self.scaling else 0, self.err)
@@ -739,20 +739,20 @@ class DenseOrganFiber:
                              "GiB; fewer brains per launch")
         self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
         self.beta, self.w_max = float(beta), w_max
-        self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.device = device
         self.learns = bool(beta)
         self.relative, self.absolute = False, True
         self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
-        self.C = torch.zeros(B, n_pre, n_post, dtype=torch.int8, device=device)
-        self.err = torch.zeros(1, dtype=torch.int32, device=device)
+        self.C = torch_ops.zeros(B, n_pre, n_post, dtype=torch_ops.int8, device=device)
+        self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
         self.max_rounds = int(max_rounds)
-        self.tab = torch.from_numpy(_chain_table(beta, w_max, self.max_rounds)).to(device)
+        self.tab = torch_ops.from_numpy(_chain_table(beta, w_max, self.max_rounds)).to(device)
         deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
         self.dj = deg if norm_init else None
-        self.invdj = (1.0 / deg) if norm_init else torch.zeros(
-            0, dtype=torch.float32, device=device)
+        self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
+            0, dtype=torch_ops.float32, device=device)
 
     def counts(self):
         return self.C
@@ -778,12 +778,12 @@ class DenseOrganFiber:
     def ensure_depth(self, depth):
         depth = int(depth)
         if self.tab.numel() < depth + 1:
-            self.tab = torch.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+            self.tab = torch_ops.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
 
     def contribute(self, drive, rows):
         if rows.shape[1] == 0:
             return
-        self.mod.organ_drive(rows.to(torch.int32), self.C, self.pres, self.invdj,
+        self.mod.organ_drive(rows.to(torch_ops.int32), self.C, self.pres, self.invdj,
                              self.tab, drive)
 
     def begin_episode(self):
@@ -792,7 +792,7 @@ class DenseOrganFiber:
     def observe(self, prev, new):
         if not (self.learns and prev.shape[1] and new.shape[1]):
             return
-        self.mod.organ_write(prev.to(torch.int32), new.to(torch.int32), self.C,
+        self.mod.organ_write(prev.to(torch_ops.int32), new.to(torch_ops.int32), self.C,
                              self.pres, self.err)
 
     def end_episode(self):
@@ -828,7 +828,7 @@ class StimulusFiber:
         self.mod = _fused_cuda.load()
         B = len(seeds)
         self.B, self.size, self.n, self.p = B, size, n_post, float(p)
-        self.seeds = torch.as_tensor(seeds, dtype=torch.int32, device=device)
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.learns = bool(beta)
         if zero_or_size:
@@ -840,19 +840,19 @@ class StimulusFiber:
             # numbers rest on (materialized numpy 0.17-0.22 MRR on A3 against
             # 0.12 with Binomial stimuli). The aligner's anchor gain 1/p is
             # the same fact approximated by a scalar.
-            one = torch.zeros(B, 1, dtype=torch.int32, device=device)
+            one = torch_ops.zeros(B, 1, dtype=torch_ops.int32, device=device)
             self.base = self.mod.hashed_drive(one, self.seeds, n_post,
                                               self.threshold) * float(size)
         else:
-            rows = torch.arange(size, dtype=torch.int32,
+            rows = torch_ops.arange(size, dtype=torch_ops.int32,
                                 device=device).expand(B, size).contiguous()
             self.base = self.mod.hashed_drive(rows, self.seeds, n_post,
                                               self.threshold)
         # an ANCHOR (beta = 0) never potentiates: no counter, no table -- with
         # a fiber per word, the int64 counter was two thirds of the memory
-        self.pot = (torch.zeros(B, n_post, dtype=torch.int64, device=device)
+        self.pot = (torch_ops.zeros(B, n_post, dtype=torch_ops.int64, device=device)
                     if self.learns else None)
-        self.gain = torch.from_numpy(_gain_table(beta, max_rounds)).to(device)
+        self.gain = torch_ops.from_numpy(_gain_table(beta, max_rounds)).to(device)
         self.dj = ((self.base + self.p * (n_post - size)).clamp_min(1.0)
                    if norm_init else None)
         self.hi = (w_max * max(1.0, size * self.p)
@@ -903,7 +903,7 @@ class StimulusFiber:
         if self.learns and new.shape[1]:
             # -1 winners are a brain whose rounds are over (a converged
             # brain under `stop_when_stable`, a dead brain): no potentiation
-            self.pot.scatter_add_(1, new.clamp_min(0), (new >= 0).to(torch.int64))
+            self.pot.scatter_add_(1, new.clamp_min(0), (new >= 0).to(torch_ops.int64))
 
     def end_episode(self):
         pass
@@ -934,10 +934,10 @@ class HashedArea:
                                f"{_fused_cuda.last_error()}")
         self.n, self.k, self.B = n, k, len(seeds)
         self.device = device
-        self.winners = torch.zeros(self.B, 0, dtype=torch.int64, device=device)
+        self.winners = torch_ops.zeros(self.B, 0, dtype=torch_ops.int64, device=device)
         #: neurons that have EVER fired -- what `rows/n` reads. Tracked here
         #: because the round masks are per-episode and get dropped.
-        self.ever = torch.zeros(self.B, n, dtype=torch.bool, device=device)
+        self.ever = torch_ops.zeros(self.B, n, dtype=torch_ops.bool, device=device)
         self.rounds_seen = 0
         #: REFRACTION, the engine's `refracted` mode (`core/_homeostasis.py`).
         #: A per-NEURON bias subtracted from drive before k-WTA and charged at
@@ -950,7 +950,7 @@ class HashedArea:
         #: repeated input (net drive stays at its base value), and a handicap
         #: on every other input; see PREREG_refraction_capacity.md.
         self.refracted_strength = float(refracted_strength or 0.0)
-        self.bias = (torch.zeros(self.B, n, dtype=torch.float32, device=device)
+        self.bias = (torch_ops.zeros(self.B, n, dtype=torch_ops.float32, device=device)
                      if self.refracted_strength > 0 else None)
         #: MASKED READOUT, the engine's `masked_readout`: a frozen projection
         #: ranks the raw drive. `project(mask_bias=...)` overrides per call.
@@ -971,7 +971,7 @@ class HashedArea:
         #: reproducibly. The drive itself is untouched (parity replays still
         #: compare the true drive); only the ORDER among exact ties changes.
         self.tie_jitter = float(tie_jitter or 0.0)
-        self._cols = torch.arange(n, dtype=torch.int64, device=device)
+        self._cols = torch_ops.arange(n, dtype=torch_ops.int64, device=device)
 
     def _jitter(self, fibers):
         """[B, n] offsets in [0, tie_jitter), keyed by the active fibers.
@@ -985,13 +985,13 @@ class HashedArea:
         hit = cache.get(key)
         if hit is not None:
             return hit
-        salt = torch.zeros(self.B, dtype=torch.int64, device=self.device)
+        salt = torch_ops.zeros(self.B, dtype=torch_ops.int64, device=self.device)
         for f in fibers:
-            salt = salt ^ (f.seeds.to(torch.int64) & 0xFFFFFFFF)
+            salt = salt ^ (f.seeds.to(torch_ops.int64) & 0xFFFFFFFF)
         h = (self._cols.view(1, -1) ^ salt.view(-1, 1)) * 0x9E3779B1
         h = (h ^ (h >> 15)) * 0x85EBCA6B
         h = (h ^ (h >> 13)) & 0xFFFFFFFF
-        out = h.to(torch.float32) * (self.tie_jitter / 4294967296.0)
+        out = h.to(torch_ops.float32) * (self.tie_jitter / 4294967296.0)
         cache[key] = out
         return out
 
@@ -1005,11 +1005,11 @@ class HashedArea:
         if self.bias is None:
             return
         self.bias.scatter_add_(
-            1, new, torch.gather(raw, 1, new) * self.refracted_strength)
+            1, new, torch_ops.gather(raw, 1, new) * self.refracted_strength)
 
     def inhibit(self):
         """Clear the assembly. The next round is driven by afferents alone."""
-        self.winners = torch.zeros(self.B, 0, dtype=torch.int64,
+        self.winners = torch_ops.zeros(self.B, 0, dtype=torch_ops.int64,
                                    device=self.device)
 
     def inhibit_rows(self, mask):
@@ -1018,7 +1018,7 @@ class HashedArea:
         per-brain sentence boundary of a scheduled organ."""
         if self.winners.shape[1] == 0:
             return
-        mask = torch.as_tensor(mask, dtype=torch.bool, device=self.device)
+        mask = torch_ops.as_tensor(mask, dtype=torch_ops.bool, device=self.device)
         self.winners = self.winners.masked_fill(mask.view(-1, 1), -1)
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
@@ -1064,11 +1064,11 @@ class HashedArea:
         active = None
         ovf_acc = None
         if stop_when_stable:
-            active = torch.ones(self.B, dtype=torch.bool, device=self.device)
-            self.rounds_used = torch.zeros(self.B, dtype=torch.int64,
+            active = torch_ops.ones(self.B, dtype=torch_ops.bool, device=self.device)
+            self.rounds_used = torch_ops.zeros(self.B, dtype=torch_ops.int64,
                                            device=self.device)
         for _ in range(rounds):
-            raw = torch.zeros(self.B, self.n, dtype=torch.float32,
+            raw = torch_ops.zeros(self.B, self.n, dtype=torch_ops.float32,
                               device=self.device)
             for f in fibers:
                 f.contribute(raw, rows_for.get(id(f), self.winners))
@@ -1080,12 +1080,12 @@ class HashedArea:
             sel, ovf = self.mod.topk_select(ranked, min(self.k, self.n))
             # the overflow flag is accumulated on the device and read ONCE
             # after the rounds: a host sync per round was most of a step
-            ovf_acc = ovf if ovf_acc is None else torch.maximum(ovf_acc, ovf)
-            new = sel.to(torch.int64)
+            ovf_acc = ovf if ovf_acc is None else torch_ops.maximum(ovf_acc, ovf)
+            new = sel.to(torch_ops.int64)
             prev = self.winners
             if active is not None and prev.shape[1] == new.shape[1]:
                 # a converged brain keeps its winners
-                new = torch.where(active.view(-1, 1), new, prev)
+                new = torch_ops.where(active.view(-1, 1), new, prev)
             if not freeze:
                 if active is None:
                     for f in fibers:
@@ -1100,16 +1100,16 @@ class HashedArea:
                                   new_m)
                     if self.bias is not None:
                         self.bias.scatter_add_(
-                            1, new, torch.gather(raw, 1, new)
+                            1, new, torch_ops.gather(raw, 1, new)
                             * (self.refracted_strength * active.view(-1, 1)))
-                    self.rounds_used += active.to(torch.int64)
+                    self.rounds_used += active.to(torch_ops.int64)
                 self.ever.scatter_(1, new, True)
                 self.rounds_seen += 1
             self.winners = new
             if active is not None:
                 if prev.shape[1] == new.shape[1]:
-                    same = (torch.sort(new, dim=1).values
-                            == torch.sort(prev, dim=1).values).all(dim=1)
+                    same = (torch_ops.sort(new, dim=1).values
+                            == torch_ops.sort(prev, dim=1).values).all(dim=1)
                     active = active & ~same
                 if not bool(active.any()):
                     break

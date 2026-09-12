@@ -34,6 +34,16 @@ class TorchOps(Protocol):
     from_numpy: Callable[..., Any]
     meshgrid: Callable[..., Any]
     gather: Callable[..., Any]
+    argsort: Callable[..., Any]
+    sort: Callable[..., Any]
+    cumsum: Callable[..., Any]
+    empty_like: Callable[..., Any]
+    ones_like: Callable[..., Any]
+    unique_consecutive: Callable[..., Any]
+    bmm: Callable[..., Any]
+    maximum: Callable[..., Any]
+    int16: Any
+    int8: Any
     einsum: Callable[..., Any]
     full: Callable[..., Any]
     as_tensor: Callable[..., Any]
