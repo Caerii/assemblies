@@ -5866,3 +5866,9 @@ being silently discarded; the fork contract suite passes **21 tests**.
 `execute_tool_plan` no longer accepts an unused registry argument; tool validity
 is resolved by the plan conversion path before execution. A signature test
 protects the reduced API surface.
+
+### Null progress sink contract (2026-09-12)
+
+The disabled progress sink now names its intentionally discarded event fields as
+private parameters, making the no-op explicit to static analysis and readers.
+The active progress API remains unchanged.
