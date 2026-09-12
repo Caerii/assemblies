@@ -5465,3 +5465,10 @@ The shardable dormant-mechanism census now publishes its optional
 Shard paths and additive aggregation semantics are unchanged, while direct
 JSON overwrite is removed. A stale tracer assignment was also simplified.
 Compilation, Ruff, and both result-writer ratchets pass: **2 passed**.
+### Drive-decomposition writer migration (2026-09-12)
+
+The registered per-item drive-decomposition study now publishes its fixed
+result artifact through the canonical finite, exclusive writer. Its mass
+readout, seed/cell organization, and output schema are unchanged; reruns
+cannot silently replace the evidence. Compilation, Ruff, and both
+result-writer ratchets pass: **2 passed**.

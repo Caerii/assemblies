@@ -63,16 +63,18 @@ C3 picks (a) or (b) independently of C1 and either way retires the
 """
 from __future__ import annotations
 
-import json
 import os
 import random
 import sys
+from pathlib import Path
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 SEEDS = list(range(42, 47))
 REPS = (1, 4)
@@ -197,9 +199,10 @@ def main():
     results: dict = {}
     for (reps, seed), res in cell_results.items():
         results.setdefault(f"R{reps}", {})[seed] = res
-    with open(OUT_PATH, "w") as f:
-        json.dump({c: {str(s): v for s, v in by.items()}
-                   for c, by in results.items()}, f, indent=2)
+    write_new_document(Path(OUT_PATH), {
+        c: {str(s): v for s, v in by.items()}
+        for c, by in results.items()
+    })
 
     if len(SEEDS) < 3:
         print("(smoke mode: too few seeds for ensembles -- see JSON)")
