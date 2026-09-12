@@ -7155,3 +7155,4 @@ The attractor training protocol now declares its actual seven-value return contr
 - Arc Markov construction now requires a typed sequence of string states and typed transition triples.
 - Branch selection validates the configured coin at the point of use and raises if a branching state lacks its policy/coin pair.
 - `uv run pyright neural_assemblies/programs/arc_markov.py`: 0 errors.
+- `uv run pytest neural_assemblies/tests/test_arc_markov_contract.py -q`: 44 passed in 17.86s.
