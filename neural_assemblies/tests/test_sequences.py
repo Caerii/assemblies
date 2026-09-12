@@ -86,6 +86,12 @@ class TestSequenceDataclass(unittest.TestCase):
         for i in range(4):
             self.assertAlmostEqual(mat[i, i], 1.0, places=5)
 
+    def test_overlap_matrix_is_symmetric_by_construction(self):
+        seq = Sequence("A", self._make_assemblies(4))
+        matrix = seq.overlap_matrix()
+        np.testing.assert_array_equal(matrix, matrix.T)
+        np.testing.assert_array_equal(np.diag(matrix), np.ones(4))
+
     def test_immutability(self):
         asms = self._make_assemblies(2)
         seq = Sequence("A", asms)

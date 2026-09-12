@@ -84,8 +84,11 @@ class Sequence:
         n = len(self.assemblies)
         mat = np.zeros((n, n), dtype=np.float64)
         for i in range(n):
-            for j in range(n):
-                mat[i, j] = overlap(self.assemblies[i], self.assemblies[j])
+            mat[i, i] = 1.0 if self.assemblies[i] else 0.0
+            for j in range(i + 1, n):
+                value = overlap(self.assemblies[i], self.assemblies[j])
+                mat[i, j] = value
+                mat[j, i] = value
         return mat
 
     def mean_consecutive_overlap(self) -> float:

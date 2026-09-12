@@ -7485,3 +7485,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Typed `Sequence.assemblies` as `tuple[Assembly, ...]` and reject one-shot iterables at construction.
 - Lists remain accepted and are canonicalized to tuples; generators no longer produce consumed, invalid sequence objects.
 - Validation: sequence tests passed (22 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 symmetric sequence overlap matrix
+
+- Optimized `Sequence.overlap_matrix` to compute only the upper triangle and mirror it, preserving the canonical diagonal and symmetry.
+- Added a construction-level symmetry/diagonal invariant test.
+- Validation: sequence tests passed (23 tests); Pyright reported 0 errors; `git diff --check` passed.
