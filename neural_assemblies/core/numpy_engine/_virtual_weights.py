@@ -47,7 +47,7 @@ WHAT THE REPRESENTATION REFUSES, structurally (`supports`):
 from __future__ import annotations
 
 from collections import OrderedDict
-from typing import Dict, Optional
+from typing import Dict, Optional, Tuple
 
 import numpy as np
 
@@ -96,7 +96,7 @@ class VirtualWeights:
         #: np.insert version cost 5.2s of a 16.9s profile); read side sorts
         #: lazily via `_ovr_sorted`.
         self._ovr: Dict[int, dict] = {}
-        self._ovr_sorted: Dict[int, np.ndarray] = {}
+        self._ovr_sorted: Dict[int, Tuple[np.ndarray, np.ndarray]] = {}
         self._potentiated = False
         #: LRU of RAW base blocks (verification/materialize path only).
         self._cache: OrderedDict = OrderedDict()
@@ -234,7 +234,7 @@ class VirtualWeights:
             out[inb] = haystack[pos[inb]] == needles[inb]
         return out
 
-    def _ovr_pair(self, r: int):
+    def _ovr_pair(self, r: int) -> Optional[Tuple[np.ndarray, np.ndarray]]:
         """Sorted override ``(cols, values)`` for row *r*, built lazily.
 
         The VALUES are cached beside the columns because the drive path needs
@@ -248,7 +248,7 @@ class VirtualWeights:
         if pair is None:
             src = self._ovr.get(r)
             if not src:
-                return None, None
+                return None
             keys = np.fromiter(src.keys(), dtype=np.int64, count=len(src))
             vals = np.fromiter(src.values(), dtype=np.float64, count=len(src))
             order = np.argsort(keys)
@@ -258,7 +258,8 @@ class VirtualWeights:
 
     def _ovr_arr(self, r: int):
         """Sorted override cols for row *r* (columns half of `_ovr_pair`)."""
-        return self._ovr_pair(r)[0]
+        pair = self._ovr_pair(r)
+        return None if pair is None else pair[0]
 
     def _chain(self, values: np.ndarray, counts: np.ndarray) -> np.ndarray:
         """Replay the dense engine's per-event float32 multiply-then-clip.
@@ -335,7 +336,9 @@ class VirtualWeights:
                     exp_cols = c
             ovr = self._ovr.get(r)
             if ovr:
-                oarr, ovals = self._ovr_pair(r)
+                pair = self._ovr_pair(r)
+                assert pair is not None
+                oarr, ovals = pair
                 if oarr[-1] >= cols:
                     keep = oarr < cols
                     oarr, ovals = oarr[keep], ovals[keep]
@@ -424,6 +427,7 @@ class VirtualWeights:
                 np.int64)
             self._nnz_rows = rows_known
 
+        assert self._nnz_base is not None
         counts = self._nnz_base.copy()
         if self._ovr_zero is not None:
             m = min(len(self._ovr_zero), len(counts))
