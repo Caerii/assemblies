@@ -5060,3 +5060,11 @@ lazy-import tests pass: **201 passed**; Ruff and the evidence graph are clean.
 reject malformed lexicons and snapshots consistently while retaining their
  different outputs (all overlaps versus thresholded best label). Readout and
 computation-value tests pass: **25 passed**; Ruff is clean.
+
+## Post-contract conformance sweep (2026-09-11)
+
+The Assembly Calculus conformance suite and model/organ semantics suites were
+rerun after the prediction, scoring, recovery, and cue-plan changes: **50
+passed**. The only output is the expected sampled-recurrence provenance warning
+for tests intentionally using the lazy NumPy engine; no conformance assertion
+changed.
