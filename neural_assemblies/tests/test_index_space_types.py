@@ -77,6 +77,12 @@ def test_mixing_index_spaces_is_rejected_at_runtime():
     assert type(to_neuron_ids(compact, [77, 88, 99])) is NeuronIds
 
 
+def test_stable_neuron_ids_cannot_be_remapped_as_compact_indices():
+    neurons = NeuronIds(np.array([77, 88], dtype=np.uint32))
+    with pytest.raises(TypeError, match="requires CompactIdx"):
+        to_neuron_ids(neurons, [77, 88, 99])
+
+
 def _pyright_error_lines(source: str) -> set:
     """Run pyright on *source* placed inside the repo, return 1-based lines."""
     fd, path = tempfile.mkstemp(suffix=".py", dir=REPO, prefix="_idxspace_probe_")

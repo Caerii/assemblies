@@ -100,6 +100,11 @@ def to_neuron_ids(
     Invalid indices raise. Dropping or passing them through would silently change
     assembly membership and turn an invalid readout into a plausible number.
     """
+    if isinstance(compact, NeuronIds):
+        raise TypeError(
+            "to_neuron_ids requires CompactIdx; neuron IDs are already in "
+            "the stable space"
+        )
     arr = validated_indices(compact, label='compact indices')
     if len(compact_to_neuron_id) == 0:
         return NeuronIds(arr)

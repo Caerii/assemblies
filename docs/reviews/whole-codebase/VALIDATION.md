@@ -6311,3 +6311,7 @@ The throughput benchmark now delegates result-file creation to the canonical IR 
 ### Unified protocol and generic JSON boundary gate (2026-09-12)
 
 Protocol exports now reuse the canonical JSON encoder and create-only writer used by generic reports; schema validation remains at the protocol boundary. This removes duplicate serialization policy and locks deterministic sorted UTF-8 bytes with a wire regression. The protocol suite passes **53 tests**; Ruff F/E9 and `git diff --check` are clean.
+
+### Index-space conversion admission gate (2026-09-12)
+
+The compact-to-stable conversion boundary now rejects an already-branded `NeuronIds` value instead of treating it as a compact position array. This turns a previously plausible remapping into an immediate, actionable type error while retaining raw-array compatibility for legacy callers. Index-space and public-boundary suites pass **117 tests**; Ruff F/E9 and `git diff --check` are clean.
