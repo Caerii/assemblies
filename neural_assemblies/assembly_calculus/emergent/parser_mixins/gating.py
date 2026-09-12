@@ -6,17 +6,40 @@ only their address is.
 
 
 from collections import defaultdict
-from typing import Dict, List, Optional, Set, Tuple
+from typing import Any, Dict, List, Optional, Protocol, Set, Tuple
 from neural_assemblies.assembly_calculus.ops import sequence_memorize
 
 from ..core.areas import ROLE_AGENT, ROLE_PATIENT, SEQ, FUNC_COMP, FUNC_MARKER
+from neural_assemblies.core.brain import Brain
+from ..core.grounding import GroundingContext
 from ..curriculum.data import GroundedSentence
+
+
+class _GatingSurface(Protocol):
+    """Composed parser state and helpers required by learned gating."""
+
+    fast_training: bool
+    rounds: int
+    inference_rounds: int
+    stim_map: Dict[str, str]
+    brain: Brain
+    word_grounding: Dict[str, GroundingContext]
+    learned_gating: Dict[str, Dict]
+    learned_word_gating: Dict[str, Dict]
+
+    def _func_subcat_of(self, word: str) -> Optional[str]: ...
+
+    def classify_word_cached(self, word: str) -> Tuple[str, float]: ...
+
+    def constituent_role_order(self) -> List[str]: ...
 
 
 class GatingMixin:
     """Word order as a positional template over role areas."""
 
-    def _learn_gating_patterns(self, sentences: List[GroundedSentence]):
+    def _learn_gating_patterns(
+        self: _GatingSurface, sentences: List[GroundedSentence]
+    ) -> None:
         """Learn gating patterns from how role assignment ORDER changes
         when different function word types are present in a sentence.
 
@@ -179,7 +202,7 @@ class GatingMixin:
 
 
     def train_word_order(
-        self,
+        self: _GatingSurface,
         sentences: List[GroundedSentence],
         *,
         repetitions: Optional[int] = None,
@@ -247,7 +270,7 @@ class GatingMixin:
             return [ROLE_PATIENT, ROLE_AGENT]
         return [ROLE_AGENT, ROLE_PATIENT]
 
-    def _determine_role_order(self, words: List[str],
+    def _determine_role_order(self: _GatingSurface, words: List[str],
                               categories: Dict[str, str],
                               ) -> Tuple[List[str], bool]:
         """Determine role assignment order for one sentence.

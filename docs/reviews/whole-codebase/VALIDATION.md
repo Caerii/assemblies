@@ -6409,3 +6409,7 @@ Instruction parsing now declares the parser state and helper it consumes: the ba
 ### Blocks mixin composed-surface gate (2026-09-12)
 
 Blocks-world training now declares the composed parser state and operations it requires: fast-training policy, stimulus and grounding maps, vocabulary registration, core training, and dialogue training. The fluent return is cast at the boundary after those operations complete, keeping the public chainable API while making the dependency surface visible to static tooling. Pyright reports **0 diagnostics**; block-focused emergent tests pass **6 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
+
+### Gating mixin composed-surface gate (2026-09-12)
+
+Learned word-order gating now declares its composed parser surface: brain and training parameters, stimulus and grounding maps, learned gating stores, category classification, function-word subcategory lookup, and constituent-order fallback. The implementation remains behaviorally unchanged while static tooling can now distinguish the gating algorithm from the state it requires. Pyright reports **0 diagnostics**; gating tests pass **8 tests with 1 intentional sampled-recurrence warning**, and `git diff --check` is clean.
