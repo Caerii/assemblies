@@ -5972,3 +5972,9 @@ The internal `parseHelper` no longer accepts the already-consumed `p` and
 `LEX_k` values. The public `parse` API still owns those configuration values
 and passes them only to brain construction; the helper receives only the state
 it actually uses. Language parsing tests pass **7 tests**.
+
+### Legacy language namespace contract (2026-09-12)
+
+The language facade now imports its exact area constants and readout rules
+explicitly. The star import that obscured the module namespace and generated
+false undefined-name diagnostics is gone; language parsing remains **7/7**.

@@ -7,7 +7,11 @@ assemblies, including parsing, syntax learning, and word acquisition.
 
 from .parser import ParserBrain, RussianParserBrain, EnglishParserBrain
 from .grammar_rules import LEXEME_DICT, RUSSIAN_LEXEME_DICT, AreaRule, FiberRule
-from .language_areas import *
+from .language_areas import (
+    AREAS, DEP_CLAUSE, DISINHIBIT, ENGLISH_READOUT_RULES, EXPLICIT_AREAS,
+    INHIBIT, LEX, OBJ, RUSSIAN_AREAS, RUSSIAN_EXPLICIT_AREAS,
+    RUSSIAN_READOUT_RULES, SUBJ, VERB,
+)
 from .readout_methods import ReadoutMethod, fixed_map_readout, fiber_readout
 from .debugger import ParserDebugger
 
