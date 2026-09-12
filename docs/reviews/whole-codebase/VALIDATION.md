@@ -6808,3 +6808,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Statistical sampler array boundary (2026-09-12)
 
 `compute/statistics.py` now normalizes SciPy sampler output through `np.asarray` before rounding, making the scalar/array contract explicit. Statistics tests pass **35/35**; Pyright and Ruff report zero diagnostics.
+
+
+## Sparse simulation statistical boundary (2026-09-12)
+
+`compute/sparse_simulation.py` now resolves SciPy special functions dynamically, initializes distribution outputs with a concrete array type, and normalizes sampler results before rounding. Sparse simulation tests pass **20/20**; Pyright and Ruff report zero diagnostics.
