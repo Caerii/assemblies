@@ -11,20 +11,12 @@ Specification: neural_assemblies/ir/VERIFICATION.md#contract-assembly-attention
 from __future__ import annotations
 
 from dataclasses import dataclass
-import math
-from numbers import Integral, Real
 from typing import Mapping
 
 import numpy as np
 
 from .assembly import Assembly, overlap
 from .contracts import ATTENTION_CONTRACT, AttentionPlan, implements
-
-
-def _positive_int(label: str, value: object) -> int:
-    if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
-        raise ValueError(f"{label} must be a positive integer")
-    return int(value)
 
 
 @dataclass(frozen=True)
@@ -72,52 +64,31 @@ def attend(
     """
     if not isinstance(query, Assembly):
         raise TypeError("query must be an Assembly snapshot")
-    if not query:
-        raise ValueError("attention query must contain at least one neuron")
     if not isinstance(keys, Mapping) or not isinstance(values, Mapping):
         raise TypeError("keys and values must be mappings of labels to Assembly")
-    if not keys:
-        raise ValueError("attention requires at least one key")
     if set(keys) != set(values):
         raise ValueError("keys and values must have exactly the same labels")
     if any(not isinstance(assembly, Assembly)
            for assembly in (*keys.values(), *values.values())):
         raise TypeError("attention keys and values must be Assembly snapshots")
-    if any(not assembly for assembly in (*keys.values(), *values.values())):
-        raise ValueError("attention keys and values must be nonempty assemblies")
-    top_k = _positive_int("top_k", top_k)
-    if top_k > len(keys):
-        raise ValueError("top_k cannot exceed the number of keys")
+    # Canonicalize the value mapping to key order before constructing the plan.
+    # The plan is the single validation boundary; this prevents the executable
+    # and contract paths from drifting on labels, areas, and schedules.
+    key_entries = tuple(keys.items())
+    value_entries = tuple((label, values[label]) for label, _ in key_entries)
     if output_size is None:
-        output_size = len(next(iter(values.values())))
-    output_size = _positive_int("output_size", output_size)
-    if (isinstance(temperature, bool) or not isinstance(temperature, Real)
-            or not math.isfinite(float(temperature)) or temperature <= 0):
-        raise ValueError("temperature must be a finite positive real")
-    temperature = float(temperature)
-
-    for label, assembly in (*keys.items(), *values.items()):
-        if not isinstance(label, str) or not label:
-            raise ValueError("attention labels must be nonempty strings")
-        if not isinstance(assembly, Assembly):
-            raise TypeError("attention keys and values must be Assembly snapshots")
-        if not assembly:
-            raise ValueError("attention keys and values must be nonempty assemblies")
-    value_areas = {assembly.area for assembly in values.values()}
-    if len(value_areas) != 1:
-        raise ValueError("all attention values must belong to one area")
-    value_area = next(iter(value_areas))
-    key_areas = {assembly.area for assembly in keys.values()}
-    if key_areas != {query.area}:
-        raise ValueError("attention query and keys must share one area")
+        if value_entries and isinstance(value_entries[0][1], Assembly):
+            output_size = len(value_entries[0][1])
     plan = AttentionPlan(
         query=query,
-        keys=tuple(keys.items()),
-        values=tuple(values.items()),
+        keys=key_entries,
+        values=value_entries,
         top_k=top_k,
         output_size=output_size,
         temperature=temperature,
     )
+    value_area = plan.values[0][1].area
+    temperature = float(plan.temperature)
 
     scored = [(label, overlap(plan.query, key)) for label, key in plan.keys]
     scored.sort(key=lambda item: (-item[1], item[0]))
@@ -138,7 +109,7 @@ def attend(
             neuron = int(neuron_id)
             support[neuron] = support.get(neuron, 0.0) + candidate.weight
     ranked_neurons = sorted(support, key=lambda neuron: (-support[neuron], neuron))
-    output = Assembly(value_area, ranked_neurons[:output_size])
+    output = Assembly(value_area, ranked_neurons[:plan.output_size])
     return AttentionResult(
         query_area=query.area,
         value_area=value_area,

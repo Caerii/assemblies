@@ -1217,7 +1217,7 @@ class AttentionPlan:
                or not assembly for label, assembly in (*self.keys, *self.values)):
             raise ValueError("attention entries must be nonempty labeled Assemblies")
         if any(assembly.area != self.query.area for _, assembly in self.keys):
-            raise ValueError("attention keys must share the query area")
+            raise ValueError("attention query and keys must share one area")
         if len({assembly.area for _, assembly in self.values}) != 1:
             raise ValueError("attention values must share one area")
         if isinstance(self.top_k, bool) or not isinstance(self.top_k, Integral) or not 1 <= self.top_k <= len(self.keys):

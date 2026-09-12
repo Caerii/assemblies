@@ -5081,3 +5081,7 @@ and next-token negative controls pass: **164 passed**; Ruff is clean.
 The authoritative `pytest neural_assemblies/tests -q -m "not slow"` run completed with 3698 passed, 139 skipped, and 6 xfailed; the remaining 7 failures are the pre-existing ERP scientific failures and two CUDA compiler-environment failures. The only regression introduced by the contract hardening was `test_prediction_rejects_nonpositive_rounds`: validation checked an empty lexicon before the explicitly invalid schedule. `NextTokenPredictionPlan` now validates `rounds_per_token` first; the focused test and Ruff pass. The ERP failures remain registered measurement defects (metric direction/calibration), and CUDA temporal failures require the Visual Studio developer shell (`where cl` failed); neither is suppressed or weakened.
 
 
+
+### Attention plan centralization (2026-09-11)
+
+The pure assembly attention operator now canonicalizes key/value labels and delegates schedule, type, area, and numerical validation to `AttentionPlan`; only the public mapping boundary retains the TypeError needed for malformed snapshots. The executable readout therefore shares one immutable contract with the registry and avoids duplicated validation logic. Attention and operation-contract checks pass: **174 passed**; Ruff is clean.
