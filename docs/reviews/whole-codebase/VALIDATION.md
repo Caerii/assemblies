@@ -6878,3 +6878,8 @@ Text-generation prototypes now load the optional legacy brain module dynamically
 ## Evidence links include committed study logs (2026-09-12)
 
 The evidence graph now recognizes committed `.log` and `.txt` study artifacts as resolvable evidence while keeping orphan-data reporting limited to JSON and CSV result artifacts. Explicit links were added for the unaligned-scenes, substrate-ceiling, and A1 FSM parity registrations. The live audit is now **1** actual missing result edge (`PREREG_agreement_corpus.md`) and **19** pending preregistrations. Research-runner tests pass **98/98**; Pyright and Ruff are clean.
+
+
+## Instance-owned curriculum randomness (2026-09-12)
+
+`nemo/language/curriculum.py` now accepts an optional seed, owns a per-instance NumPy generator, and routes every sentence choice through that generator. This prevents process-global RNG interference and makes curriculum generation composable and reproducible. A seeded two-instance determinism probe passes; Pyright, Ruff, compilation, and diff checks are clean. Full package import remains unavailable in this environment because the legacy Nemo learner requires optional CuPy.

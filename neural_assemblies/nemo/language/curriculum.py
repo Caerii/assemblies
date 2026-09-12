@@ -24,7 +24,7 @@ Scientific Value:
 """
 
 import numpy as np
-from typing import List, Dict, Tuple
+from typing import Callable, List, Dict, Tuple
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from collections import defaultdict
@@ -88,18 +88,33 @@ class Curriculum:
     relativizers: List[str] = field(default_factory=lambda: [
         'that', 'which', 'who'
     ])
+
+    # Randomness is owned by the curriculum instance.  This keeps sentence
+    # generation reproducible and prevents one study from perturbing another
+    # through NumPy's process-global RNG.
+    seed: int | None = None
+    rng: np.random.Generator = field(init=False, repr=False)
+
+    def __post_init__(self) -> None:
+        self.rng = np.random.default_rng(self.seed)
+
+    def _choose(self, values: List[str]) -> str:
+        return str(values[int(self.rng.integers(len(values)))])
+
+    def _choose_pattern(self, patterns: List[Callable[[], List[str]]]) -> List[str]:
+        return patterns[int(self.rng.integers(len(patterns)))]()
     
     def random_noun(self) -> str:
-        return np.random.choice(self.nouns)
+        return self._choose(self.nouns)
     
     def random_verb(self) -> str:
-        return np.random.choice(self.verbs)
+        return self._choose(self.verbs)
     
     def random_adj(self) -> str:
-        return np.random.choice(self.adjectives)
+        return self._choose(self.adjectives)
     
     def random_adv(self) -> str:
-        return np.random.choice(self.adverbs)
+        return self._choose(self.adverbs)
     
     # =========================================================================
     # SENTENCE GENERATORS (increasing complexity)
@@ -116,7 +131,7 @@ class Curriculum:
             lambda: [self.random_verb(), self.random_noun()],  # see dog
             lambda: [self.random_adj(), self.random_noun()],   # big dog
         ]
-        return np.random.choice(patterns)()
+        return self._choose_pattern(patterns)
     
     def generate_triple(self) -> List[str]:
         """Stage 3: Simple SVO sentence."""
@@ -140,17 +155,17 @@ class Curriculum:
             lambda: [self.random_noun(), self.random_adv(),
                     self.random_verb(), self.random_noun()],
         ]
-        sent = np.random.choice(patterns)()
+        sent = self._choose_pattern(patterns)
         # Ensure no repeated nouns
         while len(set(w for w in sent if w in self.nouns)) < 2:
-            sent = np.random.choice(patterns)()
+            sent = self._choose_pattern(patterns)
         return sent
     
     def generate_compound(self) -> List[str]:
         """Stage 5: Compound sentence with conjunction."""
         # S V O conj S V O
         s1, v1, o1 = self.generate_triple()
-        conj = np.random.choice(self.conjunctions[:3])  # and, but, or
+        conj = self._choose(self.conjunctions[:3])  # and, but, or
         s2, v2, o2 = self.generate_triple()
         return [s1, v1, o1, conj, s2, v2, o2]
     
@@ -159,7 +174,7 @@ class Curriculum:
         # The N that V O V O
         # "the dog that chases cats sees birds"
         subj = self.random_noun()
-        rel = np.random.choice(self.relativizers)
+        rel = self._choose(self.relativizers)
         v1 = self.random_verb()
         o1 = self.random_noun()
         v2 = self.random_verb()
@@ -178,7 +193,7 @@ class Curriculum:
             # Who V O?
             lambda: ['who', self.random_verb(), self.random_noun()],
         ]
-        return np.random.choice(patterns)()
+        return self._choose_pattern(patterns)
     
     def generate_negation(self) -> List[str]:
         """Stage 8: Negated sentence."""
@@ -208,7 +223,7 @@ class CurriculumLearner:
     Tracks acquisition of each structure type.
     """
     
-    def __init__(self, learner: LanguageLearner = None, verbose: bool = True):
+    def __init__(self, learner: LanguageLearner | None = None, verbose: bool = True):
         self.learner = learner or LanguageLearner(verbose=False)
         self.curriculum = Curriculum()
         self.verbose = verbose
