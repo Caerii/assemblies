@@ -5,9 +5,10 @@ only their address is.
 """
 
 
-from typing import Dict, List, Optional
+from typing import TYPE_CHECKING, Dict, List, Optional, Tuple
 from neural_assemblies.core.measurement import Measured
 from neural_assemblies.assembly_calculus.assembly import (
+    Assembly,
     overlap as assembly_overlap,
 )
 from neural_assemblies.assembly_calculus.ops import (
@@ -31,11 +32,33 @@ from ..core.areas import (
     FUNC_MARKER,
 )
 from ..curriculum.data import GroundedSentence
+from ..core.grounding import GroundingContext
 from ._shared import _STRUCTURAL_PRIOR, _LEXICAL_SMOOTHING, _ROLE_BINDING_ROUNDS, _ROLE_LABEL
+
+if TYPE_CHECKING:
+    from neural_assemblies.core.brain import Brain
+    from ..acquisition.pos_inference import BootstrapScores
 
 
 class RoleBindingMixin:
     """Binding fillers into thematic role areas, and reading them back."""
+
+    brain: "Brain"
+    stim_map: Dict[str, str]
+    rounds: int
+    inference_rounds: int
+    word_grounding: Dict[str, GroundingContext]
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    role_lexicons: Dict[str, Dict[str, Assembly]]
+
+    if TYPE_CHECKING:
+        def record_role_order_evidence(self, words: List[str], roles: List[Optional[str]]) -> Optional[str]: ...
+        def _learn_gating_patterns(self, sentences: List[GroundedSentence]) -> None: ...
+        def get_func_subcategory(self, word: str) -> Optional[str]: ...
+        def _word_core_area(self, word: str) -> str: ...
+        def classify_word_cached(self, word: str) -> Tuple[str, "BootstrapScores"]: ...
+        def _determine_role_order(self, words: List[str], categories: Dict[str, str]) -> Tuple[List[str], bool]: ...
+        def constituent_role_order(self) -> List[str]: ...
 
     def train_roles(self, sentences: List[GroundedSentence]):
         """Phase 2: Role binding from annotated sentences.

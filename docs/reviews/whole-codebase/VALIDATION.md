@@ -6497,3 +6497,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Phrase composition capability gate (2026-09-12)
 
 `PhraseStructureMixin` now declares the brain, stimulus map, training rounds, phrase store, and lexical core lookup it consumes. The phrase stage is therefore statically composable at its actual boundary instead of relying on implicit MRO knowledge. Pyright reports **0 diagnostics**; phrase composition tests pass **13 tests**, with the intentional sampled-recurrence warnings preserved.
+
+### Role binding capability gate (2026-09-12)
+
+`RoleBindingMixin` now declares its neural state, lexical stores, grounding map, and sibling operations for evidence collection, gating, classification, and role ordering. Assembly-valued stores use the concrete `Assembly` type, preventing arbitrary metadata from crossing into overlap and readout operations. Pyright reports **0 diagnostics**; parser composition tests pass **13 tests**, with the intentional sampled-recurrence warnings preserved.
