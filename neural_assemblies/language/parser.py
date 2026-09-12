@@ -117,7 +117,13 @@ class ParserBrain(Brain):
 
     def parse_project(self):
         """Perform a projection step for parsing."""
-        project_map = self.getProjectMap()
+        # ``getProjectMap`` is a legacy defaultdict of sets; normalize it at
+        # the Brain boundary so the typed projection API receives a stable,
+        # ordered schedule rather than an implementation container.
+        project_map = {
+            source: sorted(targets)
+            for source, targets in self.getProjectMap().items()
+        }
         self.remember_fibers(project_map)
         self.project({}, project_map)
 
@@ -152,7 +158,7 @@ class ParserBrain(Brain):
         area.unfix_assembly()
         empty = np.array([], dtype=np.uint32)
         area.winners = empty
-        self._engine.set_winners(area_name, empty)
+        self.engine.set_winners(area_name, empty)
         if area.explicit and self._explicit_engine is not None:
             self._explicit_engine.set_winners(area_name, empty)
 
@@ -161,7 +167,7 @@ class ParserBrain(Brain):
         area = self.area_by_name[area_name]
         winners_arr = np.asarray(winners, dtype=np.uint32)
         area.winners = winners_arr
-        self._engine_for(area).set_winners(area_name, winners_arr)
+        self.engine_for(area_name).set_winners(area_name, winners_arr)
 
     def activateWord(self, area_name, word):
         """Activate a word in the specified area."""
