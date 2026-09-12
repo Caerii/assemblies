@@ -6363,3 +6363,7 @@ Warm ERP frame state now carries the concrete `FiberCircuit` type returned by th
 ### ERP gate import-boundary gate (2026-09-12)
 
 The ERP gates module now links its type-only parser import to the actual emergent parser package level. The previous relative import was unresolved to static tooling even though runtime paths did not exercise it. Pyright reports **0 diagnostics**; ERP protocol/probe tests pass **25 tests with 1 intentional sampled-recurrence warning**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Composition battery metric boundary gate (2026-09-12)
+
+The composition battery now validates its aggregate metric before including it in the returned score, preventing an unconstrained object from entering scientific result arithmetic. Pyright reports **0 diagnostics** for the module; Ruff F/E9 and `git diff --check` are clean. No dedicated regression existed for this isolated helper, so the change is limited to validation and static proof.

@@ -21,6 +21,7 @@ versa.
 
 from __future__ import annotations
 
+from numbers import Real
 from typing import Dict, List, Optional, TYPE_CHECKING
 
 if TYPE_CHECKING:
@@ -78,6 +79,13 @@ STRAIN_COMPOSITION_PROBES: List[dict] = [
         },
     },
 ]
+
+
+def _metric_float(value: object, label: str) -> float:
+    """Validate one battery metric before it enters a score."""
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"composition metric {label!r} must be a real number")
+    return float(value)
 
 # Agent/patient swap on trained lemmas — tests structural binding, not lexicon.
 SYSTEMATICITY_PROBES: List[dict] = [
@@ -184,7 +192,7 @@ def evaluate_composition_battery(
         "bridge_seen_top5": float(bridge_seen["top5"]),
         "bridge_direct_top5": float(direct_bridge["top5"]),
         "dialogue": float(base["dialogue"]["accuracy"]),  # type: ignore[index]
-        "composite": float(base["composite"]),
+        "composite": _metric_float(base["composite"], "composite"),
         "science_score": (
             strain_acc * 0.30
             + sys_acc * 0.20
