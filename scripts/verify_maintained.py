@@ -111,6 +111,26 @@ def check_pyright() -> bool:
     return result.returncode == 0
 
 
+def check_evidence_graph() -> bool:
+    """Validate registered evidence and source-linked specifications.
+
+    This is deliberately a separate phase from Pyright: the evidence checker
+    validates repository relationships and serialized run records, while
+    Pyright validates executable source. Keeping both in the maintained gate
+    makes a green gate meaningful for scientific as well as code integrity.
+    """
+    result = run(
+        ["uv", "run", "python", "-m", "research.evidence", "check"],
+        capture_output=True,
+        display_command="uv run python -m research.evidence check",
+    )
+    if result.stdout:
+        print(result.stdout, end="")
+    if result.stderr:
+        print(result.stderr, file=sys.stderr, end="")
+    return result.returncode == 0
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-tests", action="store_true",
@@ -126,6 +146,7 @@ def main() -> int:
     args = parser.parse_args()
 
     ok = check_pyright()
+    ok = check_evidence_graph() and ok
     if not args.skip_tests:
         test_command = ["uv", "run", "pytest", "neural_assemblies/tests", "-q", "-m", "not slow"]
         if not args.serial:
