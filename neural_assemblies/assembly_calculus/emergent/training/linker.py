@@ -21,7 +21,7 @@ from ..training.compiled import (
 from ..training.compiler import link_preallocate_stim_targets
 
 if TYPE_CHECKING:
-    from ..parser_mixins.core import CoreParserMixin
+    from ..parser import EmergentParser
     from ..core.corpus_index import CorpusIndex
     from ..training.compiler import CompiledLexiconPlan
 
@@ -34,14 +34,14 @@ def _max_prefix_len(corpus_index: "CorpusIndex") -> int:
 
 
 def _missing_lexicon_words(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     lex_targets: Sequence[str],
 ) -> List[str]:
     lex = getattr(parser, "prediction_lexicon", None) or {}
     return [w for w in lex_targets if w not in lex]
 
 
-def _required_materialized_count(parser: "CoreParserMixin", area: str) -> int:
+def _required_materialized_count(parser: "EmergentParser", area: str) -> int:
     """Return a compiled ring extent; dense engines have no such extent."""
     count = parser.brain.population_counts(area).materialized
     if count is None:
@@ -52,7 +52,7 @@ def _required_materialized_count(parser: "CoreParserMixin", area: str) -> int:
 
 
 def topology_needs_link(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
     lex_targets: Sequence[str],
 ) -> bool:
@@ -68,7 +68,7 @@ def topology_needs_link(
 
 
 def link_context_topology(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
 ) -> None:
     """Pregrow CONTEXT ring to corpus max prefix length (once)."""
@@ -113,7 +113,7 @@ def link_context_topology(
 
 
 def link_prediction_lexicon(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     lex_targets: Sequence[str],
 ) -> None:
     """Pregrow + snap prediction lexicon in one compiled session."""
@@ -155,7 +155,7 @@ def link_prediction_lexicon(
 
 
 def link_bridge_topology(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
     lex_targets: Sequence[str],
     *,
@@ -172,13 +172,13 @@ def link_bridge_topology(
     parser._bridge_topology_linked = True
 
 
-def refresh_training_plan_topology(parser: "CoreParserMixin"):
+def refresh_training_plan_topology(parser: "EmergentParser"):
     """Rebuild bridge topology spec after linking."""
     return bridge_topology_spec(parser)
 
 
 def role_topology_needs_link(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
 ) -> bool:
     """True when core→role pathways still need linking."""
@@ -196,7 +196,7 @@ def role_topology_needs_link(
 
 
 def link_role_topology(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     corpus_index: "CorpusIndex",
     *,
     force: bool = False,
@@ -241,7 +241,7 @@ def _lexicon_capacity_for_words(word_count: int, k: int) -> int:
 
 
 def _lexicon_area_needs_pregrow(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     area: str,
     new_ops: Sequence,
     *,
@@ -263,7 +263,7 @@ def _lexicon_area_needs_pregrow(
 
 
 def _record_lexicon_linked_words(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     by_core: Dict[str, list],
 ) -> None:
     counts = dict(getattr(parser, "_lexicon_linked_words_by_core", {}))
@@ -273,7 +273,7 @@ def _record_lexicon_linked_words(
 
 
 def lexicon_topology_needs_link(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     plan: "CompiledLexiconPlan",
 ) -> bool:
     """True when any pending lexicon op still needs topology linking/pregrow."""
@@ -290,7 +290,7 @@ def lexicon_topology_needs_link(
 
 
 def link_lexicon_topology(
-    parser: "CoreParserMixin",
+    parser: "EmergentParser",
     plan: "CompiledLexiconPlan",
     *,
     force: bool = False,

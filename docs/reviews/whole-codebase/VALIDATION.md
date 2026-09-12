@@ -6437,3 +6437,7 @@ Compiled topology execution now depends on an explicit `CompiledTopologyParser` 
 ### Compiled topology protocol export gate (2026-09-12)
 
 The `CompiledTopologyParser` capability interface is now exported from the public emergent training package alongside topology specs and execution helpers. Consumers can compose or test compiled topology against the same typed boundary without importing an implementation-private module. Pyright reports **0 diagnostics**; the public import smoke check resolves the protocol successfully, and `git diff --check` is clean.
+
+### Topology linker parser-surface gate (2026-09-12)
+
+All topology-linking helpers now consistently require the fully composed `EmergentParser`. The linker calls prediction, context, role, lexicon, and compiler capabilities across multiple mixins, so its previous `CoreParserMixin` annotations were unsound and hid 25 static errors. The annotation now reflects the actual operation boundary rather than a narrower nominal base. Pyright reports **0 diagnostics**; topology tests pass **4 tests with expected sampled-recurrence warnings**, and `git diff --check` is clean.
