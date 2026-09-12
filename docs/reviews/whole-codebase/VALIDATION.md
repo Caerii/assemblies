@@ -6331,3 +6331,7 @@ The no-op training progress sink now preserves the base `_emit(level, message)` 
 ### Adaptive acquisition typing gate (2026-09-12)
 
 The adaptive remediation path now makes its optional role vector's type explicit and converts the stage-word sequence at the list-based evaluator boundary. This removes the remaining Pyright diagnostics in the module without changing its training schedule. Pyright reports **0 diagnostics**; the focused adaptive acquisition tests pass **3 tests**, and Ruff F/E9 plus `git diff --check` are clean.
+
+### Continual-acquisition metric and replay typing gate (2026-09-12)
+
+The continual-learning stability boundary now validates evaluation metrics as real numbers and constructs the declared `GroundedSentence` objects before invoking next-token training during replay. Previously the replay path passed raw word lists to an API contracted for grounded sentences, while metric values were treated as unconstrained objects. Pyright reports **0 diagnostics**; focused stability/adaptive tests pass **4 tests**, and Ruff F/E9 plus `git diff --check` are clean.

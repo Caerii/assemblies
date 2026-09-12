@@ -25,7 +25,11 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 import warnings
-from typing import List, Optional, TYPE_CHECKING
+from numbers import Real
+from typing import List, Mapping, Optional, TYPE_CHECKING
+
+from ..core.grounding import GroundingContext
+from ..core.sentence import GroundedSentence
 
 if TYPE_CHECKING:
     from ..parser import EmergentParser
@@ -48,6 +52,15 @@ class StabilityReport:
     stable: bool = True
 
 
+def _metric_float(metrics: Mapping[str, object], key: str,
+                  default: float = 0.0) -> float:
+    """Read a finite numeric evaluation metric at the observation boundary."""
+    value = metrics.get(key, default)
+    if isinstance(value, bool) or not isinstance(value, Real):
+        raise TypeError(f"evaluation metric {key!r} must be a real number")
+    return float(value)
+
+
 def capture_stability_snapshot(parser: "EmergentParser") -> StabilitySnapshot:
     from ..evaluation.suite import EvaluationSuite
     from ..evaluation.generalization import (
@@ -63,9 +76,9 @@ def capture_stability_snapshot(parser: "EmergentParser") -> StabilitySnapshot:
     try:
         from .pos_inference import decompose_holdout_classification
 
-        holdout = decompose_holdout_classification(
+        holdout = _metric_float(decompose_holdout_classification(
             parser, DEFAULT_LEXICON_HOLDOUTS,
-        )["accuracy_bootstrapped"]
+        ), "accuracy_bootstrapped")
     except (KeyError, RuntimeError, TypeError, ValueError) as error:
         warnings.warn(
             "stability snapshot could not compute holdout classification; "
@@ -78,7 +91,7 @@ def capture_stability_snapshot(parser: "EmergentParser") -> StabilitySnapshot:
         word_order_svo=bool(wo.get("correct")),
         holdout_bootstrap=float(holdout),
         prediction_lexicon_size=len(getattr(parser, "prediction_lexicon", {})),
-        novel_composition=float(novel.get("accuracy", 0.0)),
+        novel_composition=_metric_float(novel, "accuracy"),
     )
 
 
@@ -110,7 +123,7 @@ def compare_stability(
 
 def replay_corpus_sample(
     parser: "EmergentParser",
-    sentences: List[list],
+    sentences: List[List[str]],
     *,
     max_sentences: int = 20,
 ) -> int:
@@ -126,7 +139,12 @@ def replay_corpus_sample(
             continue
         parser.ingest_raw_sentence(known)
         if hasattr(parser, "train_next_token"):
-            parser.train_next_token([known], dedupe_sentences=False)
+            grounded = GroundedSentence(
+                words=known,
+                contexts=[parser.word_grounding.get(w, GroundingContext())
+                          for w in known],
+            )
+            parser.train_next_token([grounded], dedupe_sentences=False)
         count += 1
     return count
 
@@ -135,7 +153,7 @@ def stability_gate_after_session(
     parser: "EmergentParser",
     before: StabilitySnapshot,
     *,
-    replay_sentences: Optional[List[list]] = None,
+    replay_sentences: Optional[List[List[str]]] = None,
 ) -> StabilityReport:
     """Check stability after chat; optionally replay a small corpus sample."""
     after = capture_stability_snapshot(parser)
