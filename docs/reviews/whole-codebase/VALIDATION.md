@@ -6159,3 +6159,7 @@ The remaining maintained B905 sites were eliminated in reference NEMO area aggre
 ### Fiber and historical association slice (2026-09-12)
 
 The partitioned non-slow slice 1280:1420 passed **70 tests with 70 optional skips in 27.89 seconds**. The skips are dependency or hardware gated; no unexpected failures occurred.
+
+### Historical merge and projection contract slice (2026-09-12)
+
+The partitioned non-slow slice 1420:1560 passed **140 tests in 17.66 seconds**. It covers historical merge/projection trial preservation, parameter validation, and stopping-rule admission.
