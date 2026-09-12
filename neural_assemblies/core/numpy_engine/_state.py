@@ -3,7 +3,7 @@
 from dataclasses import dataclass, field
 from typing import Any
 
-from ..backend import get_xp
+from ..backend import get_xp, xp_by_name
 from ..activity import ActivityState
 
 
@@ -39,17 +39,18 @@ class SparseAreaState(ActivityState):
     winner_policy: object = None
     input_noise_std: float = 0.0
     explicit_source: bool = False  # winners are real neuron IDs (explicit area)
+    backend_name: str | None = None
 
     def __post_init__(self):
         from collections import deque
         if self.winners is None:
-            xp = get_xp()
+            xp = xp_by_name(self.backend_name) if self.backend_name else get_xp()
             self.winners = xp.array([], dtype=xp.uint32)
         if self._refractory_history is None:
             self._refractory_history = deque(
                 maxlen=max(self.refractory_period, 1))
         if self._cumulative_bias is None:
-            xp = get_xp()
+            xp = xp_by_name(self.backend_name) if self.backend_name else get_xp()
             self._cumulative_bias = xp.zeros(0, dtype=xp.float32)
 
 
@@ -75,9 +76,10 @@ class ExplicitAreaState(ActivityState):
     #: and a policy being unavailable here is what makes a policy result
     #: uncheckable rather than merely unmeasured.
     winner_policy: object = None
+    backend_name: str | None = None
 
     def __post_init__(self):
-        xp = get_xp()
+        xp = xp_by_name(self.backend_name) if self.backend_name else get_xp()
         if self.winners is None:
             self.winners = xp.array([], dtype=xp.uint32)
         if self.ever_fired is None:

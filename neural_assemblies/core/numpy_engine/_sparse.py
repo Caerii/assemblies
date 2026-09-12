@@ -753,7 +753,8 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                                refractory_period=refractory_period,
                                inhibition_strength=inhibition_strength,
                                winner_policy=winner_policy,
-                               input_noise_std=input_noise_std)
+                               input_noise_std=input_noise_std,
+                               backend_name=self._xp_name)
         area.neuron_id_pool = self._rng.permutation(np.arange(n, dtype=np.uint32))
         area.neuron_id_pool_ptr = 0
         self._areas[name] = area

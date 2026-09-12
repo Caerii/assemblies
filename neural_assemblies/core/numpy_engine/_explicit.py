@@ -9,7 +9,7 @@ import numpy as np
 from typing import Any, Dict, List, cast
 from collections import defaultdict
 
-from ..backend import get_xp, to_cpu
+from ..backend import to_cpu
 from ..engine import (
     ComputeEngine,
     ProjectionResult,
@@ -144,7 +144,8 @@ class NumpyExplicitEngine(ComputeEngine):
                  input_noise_std=input_noise_std))
         area = ExplicitAreaState(name=name, n=n, k=k, beta=beta,
                                  slot_count=slot_count,
-                                 winner_policy=winner_policy)
+                                 winner_policy=winner_policy,
+                                 backend_name="numpy")
         self._areas[name] = area
 
         for stim_name, stim in self._stimuli.items():
@@ -205,7 +206,7 @@ class NumpyExplicitEngine(ComputeEngine):
         Returns validated source caps and the float32 drive, without publishing
         either into engine state. Profile and fiber restrictions remain in IR.
         """
-        xp = get_xp()
+        xp = np
         if target not in self._areas:
             raise ValueError(f"Unknown target area {target!r}")
         tgt = self._areas[target]
@@ -240,7 +241,7 @@ class NumpyExplicitEngine(ComputeEngine):
         Validate numerical inputs even when the target is clamped. IR and legacy
         callers share this boundary; profile restrictions remain with the IR.
         """
-        xp = get_xp()
+        xp = np
         source_winners, external_drive = self.validate_projection_inputs(
             target, from_stimuli, from_areas, external_drive)
         tgt = self._areas[target]
@@ -367,7 +368,7 @@ class NumpyExplicitEngine(ComputeEngine):
         return CompactIdx(np.array(to_cpu(st.winners), dtype=np.uint32))
 
     def _validated_winners(self, area: str, winners):
-        xp = get_xp()
+        xp = np
         st = self._areas[area]
         if not 0 < st.k <= st.n:
             raise ValueError("Area requires 0 < k <= n")
@@ -413,7 +414,7 @@ class NumpyExplicitEngine(ComputeEngine):
 
     def reset_area_connections(self, area: str) -> None:
         """Reset area->area connections involving *area* to initial state."""
-        xp = get_xp()
+        xp = np
         for src_name in list(self._area_conns.keys()):
             if area not in self._area_conns[src_name]:
                 continue

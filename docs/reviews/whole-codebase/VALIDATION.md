@@ -7308,3 +7308,12 @@ The attractor training protocol now declares its actual seven-value return contr
 - Typed `CueReplacementPlan.population` as the stable `NeuronIds` index space, aligning the contract with `replace_neurons` and preventing compact-index populations from crossing the API boundary.
 - `uv run pyright neural_assemblies/assembly_calculus/contracts.py neural_assemblies/assembly_calculus/recovery.py`: 0 errors.
 - `uv run pytest neural_assemblies/tests/test_noise_robustness.py -q`: 28 passed in 8.41s.
+
+
+## 2026-09-12 backend ownership pass
+
+- Changed NumPy engine area state to pin its array backend by backend name at construction; this prevents later process-global CuPy selection from changing state allocations.
+- Changed the dense explicit engine to use its fixed NumPy backend for projection validation, drive allocation, winner validation, and connection reset.
+- Validation: `uv run pyright neural_assemblies/core/numpy_engine --outputjson` (12 files, 0 errors).
+- Validation: `uv run pytest neural_assemblies/tests/test_engine_backend_isolation.py neural_assemblies/tests/test_explicit_projection.py neural_assemblies/tests/test_cross_engine_projection.py -q` (19 passed, 3 skipped, 4 warnings, 27.07s).
+- Maintained-suite topology remains split into fast and measured slow tiers; the fast tier uses xdist `loadfile` and the slow tier contains empirical setup gates.
