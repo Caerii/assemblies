@@ -1,15 +1,20 @@
-"""Typed runtime namespace for PyTorch's generated operator surface.
+"""Typed, lazy runtime namespace for PyTorch's generated operators.
 
 PyTorch wheels expose many factory/operator names dynamically, while tensor
 and generator classes remain useful type anchors.  This protocol makes the
 runtime boundary explicit without replacing ``torch`` as the type namespace.
-The cast is erased at runtime: ``torch_ops`` is the imported torch module.
+The proxy imports PyTorch only when an operator is first used, so CPU-only
+imports of the surrounding package remain lightweight.
 """
-from typing import Any, Callable, Protocol, cast
+from importlib import import_module
+from typing import TYPE_CHECKING, Any, Callable, Protocol, cast
 
-import torch as _torch
+if TYPE_CHECKING:
+    import torch as _torch
 
-TensorCall = Callable[..., _torch.Tensor]
+    TensorCall = Callable[..., _torch.Tensor]
+else:
+    TensorCall = Callable[..., Any]
 
 
 class _SparseNamespace(Protocol):
@@ -77,5 +82,18 @@ class TorchOps(Protocol):
     unique_consecutive: Callable[..., Any]
 
 
-torch_ops = cast(TorchOps, _torch)
+class _LazyTorchOps:
+    """Import torch on first attribute access and then cache the module."""
+
+    _module: Any = None
+
+    def __getattr__(self, name: str) -> Any:
+        module = self._module
+        if module is None:
+            module = import_module("torch")
+            self._module = module
+        return getattr(module, name)
+
+
+torch_ops = cast(TorchOps, _LazyTorchOps())
 __all__ = ["TensorCall", "TorchOps", "torch_ops"]

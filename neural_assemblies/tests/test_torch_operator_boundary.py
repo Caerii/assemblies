@@ -1,7 +1,9 @@
 from pathlib import Path
 import ast
 
-from neural_assemblies.core.torch_engine._torch_ops import TorchOps, torch_ops
+from neural_assemblies.core.torch_engine._torch_ops import (
+    TorchOps, _LazyTorchOps, torch_ops,
+)
 
 
 ROOT = Path(__file__).parents[1] / "core" / "torch_engine"
@@ -35,3 +37,20 @@ def test_torch_runtime_implements_declared_operator_protocol():
     """Fail at import-time validation when a Torch wheel lacks a declared member."""
     missing = [name for name in TorchOps.__annotations__ if not hasattr(torch_ops, name)]
     assert not missing, "TorchOps declares unavailable runtime members: " + ", ".join(missing)
+
+
+def test_torch_operator_proxy_loads_once_on_first_use(monkeypatch):
+    sentinel = object()
+    module = type("FakeTorch", (), {"example": sentinel})()
+    calls = []
+
+    def fake_import(name):
+        calls.append(name)
+        return module
+
+    import neural_assemblies.core.torch_engine._torch_ops as boundary
+    monkeypatch.setattr(boundary, "import_module", fake_import)
+    proxy = _LazyTorchOps()
+    assert proxy.example is sentinel
+    assert proxy.example is sentinel
+    assert calls == ["torch"]
