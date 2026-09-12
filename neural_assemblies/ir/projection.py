@@ -169,6 +169,12 @@ class ExplicitProgram:
             raise TypeError("program composition requires another ExplicitProgram")
         return ExplicitProgram(self.rounds + other.rounds)
 
+    def __len__(self) -> int:
+        return len(self.rounds)
+
+    def __iter__(self):
+        return iter(self.rounds)
+
     def to_documents(self) -> tuple[dict, ...]:
         """Return canonical wire documents without exposing mutable state."""
         return tuple(round_.to_document() for round_ in self.rounds)

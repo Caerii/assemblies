@@ -7498,3 +7498,9 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Added construction-level laws for overlap symmetry, containment normalization, and the deliberate zero result for empty assemblies.
 - Validation: `uv run pytest neural_assemblies/tests/test_assembly_calculus.py -q -k TestAssembly` passed (12 tests); `git diff --check` passed.
+
+
+## 2026-09-12 IR program value ergonomics
+
+- Added `len(program)` and iteration to `ExplicitProgram`, preserving its immutable canonical round order.
+- Validation: projection IR tests passed (41 tests); Pyright reported 0 errors; `git diff --check` passed.

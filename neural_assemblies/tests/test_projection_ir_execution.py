@@ -23,6 +23,8 @@ def test_program_composition_is_associative_and_roundtrip_canonical():
     left = a.then(b).then(c)
     right = a.then(b.then(c))
     assert left == right
+    assert len(left) == 3
+    assert tuple(left) == left.rounds
     assert ExplicitProgram.from_documents(left.to_documents()) == left
     exported = left.to_documents()
     exported[0]["target"] = "mutated"
