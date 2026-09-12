@@ -5802,3 +5802,9 @@ negative and passes **21 tests**.
 boost always retrains its focused bridges. A true-negative test rejects the
 removed argument, preventing callers from believing cached state controls this
 protocol.
+
+### Curriculum stage implementation contract (2026-09-12)
+
+The private stage implementation no longer receives the stage config object it
+never read; derived beta, complexity, and phases remain explicit arguments. A
+signature test and the holdout cache true negative pass.

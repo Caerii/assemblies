@@ -26,6 +26,17 @@ N, K, ROUNDS = 3000, 30, 6
 
 
 class TestTrainingPerf:
+    def test_stage_impl_has_no_ignored_config_argument(self):
+        import inspect
+
+        from neural_assemblies.assembly_calculus.emergent.curriculum.trainer import (
+            CurriculumTrainer,
+        )
+
+        assert "config" not in inspect.signature(
+            CurriculumTrainer._train_stage_impl
+        ).parameters
+
     def test_holdout_boost_rejects_removed_transition_cache(self):
         from neural_assemblies.assembly_calculus.emergent.curriculum.holdout_bridges import (
             train_holdout_bridge_boost,

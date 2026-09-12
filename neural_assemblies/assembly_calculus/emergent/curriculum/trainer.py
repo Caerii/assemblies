@@ -341,7 +341,7 @@ class CurriculumTrainer:
 
         try:
             return self._train_stage_impl(
-                stage_name, config, beta, complexity, phases,
+                stage_name, beta, complexity, phases,
             )
         finally:
             self.parser.rounds = old_rounds
@@ -349,7 +349,6 @@ class CurriculumTrainer:
     def _train_stage_impl(
         self,
         stage_name: str,
-        config: dict,
         beta: float,
         complexity: int,
         phases: list,
