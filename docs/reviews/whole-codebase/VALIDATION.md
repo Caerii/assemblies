@@ -5840,3 +5840,9 @@ The shared role-order hook retains its categories argument for subclass and
 test-harness compatibility, but now validates that every sentence word is
 classified before gating. Passive-voice and role-observation suites pass **15
 tests**, including the missing-category true negative.
+
+### Constituent competition surface (2026-09-12)
+
+The generation-only `_compete` helper no longer accepts a `mood_assembly` it
+does not read; mood remains part of the upstream syntactic cue and
+`_fire_constituent` contract. The module passes Ruff and compilation checks.

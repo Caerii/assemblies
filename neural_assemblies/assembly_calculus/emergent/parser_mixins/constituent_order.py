@@ -463,7 +463,6 @@ class ConstituentOrderMixin:
         cue_assembly: Optional[Assembly] = None,
         *,
         exclude: Optional[set] = None,
-        mood_assembly: Optional[Assembly] = None,
     ) -> Optional[Tuple[str, str, float]]:
         """Trigger, then let the role areas compete for the cue.
 
@@ -606,7 +605,6 @@ class ConstituentOrderMixin:
                 break
             step = self._compete(
                 cue_area, cue_assembly, exclude=used,
-                mood_assembly=mood_assembly,
             )
             if step is None:
                 break
