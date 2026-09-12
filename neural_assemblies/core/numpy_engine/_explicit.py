@@ -6,7 +6,7 @@ where full fidelity is required.
 """
 
 import numpy as np
-from typing import Dict, List
+from typing import Any, Dict, List, cast
 from collections import defaultdict
 
 from ..backend import get_xp, to_cpu
@@ -110,9 +110,9 @@ class NumpyExplicitEngine(ComputeEngine):
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
                  inhibition_strength: float = 0.0,
-                 slot_count: int = 0,
                  winner_policy=None,
-                 input_noise_std: float = 0.0) -> None:
+                 input_noise_std: float = 0.0,
+                 *, slot_count: int = 0) -> None:
         """Dense area registration.
 
         `winner_policy` and `input_noise_std` ARE IN THIS SIGNATURE because
@@ -301,17 +301,17 @@ class NumpyExplicitEngine(ComputeEngine):
                 beta = tgt.beta_by_source.get(src_name, tgt.beta)
                 if beta != 0 and self.fiber_learning_allowed(src_name, target):
                     ix = xp.ix_(source_winners[src_name], winners)
-                    conn.weights[ix] *= (1 + beta)
+                    cast(Any, conn.weights)[ix] *= (1 + beta)
                     if self.w_max is not None:
-                        sub = conn.weights[ix]
+                        sub = cast(Any, conn.weights)[ix]
                         xp.clip(sub, 0, self.w_max, out=sub)
-                        conn.weights[ix] = sub
+                        cast(Any, conn.weights)[ix] = sub
 
         # Update state
         winners = xp.asarray(winners, dtype=xp.uint32)
         tgt.winners = winners
-        tgt.ever_fired[winners] = True
-        tgt.num_ever_fired = int(xp.sum(tgt.ever_fired))
+        cast(Any, tgt).ever_fired[winners] = True
+        tgt.num_ever_fired = int(xp.sum(cast(Any, tgt).ever_fired))
         tgt.w = len(winners)
 
         total_act = float(to_cpu(prev_winner_inputs[winners]).sum())
@@ -393,7 +393,7 @@ class NumpyExplicitEngine(ComputeEngine):
 
     def fix_assembly(self, area: str) -> None:
         st = self._areas[area]
-        if st.winners is None or (hasattr(st.winners, '__len__') and len(st.winners) == 0):
+        if st.winners is None or (hasattr(st.winners, '__len__') and len(cast(Any, st.winners)) == 0):
             raise ValueError(f"Area {area} has no winners to fix.")
         st.fixed_assembly = True
 

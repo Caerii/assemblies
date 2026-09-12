@@ -553,7 +553,9 @@ class NumpyExactEngine(ComputeEngine):
     def add_area(self, name: str, n: int, k: int, beta: float,
                  refractory_period: int = 0,
                  inhibition_strength: float = 0.0,
-                 winner_policy=None, **kwargs) -> None:
+                 winner_policy=None,
+                 input_noise_std: float = 0.0,
+                 *, slot_count: int = 0) -> None:
         """`winner_policy` selects the competition rule; None is plain k-WTA.
 
         SUPPORTED HERE, and it matters where it is supported. E%-WTA (Hoff et
@@ -575,11 +577,12 @@ class NumpyExactEngine(ComputeEngine):
         an RNG stream, and this engine deliberately has none -- that is what
         makes it reproducible by content-addressing rather than by seeding.
         """
-        validate_input_noise(kwargs.get("input_noise_std", 0))
+        validate_input_noise(input_noise_std)
         n, k = validate_area_registration(name, n, k, existing=self._areas, reserved=self._stimuli)
         _reject_unsupported(
             f"NumpyExactEngine.add_area({name!r})", self._UNSUPPORTED_AREA,
-            dict(kwargs, refractory_period=refractory_period,
+            dict(input_noise_std=input_noise_std, slot_count=slot_count,
+                 refractory_period=refractory_period,
                  inhibition_strength=inhibition_strength))
         area = ExactAreaState(name, n, k, beta)
         area.winner_policy = winner_policy
@@ -905,6 +908,7 @@ class NumpyExactEngine(ComputeEngine):
             cols = (None if (pot is None or beta == 0)
                     else pot.touched_cols(rows))
             if cols is not None:
+                assert pot is not None
                 sub = self._fiber_cells(src_name, target, rows, cols)
                 # Reduce in float32, not float64. The block is float32, so a
                 # float64 accumulator forces an upcast of every element on both
