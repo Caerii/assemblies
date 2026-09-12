@@ -7078,3 +7078,7 @@ Brain.engine now exposes the active ComputeEngine without requiring callers to d
 ## Private backend read cleanup (2026-09-12)
 
 Remaining direct primary-engine reads in batched next-token and morphosyntax callers now use Brain.engine; area-specific ownership remains explicit through the existing owner resolver. No compute behavior changed. Validation: Pyright on both migrated modules reports 0 diagnostics; backend and context-choice tests remain green.
+
+## Public mixed-engine owner resolver (2026-09-12)
+
+Brain.engine_for(name) now resolves the backend that owns a named area, preserving the dedicated explicit NumPy owner while keeping sparse areas on the primary engine. Morph-feature and ERP evaluation callers use the boundary; unknown names fail before backend access. Validation: backend plus context-observation suites 21 passed; Pyright on Brain and migrated evaluation modules reports 0 diagnostics.
