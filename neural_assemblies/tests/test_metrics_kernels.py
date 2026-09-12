@@ -63,6 +63,15 @@ class TestMetricKernels:
         assert recall_fraction([1, 2, 2], [2, 3]) == 0.5
         assert recall_fraction([], []) == 1.0
 
+    def test_set_metric_kernels_are_non_mutating(self):
+        observed = [1, 2, 2]
+        reference = [2, 3]
+        snapshot = (observed.copy(), reference.copy())
+        jaccard_similarity(observed, reference)
+        cosine_similarity(observed, reference)
+        recall_fraction(observed, reference)
+        assert (observed, reference) == snapshot
+
     def test_research_jaccard_helper_is_the_package_kernel(self):
         from research.experiments.base import measure_jaccard
 
