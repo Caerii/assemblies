@@ -5683,3 +5683,11 @@ diff checks pass.
 now surface immediately, so stability reports cannot claim successful replay
 when the learning contract failed. A constructed failing parser proves the
 negative path: **1 passed**. Ruff, compilation, and diff checks pass.
+
+### Emergent lexical readout failure propagation (2026-09-12)
+
+NEMO role blending no longer catches arbitrary exceptions from
+`_role_binding_margin` and converts them into zero lexical evidence. Undefined
+measurements still use the explicit `Measured.or_else(0.0)` path; real readout
+or state errors now surface. Role-margin and NEMO parser tests pass: **13
+passed**. Ruff, compilation, and diff checks pass.
