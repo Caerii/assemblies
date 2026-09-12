@@ -143,7 +143,7 @@ def grounding_modality_prior(
     scores = grounding_evidence_scores(ctx)
     if not scores:
         return "UNKNOWN", 0.0
-    cat = max(scores, key=scores.get)
+    cat = max(scores, key=lambda key: scores[key])
     return cat, signal_confidence(scores)
 
 
@@ -158,7 +158,7 @@ def fuse_category_scores(
                 combined[cat] += float(val) * weight
     if not combined:
         return "UNKNOWN", {}
-    best = max(combined, key=combined.get)
+    best = max(combined, key=lambda key: combined[key])
     return best, dict(combined)
 
 
@@ -221,7 +221,7 @@ def emergent_fuse_signals(
     if not combined:
         return "UNKNOWN", meta
 
-    best = max(combined, key=combined.get)
+    best = max(combined, key=lambda key: combined[key])
     total = sum(combined.values())
     fused = {cat: val / max(total, 1e-9) for cat, val in combined.items()}
     fused.update(meta)
@@ -339,10 +339,10 @@ def classify_word_bootstrapped(
     fused["_source"] = "bootstrap"
     fused["_neural"] = neural_cat
     fused["_grounding"] = (
-        max(ground_scores, key=ground_scores.get) if ground_scores else "UNKNOWN"
+        max(ground_scores, key=lambda key: ground_scores[key]) if ground_scores else "UNKNOWN"
     )
     if dist_scores:
-        fused["_distributional"] = max(dist_scores, key=dist_scores.get)
+        fused["_distributional"] = max(dist_scores, key=lambda key: dist_scores[key])
     fused["_confidence"] = signal_confidence(fused)
     return cat, fused
 
@@ -549,7 +549,7 @@ def decompose_word_classification(
         parser.classify_distributional(word) if dist_n > 0 else ("UNKNOWN", {})
     )
     ground_scores = grounding_evidence_scores(ctx)
-    prior_cat = max(ground_scores, key=ground_scores.get) if ground_scores else "UNKNOWN"
+    prior_cat = max(ground_scores, key=lambda key: ground_scores[key]) if ground_scores else "UNKNOWN"
     boot_cat, boot_scores = classify_word_bootstrapped(parser, word, ctx)
 
     pre = parser.dist_stats.word_as_pre_verb.get(word, 0)
@@ -657,7 +657,7 @@ def format_holdout_decomposition(decomp: Dict[str, object]) -> str:
         )
         if info.get("grounding_evidence"):
             ge = info["grounding_evidence"]
-            top = max(ge, key=ge.get)
+            top = max(ge, key=lambda key: ge[key])
             lines.append(f"    grounding_evidence top={top} ({ge[top]:.2f})")
         lines.append(
             f"    neural={info['neural_readout']} dist={info['distributional']} "

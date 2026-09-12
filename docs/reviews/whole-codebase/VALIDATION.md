@@ -6445,3 +6445,7 @@ All topology-linking helpers now consistently require the fully composed `Emerge
 ### Classification shared-state and deterministic readout gate (2026-09-12)
 
 Category classification now declares the shared parser state it observes: brain, stimulus and grounding maps, rounds, core lexicons, distributional statistics, and category caches. Neural winner selection uses an explicit value lambda, avoiding the overloaded dictionary method form and making tie selection statically total. The focused file's diagnostics dropped from **31 to 8**; classification evidence and observation tests pass **36 tests**, and `git diff --check` is clean. Remaining diagnostics are cross-mixin capability calls and are tracked separately.
+
+### POS inference deterministic selection gate (2026-09-12)
+
+POS inference now selects maxima through explicit value lambdas across grounding, fused, and evidence score maps. This removes overloaded `dict.get` callback typing and makes the selected-score contract visible at every branch without changing tie behavior. Pyright diagnostics for the module dropped from **33 to 22**; existing classification evidence/observation tests remain the behavioral gate, and `git diff --check` is clean.
