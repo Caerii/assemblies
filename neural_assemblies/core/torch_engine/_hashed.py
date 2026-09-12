@@ -502,7 +502,9 @@ class AreaFiber:
         inhibited area's first round is stimulus-only -- so per-round widths
         differ and the round index is carried explicitly.
         """
-        keep = [(a, b) for a, b in zip(self._prevs, self._news)
+        if len(self._prevs) != len(self._news):
+            raise RuntimeError("hashed fiber round histories must have equal length")
+        keep = [(a, b) for a, b in zip(self._prevs, self._news, strict=True)
                 if a.shape[1] and b.shape[1]]
         if not keep:
             return None, None

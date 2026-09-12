@@ -6080,3 +6080,6 @@ Candidate pricing now rejects mismatched `input_sizes`/`src_pops`, and pooled-bi
 ### Virtual-weight batch alignment gate (2026-09-12)
 
 The virtual-weight override batch now rejects unequal row/column batch lists before constructing writes, and all grouped row/column/value loops are strict. The integration suite passes **3 tests plus 10 subtests**; the focused B905/F scan is clean.
+### Hashed fiber round-history gate (2026-09-12)
+
+The hashed Torch fiber emitter now rejects mismatched previous/new round histories before filtering empty rounds. This preserves the one-to-one round provenance required by its GEMM emission path. Engine reachability and hashed parity suites pass **16 tests with 2 optional skips**; B905/F is clean.
