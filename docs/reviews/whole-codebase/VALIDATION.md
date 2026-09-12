@@ -5195,6 +5195,15 @@ single string while storing the whole sentence, obscuring the context needed
 to distinguish otherwise identical probes. The replay module is Pyright-clean
 and bootstrap checks pass: **9 passed**.
 
+### Context accumulation pair normalization (2026-09-11)
+
+`accumulate_context` now unpacks each `(phon_stimulus, core_area)` pair while
+normalizing the caller's sequence, rather than copying arbitrary tuple lengths
+into the plan. Malformed schedules therefore fail at the operation boundary,
+and the resulting plan has the exact pair shape its executor consumes. All
+top-level assembly-calculus modules are Pyright-clean; consolidation checks
+pass: **12 passed**.
+
 ### PFA/FSM construction boundary (2026-09-11)
 
 PFA and FSM constructors now canonicalize state and symbol collections to

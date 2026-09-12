@@ -509,8 +509,11 @@ def accumulate_context(
     Returns:
         Final context assembly after processing all words.
     """
+    normalized_steps = tuple(
+        (phon_stimulus, core_area) for phon_stimulus, core_area in word_steps
+    )
     plan = ContextAccumulationPlan(
-        tuple(tuple(step) for step in word_steps),
+        normalized_steps,
         context_area,
         None if core_assemblies is None else tuple(core_assemblies),
         rounds,
