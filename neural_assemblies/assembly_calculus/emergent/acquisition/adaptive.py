@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import random
 from dataclasses import dataclass, field
-from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING
+from typing import Dict, List, Optional, Sequence, Set, Tuple, TYPE_CHECKING, cast
 
 from ..core.grounding import GroundingContext
 from ..core.sentence import GroundedSentence
@@ -199,7 +199,7 @@ def build_remedial_sentences(
             for w in words
         ]
         if roles is None:
-            roles = [None] * len(words)
+            roles = cast(List[Optional[str]], [None] * len(words))
         sentences.append(GroundedSentence(words=words, contexts=contexts, roles=roles))
 
     for target in targets:
@@ -372,7 +372,10 @@ def apply_adaptive_plan(
         sentences_trained = result.sentences_trained
         phases_run.extend(result.phases_run)
 
-    accuracy_after = trainer._evaluate_classification(stage_words) if stage_words else 0.0
+    accuracy_after = (
+        trainer._evaluate_classification(list(stage_words))
+        if stage_words else 0.0
+    )
 
     return RemediationResult(
         stage=reflection.stage,

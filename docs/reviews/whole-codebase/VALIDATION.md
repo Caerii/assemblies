@@ -6327,3 +6327,7 @@ The `implements` decorator now casts to the callable-with-contract protocol befo
 ### Progress sink override gate (2026-09-12)
 
 The no-op training progress sink now preserves the base `_emit(level, message)` parameter names, removing an incompatible override that made the public progress abstraction fail static checking. Pyright reports **0 diagnostics** for the module; Ruff F/E9 and `git diff --check` are clean.
+
+### Adaptive acquisition typing gate (2026-09-12)
+
+The adaptive remediation path now makes its optional role vector's type explicit and converts the stage-word sequence at the list-based evaluator boundary. This removes the remaining Pyright diagnostics in the module without changing its training schedule. Pyright reports **0 diagnostics**; the focused adaptive acquisition tests pass **3 tests**, and Ruff F/E9 plus `git diff --check` are clean.
