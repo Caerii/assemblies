@@ -25,68 +25,91 @@ This sweeps arc SIZE at fixed content, so load M*k/n is the only thing moving.
 """
 from __future__ import annotations
 
-import os
 import random
-import sys
+from pathlib import Path
+from typing import Any
 
 import numpy as np
 
-from neural_assemblies.core.brain import Brain
+from neural_assemblies import Brain, describe_brain_model
 from neural_assemblies.programs.nemo_fsm import NemoArcFSM
 
-sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from seq_a2_word_order_fsm import (
+from research.experiments.seq_a2_word_order_fsm import (
     AMBIENT_P, BETA, K, N_STATE, ORDERS, ORGAN_P, PRESENTATIONS, SEEDS, STATES,
     order_correct, transitions_for,
 )
+from research.runner import experiment_parser, run_experiment
 
 N_ARCS = (5000, 2000, 1000, 500, 350)
 
 
-def build(seed, moods, n_arc):
+def build(seed, moods, n_arc, *, materialized=False, presentations=PRESENTATIONS):
     random.seed(seed)
-    np.random.seed(seed)
+    legacy_random: Any = np.random
+    legacy_random.seed(seed)
     brain = Brain(engine="numpy_sparse", p=AMBIENT_P, save_winners=True,
                   seed=seed, norm_init=False)
     fsm = NemoArcFSM(brain, states=list(STATES), symbols=list(moods),
                      transitions=transitions_for(moods), n=n_arc, k=K,
                      n_state=N_STATE, beta=BETA, organ_p=ORGAN_P,
                      prefix="_a2load")
-    if os.environ.get("NEMO_MATERIALIZE"):          # PREREG_sampler_audit.md
+    if materialized:                                # PREREG_sampler_audit.md
         brain.materialize_area(fsm.arc_area)
     fsm.train_from_list([(m, q, r) for q, m, r in transitions_for(moods)],
-                        presentations=PRESENTATIONS)
+                        presentations=presentations)
     return brain, fsm
 
 
-def main():
-    seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
+def experiment(record):
+    parameters = record["parameters"]
+    seeds = record["seeds"]
+    n_arcs = parameters["n_arcs"]
+    materialized = parameters["materialized"]
+    presentations = parameters["presentations"]
     rows = []
-    print("=== does refraction need LOAD to converge? ===")
-    print("    sweeping arc size at fixed content, so load M*k/n is the only "
-          "thing moving\n")
     for label, moods in (("single-mood (3 conjunctions)", ["svo"]),
                          ("multi-mood (9 conjunctions)", list(ORDERS))):
         m_count = len(transitions_for(moods))
-        print(f"  {label}")
-        for n_arc in N_ARCS:
-            ok = sum(order_correct(build(s, moods, n_arc)[1], moods[0])
+        for n_arc in n_arcs:
+            ok = sum(order_correct(build(
+                            s, moods, n_arc, materialized=materialized,
+                            presentations=presentations)[1], moods[0])
                      if len(moods) == 1
-                     else all(order_correct(build(s, moods, n_arc)[1], mm)
+                     else all(order_correct(build(
+                            s, moods, n_arc, materialized=materialized,
+                            presentations=presentations)[1], mm)
                               for mm in moods)
                      for s in seeds)
             load = m_count * K / n_arc
             rows.append({"arm": label, "n_arc": n_arc, "load": load,
                          "correct": ok, "n": len(seeds)})
-            print(f"    n_arc {n_arc:5d}  load {load:5.2f}  "
-                  f"{ok}/{len(seeds)} correct", flush=True)
-        print()
+            rows[-1]["materialized"] = materialized
+    return {"verdict": "VOID" if record["mode"] == "smoke" else "UNADOPTED",
+            "rows": rows, "scope": "refraction convergence versus arc load"}
 
-    from _results import write_result
-    out = write_result("sequence", "seq_a2_refraction_load_results"
-                       + ("_materialized" if os.environ.get("NEMO_MATERIALIZE") else "") + ".json",
-                       rows)
-    print(f"wrote {out}")
+
+def main(argv=None):
+    parser = experiment_parser(
+        __doc__ or "A2 refraction load sweep", engines=("numpy_sparse",),
+        default_seeds=tuple(SEEDS),
+    )
+    parser.add_argument("--materialized", action="store_true")
+    args = parser.parse_args(argv)
+    parameters = {"n_arcs": list(N_ARCS[:2] if args.smoke else N_ARCS),
+                  "ambient_p": AMBIENT_P, "organ_p": ORGAN_P, "k": K,
+                  "n_state": N_STATE, "beta": BETA,
+                  "presentations": 2 if args.smoke else PRESENTATIONS,
+                  "materialized": args.materialized, "norm_init": False}
+    path = run_experiment(
+        script=Path(__file__), protocol="sequence.a2-refraction-load",
+        protocol_version="2", registration="research/notes/sequence/PREREG_sampler_audit.md",
+        engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
+        parameters=parameters,
+        model_semantics=describe_brain_model("numpy_sparse", p=AMBIENT_P,
+                                             norm_init=False),
+        measure=experiment,
+    )
+    print(path)
 
 
 if __name__ == "__main__":
