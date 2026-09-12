@@ -56,12 +56,15 @@ from __future__ import annotations
 import json
 import os
 import sys
+from pathlib import Path
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ.setdefault("TRAIN_PROGRESS", "0")
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from neural_assemblies.assembly_calculus.emergent.curriculum.childes import (
     frequency_spectrum,
@@ -330,8 +333,7 @@ def main():
             results["phase1"] = phase1()
             print(json.dumps({k: v for k, v in results["phase1"].items()
                               if k != "per_seed"}, indent=2))
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(results, f, indent=2)
+    write_new_document(Path(OUT_PATH), results)
     print(f"-> {OUT_PATH}")
 
 

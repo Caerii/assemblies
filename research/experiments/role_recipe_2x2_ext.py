@@ -15,6 +15,9 @@ Run: python role_recipe_2x2_ext.py   (after role_recipe_2x2.py)
 from __future__ import annotations
 
 import json
+from pathlib import Path
+
+from research.json_documents import write_checkpoint_document
 
 from role_recipe_2x2 import OUT_PATH, SEEDS_SMALL, cell, mci
 
@@ -59,8 +62,7 @@ def main():
         analysis[f"interaction_ret_delta_n{n}"] = mci(ds)
 
     out = {"cells": cells, "ret_rows": ret_rows, "analysis": analysis}
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_checkpoint_document(Path(OUT_PATH), out)
     print(json.dumps(analysis, indent=2))
     print(f"-> {OUT_PATH}")
 

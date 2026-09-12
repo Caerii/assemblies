@@ -5620,3 +5620,11 @@ The CHILDES phase-one recipe, imbalance attribution, and dead-fiber census
 now publish fixed result artifacts through the exclusive writer. Registered
 computation and schemas are unchanged; overwrite attempts fail. Ruff,
 compilation, result-writer ratchets, and diff checks pass.
+
+### Checkpoint and graduation writer migrations (2026-09-12)
+
+The CHILDES graduation artifact now uses the exclusive writer. The competition
+and flush-rate studies, which intentionally support analyze-and-extend runs,
+now use atomic checkpoint replacement. The role-recipe extension likewise uses
+checkpoint semantics. No registered computation or output schema changed;
+Ruff, compilation, result-writer ratchets, and diff checks pass.
