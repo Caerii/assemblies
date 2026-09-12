@@ -38,7 +38,24 @@ def _train_lm(norm_init):
     return b, "LEX", vocab, corpus, stim_map, lex
 
 
-def test_batched_matches_sequential_top1():
+@pytest.fixture(scope="session")
+def trained_lm():
+    """Build the expensive CUDA language model once for this test module.
+
+    Each test mutates read-only/inhibition state, so callers clone the
+    checkpoint before exercising a path.  Re-training the identical 4-sentence
+    corpus per assertion paid the same GPU setup cost three times and made the
+    fast contract tier look like a research run.
+    """
+    return _train_lm(norm_init=True)
+
+
+def _fresh_lm(trained_lm):
+    b, area, vocab, corpus, stim_map, lex = trained_lm
+    return b.clone(), area, vocab, corpus, stim_map, lex
+
+
+def test_batched_matches_sequential_top1(trained_lm):
     # BatchedLM targets the production norm_init=True substrate. (The
     # norm_init=False path has documented engine quirks -- column-reuse / lazy
     # expansion effects that norm_init exists to fix -- which the clean dense
@@ -46,7 +63,7 @@ def test_batched_matches_sequential_top1():
     from neural_assemblies.assembly_calculus.next_token import predict_next_token
     from neural_assemblies.assembly_calculus.batched_next_token import BatchedLM
 
-    b, area, vocab, corpus, stim_map, lex = _train_lm(norm_init=True)
+    b, area, vocab, corpus, stim_map, lex = _fresh_lm(trained_lm)
 
     contexts = []
     for s in corpus:
@@ -93,7 +110,7 @@ def test_readonly_mode_prevents_materialization():
     assert len(b.areas["A"].winners) == 40
 
 
-def test_score_corpus_matches_reset_sequential():
+def test_score_corpus_matches_reset_sequential(trained_lm):
     # BatchedLM uses clean-start semantics per prediction (well-defined and
     # order-independent). next_token.score_corpus instead carries area state
     # between positions, so we compare against a reset-sequential reference
@@ -101,7 +118,7 @@ def test_score_corpus_matches_reset_sequential():
     from neural_assemblies.assembly_calculus.next_token import predict_next_token
     from neural_assemblies.assembly_calculus.batched_next_token import BatchedLM
 
-    b, area, vocab, corpus, stim_map, lex = _train_lm(norm_init=True)
+    b, area, vocab, corpus, stim_map, lex = _fresh_lm(trained_lm)
     b._engine.readonly = True
 
     total = seq_top1 = 0

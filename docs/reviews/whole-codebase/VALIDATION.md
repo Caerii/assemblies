@@ -7335,3 +7335,10 @@ The attractor training protocol now declares its actual seven-value return contr
 
 
 - Post-change maintained static gate: `scripts/verify_maintained.py --skip-tests` passed; Pyright analyzed 286 files with 0 errors.
+
+
+## 2026-09-12 CUDA next-token fixture reuse
+
+- `test_batched_next_token.py` now trains its identical CUDA language model once per worker session and clones the checkpoint for mutating assertions.
+- Focused validation: 3 passed with 2 expected PyTorch sparse warnings in 43.19s; the expensive training setup is paid once rather than once per assertion.
+- The clone preserves read-only and batched/sequential contracts while removing redundant GPU training from the fast-tier path.
