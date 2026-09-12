@@ -26,21 +26,20 @@ reference's null.
 """
 from __future__ import annotations
 
-import argparse
 import contextlib
 import os
 import random
-import sys
 import time
 from pathlib import Path
+from typing import Any
 
 import numpy as np
 
-from research.json_documents import write_new_document
+from research.runner import experiment_parser, run_experiment
 
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
-from neural_assemblies.core.brain import Brain
+from neural_assemblies import Brain, describe_brain_model
 from neural_assemblies.diagnostics import ensemble
 from neural_assemblies.programs.mod3_fsm import (
     ALL_STATES, DIGIT_SYMBOLS, build_mod3_fsm, run_digit_sequence,
@@ -78,7 +77,8 @@ def constant_refraction(enabled: bool):
 def build(seed, *, presentations=PRESENTATIONS, beta=BETA, strength=STRENGTH):
     """Train one mod-3 FSM. `strength=0` is the refraction-off null."""
     random.seed(seed)
-    np.random.seed(seed)
+    legacy_random: Any = np.random
+    legacy_random.seed(seed)
     # norm_init=False pins the reference's substrate: `FSMNetwork` defaults to
     # raw Bernoulli(p) weights, and norm_init exists to stop SELF-recurrence
     # collapsing -- which this organ has none of, both areas being feed-forward.
@@ -201,55 +201,18 @@ def summarize(arm):
     }
 
 
-def main():
-    ap = argparse.ArgumentParser()
-    ap.add_argument("--seeds", type=int, default=len(SEEDS))
-    ap.add_argument("--smoke", action="store_true",
-                    help="1 seed, 2 presentations: API check only, numbers VOID")
-    ap.add_argument("--p", type=float, default=None,
-                    help="connection probability; the state area's regime floor "
-                         "is 3 ln n_state / k = 0.266")
-    ap.add_argument("--out", default="research/experiments/seq_a1_fsm_parity_results.json")
-    args = ap.parse_args()
-
-    if args.p is not None:
-        globals()["P"] = args.p
-
-    if args.smoke:
-        print("SMOKE RUN -- checks API breakage only. Numbers are VOID.")
-        seeds, presentations = SEEDS[:1], 2
-    else:
-        seeds, presentations = SEEDS[:args.seeds], PRESENTATIONS
-
-    print(f"A1: mod-3 FSM through our Brain. n_arc={N_ARC} n_state={N_STATE} "
-          f"k={K} p={P} beta={BETA} presentations={presentations}")
-    print(f"    arc:   kp per fiber = {K * P:.0f}, both conjuncts = "
-          f"{2 * K * P:.0f}, floor 3 ln {N_ARC} = {3 * np.log(N_ARC):.1f}")
-    print(f"    state: afferent kp = {K * P:.0f}, "
-          f"floor 3 ln {N_STATE} = {3 * np.log(N_STATE):.1f}")
-
+def experiment(record):
+    seeds = record["seeds"]
+    presentations = record["parameters"]["presentations"]
     arms = []
-    print("\n  [main] refraction on, drive-proportional")
     arms.append(run_arm("main", seeds, presentations=presentations))
-    print("\n  [null] refraction OFF -- must FAIL, or the result is void")
     arms.append(run_arm("null", seeds, presentations=presentations, strength=0.0))
-    print("\n  [degen] zero presentations")
     arms.append(run_arm("degen_untrained", seeds, presentations=0))
-    print("\n  [degen] beta = 0")
     arms.append(run_arm("degen_beta0", seeds, presentations=presentations, beta=0.0))
-    print("\n  [A/B] constant-increment refraction rule")
     arms.append(run_arm("constant_rule", seeds, constant=True,
                         presentations=presentations))
 
     summaries = [summarize(a) for a in arms]
-    print("\n=== SUMMARY ===")
-    print(f"  {'arm':<18s} {'decided':>9s} {'across-state':>13s} "
-          f"{'across-symbol':>14s} {'state-asm ov':>13s} {'max w':>8s}")
-    for s in summaries:
-        print(f"  {s['arm']:<18s} {s['decided']:>6d}/{s['n']:<2d} "
-              f"{s['across_state']:>13.3f} {s['across_symbol']:>14.3f} "
-              f"{s['state_assembly_overlap']:>13.3f} {s['max_weight']:>8.2f}")
-
     main_s = summaries[0]
     null_s = summaries[1]
     n = main_s["n"]
@@ -265,27 +228,33 @@ def main():
                    and null_s["across_symbol"] > 0.5),
         "P-DEGEN": all(s["decided"] <= 0.2 * n for s in summaries[2:4]),
     }
-    print("\n=== BARS ===")
-    for bar, ok in verdicts.items():
-        print(f"  {bar:<8s} {'PASS' if ok else 'FAIL'}")
-    if null_s["decided"] >= 0.8 * n:
-        print("\n  *** VOID: the null arm passed P-GOLD. Refraction is not what "
-              "is carrying the result. ***")
-    if not verdicts["P-PRE"]:
-        print("\n  *** P-GOLD is VOID: state assemblies overlap above 0.05, so "
-              "the nearest-overlap readout is confounded. ***")
+    return {"verdict": "VOID" if record["mode"] == "smoke" else (
+                "PASS" if all(verdicts.values()) else "FAIL"),
+            "summaries": summaries, "arms": arms, "verdicts": verdicts,
+            "scope": "A1 mod-3 transition organ parity and causal nulls"}
 
-    write_new_document(Path(args.out), {
-        "summaries": summaries, "arms": arms,
-        "verdicts": verdicts,
-        "params": {"n_arc": N_ARC, "n_state": N_STATE, "k": K,
-                   "p": P, "beta": BETA,
-                   "presentations": presentations,
-                   "strength": STRENGTH},
-    })
-    print(f"\nwrote {args.out}")
+
+def main(argv=None):
+    parser = experiment_parser(
+        __doc__ or "A1 transition organ parity study",
+        engines=("numpy_sparse",), default_seeds=SEEDS,
+    )
+    args = parser.parse_args(argv)
+    presentations = 2 if args.smoke else PRESENTATIONS
+    parameters = {"n_arc": N_ARC, "n_state": N_STATE, "k": K, "p": P,
+                  "beta": BETA, "presentations": presentations,
+                  "strength": STRENGTH, "norm_init": False}
+    path = run_experiment(
+        script=Path(__file__), protocol="sequence.a1-fsm-parity",
+        protocol_version="2", registration="research/notes/sequence/PREREG_seq_a1_fsm_parity.md",
+        engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
+        parameters=parameters,
+        model_semantics=describe_brain_model("numpy_sparse", p=P, norm_init=False),
+        measure=experiment,
+    )
+    print(path)
     return 0
 
 
 if __name__ == "__main__":
-    sys.exit(main())
+    raise SystemExit(main())

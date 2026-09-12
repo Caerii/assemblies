@@ -24,6 +24,7 @@ them.
 | memory | `refraction_memory_numpy.py` | the same protocol on the numpy engine, 5 brains | `python -m research.runner refraction-memory-numpy --tag UNIQUE` (~10 min) |
 | sequence | `seq_a1_horizon_hashed.py` | the mod-3 machine's horizon at width, paired to the numpy seeds | `python -m research.runner a1-horizon --tag UNIQUE` (20 seeds by default) |
 | sequence | `seq_a1_learning_null.py` | preregistered paired sensitivity control, beta/strength disabled | `python -m research.runner a1-learning-null --tag UNIQUE` |
+| sequence | `seq_a1_fsm_parity.py` | Brain-level A1 parity, conjunction separation, and refraction/null controls | `python -m research.runner a1-fsm-parity --tag UNIQUE` (10 seeds by default) |
 | sequence | `seq_temporal_positions.py` | corrected position-specific temporal representation with a state-blind negative | `python -m research.runner temporal-positions --tag UNIQUE` (fixed seeds 82..101); add `--smoke --seeds 1 2 3` only for VOID API checks |
 | sequence | `seq_tm_high_order.py` | induced-state, previous-arc-copy, and predicted-win controls on order-2 through order-10 chains | `python -m research.runner temporal-memory-high-order --tag UNIQUE` (20 seeds by default); add `--smoke --seeds 1 2 3` only for a VOID API check |
 | sequence | `seq_s5_soft_census_hashed.py` | soft transitions in the word-problem organs at width | `--seeds 100 --groups S5 --presentations 20`, ~6 min |
