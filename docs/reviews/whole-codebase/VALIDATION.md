@@ -6116,3 +6116,6 @@ NEMO grounded sentence presentation now rejects word/context or word/role cardin
 ### NEMO learned-strength alignment gate (2026-09-12)
 
 Emergent NEMO learned-strength readout now uses strict destination/delta pairing for the active learned edge range. Corrupt storage lengths cannot silently undercount connection strength. Focused B905/F scan is clean; runtime coverage remains optional-CuPy gated.
+### NEMO positional-role coverage gate (2026-09-12)
+
+The legacy NEMO learner no longer truncates sentences longer than three words when default roles are synthesized. It now pads unannotated trailing tokens with `None`, requires supplied role vectors to match exactly, and strictly pairs every word with its role. Learned-edge strength readout is strict as well. B905/F is clean; runtime coverage remains optional-CuPy gated.

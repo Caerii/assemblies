@@ -436,16 +436,16 @@ class NemoLanguageLearner:
         
         # Default roles based on position (SVO)
         if roles is None:
-            if len(words) == 2:
-                roles = ['SUBJ', 'VERB']
-            elif len(words) >= 3:
-                roles = ['SUBJ', 'VERB', 'OBJ']
-            else:
-                roles = ['SUBJ']
+            positional = {1: ['SUBJ'], 2: ['SUBJ', 'VERB']}
+            roles = positional.get(len(words), ['SUBJ', 'VERB', 'OBJ'][:len(words)])
+            roles = roles + [None] * (len(words) - len(roles))
+        elif len(words) != len(roles):
+            raise ValueError("words and roles must have equal length")
         
-        # Present each word with role binding
+        # Present each word with role binding. Extra words remain part of the
+        # experience even when they have no positional role annotation.
         prev_role = None
-        for word, role in zip(words, roles):
+        for word, role in zip(words, roles, strict=True):
             # Present word with grounding (this projects to correct Lex area)
             self.present_grounded_word(word, context, learn=learn)
             
@@ -520,7 +520,7 @@ class NemoLanguageLearner:
             # Sum weights for neurons that are in the winner set
             winners_set = set(winners.get().tolist())
             activation = 0.0
-            for dst, delta in zip(dst_arr, delta_arr):
+            for dst, delta in zip(dst_arr, delta_arr, strict=True):
                 if dst in winners_set:
                     activation += 1.0 + delta  # Base weight + learned delta
             
