@@ -62,6 +62,7 @@ class TorchOps(Protocol):
     ones: TensorCall
     ones_like: TensorCall
     rand: Callable[..., Any]
+    randn: TensorCall
     randperm: TensorCall
     unique: TensorCall
     clamp: TensorCall

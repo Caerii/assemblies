@@ -9,16 +9,16 @@ Learns words through linguistic context only:
 Uses PyTorch CUDA for fast iteration.
 """
 
-import torch
-import numpy as np
 import time
-from typing import Dict, List, Optional, Tuple, Set
 from collections import defaultdict
+from typing import Any, Dict, List, Optional, Set, Tuple
 
-# Check CUDA availability
-assert torch.cuda.is_available(), "CUDA required for GPU learner"
-DEVICE = torch.device('cuda')
-print(f"Using GPU: {torch.cuda.get_device_name()}")
+import numpy as np
+from neural_assemblies.core._torch_ops import torch_ops
+
+assert torch_ops.cuda.is_available(), "CUDA required for GPU learner"
+DEVICE = torch_ops.device("cuda")
+print(f"Using GPU: {torch_ops.cuda.get_device_name()}")
 
 
 class GPULanguageBrain:
@@ -77,10 +77,10 @@ class GPULanguageBrain:
         }
         
         # Current activations per area
-        self.activations: Dict[str, torch.Tensor] = {}
+        self.activations: Dict[str, Any] = {}
         
         # Word -> neuron indices mapping
-        self.word_to_neurons: Dict[str, torch.Tensor] = {}
+        self.word_to_neurons: Dict[str, Any] = {}
         self.neuron_to_word: Dict[int, str] = {}  # For LEX area
         
         # Learned statistics
@@ -95,16 +95,16 @@ class GPULanguageBrain:
             mem_mb = sum(w.numel() * 4 for w in self.connections.values()) / 1e6
             print(f"  GPU Memory: {mem_mb:.1f} MB")
     
-    def _init_weights(self) -> torch.Tensor:
+    def _init_weights(self) -> Any:
         """Initialize weight matrix with small random values"""
-        W = torch.randn(self.n, self.n, device=DEVICE) * 0.01
+        W = torch_ops.randn(self.n, self.n, device=DEVICE) * 0.01
         return W
     
-    def _get_or_create_word_assembly(self, word: str) -> torch.Tensor:
+    def _get_or_create_word_assembly(self, word: str) -> Any:
         """Get or create a random assembly for a word in LEX"""
         if word not in self.word_to_neurons:
             # Create random assembly
-            indices = torch.randperm(self.n, device=DEVICE)[:self.k]
+            indices = torch_ops.randperm(self.n, device=DEVICE)[:self.k]
             self.word_to_neurons[word] = indices
             
             # Store reverse mapping
@@ -113,37 +113,37 @@ class GPULanguageBrain:
         
         return self.word_to_neurons[word]
     
-    def activate_word(self, word: str) -> torch.Tensor:
+    def activate_word(self, word: str) -> Any:
         """Activate a word's assembly in LEX area"""
         indices = self._get_or_create_word_assembly(word)
         
         # Create activation vector
-        activation = torch.zeros(self.n, device=DEVICE)
+        activation = torch_ops.zeros(self.n, device=DEVICE)
         activation[indices] = 1.0
         
         self.activations['LEX'] = activation
         return indices
     
-    def project(self, src_area: str, dst_area: str, learn: bool = True) -> torch.Tensor:
+    def project(self, src_area: str, dst_area: str, learn: bool = True) -> Any:
         """Project activation from src to dst area"""
         key = (src_area, dst_area)
         if key not in self.connections:
-            return torch.zeros(self.n, device=DEVICE)
+            return torch_ops.zeros(self.n, device=DEVICE)
         
         W = self.connections[key]
         src_act = self.activations.get(src_area)
         
         if src_act is None:
-            return torch.zeros(self.n, device=DEVICE)
+            return torch_ops.zeros(self.n, device=DEVICE)
         
         # Simple matrix-vector multiply (GPU handles this efficiently)
         input_to_dst = W @ src_act
         
         # Winner-take-all: top-k neurons
-        _, winners = torch.topk(input_to_dst, self.k)
+        _, winners = torch_ops.topk(input_to_dst, self.k)
         
         # Create new activation
-        new_act = torch.zeros(self.n, device=DEVICE)
+        new_act = torch_ops.zeros(self.n, device=DEVICE)
         new_act[winners] = 1.0
         
         # Hebbian learning
@@ -155,10 +155,10 @@ class GPULanguageBrain:
         self.activations[dst_area] = new_act
         return winners
     
-    def project_multiple(self, src_areas: List[str], dst_area: str, learn: bool = True) -> torch.Tensor:
+    def project_multiple(self, src_areas: List[str], dst_area: str, learn: bool = True) -> Any:
         """Project from multiple source areas to one destination"""
         # Accumulate inputs
-        total_input = torch.zeros(self.n, device=DEVICE)
+        total_input = torch_ops.zeros(self.n, device=DEVICE)
         
         for src_area in src_areas:
             key = (src_area, dst_area)
@@ -172,10 +172,10 @@ class GPULanguageBrain:
                 total_input += W @ src_act
         
         # Winner-take-all
-        _, winners = torch.topk(total_input, self.k)
+        _, winners = torch_ops.topk(total_input, self.k)
         
         # Create new activation
-        new_act = torch.zeros(self.n, device=DEVICE)
+        new_act = torch_ops.zeros(self.n, device=DEVICE)
         new_act[winners] = 1.0
         
         # Hebbian learning for all sources
@@ -223,7 +223,7 @@ class GPULanguageBrain:
         """Clear all activations"""
         self.activations.clear()
     
-    def compute_overlap(self, indices1: torch.Tensor, indices2: torch.Tensor) -> float:
+    def compute_overlap(self, indices1: Any, indices2: Any) -> float:
         """Compute overlap between two assemblies"""
         set1 = set(indices1.cpu().numpy())
         set2 = set(indices2.cpu().numpy())
@@ -459,7 +459,7 @@ class GPULanguageLearner:
         for epoch in range(n_epochs):
             # Shuffle sentences each epoch
             sentences = self.training_sentences.copy()
-            np.random.shuffle(sentences)
+            getattr(np.random, "shuffle")(sentences)
             
             for sentence in sentences:
                 self.brain.clear_activations()
@@ -579,7 +579,7 @@ class GPULanguageLearner:
         
         return accuracy
     
-    def generate_sentence(self, start_words: List[str] = None, max_length: int = 6) -> str:
+    def generate_sentence(self, start_words: Optional[List[str]] = None, max_length: int = 6) -> str:
         """
         Generate a grammatical sentence starting from given words.
         Uses strict POS constraints to ensure grammaticality.
@@ -639,7 +639,7 @@ class GPULanguageLearner:
             
             # Check if we can end
             can_end = any(pos is None for pos, _ in allowed)
-            if can_end and len(sentence) >= 3 and np.random.random() < 0.4:
+            if can_end and len(sentence) >= 3 and getattr(np.random, "random")() < 0.4:
                 break
             
             # Filter to non-None transitions
@@ -702,7 +702,7 @@ class GPULanguageLearner:
             scores = np.array(scores) + 0.01
             probs = scores / scores.sum()
             
-            idx = np.random.choice(len(words), p=probs)
+            idx = getattr(np.random, "choice")(len(words), p=probs)
             next_word = words[idx]
             next_pos = poses[idx]
             state = next_states[idx]
@@ -781,8 +781,8 @@ def main():
     print(f"  Sentences seen: {learner.sentences_seen}")
     
     # GPU memory
-    mem_allocated = torch.cuda.memory_allocated() / 1e6
-    mem_reserved = torch.cuda.memory_reserved() / 1e6
+    mem_allocated = torch_ops.cuda.memory_allocated() / 1e6
+    mem_reserved = torch_ops.cuda.memory_reserved() / 1e6
     print(f"  GPU memory: {mem_allocated:.1f} MB allocated, {mem_reserved:.1f} MB reserved")
     
     # Speed test
@@ -793,12 +793,12 @@ def main():
     # Time how many sentences we can process
     test_sentences = learner.training_sentences * 20
     
-    torch.cuda.synchronize()
+    torch_ops.cuda.synchronize()
     start = time.perf_counter()
     for s in test_sentences:
         learner.brain.clear_activations()
         learner.process_sentence(s, learn=False, verbose=False)  # Inference only
-    torch.cuda.synchronize()
+    torch_ops.cuda.synchronize()
     elapsed = time.perf_counter() - start
     
     print(f"  Inference: {len(test_sentences)} sentences in {elapsed:.3f}s")
