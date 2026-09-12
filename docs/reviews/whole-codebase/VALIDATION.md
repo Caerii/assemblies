@@ -7423,3 +7423,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Centralized the repeated `(first, tail, ..., tail)` schedule rule used by projection, reciprocal projection, merge, and completion plans.
 - This removes duplicated schedule assembly logic while preserving the immutable `ProjectionStep` representation.
 - Validation: 181 focused tests passed; `pyright neural_assemblies/assembly_calculus/contracts.py` reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 first-class IR program composition
+
+- Added immutable `ExplicitProgram` composition for ordered `ExplicitRound` values, with associative `then`, identity, canonical document round-trip, and construction-time type validation.
+- Linked the implementation to `VERIFICATION.md#contract-explicit-program` and documented the backend-proof boundary in `ir/README.md`.
+- Validation: projection IR plus specification-link tests passed (51 tests); Pyright reported 0 errors; `git diff --check` passed.

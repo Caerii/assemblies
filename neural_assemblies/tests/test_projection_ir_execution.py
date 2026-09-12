@@ -6,13 +6,36 @@ import numpy as np
 import pytest
 
 from neural_assemblies.core.numpy_engine import NumpyExplicitEngine
-from neural_assemblies.ir import ExplicitRound, validate_explicit_round_document
+from neural_assemblies.ir import ExplicitProgram, ExplicitRound, validate_explicit_round_document
 from neural_assemblies.ir.protocol import schema_path
 
 
 EXPLICIT_ROUND_CASES = json.loads(
     schema_path("explicit-round.cases.json").read_text(encoding="utf-8")
 )
+
+
+def test_program_composition_is_associative_and_roundtrip_canonical():
+    a = ExplicitProgram((ExplicitRound("T", ("S",), False),))
+    b = ExplicitProgram((ExplicitRound("T", ("T",), True),))
+    c = ExplicitProgram((ExplicitRound("T", (), False, (1, 2, 3, 4)),))
+
+    left = a.then(b).then(c)
+    right = a.then(b.then(c))
+    assert left == right
+    assert ExplicitProgram.from_documents(left.to_documents()) == left
+    exported = left.to_documents()
+    exported[0]["target"] = "mutated"
+    assert left.to_documents()[0]["target"] == "T"
+
+
+def test_program_rejects_mutable_or_mixed_round_inputs():
+    with pytest.raises(TypeError, match="tuple"):
+        ExplicitProgram([ExplicitRound("T", ("S",), False)])
+    with pytest.raises(TypeError, match="ExplicitRound"):
+        ExplicitProgram((object(),))
+    with pytest.raises(TypeError, match="another ExplicitProgram"):
+        ExplicitProgram().then(object())
 
 
 @pytest.mark.parametrize("case", EXPLICIT_ROUND_CASES, ids=lambda case: case["name"])

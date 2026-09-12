@@ -142,3 +142,40 @@ class ExplicitRound:
         finally:
             brain.disable_plasticity = saved
         return brain.areas[self.target].winners.copy()
+
+
+@dataclass(frozen=True)
+class ExplicitProgram:
+    """Immutable composition of explicit rounds.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-explicit-program
+
+    A program is only an ordered value until a backend chooses to execute it.
+    Keeping composition here makes order and round validation inspectable and
+    prevents callers from mutating a list after it has been checked.
+    """
+
+    rounds: tuple[ExplicitRound, ...] = ()
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.rounds, tuple):
+            raise TypeError("program rounds must be a tuple")
+        if any(not isinstance(round_, ExplicitRound) for round_ in self.rounds):
+            raise TypeError("program rounds must contain ExplicitRound values")
+
+    def then(self, other: "ExplicitProgram") -> "ExplicitProgram":
+        """Compose programs in execution order, preserving both sequences."""
+        if not isinstance(other, ExplicitProgram):
+            raise TypeError("program composition requires another ExplicitProgram")
+        return ExplicitProgram(self.rounds + other.rounds)
+
+    def to_documents(self) -> tuple[dict, ...]:
+        """Return canonical wire documents without exposing mutable state."""
+        return tuple(round_.to_document() for round_ in self.rounds)
+
+    @classmethod
+    def from_documents(cls, documents) -> "ExplicitProgram":
+        """Validate and decode every round before constructing the program."""
+        if not isinstance(documents, (tuple, list)):
+            raise TypeError("program documents must be a sequence")
+        return cls(tuple(ExplicitRound.from_document(document) for document in documents))

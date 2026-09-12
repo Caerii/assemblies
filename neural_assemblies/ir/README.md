@@ -80,6 +80,12 @@ transport validation is not a Rust execution backend. Unknown features are error
 See the [profile contract](VERIFICATION.md#contract-explicit-round) for numerical
 semantics, constructed controls, and the remaining Lean/backend bridge.
 
+Compose validated rounds with `ExplicitProgram`: `program.then(next_program)`
+preserves order and returns a new immutable program. Use
+`program.to_documents()` and `ExplicitProgram.from_documents(...)` for the
+canonical transport boundary; this composition layer does not itself claim a
+backend execution or numerical refinement proof.
+
 For a Brain, call `instruction.execute_on_brain(brain)` instead of passing its
 private engine to `execute`. This uses normal projection synchronization and
 history, supports primary or auxiliary dense areas, and returns a detached winner

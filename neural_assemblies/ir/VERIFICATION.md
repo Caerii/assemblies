@@ -540,6 +540,18 @@ remain open.
 AssemblyIR.Projection` independently checks the compiled declarations.
 
 
+<a id="contract-explicit-program"></a>
+
+## Explicit program composition
+
+`ExplicitProgram` is the Python IR value for a finite ordered composition of
+`ExplicitRound` instructions. Its `then` operation is associative because it
+concatenates immutable round tuples; the empty program is the identity. The
+class validates every round at construction and exposes canonical documents
+only through fresh values. These are construction guarantees. Execution and
+backend refinement remain obligations of the selected lowering.
+
+
 <a id="contract-formal-round-wire"></a>
 
 ## Formal explicit-round wire admission
