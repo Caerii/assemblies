@@ -195,7 +195,7 @@ class StatisticalEngine:
         samples = mu + _scipy_stats().truncnorm.rvs(a, np.inf, scale=std, size=k)
         
         # Round to integers and clamp to valid range
-        rounded_samples = samples.round(0).astype(int)
+        rounded_samples = np.asarray(samples).round(0).astype(int)
         
         # Ensure no samples exceed total_k (theoretical maximum)
         rounded_samples = np.minimum(rounded_samples, total_k)
