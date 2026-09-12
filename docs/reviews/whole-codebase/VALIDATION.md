@@ -6626,3 +6626,10 @@ eural_assemblies without eagerly importing the research stack. Lazy-import contr
 ## 2026-09-12 — sparse operation boundary cleanup
 
 - Made sparse winner selection, virtual-weight access, candidate-stream bookkeeping, and homeostatic setpoints explicit at their backend boundaries. NumpySparseEngine Pyright: 0 diagnostics. Projection, cross-engine, CSR, fingerprint, conformance, and IR execution tests: 123 passed, 13 warnings in 30.17s. The full non-GPU suite was started but interrupted after unrelated long-running coverage; no result is claimed for that incomplete run.
+
+
+## Contract and backend boundary audit (2026-09-12)
+
+The operation-contract, specification-link, and index-space suites pass **186 tests**. Ruff reports no violations across `neural_assemblies/core` and `neural_assemblies/assembly_calculus`. Torch GPU parity passes **32 tests**; hashed substrate parity passes **2 tests with 24 expected skips** where the fused environment is unavailable.
+
+A Protocol-backed runtime alias for PyTorch was trialled and reverted: it preserved ordinary calls in one module but made existing `torch.Tensor` annotations and sparse namespace access invalid across the package. No compatibility layer was committed. The sampled SENTENCES ERP calibration still produces the documented inverted `p600_auc = 0.000` diagnostic; no threshold or test bar was weakened.
