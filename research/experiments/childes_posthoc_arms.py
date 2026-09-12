@@ -35,6 +35,9 @@ import os
 import random
 import statistics as st
 import sys
+from pathlib import Path
+
+from research.json_documents import write_new_document
 
 sys.path.insert(0, os.path.dirname(__file__))
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
@@ -90,7 +93,7 @@ def run_arm(n: int, out_name: str):
            "buckets": {b: st.mean(v) for b, v in buckets.items()},
            "per_seed": {"sg": sgs, "pl": pls, "f1": f1}}
     path = os.path.join(os.path.dirname(__file__), out_name)
-    json.dump(out, open(path, "w", encoding="utf-8"), indent=2)
+    write_new_document(Path(path), out)
     print(json.dumps({k: out[k] for k in ("sg", "pl", "F1", "buckets")},
                      indent=2))
 

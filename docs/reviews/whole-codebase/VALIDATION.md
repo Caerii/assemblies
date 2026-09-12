@@ -5351,6 +5351,15 @@ writes. The immutable result writer remains separate and exclusive. Capacity,
 recruitment, storage, and ratchet checks pass: **35 passed**; Ruff and
 compilation are clean.
 
+### CHILDES post-hoc arms writer migration (2026-09-12)
+
+The labeled post-hoc D/E arms now publish their fixed JSON artifacts through
+the canonical finite, exclusive writer while retaining their arm-specific
+filenames and stdout summaries. This preserves the distinction between
+post-hoc evidence and registered results while preventing accidental
+replacement. Compilation, Ruff, and both result-writer ratchets pass:
+**2 passed**.
+
 ### Result-writer bypass ratchet expansion (2026-09-12)
 
 The maintained experiment ratchet now detects both direct `json.dump` calls
