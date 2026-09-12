@@ -5308,3 +5308,11 @@ The theorem-regime study now emits its result artifact through the shared
 finite, exclusive `write_new_document` boundary. Computation, output path, and
 payload schema are unchanged, and its direct-write ratchet exception is
 removed. Compilation, Ruff, and the result-writer ratchet pass: **1 passed**.
+
+### A1 FSM parity writer migration (2026-09-12)
+
+The A1 FSM parity CLI now writes its configurable `--out` artifact through
+the shared finite, exclusive `write_new_document` boundary. Its command-line
+surface, output path selection, and payload schema are unchanged; the final
+sequence-family direct-write ratchet exception is removed. Compilation, Ruff,
+and the result-writer ratchet pass: **1 passed**.

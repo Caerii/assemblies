@@ -28,13 +28,15 @@ from __future__ import annotations
 
 import argparse
 import contextlib
-import json
 import os
 import random
 import sys
 import time
+from pathlib import Path
 
 import numpy as np
+
+from research.json_documents import write_new_document
 
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
@@ -273,14 +275,14 @@ def main():
         print("\n  *** P-GOLD is VOID: state assemblies overlap above 0.05, so "
               "the nearest-overlap readout is confounded. ***")
 
-    with open(args.out, "w") as fh:
-        json.dump({"summaries": summaries, "arms": arms,
-                   "verdicts": verdicts,
-                   "params": {"n_arc": N_ARC, "n_state": N_STATE, "k": K,
-                              "p": P, "beta": BETA,
-                              "presentations": presentations,
-                              "strength": STRENGTH}},
-                  fh, indent=2)
+    write_new_document(Path(args.out), {
+        "summaries": summaries, "arms": arms,
+        "verdicts": verdicts,
+        "params": {"n_arc": N_ARC, "n_state": N_STATE, "k": K,
+                   "p": P, "beta": BETA,
+                   "presentations": presentations,
+                   "strength": STRENGTH},
+    })
     print(f"\nwrote {args.out}")
     return 0
 
