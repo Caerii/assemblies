@@ -5555,3 +5555,10 @@ observations through `write_checkpoint_document`. Its existing reference read,
 arm/budget keys, and interaction analysis remain unchanged, while raw JSON
 overwrite is replaced by atomic checkpoint publication. Compilation, Ruff,
 and both result-writer ratchets pass: **2 passed**.
+### Split-architecture 2x2 checkpoint migration (2026-09-12)
+
+The analyze-later split-architecture comparison now persists its keyed
+observations through `write_checkpoint_document`. Its corpus/budget arms,
+cross-architecture references, and analysis remain unchanged, while raw JSON
+overwrite is replaced by atomic checkpoint publication. Compilation, Ruff,
+and both result-writer ratchets pass: **2 passed**.
