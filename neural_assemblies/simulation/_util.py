@@ -8,6 +8,7 @@ live here now, with the Python 2 ``xrange`` fixed.
 from __future__ import annotations
 
 import pickle
+from collections.abc import Collection, Hashable
 from typing import Sequence
 
 
@@ -22,26 +23,34 @@ def sim_load(file_name):
         return pickle.load(f)
 
 
-def intersection_count(a, b) -> int:
+def intersection_count(a: Collection[Hashable], b: Collection[Hashable]) -> int:
     """Number of distinct shared items in two winner collections."""
     return len(set(a) & set(b))
 
 
-def reference_fraction(a, b) -> float:
+def reference_fraction(
+    observed: Collection[Hashable], reference: Collection[Hashable]
+) -> float:
     """Shared-item fraction relative to the second (reference) collection."""
-    if not len(b):
+    if not len(reference):
         raise ValueError("reference fraction requires a non-empty reference collection")
-    return float(intersection_count(a, b)) / float(len(b))
+    return float(intersection_count(observed, reference)) / float(len(reference))
 
 
-def overlap(a, b, percentage: bool = False):
+def overlap(
+    a: Collection[Hashable], b: Collection[Hashable], percentage: bool = False
+) -> int | float:
     """Legacy wrapper for ``intersection_count`` or ``reference_fraction``."""
     if type(percentage) is not bool:
         raise ValueError("percentage must be boolean")
     return reference_fraction(a, b) if percentage else intersection_count(a, b)
 
 
-def get_overlaps(winners_list: Sequence, base: int, percentage: bool = False):
+def get_overlaps(
+    winners_list: Sequence[Collection[Hashable]],
+    base: int,
+    percentage: bool = False,
+) -> list[int | float]:
     """Overlap of every winner list in ``winners_list`` with
     ``winners_list[base]``."""
     if type(percentage) is not bool:
