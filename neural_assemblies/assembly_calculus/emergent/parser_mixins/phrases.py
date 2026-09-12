@@ -7,6 +7,7 @@ only their address is.
 
 from typing import TYPE_CHECKING, Dict, List
 from neural_assemblies.assembly_calculus.ops import project, merge, _snap
+from neural_assemblies.assembly_calculus.assembly import Assembly
 
 from ..core.areas import (
     ADJ_CORE, ADJP, NOUN_CORE, NP, PP, PREP_CORE, VERB_CORE, VP,
@@ -35,7 +36,7 @@ class PhraseStructureMixin:
     brain: "Brain"
     stim_map: Dict[str, str]
     rounds: int
-    vp_assemblies: Dict[str, object]
+    vp_assemblies: Dict[str, Assembly]
 
     if TYPE_CHECKING:
         def _word_core_area(self, word: str) -> str: ...

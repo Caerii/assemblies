@@ -6529,3 +6529,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Incremental state-machine capability gate (2026-09-12)
 
 `IncrementalMixin` now declares its parser state, neural stores, lexical lookup, and cross-stage readout/detection capabilities. Engine-private area access is isolated behind an explicit dynamic boundary, and optional phrase/passive signatures are declared at their actual call shape. Pyright reports **0 diagnostics**; parser-fork, parse-error, and temporal observation tests pass **78 tests with GPU cases excluded**. The GPU cases remain blocked in this shell because the Visual Studio `cl` compiler is unavailable; the failure is environmental and was not hidden.
+
+### Cross-mixin classification signature gate (2026-09-12)
+
+All parser mixin capability declarations now agree on the canonical `classify_word_cached(word, grounding=None)` signature and the concrete `BootstrapScores` compatibility result. The phrase store is consistently `Assembly`-valued, eliminating an override conflict at the composition root. Pyright reports **0 diagnostics** across the affected composition modules; parser composition and trained-order generation tests pass **18 tests**.
