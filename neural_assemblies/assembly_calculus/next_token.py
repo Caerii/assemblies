@@ -57,7 +57,7 @@ from typing import Dict, List, Tuple
 
 from .readout import readout_all, build_lexicon, Lexicon
 from .ops import sequence_memorize, _snap
-from .contracts import NEXT_TOKEN_PREDICTION_CONTRACT, NEXT_TOKEN_TRAINING_CONTRACT, NextTokenPredictionPlan, NextTokenTrainingPlan, implements
+from .contracts import NEXT_TOKEN_PREDICTION_CONTRACT, NEXT_TOKEN_SCORE_CONTRACT, NEXT_TOKEN_TRAINING_CONTRACT, NextTokenPredictionPlan, NextTokenScorePlan, NextTokenTrainingPlan, implements
 
 
 def build_next_token_model(brain, area: str, vocab: List[str],
@@ -209,6 +209,7 @@ def _predict_next_token_inner(brain, area: str, context: List[str],
     return readout_all(context_assembly, lexicon)
 
 
+@implements(NEXT_TOKEN_SCORE_CONTRACT)
 def score_corpus(brain, area: str, corpus: List[List[str]],
                  stimuli_map: Dict[str, str],
                  lexicon: Lexicon,
@@ -229,7 +230,19 @@ def score_corpus(brain, area: str, corpus: List[List[str]],
     Returns:
         Dict with 'top1_accuracy', 'top3_accuracy', 'mrr',
         'total_predictions'.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-score
     """
+    plan = NextTokenScorePlan(
+        area=area,
+        corpus=tuple(tuple(sentence) for sentence in corpus),
+        stimuli_map=stimuli_map,
+        lexicon=lexicon,
+        rounds_per_token=rounds_per_token,
+    )
+    plan.preflight(brain)
+    area, corpus, stimuli_map, lexicon = plan.area, plan.corpus, plan.stimuli_map, plan.lexicon
+    rounds_per_token = plan.rounds_per_token
     top1_correct = 0
     top3_correct = 0
     total_rr = 0.0

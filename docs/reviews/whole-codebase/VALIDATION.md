@@ -5016,3 +5016,13 @@ later unknown token cannot partially train an earlier sentence. The mutation
 schedule is explicitly separated from frozen prediction/readout. Next-token,
 batched, and registry validation passes: **172 passed**; Ruff and the evidence
 graph are clean.
+
+## Next-token corpus scoring contract (2026-09-11)
+
+`score_corpus` now consumes `NextTokenScorePlan` and is registered as
+`NEXT_TOKEN_SCORE_CONTRACT`. It validates the complete ordered corpus,
+stimulus map, target area, lexicon, and round budget before any prediction.
+Scoring is explicitly frozen and reports ranked-overlap top-1/top-3/MRR metrics;
+unknown later tokens cannot produce a partial result or silently adapt the
+model. Next-token, batched, and registry validation passes: **173 passed**;
+Ruff and the evidence graph are clean.

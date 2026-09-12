@@ -158,6 +158,35 @@ class NextTokenTrainingPlan:
 
 
 @dataclass(frozen=True)
+class NextTokenScorePlan:
+    """Validated corpus observation schedule for next-token metrics."""
+
+    area: str
+    corpus: tuple[tuple[str, ...], ...]
+    stimuli_map: Mapping[str, str]
+    lexicon: Mapping[str, Assembly]
+    rounds_per_token: int = 5
+
+    def __post_init__(self) -> None:
+        training = NextTokenTrainingPlan(
+            self.area, self.corpus, self.stimuli_map,
+            self.rounds_per_token, repetitions=1,
+        )
+        object.__setattr__(self, "area", training.area)
+        object.__setattr__(self, "corpus", training.corpus)
+        object.__setattr__(self, "stimuli_map", training.stimuli_map)
+        object.__setattr__(self, "rounds_per_token", training.rounds_per_token)
+        if not isinstance(self.lexicon, Mapping) or any(not isinstance(value, Assembly) for value in self.lexicon.values()):
+            raise TypeError("score lexicon must map labels to Assembly snapshots")
+
+    def preflight(self, brain) -> None:
+        NextTokenTrainingPlan(
+            self.area, self.corpus, self.stimuli_map,
+            self.rounds_per_token, repetitions=1,
+        ).preflight(brain)
+
+
+@dataclass(frozen=True)
 class LexiconBuildPlan:
     """Validated independent stimulus-to-Assembly lexicon schedule."""
 
@@ -1283,6 +1312,25 @@ NEXT_TOKEN_TRAINING_CONTRACT = OperationContract(
 )
 
 
+NEXT_TOKEN_SCORE_CONTRACT = OperationContract(
+    operation_id="next-token-score-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-score",
+    plan_type=NextTokenScorePlan,
+    inputs=("brain", "area", "ordered corpus", "stimulus map", "lexicon", "rounds"),
+    reads=("frozen next-token rankings", "lexicon overlaps"),
+    mutates=("temporary observation activity only",),
+    regime=("complete corpus preflight", "frozen prediction", "top-k and MRR metrics"),
+    observed_outcome=("top1/top3 accuracy, MRR, prediction count",),
+    failure_conditions=("unknown words/stimuli/area", "malformed corpus", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_above_chance_accuracy",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_scoring_rejects_unknown_word_before_prediction",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1772,6 +1820,7 @@ OPERATION_CONTRACTS = MappingProxyType({
     "build_lexicon": LEXICON_BUILD_CONTRACT,
     "predict_next_token": NEXT_TOKEN_PREDICTION_CONTRACT,
     "train_on_corpus": NEXT_TOKEN_TRAINING_CONTRACT,
+    "score_corpus": NEXT_TOKEN_SCORE_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,

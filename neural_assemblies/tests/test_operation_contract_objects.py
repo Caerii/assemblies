@@ -420,7 +420,7 @@ def test_registry_and_public_callable_cannot_drift():
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
     from neural_assemblies.assembly_calculus.readout import build_lexicon, fuzzy_readout
-    from neural_assemblies.assembly_calculus.next_token import predict_next_token, train_on_corpus
+    from neural_assemblies.assembly_calculus.next_token import predict_next_token, score_corpus, train_on_corpus
     from neural_assemblies.assembly_calculus.binding import materialize_fiber
     from neural_assemblies.assembly_calculus.binding import bind as source_bind, binding_strength, input_drive, recall
     from neural_assemblies.assembly_calculus.consolidation import accumulate_context, accumulate_context_step, consolidate
@@ -432,7 +432,8 @@ def test_registry_and_public_callable_cannot_drift():
         "pattern_completion": "pattern_complete",
     }
     for name, contract in OPERATION_CONTRACTS.items():
-        operation = (train_on_corpus if name == "train_on_corpus" else
+        operation = (score_corpus if name == "score_corpus" else
+                     train_on_corpus if name == "train_on_corpus" else
                      predict_next_token if name == "predict_next_token" else
                      build_lexicon if name == "build_lexicon" else
                      materialize_fiber if name == "materialize_fiber" else

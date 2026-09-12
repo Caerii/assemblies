@@ -642,6 +642,18 @@ An unknown token in a later sentence therefore fails without partially training
 an earlier sentence. This operation mutates the recurrent connectome; its
 outputs must be evaluated under the separate frozen prediction contract.
 
+<a id="contract-next-token-score"></a>
+
+## Next-token corpus scoring
+
+`next_token.score_corpus` is a frozen observation over an entire ordered
+corpus. `NextTokenScorePlan` validates every sentence, token/stimulus mapping,
+target area, lexicon snapshot, and round budget before the first prediction.
+Each prediction runs through the frozen query contract; top-1, top-3, MRR, and
+count are corpus metrics over ranked overlap, not likelihoods. Unknown tokens
+in later sentences cannot yield a partial score, and evaluation cannot silently
+become online training.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction
