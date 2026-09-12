@@ -109,7 +109,10 @@ def _snap(brain, area_name) -> Assembly:
     area = brain.areas[area_name]
     winners = area.winners
     if area.explicit:
-        return Assembly(area_name, winners.copy())
+        # Explicit areas have an identity mapping, but their live accessor is
+        # still branded CompactIdx. Relabel it at this boundary rather than
+        # letting the internal coordinate space escape into a snapshot.
+        return Assembly(area_name, NeuronIds(winners.copy()))
     engine = brain._engine_for(area)
     mapping = engine.get_neuron_id_mapping(area_name) if hasattr(
         engine, "get_neuron_id_mapping",

@@ -7037,3 +7037,6 @@ The evidence graph now treats a non-pending `PREREG_*.md` without a resolved res
 ## Assembly snapshot index-space admission (2026-09-12)
 
 `Assembly` construction now rejects `CompactIdx` inputs and brands every accepted raw winner array as `NeuronIds`. A compact engine position therefore cannot silently become a stable snapshot, and unbranded callers are normalized at the boundary. Validation: index-space, overlap, and assembly-calculus suites 37 passed; Pyright on assembly/index-space modules 0 errors/warnings/information.
+## Snapshot conversion parity for explicit areas (2026-09-12)
+
+The stricter `Assembly` index-space admission exposed one internal escape: `_snap` passed an explicit area's `CompactIdx` accessor directly into the stable snapshot constructor. Explicit areas now relabel that identity mapping as `NeuronIds` at the snapshot boundary. Validation: public-boundary, readout, next-token, noise, and sequence suites 181 passed; Pyright on `ops.py` and `assembly.py` 0 errors/warnings/information.
