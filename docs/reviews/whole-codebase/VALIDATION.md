@@ -5815,3 +5815,9 @@ signature test and the holdout cache true negative pass.
 so the previously ignored `speaker` argument is part of the returned structured
 record. Structured IO and dialogue tests pass, including an empty-speaker true
 negative.
+
+### Role evidence alignment contract (2026-09-12)
+
+`record_role_order_evidence` now requires one role annotation per sentence
+token. Misaligned `words` and `roles` fail before updating order counts; the
+true-negative parser test passes.

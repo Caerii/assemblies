@@ -1764,6 +1764,12 @@ class TestWordOrderTypology:
         ) is None
         svo_parser.dist_stats.role_order_counts.clear()
 
+    def test_role_order_evidence_rejects_misaligned_annotations(self, svo_parser):
+        with pytest.raises(ValueError, match="same length"):
+            svo_parser.record_role_order_evidence(
+                ["dog", "chases", "cat"], ["agent", "action"]
+            )
+
     def test_object_initial_flips_default_role_ranking(self, svo_parser):
         """Constituent order, not voice, sets the unmarked role ranking."""
         from neural_assemblies.assembly_calculus.emergent.core.areas import (

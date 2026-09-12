@@ -915,6 +915,11 @@ class DistributionalMixin:
 
         Returns the order label recorded, or None.
         """
+        if len(words) != len(roles):
+            raise ValueError(
+                "words and roles must have the same length; role evidence "
+                "must stay aligned with its sentence"
+            )
         seq: List[str] = []
         slot_of = {"agent": "S", "action": "V", "patient": "O"}
         for role in roles:
