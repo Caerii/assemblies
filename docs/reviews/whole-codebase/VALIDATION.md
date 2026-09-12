@@ -6517,3 +6517,7 @@ The composition root now declares the stage methods it orchestrates (raw ingesti
 ### Constituent-order capability gate (2026-09-12)
 
 `ConstituentOrderMixin` now declares its bounded neural state, role/core assembly stores, scene and mood state, and lexical core lookup. Optional mood and scene assemblies are narrowed before activation, making the transition mechanism’s state preconditions explicit. Pyright reports **0 diagnostics**; word-order learner and generation tests pass **16 tests with 2 existing xfails**. Expected sampled-recurrence warnings remain visible.
+
+### Morphosyntax capability gate (2026-09-12)
+
+`MorphosyntaxMixin` now declares the feature-training state it reads and mutates: Brain dimensions and plasticity, grounding/stimulus maps, core assemblies, exposure counters, and feature-image caches. Fiber-gain brackets use an explicit context-manager contract, optional engine scaling hooks are capability-checked, and engine connection inspection uses a guarded lookup. Pyright reports **0 diagnostics**; morphology and multi-mood tests pass **10 tests with 1 existing xfail**.

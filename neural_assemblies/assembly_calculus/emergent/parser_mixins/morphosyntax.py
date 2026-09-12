@@ -31,7 +31,10 @@ Note also that the detectors run over SURFACE tokens, so they see "will" and
 would register as PRESENT throughout.
 """
 
-from typing import Dict, List, Optional, Tuple
+from typing import TYPE_CHECKING, ContextManager, Dict, List, Optional, Tuple
+
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.assembly_calculus.assembly import Assembly
 
 from neural_assemblies.assembly_calculus.assembly import (
     overlap as assembly_overlap,
@@ -41,10 +44,31 @@ from ..core.areas import (
     VERB_CORE, CONJ_CORE, TENSE, MOOD, POLARITY, NUMBER,
     GROUNDING_TO_CORE,
 )
+from ..core.grounding import GroundingContext
 
 
 class MorphosyntaxMixin:
     """Tense, mood, polarity detection and training; conjunction handling."""
+
+    brain: Brain
+    n: int
+    k: int
+    beta: float
+    rounds: int
+    stim_map: Dict[str, str]
+    word_grounding: Dict[str, GroundingContext]
+    core_lexicons: Dict[str, Dict[str, Assembly]]
+    morph_readout: str
+    _morph_exposure: Dict[str, int]
+    _feature_image_cache: Dict[tuple, object]
+
+    if TYPE_CHECKING:
+        def _word_core_area(self, word: str) -> str: ...
+        def _gain_on_fiber(self, target: str, source: str, gain: float) -> ContextManager[None]: ...
+        def _novelty_gain(self, feature: str, word: str) -> float: ...
+        def _feature_target_area(self, feature: str, label: str) -> str: ...
+        def _ensure_value_areas(self, feature: str) -> List[str]: ...
+        def register_word(self, word: str) -> None: ...
 
     _NEGATION_WORDS = frozenset([
         "not", "n't", "no", "never", "neither", "nor", "nobody",
@@ -306,14 +330,18 @@ class MorphosyntaxMixin:
                     # only). See morph_flush_every in core.py.
                     if (deferred and flush_every > 0
                             and episode % flush_every == 0):
-                        eng.flush_synaptic_scaling()
+                        flush = getattr(eng, "flush_synaptic_scaling", None)
+                        if callable(flush):
+                            flush()
                     break  # One tense per sentence
 
         # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
         # phase end is where the accumulated mass gets renormalized.
         eng = self.brain._engine
         if getattr(eng, "synaptic_scaling_deferred", False):
-            eng.flush_synaptic_scaling()
+            flush = getattr(eng, "flush_synaptic_scaling", None)
+            if callable(flush):
+                flush()
 
     def train_mood(self, sentences: List[List[str]]) -> None:
         """Train MOOD area from sentence mood detection.
@@ -557,13 +585,17 @@ class MorphosyntaxMixin:
                 # E19: interim flush every K episodes (0 = phase-end only).
                 if (deferred and flush_every > 0
                         and episode % flush_every == 0):
-                    eng.flush_synaptic_scaling()
+                    flush = getattr(eng, "flush_synaptic_scaling", None)
+                    if callable(flush):
+                        flush()
 
         # SLOW HOMEOSTASIS boundary (E9): if scaling is deferred, this
         # phase end is where the accumulated mass gets renormalized.
         eng = self.brain._engine
         if getattr(eng, "synaptic_scaling_deferred", False):
-            eng.flush_synaptic_scaling()
+            flush = getattr(eng, "flush_synaptic_scaling", None)
+            if callable(flush):
+                flush()
 
     # ------------------------------------------------------------------
     # RECALL -- the third of the detect/train pair, previously missing.
@@ -861,7 +893,7 @@ class MorphosyntaxMixin:
         for label, area in cand_areas.items():
             cols = compact_images.get(label) or []
             eng = brain._engine_for(brain.areas[area])
-            conn = eng._area_conns.get(core_area, {}).get(area)
+            conn = getattr(eng, "_area_conns", {}).get(core_area, {}).get(area)
             w = getattr(conn, "weights", None) if conn is not None else None
             if not cols or w is None or getattr(w, "ndim", 0) != 2:
                 diag["mass_scores"] = {}
