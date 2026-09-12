@@ -11,6 +11,7 @@ import pstats
 import time
 import sys
 import copy
+from typing import Any
 import numpy as np
 
 from neural_assemblies.core.brain import Brain
@@ -31,8 +32,8 @@ SPARSE_CFG = dict(n=10_000, k=100, p=0.05, beta=0.1, engine="numpy_sparse")
 EXPLICIT_CFG = dict(n=1_000, k=100, p=0.05, beta=0.1, engine="numpy_explicit")
 
 
-def _brain(cfg, *, seed=SEED):
-    kwargs = dict(
+def _brain(cfg: dict[str, Any], *, seed: int = SEED) -> Brain:
+    kwargs: dict[str, Any] = dict(
         p=cfg["p"], save_winners=True, seed=seed, engine=cfg["engine"],
     )
     # This is an operational timing probe, not sequence evidence.  State the
