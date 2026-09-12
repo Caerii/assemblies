@@ -7126,3 +7126,11 @@ The explicit-owner API migration exposed latent Pyright failures in Tier A and p
 ## Attractor program typing (2026-09-12)
 
 The attractor training protocol now declares its actual seven-value return contract, narrows the Brain returned by the legacy bundle builder, and uses a typed fuzzy-readout key function. Validation: Pyright on `colt_mnist_attractor.py` reports 0 diagnostics.
+
+
+## 2026-09-12 ? cross-domain profile boundary typing
+
+- Tightened `TrainedCrossDomainHub.bundle` to the shared `VentralBundle` contract and typed the profile's Brain boundary explicitly.
+- Corrected `_fuse_visual_prediction`'s route payload annotation to include its measured float margin.
+- `uv run pyright neural_assemblies/programs/cross_domain_profile.py neural_assemblies/programs/cross_domain_assemblies.py`: 0 errors.
+- Focused `test_ventral_evidence.py` collection succeeded (19 tests). Runtime execution was stopped after the training-backed test exceeded the bounded audit window; no pass is claimed.
