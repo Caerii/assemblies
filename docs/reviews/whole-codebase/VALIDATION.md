@@ -6698,3 +6698,8 @@ The shared `TorchOps` protocol now distinguishes tensor-returning factories/oper
 ## Torch operator boundary ratchet (2026-09-12)
 
 Added an AST-based regression test that rejects generated `torch.<op>` calls in migrated Torch modules. Only intentional tensor type anchors (`torch.Tensor`), CUDA lifecycle calls, and the fused C++ generator are allowed outside `torch_ops`. The ratchet plus Torch parity and hashed substrate tests pass **31 tests with 19 expected skips**; Ruff is clean.
+
+
+## Torch operator runtime conformance (2026-09-12)
+
+The Torch boundary ratchet now also checks that every member declared by `TorchOps` exists on the installed runtime module. This turns a mismatched wheel or protocol drift into an immediate test failure. Boundary tests pass **2/2** and Ruff is clean.
