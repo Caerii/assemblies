@@ -5068,3 +5068,10 @@ rerun after the prediction, scoring, recovery, and cue-plan changes: **50
 passed**. The only output is the expected sampled-recurrence provenance warning
 for tests intentionally using the lazy NumPy engine; no conformance assertion
 changed.
+
+## Next-token observation-domain hardening (2026-09-11)
+
+Prediction and scoring now require a nonempty lexicon in addition to area
+identity and stimulus validation. An empty vocabulary cannot yield a meaningful
+ranked observation and is rejected before brain activity. Focused plan/registry
+and next-token negative controls pass: **164 passed**; Ruff is clean.

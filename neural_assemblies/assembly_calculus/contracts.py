@@ -176,7 +176,11 @@ class NextTokenScorePlan:
         object.__setattr__(self, "corpus", training.corpus)
         object.__setattr__(self, "stimuli_map", training.stimuli_map)
         object.__setattr__(self, "rounds_per_token", training.rounds_per_token)
-        if not isinstance(self.lexicon, Mapping) or any(not isinstance(value, Assembly) for value in self.lexicon.values()):
+        if not isinstance(self.lexicon, Mapping):
+            raise TypeError("score lexicon must map labels to Assembly snapshots")
+        if not self.lexicon:
+            raise ValueError("score lexicon must be nonempty")
+        if any(not isinstance(value, Assembly) for value in self.lexicon.values()):
             raise TypeError("score lexicon must map labels to Assembly snapshots")
         if any(value.area != self.area for value in self.lexicon.values()):
             raise ValueError("score lexicon snapshots must belong to the scoring area")
@@ -311,7 +315,11 @@ class NextTokenPredictionPlan:
         if any(not isinstance(self.stimuli_map[word], str) or not self.stimuli_map[word]
                for word in self.context):
             raise ValueError("prediction stimuli must be nonempty names")
-        if not isinstance(self.lexicon, Mapping) or any(not isinstance(value, Assembly) for value in self.lexicon.values()):
+        if not isinstance(self.lexicon, Mapping):
+            raise TypeError("prediction lexicon must map labels to Assembly snapshots")
+        if not self.lexicon:
+            raise ValueError("prediction lexicon must be nonempty")
+        if any(not isinstance(value, Assembly) for value in self.lexicon.values()):
             raise TypeError("prediction lexicon must map labels to Assembly snapshots")
         if any(value.area != self.area for value in self.lexicon.values()):
             raise ValueError("prediction lexicon snapshots must belong to the prediction area")
