@@ -32,7 +32,6 @@ from typing import Any, Dict, Optional
 class InstructionFrame:
     """Semantic frame extracted from user language."""
 
-    speaker: str = "user"
     intent: Optional[str] = None
     mood: str = "DECLARATIVE"
     agent: Optional[str] = None
@@ -43,6 +42,7 @@ class InstructionFrame:
     raw_words: list[str] = field(default_factory=list)
     categories: Dict[str, str] = field(default_factory=dict)
     roles: Dict[str, Optional[str]] = field(default_factory=dict)
+    speaker: str = "user"
 
     def to_dict(self) -> dict:
         return asdict(self)
