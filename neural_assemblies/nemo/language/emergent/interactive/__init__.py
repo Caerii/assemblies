@@ -31,11 +31,6 @@ def __getattr__(name: str):
     globals()[name] = value
     return value
 
-__all__ = [
-    'DialogueState',
-    'Turn', 
-    'GroundingInference',
-    'ResponseGenerator',
-    'InteractiveLearner',
-]
+__all__ = ['DialogueState', 'Turn', 'GroundingInference',
+           'ResponseGenerator', 'InteractiveLearner']  # pyright: ignore[reportUnsupportedDunderAll]
 
