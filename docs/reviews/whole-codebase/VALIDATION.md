@@ -5744,3 +5744,10 @@ The index-space module preamble now describes the implemented runtime brands
 and the remaining unbranded-array compatibility boundary, instead of claiming
 that all NumPy arrays are silently indistinguishable. Pyright reports **0
 errors**, the index-space tests pass (**3 passed**), and Ruff/diff checks pass.
+
+### Scaffold standalone API contract (2026-09-12)
+
+`compare_scaffold_vs_simple` no longer accepts a `Brain` or `stimuli` argument
+that it would ignore. It is explicitly documented and validated as a
+standalone reference protocol; passing caller state raises before simulation.
+Sequence and scaffold tests pass: **19 passed**. Ruff and diff checks pass.

@@ -257,6 +257,14 @@ class TestOrderedRecall(unittest.TestCase):
                 "Consecutive recalled assemblies should be different.")
 
 
+class TestScaffoldComparisonContract(unittest.TestCase):
+    def test_standalone_comparison_rejects_ignored_brain_arguments(self):
+        from neural_assemblies.assembly_calculus.scaffold import compare_scaffold_vs_simple
+
+        with self.assertRaisesRegex(ValueError, "standalone"):
+            compare_scaffold_vs_simple(brain=object())
+
+
 class TestScaffoldNetwork(unittest.TestCase):
     """Brain-native ScaffoldNetwork API."""
 

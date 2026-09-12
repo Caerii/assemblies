@@ -107,10 +107,16 @@ def compare_scaffold_vs_simple(
 ) -> ScaffoldRecallResult:
     """NEMO demo protocol (numpy port of nemo-demo.ipynb cells 21–27).
 
-    Uses reference RecurrentArea / ScaffoldNetwork dynamics.  ``brain`` and
-    ``stimuli`` are accepted for API compatibility but ignored.
+    Uses reference RecurrentArea / ScaffoldNetwork dynamics. This is a
+    standalone reference protocol; passing a Brain or stimuli would suggest
+    that the comparison uses caller state, so those compatibility arguments
+    are rejected explicitly.
     """
-    del brain, stimuli, rounds_per_step, beta
+    if brain is not None or stimuli is not None:
+        raise ValueError(
+            "compare_scaffold_vs_simple is standalone; omit brain and stimuli"
+        )
+    del rounds_per_step, beta
     return _compare_scaffold_vs_simple(
         n_presentations=n_presentations,
         n=n,
