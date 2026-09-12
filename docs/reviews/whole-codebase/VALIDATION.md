@@ -6753,3 +6753,8 @@ Removed a stale strict xfail after the raw P600 range test began passing on the 
 ## Temporal capture toolchain boundary (2026-09-12)
 
 CUDA temporal capture now skips with the concrete fused-extension build error when the developer toolchain is unavailable, matching the other parity gates; it no longer misreports an environment prerequisite as a kernel failure. The test module passes **32 tests, 2 environment skips**, with zero Pyright and Ruff diagnostics.
+
+
+## Full non-slow integration sweep (2026-09-12)
+
+After standardizing exact-engine option admission, honoring the minimal continual-replay protocol, separating ERP effect bars from clipped descriptive quantities, and classifying fused-CUDA prerequisites correctly, the full non-slow package suite passes **3771 tests**, with **141 environment/optional skips**, **8 explicit scientific xfails**, **10 subtests**, and **275 warnings**.
