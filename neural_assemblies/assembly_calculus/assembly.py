@@ -68,6 +68,8 @@ class Assembly:
         return self.winners
 
     def __post_init__(self):
+        if not isinstance(self.area, str) or not self.area:
+            raise ValueError("assembly area must be a nonempty string")
         if isinstance(self.winners, CompactIdx):
             raise TypeError(
                 "Assembly requires stable neuron IDs; convert compact indices "

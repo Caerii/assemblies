@@ -7504,3 +7504,9 @@ The attractor training protocol now declares its actual seven-value return contr
 
 - Added `len(program)` and iteration to `ExplicitProgram`, preserving its immutable canonical round order.
 - Validation: projection IR tests passed (41 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 assembly area-name invariant
+
+- `Assembly` now rejects empty and non-string area names at construction, matching the invariant already enforced by `Sequence` and operation plans.
+- Validation: Assembly law tests passed (15 tests); index-space and non-recovery noise tests passed (28 tests); Pyright reported 0 errors.

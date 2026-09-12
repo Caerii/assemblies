@@ -93,6 +93,11 @@ class TestAssembly:
         asm = Assembly("A", np.arange(50, dtype=np.uint32))
         assert len(asm) == 50
 
+    @pytest.mark.parametrize("area", ["", None, 1])
+    def test_assembly_requires_a_named_area(self, area):
+        with pytest.raises(ValueError, match="area must be a nonempty string"):
+            Assembly(area, np.array([1], dtype=np.uint32))
+
     def test_assembly_overlap_identical(self):
         w = np.arange(100, dtype=np.uint32)
         a = Assembly("A", w)
