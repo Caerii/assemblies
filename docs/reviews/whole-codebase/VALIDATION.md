@@ -7517,3 +7517,9 @@ The attractor training protocol now declares its actual seven-value return contr
 - Added `Sequence.then(...)` for checked same-area concatenation of immutable assembly sequences.
 - It rejects non-Sequence operands and cross-area composition while preserving order and avoiding tuple aliasing.
 - Validation: Sequence data-model tests passed (12 tests); Pyright reported 0 errors; `git diff --check` passed.
+
+
+## 2026-09-12 Sequence algebra laws
+
+- Added structural tests for associative `Sequence.then` composition and the empty same-area sequence as a left and right identity.
+- Validation: Sequence data-model tests passed (13 tests); Pyright reported 0 errors; `git diff --check` passed.

@@ -79,6 +79,15 @@ class TestSequenceDataclass(unittest.TestCase):
         with self.assertRaisesRegex(TypeError, "another Sequence"):
             left.then(object())
 
+    def test_then_is_associative_with_empty_sequence_identity(self):
+        a = Sequence("A", tuple(self._make_assemblies(1)))
+        b = Sequence("A", tuple(self._make_assemblies(1)))
+        c = Sequence("A", tuple(self._make_assemblies(1)))
+        empty = Sequence("A", ())
+        self.assertEqual(a.then(b).then(c), a.then(b.then(c)))
+        self.assertEqual(empty.then(a), a)
+        self.assertEqual(a.then(empty), a)
+
     def test_pairwise_overlaps(self):
         asms = self._make_assemblies(3)
         seq = Sequence("A", asms)
