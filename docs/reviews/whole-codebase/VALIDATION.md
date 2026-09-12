@@ -6134,3 +6134,6 @@ Collection identified 3,910 runnable non-slow tests (144 deselected); the stalle
 ### NEMO optional-dependency import gate (2026-09-12)
 
 `neural_assemblies.nemo` now resolves core and language symbols lazily, so importing the namespace on a CPU-only installation does not import CuPy or interfere with NumPy/Torch backends. GPU symbols remain explicitly dependency-gated when accessed. The lazy-import suite passes **12 tests** and focused F/E scans are clean.
+### Stateful integration slice gate (2026-09-12)
+
+The verbose slice spanning computation, connectome, consolidation, context observation, and conversation curriculum passed **140 tests in 144.22 seconds**. This explains the earlier aggregate 16% pause as a long stateful integration region rather than a deterministic failure. The full 3,910-test aggregate remains partitioned because its shared process stalls; this slice is independently green evidence.
