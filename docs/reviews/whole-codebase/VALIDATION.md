@@ -5534,3 +5534,10 @@ artifact through the canonical finite, exclusive writer. Its OFF/SCALED arms,
 paired confidence analysis, and output schema are unchanged; reruns cannot
 silently replace the evidence. Compilation, Ruff, and both result-writer
 ratchets pass: **2 passed**.
+### Slow-homeostasis recall writer migration (2026-09-12)
+
+The registered slow-homeostasis recall study now publishes its fixed result
+artifact through the canonical finite, exclusive writer. Its FAST reference
+read, repetition arms, paired comparisons, and output schema are unchanged;
+reruns cannot silently replace the evidence. Compilation, Ruff, and both
+result-writer ratchets pass: **2 passed**.
