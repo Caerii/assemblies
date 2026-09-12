@@ -50,7 +50,7 @@ def build_role_pathway_protocol(
     rounds = parser.rounds
 
     for sent in sentences:
-        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles, strict=True):
             if role is None or role == "action":
                 continue
             role_area = _ROLE_ANNOTATION_TO_AREA.get(role)
@@ -79,7 +79,7 @@ def build_vp_pathway_protocol(
     for sent in sentences:
         subj_word = subj_ctx = verb_word = obj_word = obj_ctx = None
 
-        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles, strict=True):
             if role == "agent":
                 subj_word, subj_ctx = word, ctx
             elif role == "action":
@@ -128,7 +128,7 @@ def build_number_role_pathway_protocol(
     rounds = parser.rounds
 
     for sent in sentences:
-        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles, strict=True):
             if role is None or role == "action":
                 continue
             role_area = _ROLE_ANNOTATION_TO_AREA.get(role)
@@ -162,7 +162,7 @@ def build_number_vp_pathway_protocol(
     for sent in sentences:
         subj_word = subj_ctx = verb_word = obj_word = obj_ctx = None
 
-        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles):
+        for word, ctx, role in zip(sent.words, sent.contexts, sent.roles, strict=True):
             if role == "agent":
                 subj_word, subj_ctx = word, ctx
             elif role == "action":

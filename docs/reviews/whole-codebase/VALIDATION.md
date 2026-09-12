@@ -6062,3 +6062,6 @@ Distributional role inference, CHILDES morphology alignment, and learned gating 
 ### Hashed transducer sequence pairing gate (2026-09-12)
 
 The batched transducer's sentence training loop now declares strict adjacent-token pairing, keeping malformed sequence iterables from silently shortening training. The parity test module remains environment-skipped here because the optional fused backend is unavailable; the B905/F scan is clean.
+### Consolidation schedule alignment gate (2026-09-12)
+
+All emergent consolidation schedule builders now require each grounded sentence's words, contexts, and roles to have identical length. The prior loops could silently omit trailing annotations and build an incomplete replay protocol. Consolidation tests pass **12 tests**; the two sampled-engine warnings are intentional provenance guards, and the focused B905/F scan is clean.
