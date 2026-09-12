@@ -6903,3 +6903,8 @@ The evidence graph now recognizes committed `.log` and `.txt` study artifacts as
 ## Integrated trainer package import boundary (2026-09-12)
 
 `nemo/language/integrated_trainer.py` no longer mutates `sys.path` or imports a launch-directory-dependent top-level `lexicon` package. Lexicon and curriculum dependencies resolve through `neural_assemblies.lexicon`; Pyright, Ruff, and compilation are clean. Full runtime import remains gated by the optional legacy CuPy learner.
+
+
+## Instance-owned legacy lexicon curriculum randomness (2026-09-12)
+
+The legacy `neural_assemblies/lexicon/curriculum.py` curriculum now accepts either an injected `random.Random` instance or a seed and routes sampling through it, removing process-global Python RNG use. Explicit module loading (the package's `curriculum/` namespace shadows this legacy module) confirms same-seed determinism and no global RNG mutation; Pyright, Ruff, compilation, and diff checks are clean.

@@ -93,8 +93,17 @@ class Curriculum:
     - Spaced repetition
     """
     
-    def __init__(self, lexicon: LexiconManager):
+    def __init__(
+        self,
+        lexicon: LexiconManager,
+        *,
+        rng: random.Random | None = None,
+        seed: int | None = None,
+    ):
+        if rng is not None and seed is not None:
+            raise ValueError("provide rng or seed, not both")
         self.lexicon = lexicon
+        self.rng = rng if rng is not None else random.Random(seed)
         self.stages = self._define_stages()
         self.current_stage = LearningStage.FIRST_WORDS
         
@@ -293,7 +302,7 @@ class Curriculum:
             cat_words = [w for w in candidates if w.category == category]
             n_words = int(stage_def.target_vocab_size * weight)
             if len(cat_words) >= n_words:
-                result.extend(random.sample(cat_words, n_words))
+                result.extend(self.rng.sample(cat_words, n_words))
             else:
                 result.extend(cat_words)
         
@@ -310,11 +319,11 @@ class Curriculum:
         
         for _ in range(n_examples):
             # Select words based on complexity
-            n_words = min(complexity, random.randint(1, complexity))
+            n_words = min(complexity, self.rng.randint(1, complexity))
             
             if n_words == 1:
                 # Single word
-                word = random.choice(words)
+                word = self.rng.choice(words)
                 examples.append(TrainingExample(
                     words=[word.lemma],
                     categories=[word.category],
@@ -333,13 +342,13 @@ class Curriculum:
                     adjs = [w for w in words if w.category == WordCategory.ADJECTIVE]
                     
                     if nouns and (dets or adjs):
-                        noun = random.choice(nouns)
-                        if dets and random.random() < 0.7:
-                            det = random.choice(dets)
+                        noun = self.rng.choice(nouns)
+                        if dets and self.rng.random() < 0.7:
+                            det = self.rng.choice(dets)
                             selected = [det.lemma, noun.lemma]
                             categories = [det.category, noun.category]
                         elif adjs:
-                            adj = random.choice(adjs)
+                            adj = self.rng.choice(adjs)
                             selected = [adj.lemma, noun.lemma]
                             categories = [adj.category, noun.category]
                 
@@ -347,7 +356,7 @@ class Curriculum:
                     # Add verb: NOUN + VERB or NOUN + VERB + NOUN
                     verbs = [w for w in words if w.category == WordCategory.VERB]
                     if verbs:
-                        verb = random.choice(verbs)
+                        verb = self.rng.choice(verbs)
                         selected.append(verb.lemma)
                         categories.append(verb.category)
                 
@@ -355,7 +364,7 @@ class Curriculum:
                     # Add object
                     nouns = [w for w in words if w.category == WordCategory.NOUN]
                     if nouns:
-                        obj = random.choice(nouns)
+                        obj = self.rng.choice(nouns)
                         selected.append(obj.lemma)
                         categories.append(obj.category)
                 
