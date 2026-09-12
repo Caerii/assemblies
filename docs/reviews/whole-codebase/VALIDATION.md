@@ -6089,3 +6089,6 @@ The sparse projection path now validates that per-fiber density metadata has one
 ### Parser mixin alignment gate (2026-09-12)
 
 Role binding, lexicon registration, phrase training, and constituent sequencing now use strict iteration over aligned sentence records. The shared constructor supplies the invariant; each consumer now preserves it explicitly. Parser composition, fork, and cache identity suites pass **48 tests**; sampled recurrence warnings remain intentional provenance guards and focused B905/F scans are clean.
+### Register rendering and evidence gate (2026-09-12)
+
+The theory evidence validator now uses strict treatment/control pairing after its explicit length check. The rendering gate also exposed stale Unicode content in `docs/register.md`; the register was regenerated from `theory.render_markdown()`. Citation, evidence-check, and active-graph suites pass **21 tests**, and the B905/F scan is clean.

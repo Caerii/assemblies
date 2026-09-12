@@ -1154,11 +1154,11 @@ def _sensitivity_errors(result: Result, check: SensitivityCheck, root: str) -> l
            for value in [*treatment, *control]):
         return [f"{prefix} values must be finite numbers"]
     if check.relation == "all-greater":
-        effects = [left - right for left, right in zip(treatment, control)]
+        effects = [left - right for left, right in zip(treatment, control, strict=True)]
     elif check.relation == "all-less":
-        effects = [right - left for left, right in zip(treatment, control)]
+        effects = [right - left for left, right in zip(treatment, control, strict=True)]
     else:
-        effects = [abs(left - right) for left, right in zip(treatment, control)]
+        effects = [abs(left - right) for left, right in zip(treatment, control, strict=True)]
     if any(effect < check.minimum_effect for effect in effects):
         return [
             f"{prefix} does not move by {check.minimum_effect:g} under "
@@ -1260,7 +1260,7 @@ def render_markdown() -> str:
         if r.evidence_refs:
             out.append("**Evidence files.**")
             for ref in r.evidence_refs:
-                suffix = f" — {ref.limitation}" if ref.limitation else ""
+                suffix = f" â€” {ref.limitation}" if ref.limitation else ""
                 out.append(f"- [{ref.path}](../{ref.path}) ({ref.role}){suffix}")
             out.append("")
         if r.provenance_gap:
