@@ -36,6 +36,8 @@ overlap every cross-fiber round; the shortcut is exact only where it reads
 """
 from __future__ import annotations
 
+from typing import Any, List, cast
+
 import torch
 
 from ..numpy_engine import _seeding
@@ -60,6 +62,8 @@ class HashedAligner:
 
     Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-hashed-aligner
     """
+
+    mod: Any
 
     def __init__(self, brain_seeds, words, features, *, n, k, feat_n, feat_k,
                  stim_size=None, p=0.05, beta=0.1, w_max=None,
@@ -214,12 +218,14 @@ class HashedAligner:
         self.cross.begin_episode()
         for _ in range(self.rounds_word):
             lex_prev = self.lex.winners                 # anchored, constant
+            pinned = None
             if self.track_pinned:
                 pinned = self._feat_cache[tuple(bundle)]
             new = self.feat.project(1, stims + [self.cross],
                                     rows_for={id(self.cross): lex_prev},
                                     manage_episodes=False)
             if self.track_pinned:
+                assert pinned is not None
                 m = torch.zeros(self.B, self.feat_n, dtype=torch.bool,
                                 device=self.device)
                 m.scatter_(1, new, True)
@@ -240,8 +246,9 @@ class HashedAligner:
             for w in words:
                 for b in bundles:
                     self.step(w, b)
-        if hasattr(self.cross, "check"):
-            self.cross.check()
+        check = getattr(cast(Any, self.cross), "check", None)
+        if check is not None:
+            check()
 
     # -- frozen readouts -----------------------------------------------------
     def bundle_assembly(self, bundle):

@@ -27,6 +27,7 @@ which for a cross round includes the cross fiber.
 from __future__ import annotations
 
 import torch
+from typing import Any
 
 from ._hashed import HashedArea, PresentFiber, StimulusFiber, _fused_cuda
 from ._hashed_aligner import FEAT, LEX, pair_seeds
@@ -79,6 +80,11 @@ class ScheduledAligner:
 
     Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-hashed-aligner
     """
+
+    mod: Any
+    phon: Any
+    featf: Any
+    cross: Any
 
     def __init__(self, brain_seeds, *, n, k, feat_n, feat_k, n_words,
                  n_features, word_names=None, feature_names=None,
@@ -158,6 +164,7 @@ class ScheduledAligner:
 
     def prepare(self, features):
         """Cache every anchor. `features`: [B, I, F_per] int64, -1 padded."""
+        assert self.phon is not None and self.featf is not None
         B, dev = self.B, self.device
         self.features = features.to(dev)
         I, Fper = self.features.shape[1], self.features.shape[2]
