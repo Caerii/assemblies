@@ -5093,3 +5093,7 @@ The pure assembly attention operator now canonicalizes key/value labels and dele
 ### Curriculum battery deduplication (2026-09-11)
 
 The ablation and developmental curriculum studies had byte-level duplicate seven-phenomenon measurement batteries. The shared `curriculum_measurement.measure_battery` module now owns that readout protocol; both studies import it, so a future metric or control change has one implementation. The refactor removes 260 duplicate lines and also clears latent unused-import, unused-variable, and formatting smells without changing training schedules or result keys. All three modules compile, `--help` remains available for both study entry points, Ruff and diff checks pass.
+
+### Primitive SVO generator deduplication (2026-09-11)
+
+Five primitive ERP studies carried the same SVO sampling loop, with only their declared noun/verb lists differing. `svo_generators.py` now owns the shared generator; each study retains a small wrapper that passes its local vocabulary, preserving its protocol surface. The shared helper validates the nonnegative draw count and the minimum vocabulary needed to exclude self-patient pairs. All six modules compile; 100-draw and empty-draw invariants pass; Ruff and diff checks are clean. Ruff also removed 25 latent formatting/import smells exposed in the touched studies.

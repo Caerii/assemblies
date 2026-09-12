@@ -85,18 +85,11 @@ class PredictionConfig:
     lexicon_readout_rounds: int = 5
 
 
-def generate_svo_sentences(
-    n_sentences: int,
-    rng: np.random.Generator,
-) -> List[Tuple[str, str, str]]:
-    """Generate random SVO triples (agent, verb, patient)."""
-    sentences = []
-    for _ in range(n_sentences):
-        agent = rng.choice(NOUNS)
-        patient = rng.choice([n for n in NOUNS if n != agent])
-        verb = rng.choice(VERBS)
-        sentences.append((agent, verb, patient))
-    return sentences
+from research.experiments.primitives.svo_generators import generate_svo_sentences as _generate_svo_sentences
+
+def generate_svo_sentences(n_sentences: int, rng: np.random.Generator) -> List[Tuple[str, str, str]]:
+    """Generate SVO triples using this study's declared vocabulary."""
+    return _generate_svo_sentences(n_sentences, rng, NOUNS, VERBS)
 
 
 def _activate_word(brain: Brain, stim_name: str, area: str, rounds: int):
@@ -369,7 +362,7 @@ class ForwardPredictionExperiment(ExperimentBase):
         verb_adv_test = ttest_vs_null(verb_adv_vals, 0.0)
         obj_adv_test = ttest_vs_null(obj_adv_vals, 0.0)
 
-        self.log(f"\n  H1 -- Verb prediction (noun context -> verb):")
+        self.log("\n  H1 -- Verb prediction (noun context -> verb):")
         self.log(f"    Correct overlap:   {np.mean(verb_correct_vals):.4f} "
                  f"+/- {np.std(verb_correct_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    Incorrect overlap:  {np.mean(verb_incorrect_vals):.4f} "
@@ -378,7 +371,7 @@ class ForwardPredictionExperiment(ExperimentBase):
                  f"(d={verb_adv_test['d']:.2f}, p={verb_adv_test['p']:.4f})")
         self.log(f"    Top-1 accuracy:     {np.mean(verb_top1_vals):.3f}")
 
-        self.log(f"\n  H2 -- Object prediction (verb context -> noun):")
+        self.log("\n  H2 -- Object prediction (verb context -> noun):")
         self.log(f"    Correct overlap:   {np.mean(obj_correct_vals):.4f} "
                  f"+/- {np.std(obj_correct_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    Incorrect overlap:  {np.mean(obj_incorrect_vals):.4f} "
@@ -391,7 +384,7 @@ class ForwardPredictionExperiment(ExperimentBase):
         mean_nn = float(np.mean([d["within_noun"] for d in lex_div_vals]))
         mean_vv = float(np.mean([d["within_verb"] for d in lex_div_vals]))
         mean_xc = float(np.mean([d["cross_category"] for d in lex_div_vals]))
-        self.log(f"\n  Lexicon diversity (mean across seeds):")
+        self.log("\n  Lexicon diversity (mean across seeds):")
         self.log(f"    noun-noun: {mean_nn:.3f}  verb-verb: {mean_vv:.3f}  "
                  f"cross: {mean_xc:.3f}")
 
@@ -470,7 +463,7 @@ def main():
     vp = m["verb_prediction"]
     op = m["object_prediction"]
 
-    print(f"\nH1 -- Verb prediction (noun -> verb):")
+    print("\nH1 -- Verb prediction (noun -> verb):")
     print(f"  Correct overlap:  {vp['correct_overlap']['mean']:.4f} "
           f"+/- {vp['correct_overlap']['sem']:.4f}")
     print(f"  Incorrect overlap: {vp['incorrect_overlap']['mean']:.4f} "
@@ -480,7 +473,7 @@ def main():
           f"p={vp['advantage_test']['p']:.4f})")
     print(f"  Top-1 accuracy:    {vp['top1_accuracy']['mean']:.3f}")
 
-    print(f"\nH2 -- Object prediction (verb -> noun):")
+    print("\nH2 -- Object prediction (verb -> noun):")
     print(f"  Correct overlap:  {op['correct_overlap']['mean']:.4f} "
           f"+/- {op['correct_overlap']['sem']:.4f}")
     print(f"  Incorrect overlap: {op['incorrect_overlap']['mean']:.4f} "

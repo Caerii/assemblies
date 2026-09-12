@@ -50,9 +50,7 @@ from research.experiments.base import (
     ExperimentBase,
     ExperimentResult,
     measure_overlap,
-    chance_overlap,
     summarize,
-    ttest_vs_null,
     paired_ttest,
 )
 from neural_assemblies.core.brain import Brain
@@ -77,18 +75,11 @@ class N400Config:
     lexicon_readout_rounds: int = 5
 
 
-def generate_svo_sentences(
-    n_sentences: int,
-    rng: np.random.Generator,
-) -> List[Tuple[str, str, str]]:
-    """Generate random SVO triples (agent, verb, patient) from trained vocab."""
-    sentences = []
-    for _ in range(n_sentences):
-        agent = rng.choice(NOUNS)
-        patient = rng.choice([n for n in NOUNS if n != agent])
-        verb = rng.choice(VERBS)
-        sentences.append((agent, verb, patient))
-    return sentences
+from research.experiments.primitives.svo_generators import generate_svo_sentences as _generate_svo_sentences
+
+def generate_svo_sentences(n_sentences: int, rng: np.random.Generator) -> List[Tuple[str, str, str]]:
+    """Generate SVO triples using this study's declared vocabulary."""
+    return _generate_svo_sentences(n_sentences, rng, NOUNS, VERBS)
 
 
 def _activate_word(brain: Brain, stim_name: str, area: str, rounds: int):
@@ -359,15 +350,15 @@ class PredictionN400Experiment(ExperimentBase):
         h1_cat_test = paired_ttest(catviol_cat_vals, gram_cat_vals)
         h2_cat_novel_vs_gram = paired_ttest(novel_cat_vals, gram_cat_vals)
 
-        self.log(f"\n  === Word-specific N400 ===")
-        self.log(f"  H1 -- CatViol > Gram:")
+        self.log("\n  === Word-specific N400 ===")
+        self.log("  H1 -- CatViol > Gram:")
         self.log(f"    Gram:    {np.mean(gram_vals):.4f} "
                  f"+/- {np.std(gram_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    CatViol: {np.mean(catviol_vals):.4f} "
                  f"+/- {np.std(catviol_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    d={h1_test['d']:.2f}, p={h1_test['p']:.4f}")
 
-        self.log(f"\n  H2 -- Novel vs others:")
+        self.log("\n  H2 -- Novel vs others:")
         self.log(f"    Novel:   {np.mean(novel_vals):.4f} "
                  f"+/- {np.std(novel_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    Novel>Gram:    d={h2_novel_vs_gram['d']:.2f}, "
@@ -375,7 +366,7 @@ class PredictionN400Experiment(ExperimentBase):
         self.log(f"    CatViol>Novel: d={h2_catviol_vs_novel['d']:.2f}, "
                  f"p={h2_catviol_vs_novel['p']:.4f}")
 
-        self.log(f"\n  === Category-match N400 ===")
+        self.log("\n  === Category-match N400 ===")
         self.log(f"    Gram:    {np.mean(gram_cat_vals):.4f} "
                  f"+/- {np.std(gram_cat_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    CatViol: {np.mean(catviol_cat_vals):.4f} "
@@ -387,7 +378,7 @@ class PredictionN400Experiment(ExperimentBase):
         self.log(f"    Novel>Gram:   d={h2_cat_novel_vs_gram['d']:.2f}, "
                  f"p={h2_cat_novel_vs_gram['p']:.4f}")
 
-        self.log(f"\n  H3 -- Verb position (control):")
+        self.log("\n  H3 -- Verb position (control):")
         self.log(f"    Verb pos error: {np.mean(verb_pos_vals):.4f} "
                  f"+/- {np.std(verb_pos_vals)/np.sqrt(n_seeds):.4f}")
 
@@ -457,7 +448,7 @@ def main():
     print("=" * 70)
 
     m = result.metrics
-    print(f"\nWord-specific N400 (prediction error at object position):")
+    print("\nWord-specific N400 (prediction error at object position):")
     print(f"  Grammatical: {m['n400_gram']['mean']:.4f} "
           f"+/- {m['n400_gram']['sem']:.4f}")
     print(f"  CatViol:     {m['n400_catviol']['mean']:.4f} "
@@ -475,7 +466,7 @@ def main():
           f"d={m['h2_catviol_vs_novel']['d']:.2f}, "
           f"p={m['h2_catviol_vs_novel']['p']:.4f}")
 
-    print(f"\nCategory-match N400 (max overlap with same-category refs):")
+    print("\nCategory-match N400 (max overlap with same-category refs):")
     print(f"  Grammatical: {m['n400_cat_gram']['mean']:.4f} "
           f"+/- {m['n400_cat_gram']['sem']:.4f}")
     print(f"  CatViol:     {m['n400_cat_catviol']['mean']:.4f} "

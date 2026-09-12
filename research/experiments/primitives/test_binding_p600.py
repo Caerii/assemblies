@@ -73,18 +73,11 @@ class P600Config:
     n_settling_rounds: int = 10
 
 
-def generate_svo_sentences(
-    n_sentences: int,
-    rng: np.random.Generator,
-) -> List[Tuple[str, str, str]]:
-    """Generate random SVO triples from trained vocab."""
-    sentences = []
-    for _ in range(n_sentences):
-        agent = rng.choice(NOUNS)
-        patient = rng.choice([n for n in NOUNS if n != agent])
-        verb = rng.choice(VERBS)
-        sentences.append((agent, verb, patient))
-    return sentences
+from research.experiments.primitives.svo_generators import generate_svo_sentences as _generate_svo_sentences
+
+def generate_svo_sentences(n_sentences: int, rng: np.random.Generator) -> List[Tuple[str, str, str]]:
+    """Generate SVO triples using this study's declared vocabulary."""
+    return _generate_svo_sentences(n_sentences, rng, NOUNS, VERBS)
 
 
 def _activate_word(brain: Brain, stim_name: str, area: str, rounds: int):
@@ -289,14 +282,14 @@ class BindingP600Experiment(ExperimentBase):
         h1_test = paired_ttest(catviol_inst_vals, gram_inst_vals)
         h2_test = paired_ttest(catviol_conv_vals, gram_conv_vals)
 
-        self.log(f"\n  H1 -- Anchored Instability: CatViol > Gram:")
+        self.log("\n  H1 -- Anchored Instability: CatViol > Gram:")
         self.log(f"    Gram:    {np.mean(gram_inst_vals):.4f} "
                  f"+/- {np.std(gram_inst_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    CatViol: {np.mean(catviol_inst_vals):.4f} "
                  f"+/- {np.std(catviol_inst_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    d={h1_test['d']:.2f}, p={h1_test['p']:.4f}")
 
-        self.log(f"\n  H2 -- Convergence: CatViol > Gram:")
+        self.log("\n  H2 -- Convergence: CatViol > Gram:")
         self.log(f"    Gram:    {np.mean(gram_conv_vals):.1f} "
                  f"+/- {np.std(gram_conv_vals)/np.sqrt(n_seeds):.1f}")
         self.log(f"    CatViol: {np.mean(catviol_conv_vals):.1f} "
@@ -362,7 +355,7 @@ def main():
     print("=" * 70)
 
     m = result.metrics
-    print(f"\nAnchored instability at patient position (P600):")
+    print("\nAnchored instability at patient position (P600):")
     print(f"  Grammatical: {m['p600_instability_gram']['mean']:.4f} "
           f"+/- {m['p600_instability_gram']['sem']:.4f}")
     print(f"  CatViol:     {m['p600_instability_catviol']['mean']:.4f} "
@@ -372,7 +365,7 @@ def main():
           f"d={m['h1_instability_test']['d']:.2f}, "
           f"p={m['h1_instability_test']['p']:.4f}")
 
-    print(f"\nConvergence rounds:")
+    print("\nConvergence rounds:")
     print(f"  Grammatical: {m['convergence_gram']['mean']:.1f} "
           f"+/- {m['convergence_gram']['sem']:.1f}")
     print(f"  CatViol:     {m['convergence_catviol']['mean']:.1f} "

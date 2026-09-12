@@ -82,18 +82,11 @@ class ComposedConfig:
     n_settling_rounds: int = 10
 
 
-def generate_svo_sentences(
-    n_sentences: int,
-    rng: np.random.Generator,
-) -> List[Tuple[str, str, str]]:
-    """Generate random SVO triples from trained vocab."""
-    sentences = []
-    for _ in range(n_sentences):
-        agent = rng.choice(NOUNS)
-        patient = rng.choice([n for n in NOUNS if n != agent])
-        verb = rng.choice(VERBS)
-        sentences.append((agent, verb, patient))
-    return sentences
+from research.experiments.primitives.svo_generators import generate_svo_sentences as _generate_svo_sentences
+
+def generate_svo_sentences(n_sentences: int, rng: np.random.Generator) -> List[Tuple[str, str, str]]:
+    """Generate SVO triples using this study's declared vocabulary."""
+    return _generate_svo_sentences(n_sentences, rng, NOUNS, VERBS)
 
 
 def generate_test_triples(
@@ -453,7 +446,7 @@ class ComposedERPExperiment(ExperimentBase):
         h2_catviol_gram = paired_ttest(p600_catviol_vals, p600_gram_vals)
         h2_novel_gram = paired_ttest(p600_novel_vals, p600_gram_vals)
 
-        self.log(f"\n  === N400 Word-specific (Prediction Error) ===")
+        self.log("\n  === N400 Word-specific (Prediction Error) ===")
         self.log(f"    Gram:    {np.mean(n400_gram_vals):.4f} "
                  f"+/- {np.std(n400_gram_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    Novel:   {np.mean(n400_novel_vals):.4f} "
@@ -467,7 +460,7 @@ class ComposedERPExperiment(ExperimentBase):
         self.log(f"    H1 CatViol>Novel: d={h1_catviol_novel['d']:.2f}, "
                  f"p={h1_catviol_novel['p']:.4f}")
 
-        self.log(f"\n  === N400 Category-match ===")
+        self.log("\n  === N400 Category-match ===")
         self.log(f"    Gram:    {np.mean(n400_cat_gram_vals):.4f} "
                  f"+/- {np.std(n400_cat_gram_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    Novel:   {np.mean(n400_cat_novel_vals):.4f} "
@@ -479,7 +472,7 @@ class ComposedERPExperiment(ExperimentBase):
         self.log(f"    Novel>Gram:   d={h1_cat_novel_gram['d']:.2f}, "
                  f"p={h1_cat_novel_gram['p']:.4f}")
 
-        self.log(f"\n  === P600 (Anchored Instability) ===")
+        self.log("\n  === P600 (Anchored Instability) ===")
         self.log(f"    Gram:    {np.mean(p600_gram_vals):.4f} "
                  f"+/- {np.std(p600_gram_vals)/np.sqrt(n_seeds):.4f}")
         self.log(f"    Novel:   {np.mean(p600_novel_vals):.4f} "
@@ -497,7 +490,7 @@ class ComposedERPExperiment(ExperimentBase):
         n400_effect_catviol = float(np.mean(n400_catviol_vals) - np.mean(n400_gram_vals))
         p600_effect_catviol = float(np.mean(p600_catviol_vals) - np.mean(p600_gram_vals))
 
-        self.log(f"\n  === Double Dissociation (H3) ===")
+        self.log("\n  === Double Dissociation (H3) ===")
         self.log(f"    Novel:   N400 effect={n400_effect_novel:+.4f}  "
                  f"P600 effect={p600_effect_novel:+.4f}")
         self.log(f"    CatViol: N400 effect={n400_effect_catviol:+.4f}  "
@@ -594,7 +587,7 @@ def main():
 
     m = result.metrics
 
-    print(f"\nN400 (Prediction Error) at object position:")
+    print("\nN400 (Prediction Error) at object position:")
     print(f"  Grammatical: {m['n400']['gram']['mean']:.4f} "
           f"+/- {m['n400']['gram']['sem']:.4f}")
     print(f"  Novel:       {m['n400']['novel']['mean']:.4f} "
@@ -610,7 +603,7 @@ def main():
     print(f"  CatViol > Novel: d={nt['catviol_vs_novel']['d']:.2f}, "
           f"p={nt['catviol_vs_novel']['p']:.4f}")
 
-    print(f"\nP600 (Anchored Instability) at object position:")
+    print("\nP600 (Anchored Instability) at object position:")
     print(f"  Grammatical: {m['p600']['gram']['mean']:.4f} "
           f"+/- {m['p600']['gram']['sem']:.4f}")
     print(f"  Novel:       {m['p600']['novel']['mean']:.4f} "
@@ -625,7 +618,7 @@ def main():
           f"p={pt['novel_vs_gram']['p']:.4f}")
 
     dd = m["double_dissociation"]
-    print(f"\nDouble Dissociation:")
+    print("\nDouble Dissociation:")
     print(f"  Novel:   N400 effect={dd['novel_n400_effect']:+.4f}  "
           f"P600 effect={dd['novel_p600_effect']:+.4f}")
     print(f"  CatViol: N400 effect={dd['catviol_n400_effect']:+.4f}  "

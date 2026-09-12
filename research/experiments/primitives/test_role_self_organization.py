@@ -64,18 +64,11 @@ NOUNS = ["dog", "cat", "bird", "boy", "girl",
 VERBS = ["chases", "sees", "eats", "finds", "plays"]
 
 
-def generate_svo_sentences(
-    n_sentences: int,
-    rng: np.random.Generator,
-) -> List[Tuple[str, str, str]]:
-    """Generate random SVO triples (agent, verb, patient)."""
-    sentences = []
-    for _ in range(n_sentences):
-        agent = rng.choice(NOUNS)
-        patient = rng.choice([n for n in NOUNS if n != agent])
-        verb = rng.choice(VERBS)
-        sentences.append((agent, verb, patient))
-    return sentences
+from research.experiments.primitives.svo_generators import generate_svo_sentences as _generate_svo_sentences
+
+def generate_svo_sentences(n_sentences: int, rng: np.random.Generator) -> List[Tuple[str, str, str]]:
+    """Generate SVO triples using this study's declared vocabulary."""
+    return _generate_svo_sentences(n_sentences, rng, NOUNS, VERBS)
 
 
 @dataclass
