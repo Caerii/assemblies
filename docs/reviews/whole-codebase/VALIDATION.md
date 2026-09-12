@@ -6928,3 +6928,5 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 ## Nemo learner nullable parameter contract (2026-09-12)
 
 `nemo/language/learner.py` now models optional `k` and optional learner parameters accurately, narrows the derived `k` before constructing `BrainParams`, and removes its two Pyright errors. Pyright and Ruff report zero diagnostics; compilation passes.
+
+- 2026-09-12: `nemo/language/nemo_learner.py` semantic boundary cleanup: optional CuPy is explicit, Torch operators route through `core._torch_ops`, nullable parameter/role contracts are typed, and transition handling skips unbound roles. `uv run pyright neural_assemblies/nemo/language/nemo_learner.py` (0 errors); `git diff --check` (clean).

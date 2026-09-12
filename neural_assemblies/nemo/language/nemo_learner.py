@@ -30,10 +30,15 @@ Architecture:
                  SEQ (word order)
 """
 
-import cupy as cp
-import torch
+import importlib
+from typing import Any
 import numpy as np
-from typing import Dict, List, Tuple, Optional, Set
+from neural_assemblies.core._torch_ops import torch_ops
+
+cp: Any = importlib.import_module("cupy")
+CpArray = Any
+
+from typing import Dict, List, Tuple, Optional, Set, Sequence
 from dataclasses import dataclass, field
 from enum import Enum, auto
 from collections import defaultdict
@@ -76,7 +81,7 @@ class GroundedContext:
 class NemoParams:
     """Parameters for NEMO model (from paper)"""
     n: int = 100000        # Neurons per area
-    k: int = None          # Winners (sqrt(n) if None)
+    k: int | None = None   # Winners (sqrt(n) if None)
     p: float = 0.05        # Connection probability
     beta: float = 0.1      # Hebbian plasticity rate
     w_max: float = 10.0    # Weight saturation
@@ -166,16 +171,18 @@ class NemoBrain:
     
     NUM_AREAS = 13
     
-    def __init__(self, params: NemoParams = None, verbose: bool = True):
+    def __init__(self, params: NemoParams | None = None, verbose: bool = True):
         self.p = params or NemoParams()
         self.verbose = verbose
         n, k = self.p.n, self.p.k
+        if k is None:  # __post_init__ establishes this; retain a local proof for type checkers.
+            raise ValueError("NemoParams.k must be resolved before constructing NemoBrain")
         
         # Input assemblies (pre-created for each concept)
-        self.phon: Dict[str, cp.ndarray] = {}      # word → assembly
-        self.visual: Dict[str, cp.ndarray] = {}    # visual concept → assembly
-        self.motor: Dict[str, cp.ndarray] = {}     # motor concept → assembly
-        self.emotion: Dict[str, cp.ndarray] = {}   # emotion → assembly
+        self.phon: Dict[str, CpArray] = {}      # word → assembly
+        self.visual: Dict[str, CpArray] = {}    # visual concept → assembly
+        self.motor: Dict[str, CpArray] = {}     # motor concept → assembly
+        self.emotion: Dict[str, CpArray] = {}   # emotion → assembly
         
         # Area seeds for implicit connectivity
         self.seeds = cp.arange(self.NUM_AREAS, dtype=cp.uint32) * 1000
@@ -188,11 +195,11 @@ class NemoBrain:
         self.l_num = [cp.zeros(1, dtype=cp.uint32) for _ in range(self.NUM_AREAS)]
         
         # Current and previous activations
-        self.current: Dict[Area, Optional[cp.ndarray]] = {a: None for a in Area}
-        self.prev: Dict[Area, Optional[cp.ndarray]] = {a: None for a in Area}
+        self.current: Dict[Area, Optional[CpArray]] = {a: None for a in Area}
+        self.prev: Dict[Area, Optional[CpArray]] = {a: None for a in Area}
         
         # Firing history (for stability measurement)
-        self.firing_history: Dict[Area, List[cp.ndarray]] = defaultdict(list)
+        self.firing_history: Dict[Area, List[CpArray]] = defaultdict(list)
         
         # Kernel config
         self.bs = 512
@@ -209,20 +216,22 @@ class NemoBrain:
             print(f"  Strong fibers: {len(STRONG_FIBERS)}")
             print(f"  Regular fibers: {len(REGULAR_FIBERS)}")
     
-    def _get_or_create_assembly(self, store: Dict, name: str) -> cp.ndarray:
+    def _get_or_create_assembly(self, store: Dict, name: str) -> CpArray:
         """Get or create a random assembly for a concept"""
         if name not in store:
             store[name] = cp.random.randint(0, self.p.n, self.p.k, dtype=cp.uint32)
         return store[name]
     
-    def _project(self, area: Area, input_assembly: cp.ndarray, 
-                 learn: bool = True, is_strong: bool = False) -> cp.ndarray:
+    def _project(self, area: Area, input_assembly: CpArray,
+                 learn: bool = True, is_strong: bool = False) -> CpArray:
         """
         Project input to an area using implicit connectivity + learned weights.
         
         Returns the winning assembly (top-k neurons).
         """
         n, k = self.p.n, self.p.k
+        if k is None:
+            raise ValueError("NemoParams.k must be resolved before projection")
         area_idx = area.value
         
         # Use strong or regular connection parameters
@@ -246,8 +255,8 @@ class NemoBrain:
         )
         
         # Top-k selection
-        result_torch = torch.as_tensor(result, device='cuda')
-        _, winners_idx = torch.topk(result_torch, k, sorted=False)
+        result_torch = torch_ops.as_tensor(result, device='cuda')
+        _, winners_idx = torch_ops.topk(result_torch, k, sorted=False)
         winners = cp.asarray(winners_idx).astype(cp.uint32)
         
         # Hebbian learning
@@ -269,10 +278,10 @@ class NemoBrain:
         
         return winners
     
-    def _project_with_grounding(self, area: Area, phon_input: cp.ndarray,
-                                 grounding_input: cp.ndarray, 
+    def _project_with_grounding(self, area: Area, phon_input: CpArray,
+                                 grounding_input: CpArray,
                                  grounding_area: Area,
-                                 learn: bool = True) -> cp.ndarray:
+                                 learn: bool = True) -> CpArray:
         """
         Project with continuous grounding (key insight from paper).
         
@@ -300,7 +309,10 @@ class NemoBrain:
         first = set(history[0].get().tolist())
         last = set(history[-1].get().tolist())
         
-        overlap = len(first & last) / self.p.k
+        k = self.p.k
+        if k is None:
+            raise ValueError("NemoParams.k must be resolved before measuring stability")
+        overlap = len(first & last) / k
         return overlap
     
     def _clear_area(self, area: Area):
@@ -326,7 +338,7 @@ class NemoLanguageLearner:
     4. Word order learning
     """
     
-    def __init__(self, params: NemoParams = None, verbose: bool = True):
+    def __init__(self, params: NemoParams | None = None, verbose: bool = True):
         self.brain = NemoBrain(params, verbose=verbose)
         self.p = self.brain.p
         self.verbose = verbose
@@ -344,18 +356,18 @@ class NemoLanguageLearner:
         
         self.sentences_seen = 0
     
-    def register_noun(self, word: str, visual_concepts: List[str]):
+    def register_noun(self, word: str, visual_concepts: List[str] | None = None):
         """Register a noun with its visual grounding"""
         self._gt_nouns.add(word)
         self.brain._get_or_create_assembly(self.brain.phon, word)
-        for v in visual_concepts:
+        for v in visual_concepts or [word.upper()]:
             self.brain._get_or_create_assembly(self.brain.visual, v)
     
-    def register_verb(self, word: str, motor_concepts: List[str]):
+    def register_verb(self, word: str, motor_concepts: List[str] | None = None):
         """Register a verb with its motor grounding"""
         self._gt_verbs.add(word)
         self.brain._get_or_create_assembly(self.brain.phon, word)
-        for m in motor_concepts:
+        for m in motor_concepts or [word.upper()]:
             self.brain._get_or_create_assembly(self.brain.motor, m)
     
     def present_grounded_word(self, word: str, context: GroundedContext, 
@@ -422,7 +434,7 @@ class NemoLanguageLearner:
     
     def present_grounded_sentence(self, words: List[str], 
                                    context: GroundedContext,
-                                   roles: List[str] = None,
+                                   roles: Sequence[str] | None = None,
                                    learn: bool = True):
         """
         Present a grounded sentence.
@@ -437,15 +449,17 @@ class NemoLanguageLearner:
         # Default roles based on position (SVO)
         if roles is None:
             positional = {1: ['SUBJ'], 2: ['SUBJ', 'VERB']}
-            roles = positional.get(len(words), ['SUBJ', 'VERB', 'OBJ'][:len(words)])
-            roles = roles + [None] * (len(words) - len(roles))
-        elif len(words) != len(roles):
-            raise ValueError("words and roles must have equal length")
+            inferred = positional.get(len(words), ['SUBJ', 'VERB', 'OBJ'][:len(words)])
+            effective_roles: List[str | None] = inferred + [None] * (len(words) - len(inferred))
+        else:
+            if len(words) != len(roles):
+                raise ValueError("words and roles must have equal length")
+            effective_roles = list(roles)
         
         # Present each word with role binding. Extra words remain part of the
         # experience even when they have no positional role annotation.
         prev_role = None
-        for word, role in zip(words, roles, strict=True):
+        for word, role in zip(words, effective_roles, strict=True):
             # Present word with grounding (this projects to correct Lex area)
             self.present_grounded_word(word, context, learn=learn)
             
@@ -454,7 +468,7 @@ class NemoLanguageLearner:
                 'SUBJ': Area.ROLE_AGENT,
                 'VERB': Area.ROLE_ACTION,
                 'OBJ': Area.ROLE_PATIENT,
-            }.get(role)
+            }.get(role) if role is not None else None
             
             if role_area:
                 # Get the correct Lex assembly
@@ -475,9 +489,10 @@ class NemoLanguageLearner:
                                            learn=learn)
             
             # Track transitions
-            if prev_role and learn:
+            if prev_role is not None and role is not None and learn:
                 self.transitions[(prev_role, role)] += 1
-            prev_role = role
+            if role is not None:
+                prev_role = role
         
         if learn:
             self.sentences_seen += 1
@@ -567,7 +582,7 @@ class NemoLanguageLearner:
             }
             if not candidates:
                 break
-            next_role = max(candidates, key=candidates.get)
+            next_role = max(candidates, key=lambda role: candidates[role])
             order.append(next_role)
             current = next_role
         
