@@ -14,7 +14,7 @@ import importlib
 from pathlib import Path
 import re
 import subprocess
-from typing import Any, Callable, Mapping
+from typing import Any, Callable, Mapping, cast
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
@@ -61,6 +61,13 @@ class ExperimentOutput:
 
     observations: Mapping
     json_attachments: Mapping[str, Any] = field(default_factory=dict)
+
+
+# The runner accepts either the compact observation mapping used by small
+# studies or the lossless envelope used when a study retains raw JSON.  Keep
+# this type next to the writer so adapters cannot accidentally promise a
+# narrower return shape than the storage boundary supports.
+MeasureOutput = Mapping[str, Any] | ExperimentOutput
 
 
 def _encode_attachments(attachments: Mapping[str, Any]) -> dict[str, tuple[bytes, dict]]:
@@ -131,7 +138,7 @@ def _source_identity(archive: ZipFile | None = None) -> dict:
 
 def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    registration: str | Path, engine: str, seeds: list[int], tag: str,
-                   parameters: Mapping, measure: Callable[[dict], Mapping],
+                   parameters: Mapping, measure: Callable[[dict], MeasureOutput],
                    smoke: bool = False, minimum_study_seeds: int = 3,
                    output_root: Path | None = None,
                    input_artifacts: tuple[str, ...] = (),
@@ -203,9 +210,12 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         execution_document = ExecutionSemantics(
             ExecutionKind.ORGAN, profiles,
         ).to_dict()
+        profiles_document = cast(
+            Mapping[str, Mapping[str, Any]], execution_document['profiles']
+        )
         wrong = {
             name: profile['organ']
-            for name, profile in execution_document['profiles'].items()
+            for name, profile in profiles_document.items()
             if profile['organ'] != ORGAN_ENGINES[engine].value
         }
         if wrong:
@@ -273,20 +283,34 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     # Source-linked specification: research/README.md#recoverable-source
     # Reserve first; no measurement may run without a complete source capture.
     archive_path = directory / 'source.zip'
-    with ZipFile(archive_path, 'x') as archive:
-        captured = _source_identity(archive)
-        for name, data in input_bytes.items():
-            _archive_bytes(archive, 'inputs/' + name, data)
-        for field, path in [('script', script_path), ('registration', registration_path)]:
-            data = path.read_bytes()
-            if hashlib.sha256(data).hexdigest() != record[field + '_sha256']:
-                raise RuntimeError(f'{field} changed while capturing source')
-            _archive_bytes(archive, field, data)
-    if captured != {k: record[k] for k in ('git_commit', 'source_sha256')}:
-        raise RuntimeError('source changed while capturing source')
-    record['source_archive'] = {'file': 'source.zip',
-                                'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest()}
-    _write_new(directory / 'run.json', record)
+    try:
+        with ZipFile(archive_path, 'x') as archive:
+            captured = _source_identity(archive)
+            for name, data in input_bytes.items():
+                _archive_bytes(archive, 'inputs/' + name, data)
+            for field, path in [('script', script_path), ('registration', registration_path)]:
+                data = path.read_bytes()
+                if hashlib.sha256(data).hexdigest() != record[field + '_sha256']:
+                    raise RuntimeError(f'{field} changed while capturing source')
+                _archive_bytes(archive, field, data)
+        if captured != {k: record[k] for k in ('git_commit', 'source_sha256')}:
+            raise RuntimeError('source changed while capturing source')
+        record['source_archive'] = {
+            'file': 'source.zip',
+            'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest(),
+        }
+        _write_new(directory / 'run.json', record)
+    except BaseException as exc:
+        # Reservation is intentionally early.  If capture fails, retain the
+        # reservation and its reason instead of leaving an unexplainable
+        # orphan that a later audit cannot distinguish from an interrupted run.
+        _write_new(directory / 'failure.json', {
+            'run': record,
+            'status': 'failed',
+            'error_type': type(exc).__name__,
+            'error': str(exc),
+        })
+        raise
     try:
         measured = measure(snapshot_document(record))
         if isinstance(measured, ExperimentOutput):

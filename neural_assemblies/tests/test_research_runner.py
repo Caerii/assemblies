@@ -233,6 +233,27 @@ def test_failure_keeps_record_and_reserves_tag(run):
         run()
 
 
+def test_source_capture_failure_is_retained_as_a_failed_reservation(run, monkeypatch, tmp_path):
+    """A failure before measurement still has an attributable terminal record."""
+    calls = 0
+
+    def drift(_archive=None):
+        nonlocal calls
+        calls += 1
+        return {'git_commit': 'commit-a' if calls == 1 else 'commit-b',
+                'source_sha256': '0' * 64}
+
+    monkeypatch.setattr(runner, '_source_identity', drift)
+    with pytest.raises(RuntimeError, match='source changed'):
+        run()
+    failure = tmp_path / 'audit.fixture' / 'fixture' / 'failure.json'
+    assert failure.exists()
+    payload = json.loads(failure.read_text())
+    assert payload['status'] == 'failed'
+    assert payload['error_type'] == 'RuntimeError'
+    assert payload['run']['tag'] == 'fixture'
+
+
 def test_missing_dataset_stops_golden_executor(monkeypatch):
     from neural_assemblies.parity import runner as parity
     from neural_assemblies.programs import colt_mnist_data as data

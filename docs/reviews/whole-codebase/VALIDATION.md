@@ -6962,3 +6962,4 @@ The unreachable `lexicon/curriculum.py` implementation is now explicitly named `
 - 2026-09-12: Lexicon public API test now builds its own typed summary value instead of depending on a test function return; Pyright 0 errors and 7 tests passed.
 - 2026-09-12: Weight-learning study test now uses local Generator RNGs, correct matrix-shaped random draws, and pytest-safe assertions; focused Pyright 0 errors and 4 tests passed.
 - 2026-09-12: Added `scripts/verify_maintained.py` and documented it in README. Static gate executed successfully across 279 maintained Python files with 0 errors and 0 warnings.
+- 2026-09-12: Research runner now records a terminal `failure.json` even when source capture fails after tag reservation; its callable return type explicitly includes lossless `ExperimentOutput`. Runner Pyright: 0 errors; source-capture and reservation tests: 2 passed.
