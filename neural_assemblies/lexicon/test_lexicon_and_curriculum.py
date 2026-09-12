@@ -45,7 +45,6 @@ def test_lexicon():
         else:
             print(f"  ? '{form}' -> {w.lemma if w else 'not found'} (expected '{expected_lemma}')")
     
-    return lexicon
 
 
 def test_grounded_corpus():
@@ -77,7 +76,6 @@ def test_grounded_corpus():
         print(f"      Visual: {ex.context.visual_objects}")
         print(f"      Speech act: {ex.speech_act.name}")
     
-    return corpus
 
 
 def test_free_sentence_addition():
@@ -106,7 +104,6 @@ def test_free_sentence_addition():
         print(f"    Actions: {ex.context.actions}")
         print(f"    Speech act: {ex.speech_act.name}")
     
-    return corpus
 
 
 def test_word_learning_protocol():
@@ -130,7 +127,6 @@ def test_word_learning_protocol():
     
     print(f"\n  Word exposure count: {corpus.get_word_exposure_count(word)}")
     
-    return corpus
 
 
 def test_curriculum_stages():

@@ -6907,4 +6907,9 @@ The evidence graph now recognizes committed `.log` and `.txt` study artifacts as
 
 ## Instance-owned legacy lexicon curriculum randomness (2026-09-12)
 
-The legacy `neural_assemblies/lexicon/curriculum.py` curriculum now accepts either an injected `random.Random` instance or a seed and routes sampling through it, removing process-global Python RNG use. Explicit module loading (the package's `curriculum/` namespace shadows this legacy module) confirms same-seed determinism and no global RNG mutation; Pyright, Ruff, compilation, and diff checks are clean.
+The legacy `neural_assemblies/lexicon/legacy_curriculum.py` curriculum now accepts either an injected `random.Random` instance or a seed and routes sampling through it, removing process-global Python RNG use. Explicit module loading (the package's `curriculum/` namespace shadows this legacy module) confirms same-seed determinism and no global RNG mutation; Pyright, Ruff, compilation, and diff checks are clean.
+
+
+## Curriculum namespace disambiguation (2026-09-12)
+
+The unreachable `lexicon/curriculum.py` implementation is now explicitly named `legacy_curriculum.py`, removing the collision with the package-owned `lexicon/curriculum/` namespace. Emergent curriculum documentation now names the active package data modules, and lexicon tests no longer return values to Pytest. Focused lexicon tests pass **7/7** with no warnings; Pyright, Ruff, and compilation are clean.

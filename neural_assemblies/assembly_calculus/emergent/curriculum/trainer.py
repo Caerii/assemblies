@@ -135,8 +135,10 @@ class CurriculumTrainer:
     using the lexicon's frequency and age-of-acquisition data to select
     stage-appropriate vocabulary.  Plasticity decreases at later stages.
 
-    Uses src/lexicon/curriculum.py's Curriculum class for word selection
-    and stage management.
+    Uses the package-owned lexicon data modules under
+    ``neural_assemblies.lexicon.curriculum``.  The former shadowed legacy
+    implementation is retained only as ``legacy_curriculum.py`` for explicit
+    historical inspection.
     """
 
     def __init__(self, parser, *, holdout_words: Optional[Set[str]] = None):
