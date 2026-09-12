@@ -5821,3 +5821,9 @@ negative.
 `record_role_order_evidence` now requires one role annotation per sentence
 token. Misaligned `words` and `roles` fail before updating order counts; the
 true-negative parser test passes.
+
+### ERP threshold tuning surface (2026-09-12)
+
+`tune_thresholds_from_samples` no longer accepts the baseline object it never
+read. Threshold tuning remains driven by labeled samples and fallback policy,
+and a signature test protects the reduced surface.

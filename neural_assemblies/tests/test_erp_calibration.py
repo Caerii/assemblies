@@ -45,6 +45,7 @@ import os
 from types import SimpleNamespace
 
 import pytest
+import inspect
 
 os.environ.setdefault("EMERGENT_FAST_TRAINING", "1")
 os.environ["TRAIN_PROGRESS"] = "0"
@@ -59,6 +60,16 @@ N, K = 3000, 30
 #: Null for a rank statistic. Violations must out-score grammatical more often
 #: than not; see the module docstring for why nothing tighter is asserted.
 CHANCE = 0.5
+
+
+def test_threshold_tuning_has_no_ignored_baseline_parameter():
+    from neural_assemblies.assembly_calculus.emergent.evaluation.erp.calibration import (
+        tune_thresholds_from_samples,
+    )
+
+    assert "baseline" not in inspect.signature(
+        tune_thresholds_from_samples
+    ).parameters
 
 
 def test_calibration_observes_frames_once(monkeypatch):

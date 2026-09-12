@@ -235,7 +235,6 @@ def _label_stats(samples: List[PositionErpSample], label: str) -> Dict[str, floa
 def tune_thresholds_from_samples(
     samples: List[PositionErpSample],
     *,
-    baseline: ErpBaseline,
     fallback: Optional[ErpThresholds] = None,
 ) -> ErpThresholds:
     """Midpoint between grammatical p75 and category-violation p25 excess."""
@@ -411,7 +410,7 @@ def calibrate_erp_thresholds(
         protocol=protocol,
     )
     thresholds = tune_thresholds_from_samples(
-        raw_samples, baseline=baseline, fallback=fb,
+        raw_samples, fallback=fb,
     )
 
     # Threshold tuning changes labels, not the neural quantities already
