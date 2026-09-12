@@ -6279,3 +6279,7 @@ The unknown-export guard now keeps its attribute name in a variable, preserving 
 ### Cumulative non-slow CPU integration audit (2026-09-12)
 
 The full `neural_assemblies/tests` non-slow, non-GPU collection completed in **1,655.34 seconds**: **3,762 passed, 135 skipped, 6 expected xfails, 5 failures, 10 subtests passed**. The five failures are all the known ERP calibration/metric scientific bars (`test_erp_calibration.py` and `test_erp_metric_range.py`), with no infrastructure or unification regression elsewhere. An isolated rerun reproduced the same **5 failures and 14 passes in 50.98 seconds**, confirming they are deterministic and remain an explicit scientific blocker rather than a transient full-suite effect.
+
+### CUDA parity environment gate (2026-09-12)
+
+The GPU-marked collection discovered **6 tests: 4 skipped and 2 failed**. CUDA is present (`torch 2.12.1+cu130`, RTX 3080), but the two temporal capture tests fail before execution because the fused extension cannot load: `cl.exe` is absent from PATH and `ninja` is missing. `scripts/check_cuda_toolchain.py` independently reports the same actionable environment gaps while resolving `CUDA_HOME`, `nvcc`, and `vcvars64.bat`; no backend result is inferred from this failed build gate.
