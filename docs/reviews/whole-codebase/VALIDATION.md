@@ -6590,3 +6590,7 @@ ormalize, 	o_dict, and mismatch statically composable for subclasses. Pyright: 0
 ## 2026-09-12 — Brain capability and fiber lookup contracts
 
 - Extended ComputeEngine.add_area with the winner-policy and input-noise options already used by concrete engines; declared shared connection registries and capability hooks; narrowed Brain dense-fiber lookups to real Connectome instances before reading weights. Brain Pyright diagnostics reduced from 18 to 12. Existing model/area registration tests remain 221 passed.
+
+## 2026-09-12 — Brain projection and inhibition boundary
+
+- Typed Brain's optional projection maps and normalization source, made inhibition absence an explicit no-op result at _apply_inhibition, and routed the example's random choices through the Brain-owned seeded generator. Brain Pyright: 0 diagnostics; Brain/inhibition tests: 40 passed in 1.68s.

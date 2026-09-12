@@ -58,6 +58,7 @@ from .feedforward_inhibition import (
     validate_feedforward_inhibition_capability,
 )
 from .projection_fidelity import validate_projection_fidelity_capability
+from .inhibition import InhibitionState
 
 from .area import Area
 from .stimulus import Stimulus
@@ -356,7 +357,7 @@ class Brain:
         self._mutual_inhibition_groups: List[List[str]] = []
         #: AC area/fiber inhibition. None until something is actually
         #: inhibited, so a Brain that never gates pays nothing for it.
-        self._inhibition = None
+        self._inhibition: Optional[InhibitionState] = None
         # One-time incoming-weight normalization (reference `norm_init`).
         # Legacy schedule inputs; see project_rounds's source-linked contract.
         self.norm_init: bool = norm_init
@@ -994,11 +995,11 @@ class Brain:
 
     def project(
         self,
-        areas_by_stim: Dict[str, List[str]] = None,
-        dst_areas_by_src_area: Dict[str, List[str]] = None,
-        external_inputs: Dict[str, np.ndarray] = None,
-        projections: Dict[str, List[str]] = None,
-        external_drive: Dict[str, np.ndarray] = None,
+        areas_by_stim: Optional[Dict[str, List[str]]] = None,
+        dst_areas_by_src_area: Optional[Dict[str, List[str]]] = None,
+        external_inputs: Optional[Dict[str, np.ndarray]] = None,
+        projections: Optional[Dict[str, List[str]]] = None,
+        external_drive: Optional[Dict[str, np.ndarray]] = None,
         verbose: int = 0,
     ):
         """
@@ -1569,6 +1570,8 @@ class Brain:
         needs BOTH endpoints open and its fiber open.
         """
         state = self._inhibition
+        if state is None:
+            return defaultdict(list), defaultdict(list)
         stim_out = defaultdict(list)
         for target, stims in stim_in.items():
             if state.area_open(target):
@@ -1647,7 +1650,7 @@ class Brain:
             if set(g) != target
         ]
 
-    def normalize_weights(self, target: str, source: str = None) -> None:
+    def normalize_weights(self, target: str, source: Optional[str] = None) -> None:
         """Column-normalize weights into *target* so each neuron sums to 1.0.
 
         If *source* is given, only that connection is normalized.
@@ -1996,7 +1999,7 @@ class Brain:
         
         # Example 1: Projection (Visual → Semantic)
         # External image activates visual area
-        visual_assembly = np.random.choice(1000, 100, replace=False)
+        visual_assembly = brain.rng.choice(1000, 100, replace=False)
         external_inputs = {"visual": visual_assembly}
         projections = {"visual": ["semantic"]}
         brain.project(external_inputs, projections)
@@ -2004,7 +2007,7 @@ class Brain:
         # Example 2: Association (Semantic + Motor)
         # Both areas activate simultaneously to strengthen association
         semantic_assembly = brain.areas["semantic"].winners
-        motor_assembly = np.random.choice(600, 60, replace=False)
+        motor_assembly = brain.rng.choice(600, 60, replace=False)
         external_inputs = {"semantic": semantic_assembly, "motor": motor_assembly}
         projections = {"semantic": ["motor"], "motor": ["semantic"]}
         brain.project(external_inputs, projections)
