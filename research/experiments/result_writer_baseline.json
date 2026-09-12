@@ -1,6 +1,5 @@
 {
   "direct_json_dump_sites": {
-    "research/experiments/adoption_gate.py": 1,
     "research/experiments/applications/explore_agreement_params.py": 1,
     "research/experiments/ceiling_vs_n.py": 1,
     "research/experiments/childes_graduation.py": 1,

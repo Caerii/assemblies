@@ -5326,3 +5326,11 @@ and observations, removing three ad hoc `json.dumps`/`json.loads` copies while
 enforcing the same finite-number and duplicate-key rules before mutation or
 publication. Runner, contract, and storage checks pass: **147 passed**; Ruff
 and compilation are clean.
+
+### Adoption-gate writer migration (2026-09-12)
+
+The registered adoption gate now writes its fixed result artifact through the
+shared finite, exclusive JSON boundary. Its analysis output, stdout report,
+and output path are unchanged; reruns can no longer silently replace the
+adoption evidence. Compilation, Ruff, and the result-writer ratchet pass:
+**1 passed**.

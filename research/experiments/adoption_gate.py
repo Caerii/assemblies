@@ -33,6 +33,9 @@ import json
 import os
 import random
 import statistics as st
+from pathlib import Path
+
+from research.json_documents import write_new_document
 import sys
 
 sys.path.insert(0, os.path.dirname(__file__))
@@ -184,8 +187,7 @@ def main():
         "R2b_delta_e1": synth_delta("e1"),
     }
     out = {"brown": brown, "synthetic": synth, "analysis": analysis}
-    with open(OUT_PATH, "w", encoding="utf-8") as f:
-        json.dump(out, f, indent=2)
+    write_new_document(Path(OUT_PATH), out)
     print(json.dumps(analysis, indent=2))
     print(f"-> {OUT_PATH}")
 
