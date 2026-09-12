@@ -31,7 +31,7 @@ from __future__ import annotations
 
 import math
 
-import torch
+from ._torch_ops import torch_ops
 from typing import Any, cast
 
 from ._hashed import AreaFiber, DenseOrganFiber, HashedArea, StimulusFiber
@@ -145,7 +145,7 @@ class AssemblyMemory:
         and no bias is charged. ``masked`` (default: whenever refracted)
         reads the synaptic memory with the bias zeroed; ``masked=False`` is
         the net readout, which reads chance on a refracted memory."""
-        self.area.winners = cue.to(torch.int64)
+        self.area.winners = cue.to(torch_ops.int64)
         return self.area.project(self.rounds, [self.fiber], freeze=True,
                                  mask_bias=(None if masked is None
                                             else bool(masked) and self.refracted))
