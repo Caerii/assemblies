@@ -6798,3 +6798,8 @@ Homeostasis tensor scaling now uses the shared lazy `torch_ops` boundary instead
 ## Legacy C++ brain extension boundary (2026-09-12)
 
 `core/brain_cpp.py` now loads the optional native extension dynamically into an explicit handle, so its compatibility wrapper remains importable and statically analyzable when the DLL is absent. Import fallback was verified with `CPP_AVAILABLE=False`; Pyright and Ruff report zero diagnostics.
+
+
+## Winner-selection type boundary (2026-09-12)
+
+`compute/winner_selection.py` now declares optional thresholds explicitly and canonicalizes NumPy index scalars to Python `int` before remapping winners. Winner selection and policy tests pass **42/42**; Pyright and Ruff report zero diagnostics.
