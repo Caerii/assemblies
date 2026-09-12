@@ -6563,3 +6563,7 @@ The complete `emergent/parser_mixins` package now reports **0 Pyright diagnostic
 - The two optional Torch batching modules declare their Pyright boundary explicitly because Torch is imported dynamically and this environment exposes no usable module stubs. Runtime admission contracts remain checked before import; the suppression is scoped to those backend files. Focused Pyright checks: 0 diagnostics.
 
 - Final focused gate: uv run pyright neural_assemblies/assembly_calculus/emergent neural_assemblies/assembly_calculus/batched_next_token.py neural_assemblies/assembly_calculus/batched_trainer.py — 0 diagnostics; contract/evidence suite (	est_batched_admission.py, 	est_operation_contract_objects.py, 	est_research_contracts.py, 	est_evidence_check_command.py) — 184 passed in 11.22s.
+
+## 2026-09-12 — PFA seed helper typing
+
+- Typed the _mixed_seed NumPy result with an explicit array cast, resolving the final PFA Pyright diagnostic without changing sampling semantics. uv run pyright neural_assemblies/assembly_calculus/pfa.py — 0 diagnostics; PFA choice/seed contracts — 45 passed in 1.55s.

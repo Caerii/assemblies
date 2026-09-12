@@ -38,7 +38,7 @@ Reference:
     arXiv:2306.03812.
 """
 
-from typing import List, Literal, Optional
+from typing import List, Literal, Optional, cast
 import math
 from numbers import Integral, Real
 
@@ -337,7 +337,7 @@ class RandomChoiceArea:
         n0 = int(self.k * bias)
         chosen = [rng.choice(asm.winners, size=min(count, len(asm.winners)), replace=False)
                   for asm, count in ((self.asm0, n0), (self.asm1, self.k - n0))]
-        return np.unique(np.concatenate(chosen))
+        return cast(np.ndarray, np.unique(np.concatenate(chosen)))
 
     def _seed_uniform(self, rng) -> None:
         area = self.brain.areas[self.area_name]
