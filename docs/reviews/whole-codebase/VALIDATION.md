@@ -6263,3 +6263,7 @@ Historical association, merge, projection, scaling, noise, and operation-contrac
 ### Warning provenance gate (2026-09-12)
 
 Projection parity warnings now include `stacklevel=2`, so tolerated numerical divergence points to the parity call site rather than the warning helper. The projection parity suite passes **3 tests with 1 expected tolerance warning**; Ruff B028/F/E9 is clean.
+
+### Lazy-import typo guard gate (2026-09-12)
+
+The lazy-import test now invokes an unknown export through `getattr`, making the intended AttributeError assertion explicit and removing a useless-expression lint finding. The lazy-import suite passes **12 tests**; Ruff B018/F/E9 is clean.
