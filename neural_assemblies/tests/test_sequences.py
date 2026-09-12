@@ -44,7 +44,7 @@ class TestSequenceDataclass(unittest.TestCase):
         """Create n assemblies with known winners."""
         rng = np.random.default_rng(SEED)
         asms = []
-        for i in range(n):
+        for _i in range(n):
             winners = rng.choice(N, size=K, replace=False).astype(np.uint32)
             asms.append(Assembly("A", winners))
         return asms

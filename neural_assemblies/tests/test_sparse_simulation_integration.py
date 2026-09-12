@@ -40,7 +40,7 @@ class TestSparseSimulationIntegration(unittest.TestCase):
         # Verify basic structure
         self.assertEqual(len(distributions), len(self.first_winner_inputs))
 
-        for i, (dist, expected_input) in enumerate(zip(distributions, self.first_winner_inputs, strict=True)):
+        for _i, (dist, expected_input) in enumerate(zip(distributions, self.first_winner_inputs, strict=True)):
             # Total connections should match input strength
             total_connections = int(np.sum(dist))
             self.assertEqual(total_connections, int(expected_input))

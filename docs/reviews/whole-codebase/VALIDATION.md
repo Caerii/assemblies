@@ -6267,3 +6267,7 @@ Projection parity warnings now include `stacklevel=2`, so tolerated numerical di
 ### Lazy-import typo guard gate (2026-09-12)
 
 The lazy-import test now invokes an unknown export through `getattr`, making the intended AttributeError assertion explicit and removing a useless-expression lint finding. The lazy-import suite passes **12 tests**; Ruff B018/F/E9 is clean.
+
+### Maintained test loop-binding gate (2026-09-12)
+
+Ruff's remaining B007 findings in maintained tests were replaced with `_` bindings where the iteration value was intentionally unused. The affected connectome, sequence, language, historical projection, and sparse-simulation tests pass **109 tests with 13 intentional sampled-recurrence warnings**; Ruff B007 is clean across `neural_assemblies/tests`.

@@ -49,7 +49,7 @@ class TestSparseSimulationEngine(unittest.TestCase):
             self.assertEqual(len(dist), len(input_sizes))
 
         # Total connections should match input strength
-        for i, (dist, expected) in enumerate(zip(distributions, first_winner_inputs, strict=True)):
+        for _i, (dist, expected) in enumerate(zip(distributions, first_winner_inputs, strict=True)):
             total_connections = int(np.sum(dist))
             self.assertEqual(total_connections, int(expected))
 

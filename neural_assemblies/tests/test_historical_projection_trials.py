@@ -144,7 +144,7 @@ def test_configured_study_consumes_grid_schedule_seeds_and_retains_raw(monkeypat
         train_rounds=3, test_rounds=4, max_train_rounds=8, round_values=[2, 5])
     assert len(calls) == 21
     assert [seed for _, _, seed in calls] == [9, 2, 7] * 2 + [9, 9, 2, 2, 7, 7] + [9, 2, 7] * 3
-    for name, cfg, seed in calls:
+    for name, cfg, _seed in calls:
         assert cfg.test_rounds == 4
         if name != "h4":
             assert cfg.train_rounds == 3 and cfg.max_train_rounds == 8

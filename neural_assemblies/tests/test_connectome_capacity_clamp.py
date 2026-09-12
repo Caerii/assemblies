@@ -90,7 +90,7 @@ def test_materialize_survives_an_oversubscribed_fiber():
     b._engine.materialize_area("A")
 
     assert b._engine.get_num_ever_fired("A") == n
-    for src, dst, (rows, cols) in _fibers(b._engine):
+    for _src, _dst, (rows, cols) in _fibers(b._engine):
         assert rows <= n and cols <= n
 
 

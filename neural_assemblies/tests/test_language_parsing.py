@@ -65,7 +65,7 @@ class TestLanguageParsing(unittest.TestCase):
 
     def test_grammar_rules_structure(self):
         """Test that grammar rules have proper structure."""
-        for word, lexeme in LEXEME_DICT.items():
+        for _word, lexeme in LEXEME_DICT.items():
             self.assertIn("index", lexeme)
             self.assertIn("PRE_RULES", lexeme)
             self.assertIn("POST_RULES", lexeme)
