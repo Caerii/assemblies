@@ -7114,3 +7114,7 @@ The full xdist gate exposed a contradiction in 	est_projection_parity: it allowe
 ## Full maintained gate after resolver repairs (2026-09-12)
 
 The post-repair maintained gate is green: 3,830 passed, 141 skipped, 8 xfailed, and 10 subtests passed in 457.60s (7:37) with eight workers. This confirms the owner-boundary migrations and stochastic parity repair together under the complete maintained scope.
+
+## Explicit backend ownership API (2026-09-12)
+
+`Brain.explicit_engine` exposes the lazily-created explicit backend as a read-only property. Legacy MNIST program helpers now use that property rather than reaching into `Brain._explicit_engine`; engine connection storage remains private to the backend. Validation: the complete maintained gate passed with 3,830 tests passed, 141 skipped, 8 xfailed, and 10 subtests in 457.60s before this documentation-only follow-up.
