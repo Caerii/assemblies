@@ -71,9 +71,11 @@ class EmergentNemoBrain:
         # CUDA BACKEND - ~8x faster training with hash-based connectivity
         # =====================================================================
         self.use_cuda_backend = use_cuda_backend and CUDA_BACKEND_AVAILABLE
-        self.cuda_projectors: Dict[Area, 'CUDAProjector'] = {}
+        self.cuda_projectors: Dict[Area, Any] = {}
         
         if self.use_cuda_backend:
+            if CUDAProjector is None:
+                raise RuntimeError("CUDA backend was selected but its projector is unavailable")
             # Create a CUDA projector for each area
             for area in Area:
                 area_seed = area.value * 1000
@@ -124,8 +126,8 @@ class EmergentNemoBrain:
         # =====================================================================
         # Store the LEARNED assembly for each word in each area.
         # This is what the brain "knows" about each word.
-        # Format: learned_assemblies[area][word] = assembly (cp.ndarray)
-        self.learned_assemblies: Dict[Area, Dict[str, cp.ndarray]] = defaultdict(dict)
+        # Format: learned_assemblies[area][word] = assembly (CpArray)
+        self.learned_assemblies: Dict[Area, Dict[str, CpArray]] = defaultdict(dict)
         
         # Track how many times each word has been presented to each area
         # (for averaging/stabilizing assemblies)
@@ -152,7 +154,7 @@ class EmergentNemoBrain:
     # CORE OPERATIONS
     # =========================================================================
     
-    def _get_or_create(self, area: Area, name: str) -> cp.ndarray:
+    def _get_or_create(self, area: Area, name: str) -> CpArray:
         """Get or create assembly for a concept in an input area"""
         if area not in self.assemblies:
             self.assemblies[area] = {}
@@ -173,7 +175,7 @@ class EmergentNemoBrain:
         """Check if area is currently inhibited"""
         return area in self.inhibited
     
-    def _project(self, area: Area, inp: cp.ndarray, learn: bool = True) -> Optional[cp.ndarray]:
+    def _project(self, area: Area, inp: CpArray, learn: bool = True) -> Optional[CpArray]:
         """Project input to area, respecting inhibition"""
         if self._is_inhibited(area):
             return None
@@ -185,7 +187,7 @@ class EmergentNemoBrain:
         # Fall back to CuPy implementation
         return self._project_cupy(area, inp, learn)
     
-    def _project_cuda(self, area: Area, inp: cp.ndarray, learn: bool = True) -> Optional[cp.ndarray]:
+    def _project_cuda(self, area: Area, inp: CpArray, learn: bool = True) -> Optional[CpArray]:
         """Project using CUDA backend (fast path)"""
         k = self.p.k
         area_seed = area.value * 1000
@@ -210,7 +212,7 @@ class EmergentNemoBrain:
         
         return winners
     
-    def _project_cupy(self, area: Area, inp: cp.ndarray, learn: bool = True) -> Optional[cp.ndarray]:
+    def _project_cupy(self, area: Area, inp: CpArray, learn: bool = True) -> Optional[CpArray]:
         """Project using CuPy implementation (fallback)"""
         n, k = self.p.n, self.p.k
         area_idx = area.value
@@ -266,7 +268,7 @@ class EmergentNemoBrain:
     # LEARNED ASSEMBLY STORAGE AND RETRIEVAL
     # =========================================================================
     
-    def store_learned_assembly(self, area: Area, word: str, assembly: cp.ndarray):
+    def store_learned_assembly(self, area: Area, word: str, assembly: CpArray):
         """
         Store the learned assembly for a word in an area.
         
@@ -317,7 +319,7 @@ class EmergentNemoBrain:
         
         self.assembly_exposure_count[area][word] += 1
     
-    def get_learned_assembly(self, area: Area, word: str) -> Optional[cp.ndarray]:
+    def get_learned_assembly(self, area: Area, word: str) -> Optional[CpArray]:
         """
         Get the learned assembly for a word in an area.
         
@@ -329,7 +331,7 @@ class EmergentNemoBrain:
         """Check if a word has a learned assembly in an area."""
         return word in self.learned_assemblies[area]
     
-    def get_assembly_overlap(self, assembly1: cp.ndarray, assembly2: cp.ndarray) -> float:
+    def get_assembly_overlap(self, assembly1: CpArray, assembly2: CpArray) -> float:
         """
         Compute overlap between two assemblies.
         
@@ -346,8 +348,8 @@ class EmergentNemoBrain:
         intersection = len(set1 & set2)
         return intersection / self.p.k
     
-    def find_best_matching_word(self, area: Area, target_assembly: cp.ndarray,
-                                 word_list: List[str] = None) -> Tuple[Optional[str], float]:
+    def find_best_matching_word(self, area: Area, target_assembly: CpArray,
+                                 word_list: List[str] | None = None) -> Tuple[Optional[str], float]:
         """
         Find the word whose learned assembly best matches a target assembly.
         
@@ -379,8 +381,8 @@ class EmergentNemoBrain:
         
         return best_word, best_overlap
     
-    def get_compatible_words(self, area: Area, target_assembly: cp.ndarray,
-                              word_list: List[str] = None, 
+    def get_compatible_words(self, area: Area, target_assembly: CpArray,
+                              word_list: List[str] | None = None,
                               min_overlap: float = 0.1) -> List[Tuple[str, float]]:
         """
         Find all words whose learned assemblies have sufficient overlap with target.
@@ -423,30 +425,35 @@ class EmergentNemoBrain:
         defect as the ERP `phrase_stability` readout, in the other half of the
         codebase; see `core/measurement`.
         """
-        if self.current[area] is None:
+        current = self.current[area]
+        if current is None:
             return Measured.undefined(
                 f"{area} holds no assembly, so there is nothing to re-project",
                 area=str(area))
 
-        initial = set(self.current[area].get().tolist())
+        initial = set(current.get().tolist())
 
         # Recurrent projection
         for _ in range(rounds):
-            self._project(area, self.current[area], learn=False)
+            self._project(area, current, learn=False)
+            current = self.current[area]
+            if current is None:
+                break
 
-        if self.current[area] is None:
+        current = self.current[area]
+        if current is None:
             return Measured.undefined(
                 f"{area} was emptied by the re-projection, so there is no "
                 f"final assembly to compare against", area=str(area),
                 rounds=rounds)
 
-        final = set(self.current[area].get().tolist())
+        final = set(current.get().tolist())
 
         # Calculate overlap
         intersection = len(initial & final)
         return Measured.of(intersection / self.p.k)
     
-    def get_learned_strength(self, area: Area, inp: cp.ndarray) -> float:
+    def get_learned_strength(self, area: Area, inp: CpArray) -> float:
         """Get strength of learned connections for input in an area"""
         area_idx = area.value
         num_learned = int(self.l_num[area_idx].get()[0])
@@ -473,8 +480,8 @@ class EmergentNemoBrain:
     # PHRASE COMPOSITION (NEMO merge operations)
     # =========================================================================
     
-    def merge_to_area(self, target_area: Area, source_assembly: cp.ndarray, 
-                      learn: bool = True) -> Optional[cp.ndarray]:
+    def merge_to_area(self, target_area: Area, source_assembly: CpArray,
+                      learn: bool = True) -> Optional[CpArray]:
         """
         Merge a source assembly into a target phrase area.
         
@@ -493,8 +500,8 @@ class EmergentNemoBrain:
         result = self._project(target_area, source_assembly, learn=learn)
         return result
     
-    def bind_phrase_to_role(self, phrase_assembly: cp.ndarray, role: Area,
-                            learn: bool = True) -> Optional[cp.ndarray]:
+    def bind_phrase_to_role(self, phrase_assembly: CpArray, role: Area,
+                            learn: bool = True) -> Optional[CpArray]:
         """
         Bind a phrase to a syntactic role (SUBJ, OBJ, IOBJ).
         
@@ -509,8 +516,8 @@ class EmergentNemoBrain:
         result = self._project(role, phrase_assembly, learn=learn)
         return result
     
-    def link_to_predicate(self, role_assembly: cp.ndarray, predicate_area: Area = Area.VP,
-                          learn: bool = True) -> Optional[cp.ndarray]:
+    def link_to_predicate(self, role_assembly: CpArray, predicate_area: Area = Area.VP,
+                          learn: bool = True) -> Optional[CpArray]:
         """Link a role (SUBJ/OBJ) to the predicate (VP)."""
         if self._is_inhibited(predicate_area):
             return None
@@ -529,7 +536,7 @@ class EmergentNemoBrain:
     # the orphaned duplicate of it deleted alongside. Two names for one
     # measurement is how the two get fixed separately.
 
-    def project_backwards(self, from_area: Area, to_area: Area) -> Optional[cp.ndarray]:
+    def project_backwards(self, from_area: Area, to_area: Area) -> Optional[CpArray]:
         """Project backwards for generation (SENT â†’ VP â†’ NP â†’ LEX)."""
         if self.current[from_area] is None:
             return None
@@ -543,7 +550,7 @@ class EmergentNemoBrain:
     # In NEMO, compatibility is tested by DOING the operation and checking
     # if the result is STABLE. We don't query - we test.
     
-    def test_merge_stability(self, target_area: Area, candidate: cp.ndarray,
+    def test_merge_stability(self, target_area: Area, candidate: CpArray,
                              stability_rounds: int = 3) -> Measured:
         """
         Test if merging a candidate into an area produces a stable result.
@@ -578,8 +585,8 @@ class EmergentNemoBrain:
         
         return stability
     
-    def settle_to_pattern(self, area: Area, input_assembly: cp.ndarray,
-                          max_rounds: int = 5) -> cp.ndarray:
+    def settle_to_pattern(self, area: Area, input_assembly: CpArray,
+                          max_rounds: int = 5) -> CpArray:
         """
         Let an area settle to a stable pattern given input.
         
@@ -593,14 +600,16 @@ class EmergentNemoBrain:
         
         # Let it settle through recurrence
         for _ in range(max_rounds):
-            if self.current[area] is not None:
-                prev_assembly = self.current[area].copy()
-                self._project(area, self.current[area], learn=False)
+            current = self.current[area]
+            if current is not None:
+                prev_assembly = current.copy()
+                self._project(area, current, learn=False)
                 
                 # Check if settled (no change)
-                if self.current[area] is not None:
+                current = self.current[area]
+                if current is not None:
                     overlap = len(set(prev_assembly.get().tolist()) & 
-                                 set(self.current[area].get().tolist())) / self.p.k
+                                 set(current.get().tolist())) / self.p.k
                     if overlap > 0.9:
                         break
         
