@@ -224,6 +224,13 @@ def run_incremental_erp_probes(
                 break
 
     if finalize_parse:
+        # Early-stop probes intentionally consume only a prefix, but final
+        # role/phrase parsing is a whole-sentence operation. Fill categories
+        # for unconsumed tokens through the canonical classifier before the
+        # total-map contracts in those operations are invoked.
+        for word in words:
+            if word not in result["categories"]:
+                result["categories"][word] = parser.classify_word_cached(word)[0]
         result["roles"] = parser._assign_roles_neural(words, result["categories"])
         result["phrases"] = parser._identify_phrases(words, result["categories"])
     else:

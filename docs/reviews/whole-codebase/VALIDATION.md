@@ -6122,3 +6122,6 @@ The legacy NEMO learner no longer truncates sentences longer than three words wh
 ### Curriculum and geometry pairing gate (2026-09-12)
 
 Curriculum structure scoring and the MNIST geometry panel now use strict pairing after their explicit equal-length/parallel-data conditions. The edit was reapplied with UTF-8-safe tooling after a verification pass caught and removed unrelated Unicode mojibake. `git diff --check` and focused B905/F scans are clean. Geometry runtime smoke exceeded the bounded window and was stopped; no runtime pass is claimed.
+### ERP canonical-caller integration gate (2026-09-12)
+
+The ERP runner now completes whole-sentence category maps after early-stop probes through the canonical cached classifier. `measure_live_integration` calls the fixed single-projection phrase/P600 contracts without obsolete settling arguments. The checkpoint delta cell passes **6 pattern/wobble cases** in **50.62 seconds**; six sampled recurrence warnings remain intentional provenance guards. Focused B905/F scans are clean.

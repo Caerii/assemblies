@@ -742,12 +742,10 @@ def measure_live_integration(
         parser.brain,
         _phrase_areas_for_category(phrase_category, verb_seen=verb_seen),
     )
-    stab_rounds = phrase_stability_rounds_for_depth(probe_depth)
     if probe_depth == "mining" and phrase_areas:
         phrase_areas = [role_area] if role_area in phrase_areas else phrase_areas[:1]
     readings = [
-        phrase_stability(parser.brain, area, rounds=stab_rounds,
-                         protocol=protocol)
+        phrase_stability(parser.brain, area, protocol=protocol)
         for area in phrase_areas
     ]
     # THE HISTORICAL FALLBACK IS KEPT ON PURPOSE, AND IS NOW VISIBLE.
@@ -776,10 +774,7 @@ def measure_live_integration(
     )
     phrase_instability = 1.0 - mean_stability
 
-    anchored_m = anchored_p600_live(
-        parser, core, role_area, subject_core=subject_core,
-        n_settling=settling_rounds_for_depth(probe_depth),
-    )
+    anchored_m = anchored_p600_live(parser, core, role_area)
     # Byte-identical to the old arithmetic; the fallback is now stated.
     anchored = anchored_m.or_else(
         float((anchored_m.detail or {}).get("legacy", 0.0)))
