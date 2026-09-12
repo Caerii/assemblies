@@ -419,6 +419,7 @@ def test_registry_and_public_callable_cannot_drift():
     """Every registry key must name a callable carrying that exact contract."""
     import neural_assemblies.assembly_calculus.ops as operations
     from neural_assemblies.assembly_calculus.attention import attend
+    from neural_assemblies.assembly_calculus.readout import fuzzy_readout
     from neural_assemblies.assembly_calculus.binding import bind as source_bind, binding_strength, input_drive, recall
     from neural_assemblies.assembly_calculus.consolidation import accumulate_context, accumulate_context_step, consolidate
 
@@ -429,7 +430,8 @@ def test_registry_and_public_callable_cannot_drift():
         "pattern_completion": "pattern_complete",
     }
     for name, contract in OPERATION_CONTRACTS.items():
-        operation = (attend if name == "attention" else
+        operation = (fuzzy_readout if name == "fuzzy_readout" else
+                     attend if name == "attention" else
                      source_bind if name == "source_binding" else
                      recall if name == "binding_recall" else
                      input_drive if name == "input_drive" else

@@ -4968,3 +4968,12 @@ stable neuron-ID domain before translating into backend compact indices or
 mutating activity. Its source docstring and semantic card explain the index
 space bridge and retain the out-of-range true negative. Contract/public-boundary
 /lazy-import validation passes: **286 passed**; Ruff is clean.
+
+## Fuzzy readout contract (2026-09-11)
+
+The decoder boundary now has `ReadoutPlan` and `READOUT_CONTRACT`. It validates
+Assembly snapshots, lexicon labels/values, and the finite threshold before
+measuring stable-ID overlap. Its deterministic lexical tie rule and
+below-threshold `None` outcome are recorded as observation semantics, separate
+from neural learning. Readout, operation-contract, and lazy-import tests pass:
+**183 passed**; Ruff is clean.

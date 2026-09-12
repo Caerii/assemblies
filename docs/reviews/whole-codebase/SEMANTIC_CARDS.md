@@ -577,6 +577,20 @@ and stale mappings fail before the engine receives winners. This boundary is
 the explicit bridge between persistent Assembly values and backend-local index
 values, so silently dropping an unmappable neuron is forbidden.
 
+<a id="contract-readout"></a>
+
+## Fuzzy lexical readout
+
+`readout.fuzzy_readout` is a pure decoder over an Assembly snapshot and a
+lexicon of Assembly snapshots. The immutable `ReadoutPlan` validates the
+snapshot, lexicon labels/values, and confidence threshold before comparing
+stable neuron-ID overlap. The decoder returns the highest-overlap label only
+when it meets the threshold; exact ties resolve by lexical label order, and a
+below-threshold or empty lexicon returns `None`. This is an observation
+instrument, not a neural learning result: it cannot establish that the brain
+itself represented a symbolic label. Invalid decoder configuration fails
+before any overlap measurement.
+
 <a id="contract-context-accumulation"></a>
 
 ## Context accumulation: ordered prefix construction

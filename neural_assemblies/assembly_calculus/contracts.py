@@ -9,7 +9,7 @@ import math
 from numbers import Integral, Real
 import random
 from types import MappingProxyType
-from typing import Callable
+from typing import Callable, Mapping
 
 import numpy as np
 
@@ -66,6 +66,30 @@ class ActivationPlan:
             raise ValueError("assembly neuron IDs must be a one-dimensional integer array")
         if np.any(ids < 0) or np.any(ids >= area.n):
             raise ValueError("assembly neuron IDs must be within the area")
+
+
+@dataclass(frozen=True)
+class ReadoutPlan:
+    """Validated pure decoder query over immutable Assembly snapshots."""
+
+    assembly: Assembly
+    lexicon: Mapping[str, Assembly]
+    threshold: float = 0.7
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.assembly, Assembly):
+            raise TypeError("readout assembly must be an Assembly snapshot")
+        if not isinstance(self.lexicon, Mapping):
+            raise TypeError("readout lexicon must be a mapping")
+        if any(not isinstance(word, str) or not word for word in self.lexicon):
+            raise ValueError("readout lexicon labels must be nonempty strings")
+        if any(not isinstance(reference, Assembly) for reference in self.lexicon.values()):
+            raise TypeError("readout lexicon values must be Assembly snapshots")
+        if (isinstance(self.threshold, bool) or not isinstance(self.threshold, Real)
+                or not math.isfinite(float(self.threshold))
+                or not 0.0 <= float(self.threshold) <= 1.0):
+            raise ValueError("readout threshold must be a finite real number in [0, 1]")
+        object.__setattr__(self, "threshold", float(self.threshold))
 
 
 @dataclass(frozen=True)
@@ -1031,6 +1055,25 @@ CONVERGENCE_CONTRACT = OperationContract(
 )
 
 
+READOUT_CONTRACT = OperationContract(
+    operation_id="fuzzy-readout-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-readout",
+    plan_type=ReadoutPlan,
+    inputs=("assembly snapshot", "lexicon", "threshold"),
+    reads=("stable neuron-ID overlap against each lexicon snapshot",),
+    mutates=("nothing; pure decoder observation",),
+    regime=("finite threshold in [0, 1]", "deterministic lexical tie break"),
+    observed_outcome=("best label or None when below threshold",),
+    failure_conditions=("malformed snapshot", "malformed lexicon", "invalid threshold"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_readout.py::test_readout_ties_are_independent_of_dictionary_order",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_readout.py::test_invalid_threshold_is_rejected",
+    ),
+)
+
+
 ACTIVATION_CONTRACT = OperationContract(
     operation_id="assembly-activation-v1",
     specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
@@ -1515,6 +1558,7 @@ CONTEXT_STEP_CONTRACT = OperationContract(
 
 OPERATION_CONTRACTS = MappingProxyType({
     "activate_assembly": ACTIVATION_CONTRACT,
+    "fuzzy_readout": READOUT_CONTRACT,
     "projection": PROJECTION_CONTRACT,
     "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
     "association": ASSOCIATION_CONTRACT,

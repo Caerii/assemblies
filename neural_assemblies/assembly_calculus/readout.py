@@ -31,19 +31,19 @@ Reference:
     arXiv:2306.15364.
 """
 
-import math
-from numbers import Real
 from numbers import Integral
 from typing import Dict, List, Mapping, Optional, Tuple
 
 from .assembly import Assembly, overlap
 from .ops import project
+from .contracts import READOUT_CONTRACT, ReadoutPlan, implements
 
 
 # Type alias: word string → Assembly snapshot
 Lexicon = Dict[str, Assembly]
 
 
+@implements(READOUT_CONTRACT)
 def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
                   threshold: float = 0.7) -> Optional[str]:
     """Return the best-matching word above *threshold*, or None.
@@ -61,15 +61,11 @@ def fuzzy_readout(assembly: Assembly, lexicon: Lexicon,
     Returns:
         The word with highest overlap if it exceeds *threshold*,
         otherwise None (improper parse).
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-readout
     """
-    if (
-        isinstance(threshold, bool)
-        or not isinstance(threshold, Real)
-        or not math.isfinite(float(threshold))
-        or not 0.0 <= float(threshold) <= 1.0
-    ):
-        raise ValueError("readout threshold must be a finite real number in [0, 1]")
-    threshold = float(threshold)
+    plan = ReadoutPlan(assembly, lexicon, threshold)
+    assembly, lexicon, threshold = plan.assembly, plan.lexicon, plan.threshold
     if not lexicon:
         return None
 
