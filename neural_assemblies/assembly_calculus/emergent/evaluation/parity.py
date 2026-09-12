@@ -85,7 +85,7 @@ def score_holdout_constrained_probes(
     parser.brain.projection_fidelity = "exact"
     try:
         parser._bootstrap_prediction_connectivity()
-        for prefix, exp in zip(prefixes, expected_any):
+        for prefix, exp in zip(prefixes, expected_any, strict=True):
             if not prefix:
                 continue
             parser.build_context_incremental(list(prefix), reset=True, direct=True)
@@ -140,7 +140,7 @@ def score_next_token_probes(
             "total": 0, "hits_top1": 0,
         }
 
-    for prefix, exp in zip(prefixes, expected_any):
+    for prefix, exp in zip(prefixes, expected_any, strict=True):
         preds = parser.predict_next(list(prefix))
         if not preds:
             continue

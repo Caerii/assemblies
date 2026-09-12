@@ -6053,3 +6053,6 @@ The legacy hyperdimensional calculus now uses strict pairing for unique-element 
 ### Sparse synapse pairing gate (2026-09-12)
 
 `assign_synaptic_connections` now treats winner rows and input distributions as a total one-to-one relation. Mismatched lengths raise before any connectome copy or mutation, and the loop is strict. The sparse simulation, plasticity, and integration suites pass **42 tests**; the B905/F scan is clean.
+### IR and parity pairing gate (2026-09-12)
+
+Winner-margin certification and readout parity now use strict pairing after their explicit equal-domain checks. A malformed candidate/reference score pair or probe expectation list cannot be silently truncated. Focused winner-margin and hashed-parity suites pass **19 tests** with **2 optional skips**; B905/F scans are clean.

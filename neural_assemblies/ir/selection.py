@@ -61,4 +61,4 @@ def compare_winner_selection(reference, candidate, k: int) -> WinnerComparison:
               if 0 < k < n else None)
     return WinnerComparison(
         tuple(sorted(orders[0][:k])), tuple(sorted(orders[1][:k])), exponent,
-        max((abs(a - b) for a, b in zip(*scaled)), default=0), margin)
+        max((abs(a - b) for a, b in zip(*scaled, strict=True)), default=0), margin)
