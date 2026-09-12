@@ -202,6 +202,6 @@ class SequenceTransducer:
 
     def train_sentence(self, sentence: Sequence[str], rounds: int = 3) -> None:
         self.reset()
-        for a, nxt in zip(sentence, sentence[1:]):
-            self.tick(a, rounds=rounds)
-            self.write(nxt, rounds=rounds)
+        for i in range(len(sentence) - 1):
+            self.tick(sentence[i], rounds=rounds)
+            self.write(sentence[i + 1], rounds=rounds)

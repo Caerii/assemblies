@@ -398,9 +398,9 @@ class HashedTransducer:
     def train_sentence(self, sentence: Sequence[str], rounds: int = 3) -> None:
         """One sentence for EVERY brain (the numpy organ's call)."""
         self.reset()
-        for a, nxt in zip(sentence, sentence[1:], strict=True):
-            self.tick(a, rounds=rounds)
-            self.write(nxt, rounds=rounds)
+        for i in range(len(sentence) - 1):
+            self.tick(sentence[i], rounds=rounds)
+            self.write(sentence[i + 1], rounds=rounds)
 
     def train_schedules(self, words, targets, starts, rounds: int = 3) -> None:
         """Per-brain schedules: `words`, `targets` [B, S] word indices (-1

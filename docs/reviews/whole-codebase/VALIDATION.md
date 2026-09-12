@@ -6101,3 +6101,6 @@ The theory evidence validator now uses strict treatment/control pairing after it
 ### Generation tuple-alignment gate (2026-09-12)
 
 GPU language generation and NEMO sentence generation now use strict tuple unpacking for candidate words, weights, patterns, and scores. A malformed internal candidate record cannot silently truncate into a different distribution. Focused B905/F scans are clean. Direct NEMO generator smoke is environment-blocked because CuPy is unavailable; no GPU runtime pass is claimed.
+### Adjacent-token training contract (2026-09-12)
+
+Sequence training in both the public and hashed transducers now uses an explicit `i, i+1` loop. This makes the intentional offset visible and avoids treating an adjacency relation as equal-length pairing; a blanket strict zip had incorrectly rejected every nonempty sentence. The transducer suite passes **8 tests** and focused B905/F scans are clean.
