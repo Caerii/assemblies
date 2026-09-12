@@ -6147,3 +6147,7 @@ The next partitioned non-slow slice passed **136 tests, 3 optional skips, and 1 
 ### Semantic contract and slice-4 gate (2026-09-12)
 
 The semantic-card, operation-contract, specification-link, model-semantics, and materialization-semantic suites pass **230 tests with 1 expected xfail**. The partitioned non-slow slice 1000:1140 reached **87 passes and 1 failure in 95.69 seconds**; the failure is the existing ERP calibration direction assertion (`test_calibration_separates_category_violation_from_grammatical`), where the clipped P600-excess median is 0.0000 for category violations versus 0.00015 for grammatical items. Repeated isolated runs reproduce the same result, so this is a deterministic scientific-bar failure, not a runner flake; no pass is claimed for that slice.
+
+### ERP quantities and fiber contract slice (2026-09-12)
+
+The partitioned non-slow slice 1140:1280 passed **140 tests in 22.83 seconds** with one intentional sampled-recurrence provenance warning. It covers raw-versus-clipped ERP quantity readers, fiber learning contracts, and backend capability rejection.
