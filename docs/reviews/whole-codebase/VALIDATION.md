@@ -7001,3 +7001,6 @@ Searched maintained package paths for direct beta reads/writes. The only non-tes
 ## Fiber mask query validation (2026-09-12)
 
 Centralized directed-fiber endpoint validation in `Brain._validate_fiber_endpoints` and applied it to both mask writes and reads. `fiber_plasticity_enabled` no longer defaults unknown endpoints to `True`, preventing typos from masquerading as enabled learning paths. Validation: fiber-learning plus sampled-fiber suites 27 passed; Pyright on Brain 0 errors/warnings/information.
+## Refraction-strength validation (2026-09-12)
+
+Added `validate_refraction_strength` to the homeostasis owner and applied it before Brain area registration and runtime refraction mutation. Invalid negative, nonfinite, and boolean strengths now fail before descriptor/backend state changes. Validation: homeostasis suite 12 passed; Pyright on homeostasis and Brain 0 errors/warnings/information.

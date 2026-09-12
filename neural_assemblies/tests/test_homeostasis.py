@@ -71,6 +71,22 @@ class TestLaws(unittest.TestCase):
             raw = raw * (1 + beta)
         np.testing.assert_allclose(nets, [50.0] * 20, rtol=1e-6)
 
+    def test_refraction_strength_rejects_nonfinite_negative_and_boolean(self):
+        for value in (-1.0, float("nan"), float("inf"), True):
+            with self.assertRaises(ValueError):
+                H.validate_refraction_strength(value)
+
+    def test_brain_validates_refraction_strength_before_registration(self):
+        b = _brain()
+        for value in (-1.0, float("nan"), True):
+            with self.assertRaises(ValueError):
+                b.add_area("bad", N, K, BETA, refracted_strength=value)
+            self.assertNotIn("bad", b.areas)
+        b.add_area("A", N, K, BETA)
+        with self.assertRaises(ValueError):
+            b.set_refracted("A", True, strength=float("nan"))
+        self.assertFalse(b.areas["A"].refracted)
+
 
 class TestConflictIsUnspellable(unittest.TestCase):
 

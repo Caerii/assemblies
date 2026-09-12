@@ -49,6 +49,7 @@ from ._homeostasis import (
     check_area_homeostasis,
     validate_homeostasis_capabilities,
     validate_lri_parameters,
+    validate_refraction_strength,
 )
 from .index_spaces import CompactIdx, to_neuron_ids, validated_indices
 from .semantics import ModelSemantics, SampledRecurrencePolicy
@@ -530,6 +531,7 @@ class Brain:
         """
         n, k = validate_area_registration(area_name, n, k, existing=self.areas, reserved=self.stimuli)
         input_noise_std = validate_input_noise(input_noise_std)
+        refracted_strength = validate_refraction_strength(refracted_strength)
         if input_noise_std and (explicit or not self._engine.supports_input_noise):
             owner_name = "NumpyExplicitEngine" if explicit else type(self._engine).__name__
             raise NotImplementedError(f"{owner_name} does not implement input_noise_std")
@@ -1452,6 +1454,9 @@ class Brain:
         fires, its bias grows, making it progressively harder to fire
         again.  Distinct from LRI (sliding-window penalty).
         """
+        if type(enabled) is not bool:
+            raise TypeError("refracted enabled flag must be a bool")
+        strength = validate_refraction_strength(strength)
         area = self.areas[area_name]
         engine = self._engine_for(area)
         check_area_homeostasis(area_name, refracted=enabled,

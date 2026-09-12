@@ -123,6 +123,19 @@ def validate_lri_parameters(refractory_period, inhibition_strength) -> tuple[int
     return period, strength
 
 
+def validate_refraction_strength(strength) -> float:
+    """Canonicalize the nonnegative finite per-win refraction strength."""
+    if isinstance(strength, bool) or not isinstance(strength, Real):
+        raise ValueError("refraction strength must be a finite nonnegative real number")
+    try:
+        value = float(strength)
+    except OverflowError as exc:
+        raise ValueError("refraction strength must be representable as a finite float") from exc
+    if not math.isfinite(value) or value < 0:
+        raise ValueError("refraction strength must be a finite nonnegative real number")
+    return value
+
+
 # ---------------------------------------------------------------------------
 # Refraction
 # ---------------------------------------------------------------------------
