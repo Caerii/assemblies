@@ -6,13 +6,10 @@ including basic association simulations and parameter sweeps.
 """
 
 import os
-try:
-    from neural_assemblies.core.brain import Brain
-except ImportError:
-    import brain
-    Brain = brain.Brain
+from neural_assemblies.core.brain import Brain
 
 import copy
+from ._util import overlap
 
 def associate(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10):
     """
@@ -40,21 +37,21 @@ def associate(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10):
     VERBOSE = os.environ.get("ASSEMBLIES_VERBOSE") == "1"
     b.project({"stimA": ["A"], "stimB": ["B"]}, {})
     # Create assemblies A and B to stability
-    for _ in range(9):
+    for i in range(9):
         if VERBOSE:
             print(f"Stabilizing A/B {i+1}/9")
         b.project({"stimA": ["A"], "stimB": ["B"]},
                   {"A": ["A"], "B": ["B"]}, verbose=1 if VERBOSE else 0)
     b.project({"stimA": ["A"]}, {"A": ["A", "C"]}, verbose=1 if VERBOSE else 0)
     # Project A->C
-    for _ in range(9):
+    for i in range(9):
         if VERBOSE:
             print(f"A->C {i+1}/10")
         b.project({"stimA": ["A"]},
                   {"A": ["A", "C"], "C": ["C"]}, verbose=1 if VERBOSE else 0)
     # Project B->C
     b.project({"stimB": ["B"]}, {"B": ["B", "C"]})
-    for _ in range(9):
+    for i in range(9):
         if VERBOSE:
             print(f"B->C {i+1}/10")
         b.project({"stimB": ["B"]},
@@ -69,7 +66,7 @@ def associate(n=100000, k=317, p=0.05, beta=0.1, overlap_iter=10):
                   {"A": ["A", "C"], "B": ["B", "C"], "C": ["C"]}, verbose=1 if VERBOSE else 0)
     # Project just B
         b.project({"stimB": ["B"]}, {"B": ["B", "C"]}, verbose=1 if VERBOSE else 0)
-    for _ in range(9):
+    for i in range(9):
         if VERBOSE:
             print(f"Final B-only {i+1}/10")
         b.project({"stimB": ["B"]}, {"B": ["B", "C"], "C": ["C"]}, verbose=1 if VERBOSE else 0)
@@ -152,7 +149,3 @@ def association_grand_sim(n=100000, k=317, p=0.01, beta=0.05, min_iter=10, max_i
         o = overlap(b_copy1.areas["C"].winners, b_copy2.areas["C"].winners)
         results[i] = float(o)/float(k)
     return results
-
-def overlap(assembly1, assembly2):
-    """Calculate overlap between two assemblies."""
-    return len(set(assembly1) & set(assembly2))

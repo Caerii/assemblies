@@ -7577,3 +7577,10 @@ The attractor training protocol now declares its actual seven-value return contr
 - Renamed `shared_lexical_area._overlap` to `_reference_overlap` and documented its directional denominator (`|a ? b| / |a|`), avoiding a false equivalence with canonical symmetric overlap.
 - Added a precise Pyright suppression for NumPy's valid global seed API.
 - Validation: Pyright reported 0 errors; module compilation and `git diff --check` passed.
+
+
+## 2026-09-12 simulation association boundary cleanup
+
+- Reused `simulation._util.overlap` in `association_simulator` while preserving its intersection-count semantics.
+- Removed the stale fallback `brain` import and fixed unbound loop indices in verbose/final stabilization loops.
+- Validation: Pyright reported 0 errors; simulation utility/default tests passed (11 tests); small real association smoke run completed; `git diff --check` passed.
