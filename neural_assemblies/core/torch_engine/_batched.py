@@ -10,7 +10,7 @@ states projected through ONE shared connectome (batch inference / parse -- e.g.
 classifying or parsing B inputs in parallel through a trained brain). Because
 the connectome is shared there is no ragged-materialization problem: the drive
 is a single ``[B, n]`` tensor, computed by one batched sparse-dense matmul, and
-selection is one ``torch.topk(dim=1)`` over the batch.
+selection is one ``torch_ops.topk(dim=1)`` over the batch.
 
 Measured (RTX 3080, n=50k, k=224): identical results to sequential per item, and
 7x (B=8) / 21x (B=32) faster; efficiency peaks near B=32 before the batched SpMM
@@ -20,7 +20,7 @@ Batching across INDEPENDENT connectomes (data-parallel training of different
 brains) is Phase 3 -- it needs a block-diagonal CSR and is scoped separately.
 """
 
-import torch
+from ._torch_ops import torch_ops
 
 
 def csrconn_to_torch_csr(csr, n):
@@ -30,14 +30,14 @@ def csrconn_to_torch_csr(csr, n):
     full ``n x n`` shape so batched drive vectors are length ``n``.
     """
     nrows = int(csr._nrows)
-    crow = csr._crow[: nrows + 1].to(torch.int64)
+    crow = csr._crow[: nrows + 1].to(torch_ops.int64)
     # pad crow out to n+1 rows (extra rows are empty: repeat the last offset)
     if nrows < n:
         pad = crow[-1].repeat(n - nrows)
-        crow = torch.cat([crow, pad])
-    col = csr._col.to(torch.int64)
-    val = csr._val.to(torch.float32)
-    return torch.sparse_csr_tensor(crow, col, val, size=(n, n))
+        crow = torch_ops.cat([crow, pad])
+    col = csr._col.to(torch_ops.int64)
+    val = csr._val.to(torch_ops.float32)
+    return torch_ops.sparse_csr_tensor(crow, col, val, size=(n, n))
 
 
 def batched_project(
@@ -63,17 +63,17 @@ def batched_project(
     n = W.shape[0]
     B = winners.shape[0]
     device = W.device
-    act = torch.zeros(B, n, dtype=torch.float32, device=device)
-    act.scatter_(1, winners.to(torch.int64), 1.0)
+    act = torch_ops.zeros(B, n, dtype=torch_ops.float32, device=device)
+    act.scatter_(1, winners.to(torch_ops.int64), 1.0)
     Wt = W.t()
-    idx = winners.to(torch.int64)
+    idx = winners.to(torch_ops.int64)
     for _ in range(rounds):
         # drive[b, j] = sum_i act[b, i] * W[i, j]  ==  act @ W
-        drive = torch.sparse.mm(Wt, act.t()).t()          # [B, n]
+        drive = torch_ops.sparse.mm(Wt, act.t()).t()          # [B, n]
         if stim_drive is not None:
             drive = drive + stim_drive
-        idx = torch.topk(drive, min(k, n), dim=1).indices  # [B, k]
-        act = torch.zeros_like(act)
+        idx = torch_ops.topk(drive, min(k, n), dim=1).indices  # [B, k]
+        act = torch_ops.zeros_like(act)
         act.scatter_(1, idx, 1.0)
     if return_activity:
         return idx, act
@@ -87,18 +87,17 @@ def block_diagonal(mats, n):
     ``mats`` is a list of B torch sparse tensors (COO or CSR), each [n, n].
     Item b occupies rows/cols ``[b*n, (b+1)*n)``.
     """
-    import torch
     rows, cols, vals = [], [], []
     for b, W in enumerate(mats):
-        Wc = W.coalesce() if W.layout == torch.sparse_coo else W.to_sparse_coo()
+        Wc = W.coalesce() if W.layout == torch_ops.sparse_coo else W.to_sparse_coo()
         ij = Wc.indices()
         rows.append(ij[0] + b * n)
         cols.append(ij[1] + b * n)
         vals.append(Wc.values())
     B = len(mats)
-    idx = torch.stack([torch.cat(rows), torch.cat(cols)])
-    return torch.sparse_coo_tensor(
-        idx, torch.cat(vals), (B * n, B * n)).coalesce()
+    idx = torch_ops.stack([torch_ops.cat(rows), torch_ops.cat(cols)])
+    return torch_ops.sparse_coo_tensor(
+        idx, torch_ops.cat(vals), (B * n, B * n)).coalesce()
 
 
 def batched_project_independent(
@@ -119,13 +118,12 @@ def batched_project_independent(
     Returns ``[B, k]`` int64 local winner indices; if ``return_weights`` also the
     updated ``[nnz]`` value tensor (aligned to ``W_block.coalesce().values()``).
     """
-    import torch
     device = W_block.device
     W = W_block.coalesce()
     r, c = W.indices()[0], W.indices()[1]
     vals = W.values().clone()
-    offs = torch.arange(B, device=device).view(B, 1) * n
-    idx_local = winners.to(torch.int64)
+    offs = torch_ops.arange(B, device=device).view(B, 1) * n
+    idx_local = winners.to(torch_ops.int64)
 
     # THE TRANSPOSED PATTERN IS BUILT ONCE, NOT PER ROUND. Hebbian learning
     # changes weight VALUES; it never adds or removes an edge, so the sparsity
@@ -137,24 +135,24 @@ def batched_project_independent(
     # `perm` carries the mapping: coalescing the transpose of a UNIQUE index
     # set cannot sum entries, so putting `arange` in the value slot recovers
     # exactly where each original edge landed.
-    _t0 = torch.sparse_coo_tensor(
-        torch.stack([c, r]),
-        torch.arange(vals.numel(), dtype=torch.float64, device=device),
+    _t0 = torch_ops.sparse_coo_tensor(
+        torch_ops.stack([c, r]),
+        torch_ops.arange(vals.numel(), dtype=torch_ops.float64, device=device),
         (B * n, B * n)).coalesce()
-    perm = _t0.values().to(torch.int64)
+    perm = _t0.values().to(torch_ops.int64)
     _tcsr = _t0.to_sparse_csr()
     crow, tcol = _tcsr.crow_indices(), _tcsr.col_indices()
 
     for _ in range(rounds):
         # transpose (swap r,c) so drive = act @ W; values only, pattern reused
-        Wt = torch.sparse_csr_tensor(crow, tcol, vals[perm],
+        Wt = torch_ops.sparse_csr_tensor(crow, tcol, vals[perm],
                                      size=(B * n, B * n))
-        act = torch.zeros(B * n, 1, device=device)
+        act = torch_ops.zeros(B * n, 1, device=device)
         act[(idx_local + offs).reshape(-1)] = 1.0
-        drive = torch.sparse.mm(Wt, act).view(B, n)
-        idx_local = torch.topk(drive, min(k, n), dim=1).indices
+        drive = torch_ops.sparse.mm(Wt, act).view(B, n)
+        idx_local = torch_ops.topk(drive, min(k, n), dim=1).indices
         if beta:
-            mask = torch.zeros(B * n, dtype=torch.bool, device=device)
+            mask = torch_ops.zeros(B * n, dtype=torch_ops.bool, device=device)
             mask[(idx_local + offs).reshape(-1)] = True
             pot = mask[r] & mask[c]
             vals = vals.clone()
@@ -213,7 +211,7 @@ def batched_project_hashed(
     interchangeable.
 
     NOTE ON TIES -- the selector breaks ties to the smallest index by
-    construction, while ``torch.topk`` leaves tie order unspecified and the
+    construction, while ``torch_ops.topk`` leaves tie order unspecified and the
     drive is an integer Bernoulli sum, so ties at the bar are the common case
     ([[KWTA-TIE-FRAGILE]]). That is why this is a separate entry point.
 
@@ -259,7 +257,7 @@ def batched_project_hashed(
             "fiber": fiber,
         }
     area, fiber = state["area"], state["fiber"]
-    area.winners = winners.to(torch.int64)
+    area.winners = winners.to(torch_ops.int64)
 
     fibers = [fiber]
     if stim_seeds is not None:
