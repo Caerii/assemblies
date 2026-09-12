@@ -26,6 +26,11 @@ pytestmark = pytest.mark.skipif(not torch.cuda.is_available(),
 from neural_assemblies.core.torch_engine import _fused_cuda        # noqa: E402
 from neural_assemblies.core.torch_engine import _hash as t_hash    # noqa: E402
 
+
+def _assert_close(actual, expected, *, rtol=1e-5, atol=1e-8):
+    """Keep CUDA checks independent of torch.distributed's optional SymPy path."""
+    assert torch.allclose(actual, expected, rtol=rtol, atol=atol), "CUDA tensors differ"
+
 P = 0.05
 SEED = 0x5EED1234
 
@@ -420,7 +425,7 @@ def test_one_round_episodes_equal_one_multi_round_episode(mod):
         three.observe(prev, new)
         three.end_episode()
     assert three.store.max_count == 3
-    torch.testing.assert_close(read(three), read(one), rtol=0, atol=0)
+    _assert_close(read(three), read(one), rtol=0, atol=0)
 
     short = AreaFiber(seeds, n, n, p, beta=beta, w_max=20.0, max_rounds=1)
     short.begin_episode()
@@ -470,7 +475,7 @@ def test_relative_pricing_equals_absolute_where_both_are_exact(mod):
 
     for rows in (rows_a, rows_b):
         a, b = read(rel, rows), read(absf, rows)
-        torch.testing.assert_close(a, b, rtol=1e-5, atol=1e-6)
+        _assert_close(a, b, rtol=1e-5, atol=1e-6)
     assert int(rel.cmax.max()) == 12
 
 
@@ -514,7 +519,7 @@ def test_presence_mask_is_the_hash(mod):
     rows = torch.randint(0, n_pre, (3, 40), generator=g).to("cuda")
     want = mod.hashed_drive(rows.to(torch.int32), seeds, n_post, thr)
     got = torch.stack([bits[b, rows[b]].sum(0) for b in range(3)])
-    torch.testing.assert_close(got, want, rtol=0, atol=0)
+    _assert_close(got, want, rtol=0, atol=0)
     assert 0.03 < float(bits.mean()) < 0.07
 
 
@@ -569,9 +574,8 @@ def test_present_fiber_equals_store_fiber(mod):
         return d.cpu()
 
     for rows in (rows_a, rows_b):
-        torch.testing.assert_close(read(pf, rows), read(store, rows),
-                                   rtol=1e-5, atol=1e-6)
-    torch.testing.assert_close(pf.cmax.cpu(), store.cmax.cpu())
+        _assert_close(read(pf, rows), read(store, rows), rtol=1e-5, atol=1e-6)
+    _assert_close(pf.cmax.cpu(), store.cmax.cpu())
     assert 0 < pf.nnz < store.nnz
 
 
@@ -627,8 +631,7 @@ def test_present_fiber_absolute_equals_store_fiber(mod):
         return d.cpu()
 
     for rows in (rows_a, sets()):
-        torch.testing.assert_close(read(pf, rows), read(store, rows),
-                                   rtol=1e-5, atol=1e-6)
+        _assert_close(read(pf, rows), read(store, rows), rtol=1e-5, atol=1e-6)
     assert int(pf.counts().max()) == 36
 
 
@@ -663,12 +666,12 @@ def test_organ_fiber_equals_store_fiber(mod):
         return d.cpu()
 
     rows = sets()
-    torch.testing.assert_close(read(org, rows), read(store, rows), rtol=1e-5, atol=1e-6)
+    _assert_close(read(org, rows), read(store, rows), rtol=1e-5, atol=1e-6)
     # -1 rows are skipped: a half-dead row set reads like the live half alone
     half = rows.clone()
     half[:, 20:] = -1
     live = rows[:, :20]
-    torch.testing.assert_close(read(org, half), read(store, live), rtol=1e-5, atol=1e-6)
+    _assert_close(read(org, half), read(store, live), rtol=1e-5, atol=1e-6)
     # a dead brain's write is a no-op
     before = org.C.clone()
     dead_rows = torch.full((2, 40), -1, dtype=torch.int64, device="cuda")

@@ -6287,3 +6287,7 @@ The GPU-marked collection discovered **6 tests: 4 skipped and 2 failed**. CUDA i
 ### Fused CUDA parity gate (2026-09-12)
 
 The scheduled-aligner parity tests no longer depend on `torch.testing.assert_close`, whose implementation imports optional `torch.distributed`/SymPy machinery unrelated to these zero-tolerance tensor checks. A local exact-equality helper keeps the gate's semantics explicit. In the prepared CUDA developer shell (`scripts/cuda-dev.cmd`), fused scheduled-aligner and temporal-observation tests pass **6/6** in **20.81 seconds**.
+
+### CUDA tensor assertion portability gate (2026-09-12)
+
+The fused CUDA tests and hashed-transducer parity test now use local `torch.allclose`/`torch.equal` assertions instead of `torch.testing.assert_close`, eliminating an undeclared SymPy/`torch.distributed` import from the backend gate while preserving each test's exact or tolerance contract. The fused/hashed CUDA set passes **47 tests with 1 expected hash-overflow warning** in the prepared developer shell.

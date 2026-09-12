@@ -201,5 +201,5 @@ def test_a_brain_in_a_launch_equals_the_brain_alone(mod):
         assert torch.equal(fa[nm][0], fb[nm][0]), f"{nm} winners differ across width"
     for w in VOCAB:
         assert torch.equal(alone.out_signature[w][0], batch.out_signature[w][0])
-    torch.testing.assert_close(batch.arc.bias[0], alone.arc.bias[0], rtol=0, atol=0)
+    assert torch.equal(batch.arc.bias[0], alone.arc.bias[0])
     assert torch.equal(batch.lex_arc.C[0], alone.lex_arc.C[0])
