@@ -7094,3 +7094,7 @@ The first IR migration passed an Area object to the new name-based resolver; the
 ## Parser schedule normalization (2026-09-12)
 
 The legacy parser now converts its set-valued projection map into a deterministic ordered mapping before calling the typed Brain projection boundary. This removes a container-type mismatch and makes schedule order explicit without changing the projection contract. Validation: language parsing and parser composition suites 22 passed; Pyright on language/parser.py reports 0 diagnostics.
+
+## Public owner API documentation (2026-09-12)
+
+The API guide now names Brain.engine and Brain.engine_for(area_name) as the supported backend-composition boundaries, including the mixed explicit/sparse ownership rule. This keeps private engine slots out of newcomer workflows and links the interface to the existing semantic model documentation.
