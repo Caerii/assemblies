@@ -5,9 +5,11 @@ Fashion-MNIST spatial ventral stream with patch-graph generative curriculum.
 from __future__ import annotations
 
 from dataclasses import dataclass, field
+from typing import cast
 
 import numpy as np
 
+from neural_assemblies.core.brain import Brain
 from neural_assemblies.programs.colt_mnist_advanced_util import wire_class_from_prototypes
 from neural_assemblies.programs.colt_mnist_attractor import (
     apply_forward_generative_curriculum,
@@ -80,12 +82,13 @@ def train_fashion_spatial_bundle(
         absence_protocols=tuple(graph.absence_protocols.keys())[:3],
     )
     generative_prototypes = None
+    typed_brain = cast(Brain, brain)
     if enable_generative_head:
         generative_prototypes = capture_generative_prototypes(
-            brain, high_bias, examples, n_examples, k, brain.areas[HIGH].n,
+            typed_brain, high_bias, examples, n_examples, k, typed_brain.areas[HIGH].n,
         )
 
-    brain.disable_plasticity = True
+    typed_brain.disable_plasticity = True
     for digit in range(NUM_DIGITS):
         for j in range(n_examples):
             high_outputs[digit, j] = forward_high_spatial(
