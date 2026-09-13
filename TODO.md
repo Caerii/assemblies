@@ -75,10 +75,15 @@ source-linked contract, negative control, and relevant gate are all present.
   - Progress 2026-09-12: R2, C3, F1, F2, T1/T2 have regression tests; D1
     is a claim-scope note (SEMANTIC_CARDS.md, "Card resolutions"). The
     parser card (E1..E11, training and parse entry points) is written from
-    the executable bodies; its eleven discrepancies and its beta-zero
-    core->role control are the open work under this item. Cards that still
-    lack a discrepancy-by-discrepancy resolution: attention (design target
-    only), binding (cards exist at the plan level).
+    the executable bodies; its eleven discrepancies are resolved by
+    `tests/test_parser_card_regressions.py` and corrected docstrings (see
+    SEMANTIC_CARDS.md, "Parser card resolutions"). Finding: the beta-zero
+    core->role control does not move the role readout's gap (0.978 against
+    0.983), so on the test parser `parse` measures fixed image separation,
+    not a learned binding; the language line's role-binding claims must
+    answer this before any adoption. Cards that still lack a
+    discrepancy-by-discrepancy resolution: attention (design target only),
+    binding (cards exist at the plan level).
 - [ ] **Make configuration the single source of truth.** Expand the validated
   immutable semantics envelope so connectome mode, candidate domain, stimulus
   law, tie rule, arithmetic, normalization, plasticity, schedule, and

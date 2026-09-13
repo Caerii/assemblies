@@ -1966,3 +1966,48 @@ Overlap with existing cards (reference, do not duplicate):
   (E2, E6) and the `compile_corpus` oracle write.
 - "Parser forks" (1088) / "Resolved parser cache requests" (1126): ownership only. P and M cards own
   `train_phrases`' primitives; the sequence-memory card owns `train_word_order`'s.
+
+## Parser card resolutions (2026-09-12)
+
+`tests/test_parser_card_regressions.py` (17 passed, 1 strict xfail) and the
+corrected docstrings in `parser_mixins/core.py` and `parser_mixins/roles.py`
+discharge the E items as follows; numbers are from the small trained parser
+the reconstruction-readout tests build.
+
+- **E2, E6 (categories are dictionary entries).** `compile_corpus` writes
+  all 36 corpus categories before any projection; after `train` each equals
+  `CORE_TO_CATEGORY` of the lexicon holding the word. A trained-corpus
+  sentence reaches the neural classifier 0 times and issues 0 probes; an
+  unregistered form reaches it (twice, once per classification pass) and
+  still issues no probe. The module docstring and the `parse` docstring now
+  say so.
+- **E3, E7 (mutual inhibition never fires).** Both declared groups are
+  registered; of the 2,871 projections `train` issues and the 14 each
+  `parse` issues, none co-targets two members, so the inhibition is never
+  applied. Role exclusivity is the slot sequence and `clear_activity`; the
+  "now wired" comment is corrected in place.
+- **E8 (switches that cannot change a parse).** `include_word_order` and
+  `include_morphology` are live in `train` (SEQ recruits 1,940 neurons
+  against 0; MOOD 162 against 0) and change nothing `parse` returns: all
+  six keys, the winners and the gaps are identical.
+- **E9 (record and recall).** `top` is exactly 1.0 on every gap, so the gap
+  is one minus the runner-up, and an independent re-traversal by the
+  recorded protocol reproduces the recorded winners exactly. **The control
+  did not move:** with beta 0 on all 49 core->role fibers the labels are
+  identical and the mean gap is 0.978 against 0.983 trained, above the 0.5
+  bar `test_reconstruction_readout.py` uses. On this parser, `parse`'s
+  role readout measures the separation of fixed core images under frozen
+  fibers, not a learned binding; learning changed the images, not the
+  decision. This is a measured statement about the small test parser, not
+  a registered study; the language line's role-binding claims are research
+  claims, and this is now the first thing they have to answer.
+- **E10.** The reachable half holds (an unregistered word classifies
+  UNKNOWN, takes no slot, leaves no diagnostic; the next noun takes AGENT).
+  The card's case, a NOUN with no snapshot and no stimulus, has no public
+  construction: every public route that gives a word a category also
+  registers its stimulus; recorded as a strict xfail.
+- **E1, E4, E5, E11** are claim corrections in the docstrings (`train_roles`
+  binds agent/action/patient/goal and replays the stored snapshot;
+  `train_lexicon`'s first step is stimulus-only; the morphology stages are
+  word-list teacher-forced and unread by `parse`; the margin route runs
+  under `frozen()` only) and carry no test beyond the docstring's word.
