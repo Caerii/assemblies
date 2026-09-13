@@ -44,7 +44,7 @@ class HashedArcFSM:
                  norm_init: bool = False, max_potentiations: int = 4096,
                  prefix: str = "_nemo_fsm", tie_jitter: float = 0.0,
                  zero_or_size: bool = False, device: str = "cuda",
-                 organ_semantics=None):
+                 organ_semantics=None, state_code=None):
         from ..semantics import OrganSemantics, describe_hashed_arc_fsm
 
         actual_semantics = describe_hashed_arc_fsm(
@@ -65,7 +65,13 @@ class HashedArcFSM:
         self.symbol_index = {s: i for i, s in enumerate(self.symbols)}
         self.table: Dict[Tuple[str, str], str] = {(fr, sym): to for fr, sym, to in transitions}
         self.k, self.n_arc = int(k), int(n_arc)
-        self.n_state = max(int(n_state or n_arc), len(self.states) * self.k)
+        # An ASSIGNED code needs room for disjoint blocks. A SUPPLIED code is
+        # allowed to collide -- that is what it is for -- so the area is taken
+        # as given and never widened underneath it.
+        if state_code is None:
+            self.n_state = max(int(n_state or n_arc), len(self.states) * self.k)
+        else:
+            self.n_state = int(n_state or n_arc)
         self.p, self.beta = float(p), float(beta)
         self.device = device
         self.state_area = f"{prefix}_state"
@@ -87,8 +93,31 @@ class HashedArcFSM:
                                   norm_init=norm_init, max_rounds=max_potentiations,
                                   device=device, zero_or_size=zero_or_size)
         # the assigned code: [n_states, k] compact indices, one block per state
-        self.blocks = torch_ops.arange(len(self.states) * self.k, device=device,
-                                   dtype=torch_ops.int64).view(len(self.states), self.k)
+        if state_code is None:
+            self.blocks = torch_ops.arange(len(self.states) * self.k, device=device,
+                                       dtype=torch_ops.int64).view(len(self.states), self.k)
+            self.membership = None
+        else:
+            code = torch_ops.as_tensor(state_code, dtype=torch_ops.int64,
+                                       device=device)
+            if tuple(code.shape) != (len(self.states), self.k):
+                raise ValueError(
+                    f"state_code must be [{len(self.states)}, {self.k}], got "
+                    f"{tuple(code.shape)}")
+            if int(code.min()) < 0 or int(code.max()) >= self.n_state:
+                raise ValueError("state_code holds an index outside the state area")
+            if any(int(row.unique().numel()) != self.k for row in code):
+                raise ValueError("each state's code must be k DISTINCT neurons")
+            self.blocks = code
+            # [n_state, n_states] membership, so decoding is a gather and a sum
+            # rather than a pairwise comparison: a supplied code may put one
+            # neuron in several states, which integer division cannot express.
+            self.membership = torch_ops.zeros(
+                (self.n_state, len(self.states)), dtype=torch_ops.int16, device=device)
+            rows = code.reshape(-1)
+            cols = torch_ops.arange(len(self.states), device=device,
+                                    dtype=torch_ops.int64).repeat_interleave(self.k)
+            self.membership[rows, cols] = 1
 
     # -- helpers ---------------------------------------------------------------
     def _idx(self, x, index):
@@ -102,8 +131,18 @@ class HashedArcFSM:
         self.state.winners = self.blocks[self._idx(state, self.state_index)]
 
     def read_state(self) -> Any:
-        """[B] index of the block STATE's current winners overlap most."""
+        """[B] index of the code row STATE's current winners overlap most.
+
+        ONE READOUT. With the assigned code this is integer division, which is
+        what the reference does and what every earlier result here used. With a
+        supplied code the blocks may overlap, so membership is looked up
+        instead. The two agree exactly on a disjoint contiguous code
+        (`test_hashed_fsm_state_code.py`), which is what lets a collidable arm
+        and a disjoint arm be compared on one instrument.
+        """
         w = self.state.winners
+        if self.membership is not None:
+            return self.membership[w].sum(1).argmax(1)
         hit = (w.unsqueeze(1) // self.k).eq(
             torch_ops.arange(len(self.states), device=self.device).view(1, -1, 1))
         # winners outside every block (if any) count for no state

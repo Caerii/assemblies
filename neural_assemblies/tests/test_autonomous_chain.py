@@ -86,3 +86,88 @@ class TheCollapseMeasurementHasAScale(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+# --- Amendment 3: the instrument defects the first limit grid exposed ---------
+# Each of these pins a defect that shipped in chain-limit-v3-20260913 and was
+# only visible because the per-brain traces were retained.
+
+
+def test_state_area_holds_every_chain_in_the_grid():
+    """The state area must fit (L_max + 1) k, not L_max k.
+
+    HashedArcFSM silently takes max(n_state, n_states * k). At 51200 the
+    L = 512 column was widened to 51300 and ran on a different area from every
+    other column -- the one control the constant exists to enforce.
+    """
+    from research.experiments.autonomous_chain import (K, LIMIT_LENGTHS,
+                                                       N_STATE_FIXED)
+    for length in LIMIT_LENGTHS:
+        states = length + 1                      # q0 .. qL
+        assert states * K <= N_STATE_FIXED, (
+            f"L={length} needs {states * K} and the grid pins {N_STATE_FIXED}; "
+            "the organ would widen this cell and redraw its connectome")
+
+
+def test_chance_overlap_is_per_cell_not_the_module_constant():
+    """Chance arc overlap is k / n_arc IN THE CELL.
+
+    The first grid divided every limit cell by the module-level N_ARC = 10000,
+    inflating the reported multiple by 10000 / n_arc: 20.9x down to 8.2x when
+    the true figures are 2.1x up to 3.3x -- which reverses the trend in n_arc.
+    """
+    from research.experiments.autonomous_chain import K, LIMIT_ARCS, N_ARC
+    for n_arc in LIMIT_ARCS:
+        assert n_arc != N_ARC, "a limit cell that matched N_ARC would hide this"
+        assert K / n_arc != K / N_ARC
+
+
+def test_a_wrap_is_not_a_death():
+    """A chain that falls back and keeps stepping is following the table.
+
+    `correct` and `total_correct` both ask whether visit t reads q_{t+1}, a
+    question about PHASE. This trace ran 380 steps, fell back to q2 and stepped
+    3, 4, 5 correctly; both position-locked statistics call it dead.
+    """
+    from research.experiments.autonomous_chain import failure_kind, follows_table
+    visited = [i + 1 for i in range(380)] + [2, 3, 4, 5]
+    length = len(visited)
+    assert failure_kind(visited, length, 380) == "wrap"
+    assert follows_table(visited, 380) == 1.0
+
+
+def test_a_stalled_chain_is_not_a_wrap():
+    from research.experiments.autonomous_chain import failure_kind
+    visited = [i + 1 for i in range(10)] + [140] * 10
+    assert failure_kind(visited, len(visited), 10) == "stall"
+
+
+def test_total_correct_cannot_tell_a_wrap_from_a_death():
+    """The defect itself, pinned: AL-1's statistic is blind here.
+
+    Both traces below are indistinguishable to `total_correct == correct`, and
+    the classifier separates them.
+    """
+    from research.experiments.autonomous_chain import consecutive_correct, failure_kind
+    wrap = [i + 1 for i in range(20)] + [2, 3, 4, 5, 6, 7, 8, 9]
+    dead = [i + 1 for i in range(20)] + [7, 7, 7, 7, 7, 7, 7, 7]
+    for seq in (wrap, dead):
+        first = consecutive_correct(seq, len(seq))
+        assert first == 20
+        assert sum(1 for t, v in enumerate(seq) if v == t + 1) == first
+    assert failure_kind(wrap, len(wrap), 20) == "wrap"
+    assert failure_kind(dead, len(dead), 20) == "stall"
+
+
+def test_al1_fires_on_a_single_coincidence():
+    """AL-1 is a coincidence detector, which is why its FAIL carries no news.
+
+    All three brains that failed it were thrashing chains that landed on t + 1
+    exactly once in hundreds of visits.
+    """
+    from research.experiments.autonomous_chain import consecutive_correct
+    thrash = [i + 1 for i in range(20)] + [101, 102, 286, 326, 101, 286, 1]
+    thrash[24] = 25                                   # one coincidental hit
+    first = consecutive_correct(thrash, len(thrash))
+    total = sum(1 for t, v in enumerate(thrash) if v == t + 1)
+    assert first == 20 and total == 21, "one coincidence flips AL-1's premise"

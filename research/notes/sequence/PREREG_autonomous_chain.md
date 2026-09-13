@@ -319,3 +319,183 @@ compared against their parameters, which is a further study.
 A fail of SC-3 would be the stronger result: it would say the chain tolerates
 state collision, that teacher-forcing is not doing the work, and that our
 sequence results carry over to the papers' setting unchanged.
+
+## Amendment 1 result (2026-09-13): the grid ran, three bars stand, and the instrument was wrong in five ways
+
+Run `chain-limit-v3-20260913`, seeds 62..81, twenty brains a cell, sixteen
+cells plus the mechanism-disabled null. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-limit-v3-20260913/`.
+
+**The bars as they fell, unamended.**
+
+    FAIL  AL-1 it breaks, and the break is a chain DEATH not a dropped step
+    PASS  AL-2 exact_length is non-decreasing in n_arc
+    FAIL  AL-3 superlinear but not square: the 4x arc ratio lands strictly between 4 and 16
+    PASS  AL-4 the state area cannot be the cause: n_state identical in every cell
+    PASS  AL-5 refraction still carries it: 0 correct with strength 0
+
+    exact_length by arc: {1000: 160, 2000: 160, 3000: 256, 4000: 384}; ratio 2.4
+
+**AL-3 fails and the failure is informative.** A fourfold arc ratio buys 2.4x
+the exact length. That is sublinear, not superlinear, and it is well below the
+registered 4-to-16 band. Whatever sets the chain limit here, it is not bought
+back in proportion to arc neurons.
+
+**AL-2 passes but the column beneath it has a hole.** exact/20 by length:
+
+    n_arc=1000   [20, 0, 0, 0]
+    n_arc=2000   [20, 14, 0, 0]
+    n_arc=3000   [20, 20, 5, 18]     <- L = 384 is WORSE than L = 512
+    n_arc=4000   [20, 20, 20, 2]
+
+`exact_length` takes the largest all-exact cell, so the hole at n3000-L384 is
+invisible in the scalar. Exactness is not monotone in L, and a "largest length
+at which every brain is exact" is only a limit when it is.
+
+### Five instrument defects, all found by reading the code against the data
+
+1. **The chance denominator was the module constant.** `chance = K / N_ARC`
+   used `N_ARC = 10000` for every limit cell, whose real arc sizes are 1000 to
+   4000. Reported multiples 20.9x down to 8.2x; true multiples 2.09x up to
+   3.27x. The correction **reverses the trend**: relative crowding RISES with
+   arc size rather than falling.
+2. **AL-4 was a tautology.** It compared `a["n_state"]`, which was the
+   requested constant `N_STATE_FIXED` written into every arm, against itself.
+   The set always had one element, so the bar could not fail. It is retained
+   and printed as VOID; AL-8 asks the same question of the organ.
+3. **And the control it claimed did not hold.** A chain of length L has L + 1
+   states. `N_STATE_FIXED = 51200` is `L_max * k`, one block short, so
+   `HashedArcFSM` widened the L = 512 column to 51300 via
+   `max(n_state, n_states * k)`. The connectome is hashed on
+   `(row, col, pair_seed)` with `pair_seed` from the area NAMES, so every
+   column below 51200 is bit-identical and the only real difference is 100
+   never-potentiated distractor neurons in the state k-WTA. That can only
+   hurt, and L = 512 is the cell that did better, so this does not explain the
+   hole -- but the control was still broken in exactly the column that
+   behaves oddly, and it is now `(L_max + 1) * k`.
+4. **`total_correct` is position-locked, so AL-1 cannot see what it names.**
+   Both `correct` and `total_correct` ask whether visit t reads `q_{t+1}`,
+   which is a question about PHASE. The retained traces show chains that run
+   380 steps, fall back to an early state and then keep stepping correctly:
+   `[378, 379, 380, 2, 3, 4, 5]`. That is a chain still obeying the transition
+   table, and both statistics call it dead.
+5. **AL-1's FAIL is three coincidences.** It fired on
+   `total_correct > correct`, which needs one visit anywhere to land on
+   `t + 1`. All three brains that failed it were thrashing
+   (`[101, 102, 286, 326, 101, 286, 1]`) and hit `t + 1` exactly once in
+   hundreds of visits. AL-1 as written is a coincidence detector; its verdict
+   carries no information about dropped steps.
+
+Pinned by `test_autonomous_chain.py`: the area holds every chain in the grid,
+chance is per cell, a wrap is not a death, a stall is not a wrap,
+`total_correct` cannot separate the two, and one coincidence flips AL-1.
+
+### What the traces actually show
+
+Recomputed over the retained per-brain traces, in the four EDGE cells where
+some brains are exact and some are not:
+
+    cell          exact   median first error   median landing   kinds
+    n2000-L256    14/20   0.996 of L           33 of 256        wrap 5, stall 1
+    n3000-L384     5/20   0.995 of L           26 of 384        wrap 6, stall 6, scatter 3
+    n3000-L512    18/20   0.998 of L           95 of 512        wrap 2
+    n4000-L512     2/20   0.996 of L          141 of 512        wrap 9, stall 3, scatter 6
+
+The chain does not degrade along its length. It runs correctly to within a
+handful of steps of the END and then jumps BACKWARD to an early state. In a
+plurality of failures it then keeps stepping through the table correctly from
+where it landed. A constant per-step hazard cannot produce a median first
+error at 0.996 of L, so the failure is position-specific and `exact_length`
+was the wrong instrument for it.
+
+**No mechanism is claimed for the backward jump.** Why the last steps of a
+chain are the fragile ones, and why the landing is early rather than random,
+are not answered by these traces.
+
+## Amendment 3 (2026-09-13, registered before running): where and how the chain breaks
+
+AL-1 to AL-5 are unchanged and their verdicts above stand. These bars are
+stated from structure the first grid's traces showed, so they are POST HOC
+with respect to that grid and are to be confirmed on a FRESH SEED BLOCK, as
+the convergence study's Amendment 2 was. Same cells, same protocol, corrected
+instrument.
+
+- **AL-6, the break is at the END.** In every edge cell -- a cell where at
+  least one brain is exact and at least one is not -- the median first-error
+  position is at or past 0.90 of L. The null is a constant per-step hazard,
+  which puts that median near 0.5.
+- **AL-7, the break is a BACKWARD jump.** In every edge cell, every first
+  error lands on a state strictly earlier than the expected one, and the
+  median landing is before 0.5 L.
+- **AL-8, the state area control HOLDS.** The organ's actual `n_state`, read
+  off the constructed FSM rather than the requested constant, is identical in
+  every cell. This is the claim AL-4 could not make. On the first grid it is
+  FALSE.
+- **AL-9, relative arc crowding RISES with arc size.** At matched L = 160, the
+  overlap-over-chance multiple at `n_arc = 4000` exceeds that at
+  `n_arc = 1000`. This is the corrected reading of the measure whose
+  denominator was wrong; the uncorrected numbers said the opposite.
+
+A failure of AL-6 or AL-7 on fresh seeds would mean the end-of-chain structure
+is a property of seed block 62..81 and not of the construction, which would
+matter more than the bars passing: it would say the first grid's most
+distinctive finding does not replicate.
+
+## Amendment 2 corrections, recorded BEFORE any data (2026-09-13)
+
+Two, both found while wiring the arms.
+
+**The crowding split was off by one, the same way the limit grid's state area
+was.** A chain of length L has L + 1 states, so a disjoint code needs
+`(L + 1) k = 16100` neurons, not `L k = 16000`. The registration says "the last
+two force overlap and the first two do not". In fact **three of the five force
+overlap**: 16000, 8000 and 4000 are all below 16100, and only 64000 and 32000
+are roomy. The split is now computed from `(STATE_L + 1) * K` rather than
+written down, so it cannot drift again. No bar changes: SC-2 names the largest
+area and SC-3 the smallest, and both are on the correct side of the line.
+
+**SC-5 inherits AL-1's defect.** It is AL-1's statistic applied to the state
+arms, and Amendment 1's result shows that statistic is position-locked: it
+cannot tell a chain that wraps to an early state and keeps stepping from one
+that dies, and it fires on a single coincidental hit. SC-5 is kept and answered
+as registered. **SC-6** asks the question it was reaching for, using the
+wrap/stall/scatter classifier: no broken arm is mostly wraps. If SC-5 and SC-6
+disagree, SC-6 is the one that describes the chains.
+
+**One readout, verified at the unit level before the study runs.** SC-1's
+premise is that the membership decoder and the integer-division decoder are the
+same function on a disjoint code. `test_hashed_fsm_state_code.py` pins that
+directly on the device: identical cued winners and identical decoded states for
+every state, and an identical run through a trained chain. Both arms of this
+amendment pass an explicit code -- the disjoint one included -- so both are
+read out by membership. SC-1 remains as the end-to-end check.
+
+## Amendment 2, third correction recorded BEFORE any data: SC-4's threshold is unreachable
+
+SC-4 requires the mean pairwise STATE overlap to differ by more than 0.05
+between the roomiest and most crowded arm. Two random `k`-subsets of `n`
+neurons share `k^2 / n` on average, which is `k / n` as a fraction of `k`:
+
+    n_state    pairwise overlap / k    states sharing the average neuron
+     64000                  0.0016                                0.25
+     32000                  0.0031                                0.50
+     16000                  0.0063                                1.01
+      8000                  0.0125                                2.01
+      4000                  0.0250                                4.03
+
+The largest gap the registered sweep can produce is `0.0250 - 0.0016 = 0.0234`,
+so **SC-4 cannot pass on its state clause whatever the science does**. The
+threshold was set without checking the arithmetic of the treatment it measures.
+
+SC-4 is kept and will be answered as registered, and its failure is a mis-set
+threshold rather than a result. **SC-7** asks the same question with the
+statistic that does move: LOAD, `(L + 1) k / n_state`, the number of states
+sharing the average neuron, which runs 0.25 to 4.03 across the same arms -- a
+sixteenfold change. At `n_state = 4000` every neuron carries about four states,
+which is the interference SC-3 is about; pairwise overlap stays small there
+precisely because the crowding is spread across many pairs rather than
+concentrated in any one.
+
+This does not rescue SC-3, which is untouched and still the amendment's main claim:
+fewer than 5 of 20 brains exact at the smallest area. A SC-3 failure remains
+the stronger and more interesting outcome.

@@ -310,6 +310,34 @@ source-linked contract, negative control, and relevant gate are all present.
   study, and it is the one that would say whether the reported 20-to-40 limit
   is state collision. Until it runs, nothing here refutes or explains that
   limit and no such claim is made.
+  - Progress 2026-09-13: the substrate can now express it. `HashedArcFSM`
+    takes an explicit `state_code` and decodes by MEMBERSHIP rather than
+    integer division, so a code whose states share neurons is representable at
+    all; a supplied code no longer widens the area underneath itself.
+    `test_hashed_fsm_state_code.py` pins on the device that the two readouts
+    are the same function on a disjoint code -- identical cued winners,
+    identical decoded states, identical run through a trained chain -- which is
+    what lets the collidable arm and the disjoint arm be compared on one
+    instrument. Both arms pass an explicit code so both go through membership.
+    `--states` runs the six cells; SC-1..SC-6 evaluate automatically. Two
+    pre-data corrections recorded in the registration: the crowding split was
+    off by one ((L+1)k = 16100, so THREE of five arms force overlap, not two),
+    and SC-5 inherits AL-1's position-locked defect so SC-6 asks the same
+    question with the wrap/stall/scatter classifier. Not yet run.
+  - Amendment 1 ran (`chain-limit-v3-20260913`) and localizes the limit, but
+    its instrument was wrong in five ways, all recorded in the registration:
+    the chance denominator read a module constant (reported 20.9x-8.2x chance
+    when the truth is 2.1x-3.3x, reversing the trend), AL-4 was a tautology
+    whose control was in fact violated (the state area was L_max k, one block
+    short, so the L = 512 column ran wider than every other), and
+    `total_correct` is position-locked so AL-1 could not tell a wrap from a
+    death and fired on three coincidences. AL-3 FAILED informatively: a
+    fourfold arc ratio buys 2.4x the exact length, sublinear rather than the
+    registered 4-16 band. The retained traces show the chain runs to within a
+    handful of steps of the END and then jumps BACKWARD to an early state,
+    often continuing correctly from there; no mechanism is claimed for that.
+    Amendment 3 states it as bars AL-6..AL-9, to be confirmed on the fresh
+    seed block 82..101.
 - [ ] **Wake the inhibition primitives the papers depend on.** All three roles
   the two papers use are implemented here and unexercised: inter-area mutual
   inhibition is provably dormant (a strict xfail records 1361 training
