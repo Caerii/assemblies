@@ -278,3 +278,59 @@ but not counted in the verdict, so their failures stay visible.
 
 Run: `python -m research.runner refraction-convergence --seeds 62 63 ... 81
 --tag UNIQUE`. A bar that fails is recorded with its numbers.
+
+## Amendment 2 result (2026-09-13): all ten bars pass on the fresh block, and the period is the clip arithmetic
+
+Artifact
+`research/results/runs/memory.refraction-convergence/refraction-convergence-fresh-20260913/results.json`
+(protocol version 3, seeds 62 to 81, pinned worktree at dd342620). Verdict
+PASS: RC-1, RC-3, RC-9, RC-10 and all six Amendment 2 bars RC-11 to RC-16.
+The six superseded bars are evaluated and printed on this run too, and fail
+exactly as they did on the first block.
+
+    quantity (0.5 arm)               seeds 42..61      seeds 62..81 (fresh)
+    relocations per brain            5 on every brain  5 on every brain
+    first relocation                 round 42          round 42
+    spacings                         40 to 44          40 to 43
+    mean spacing                     41.60             41.52
+    relocation length                6 to 10 (8.02)    6 to 10 (7.98)
+    stable_fraction                  0.805 to 0.828    0.801 to 0.837
+
+    other arms (fresh block)         n_events          stable_fraction
+    control                          1                 1.000 on every brain
+    feedforward at s = beta          11 to 32          0.796 to 0.860
+    s = 0.7 beta                     4 to 8            0.249 to 0.290
+    s = 0.8, 0.9, 1.0 beta           1                 0.000 on every brain
+
+**RC-13, the bar that carries the mechanism.** The predicted period is
+
+    ln(w_max) / ln(1 + beta) + (1 - 1 / w_max) / beta = 40.93 rounds
+
+and the measured mean spacing on the fresh block is 41.52, an error of
+**1.44%** against a registered tolerance of 10%. On the first block it was
+41.60, an error of 1.6%. The first relocation lands on round 42 on all forty
+brains of both blocks, with no spread at all: the deadline is set by the
+potentiation schedule, which is identical across brains, not by the random
+connectome each brain draws.
+
+This is a closed-form quantity predicted from the weight arithmetic and then
+matched by an independent measurement, which is the second such number in
+this repository (the first is the clip presentation c* of
+`PREREG_s5_cliff_anatomy.md`, Addendum 5). Both are the same physics: a
+refracted assembly is stable only until its own weights hit the clip, after
+which the raw drive stops growing, the bias keeps charging, and the
+best-connected members fall first.
+
+**What the entry now says.** A refracted recurrent area below the transition
+does not converge and hold. It forms, then relocates on a fixed period equal
+to the clip arithmetic, holding its winners from round to round in between,
+and a feedforward area at s = beta does the same thing more often rather than
+holding. Above about 0.8 beta there is no stability to relocate from: one
+event covers the whole run. The 0.7 arm is a third regime, churning for
+roughly half the run in one event of 97 to 120 rounds and restabilising.
+
+**Scope.** One operating point (n = 4000, k = 100, p = 0.5, beta = 0.10,
+w_max = 20), one stimulus, 240 rounds. The period's dependence on w_max and
+beta is predicted by the formula and is NOT measured here: a sweep over w_max
+and beta that moves the period as the arithmetic says is the obvious next
+test and is not claimed.

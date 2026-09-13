@@ -66,15 +66,20 @@ source-linked contract, negative control, and relevant gate are all present.
     replay, CAP-ANCHOR-RATIO: 13 of 15; and on 2026-09-13 from the nk
     sensitivity replay, CAP-RATIO, whose three registered bars pass with the
     (8000, 120) ceiling noted as a cliff interpolation: 14 of 15; and
-    REFRACTION-CANCELS-CONVERGENCE from the twenty-brain convergence study,
-    15 of 15). That study passed its churn and control bars and FAILED
-    "converges and holds" (RC-2), "feedforward holds" (RC-4) and the
-    transition bracket (RC-5): the entry now says the sub-beta assembly is
-    stable between wholesale relocations, a reading of the marks that
-    Amendment 1 (version-2 instrument, full consecutive curve, RC-6 to
-    RC-10) tests next on the device. Every MEASURED entry now holds a
-    retained treatment/control check; what remains under this item is the
-    bias-masked capacity numbers of `PREREG_refraction_capacity.md` (logs).
+    REFRACTION-CANCELS-CONVERGENCE from the convergence study, 15 of 15).
+    **Every MEASURED entry now holds a retained treatment/control check.**
+    The convergence study took three rounds to settle: the twenty-brain run
+    failed "converges and holds" (RC-2), "feedforward holds" (RC-4) and the
+    transition bracket (RC-5); the full-curve instrument (Amendment 1) then
+    failed three more bars on mis-set thresholds while showing the real
+    structure; and Amendment 2 stated that structure as bars and confirmed
+    all ten on a FRESH seed block. The result: a refracted recurrent area
+    relocates on a fixed period equal to the clip arithmetic
+    ln(w_max)/ln(1+beta) + (1-1/w_max)/beta = 40.93 rounds, measured 41.60
+    and 41.52, first relocation on round 42 on all forty brains. Six failed
+    bars are retained and still printed on every run. What remains under this
+    item is the bias-masked capacity numbers of
+    `PREREG_refraction_capacity.md` (logs, no artifact).
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,
