@@ -148,3 +148,73 @@ the paper's are formed by projection, where they can overlap and interfere.
 That difference is now the whole of the remaining question, and it is the next
 study. Nothing here refutes or explains the 20-to-40 limit, and no such claim
 is made.
+
+## Amendment 1 (2026-09-13, diagnostic + registration): where the chain DOES break, and an instrument confound found on the way
+
+The study above stops at L = 128 and finds no degradation. Pushing further
+finds the break, and finding it required fixing a confound in my own probe.
+
+**The confound.** `HashedArcFSM` sizes the state area as
+`max(n_arc, len(states) * k)`, so varying the chain length silently varies
+`n_state` and redraws the whole connectome. A first sweep looked non-monotone
+because of it -- exact at 512 but broken at 384 for the same arc. Holding
+`n_state` FIXED at 64000 makes it monotone. Any chain-length sweep must pin
+`n_state`, and the registered study below does.
+
+**A second constraint the engine enforces.** `topk_select` packs a 16-bit
+index, so `n_state <= 65536`, which caps the chain at `65536 / k - 1` (639 at
+k = 100). The engine raises with that message rather than producing a wrong
+answer.
+
+**Diagnostic, three seeds, `n_state = 64000`, `p = 0.3` so that `kp = 30`
+clears `3 ln n` in every cell (the study above ran at `kp = 20`, BELOW that
+sufficient condition, and was exact anyway, which is consistent with
+[[SEQ-REGIME]] being sufficient and not necessary).**
+
+    n_arc   n/k   0.40(n/k)^2    L=160    L=256           L=384          L=512
+    2000    20    160            exact    one glitch      dies at 379    dies at 146
+    4000    40    640            exact    exact           exact          dies at 508
+
+Total correct equals consecutive correct in every broken cell, so **once the
+chain dies it does not recover**: this is a chain death, not a dropped step.
+The single exception is L = 256 at `n_arc = 2000`, where one brain misses one
+visit and continues.
+
+**What the numbers do and do not say.** The usable length clearly scales with
+the arc's size. It does NOT cleanly follow the refracted square law: at
+`n/k = 20` the law says 160 and 160 is the largest exactly-recalled length
+tested, but at `n/k = 40` the law says 640 while the chain is exact at 384 and
+dead by 512. Doubling `n/k` bought a factor between 2.4 and 3.2, against 4 for
+a square law and 2 for a linear one -- which is where the register already puts
+the exponent, drifting and "not a power law". **Two cells cannot fit an
+exponent and no fit is attempted.**
+
+## Amendment 1 bars, registered before running
+
+Fixed grid, no search: `n_state = 64000`, `k = 100`, `p = 0.3`, `beta = 0.10`,
+`w_max = 20`, `s = beta`, 20 presentations, seeds 62 to 81. Cells
+`n_arc` in {2000, 3000, 4000, 6000}; lengths {160, 256, 384, 512}.
+
+The estimand is `exact_length`: the largest tested length at which EVERY brain
+recalls every visit. It is a grid quantity, not an interpolation, and cells
+whose `exact_length` is the top of the grid are CENSORED and reported as such.
+
+- **AL-1, it breaks, and the break is real.** In at least one cell, at least
+  one length has every brain below its full length, and in every such cell
+  total correct equals consecutive correct on every brain (a death, not a
+  dropped step).
+- **AL-2, it is monotone in the arc.** `exact_length` is non-decreasing in
+  `n_arc` across the four cells.
+- **AL-3, it is superlinear but not square.** `exact_length(6000) /
+  exact_length(2000)` lies strictly between 3 and 9, the values a linear and a
+  square law in `n/k` would give for a threefold change.
+  PREDICTION: uncertain, and this is the point of the amendment.
+- **AL-4, the state area is not what limits it.** `n_state` is identical in
+  every cell, so a monotone result in `n_arc` cannot be the state area. Checked
+  by construction and asserted in the record.
+- **AL-5, refraction still carries it.** At the smallest cell and the shortest
+  length, `refracted_strength = 0` gives zero correct steps, as CL-2.
+
+If AL-2 fails, the limit is not an arc property and the account above is
+withdrawn. If AL-3 fails high the square law survives; if it fails low the
+limit is linear in `n/k` and is a different mechanism from capacity.
