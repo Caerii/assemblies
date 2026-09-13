@@ -217,7 +217,21 @@ source-linked contract, negative control, and relevant gate are all present.
     s = 0.5 beta, which is the adopted operating strength. A dissociation
     worth chasing: strength is a capacity SWITCH flat over 0.3-0.6 beta, yet
     tenure moves 13% between 0.375 and 0.5 beta inside that plateau, so a
-    strength chosen for capacity is not thereby chosen for tenure. The unrefracted control relocates ZERO times in every cell
+    strength chosen for capacity is not thereby chosen for tenure.
+    Amendment 3 then used strength as the tenure knob to test whether the
+    schedule study's episode penalty IS the tenure, with two strengths inside
+    the capacity plateau so the contrast was controlled (PL-9 passes, the
+    short arms differ by 0.0078). It is NOT: the penalty grows as the episode
+    becomes a SMALLER share of a tenure (+0.8016, +0.8328, +0.8641 at 38.5%,
+    33.9%, 26.9%), the reverse of the prediction, with non-overlapping
+    intervals at the extremes. The tenure reading is withdrawn from
+    `PREREG_presentation_schedule.md`. The effect is a THRESHOLD between 8 and
+    4 rounds per episode (0.185, 0.180, 0.856, 0.987 across 1x16, 2x8, 4x4,
+    8x2), not a gradient. Best remaining candidate, post hoc: each episode's
+    first round is driven by the stimulus alone, so the episode COUNT sets the
+    anchor-to-recurrence ratio that [[CAP-ANCHOR-RATIO]] already identifies as
+    setting capacity at formation. Testing it needs episodes held fixed while
+    total rounds vary. The unrefracted control relocates ZERO times in every cell
     though its weights clip on the same schedule, so the clip alone does not
     move an assembly. **This is the deadline any retention rule has to move,
     and it says how:** for small beta the period is

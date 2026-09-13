@@ -1,0 +1,1880 @@
+{
+  "attachments": {},
+  "observations": {
+    "arms": {
+      "e1x16-s0.25": {
+        "16": {
+          "episode_rounds": 16,
+          "episodes": 1,
+          "fill": [
+            0.5667500495910645,
+            0.5540000200271606,
+            0.5630000233650208
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.25
+        },
+        "8": {
+          "episode_rounds": 16,
+          "episodes": 1,
+          "fill": [
+            0.296500027179718,
+            0.28975000977516174,
+            0.2905000150203705
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.25
+        }
+      },
+      "e1x16-s0.375": {
+        "16": {
+          "episode_rounds": 16,
+          "episodes": 1,
+          "fill": [
+            0.6067500114440918,
+            0.6070000529289246,
+            0.6072500348091125
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.375
+        },
+        "8": {
+          "episode_rounds": 16,
+          "episodes": 1,
+          "fill": [
+            0.3165000081062317,
+            0.31700000166893005,
+            0.31725001335144043
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.375
+        }
+      },
+      "e1x16-s0.5": {
+        "16": {
+          "episode_rounds": 16,
+          "episodes": 1,
+          "fill": [
+            0.6820000410079956,
+            0.6735000610351562,
+            0.6695000529289246
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        },
+        "8": {
+          "episode_rounds": 16,
+          "episodes": 1,
+          "fill": [
+            0.35575002431869507,
+            0.3540000021457672,
+            0.3527500033378601
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        }
+      },
+      "e2x8-s0.5": {
+        "16": {
+          "episode_rounds": 8,
+          "episodes": 2,
+          "fill": [
+            0.6997500061988831,
+            0.6802500486373901,
+            0.6822500228881836
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        },
+        "8": {
+          "episode_rounds": 8,
+          "episodes": 2,
+          "fill": [
+            0.35725000500679016,
+            0.3527500033378601,
+            0.3525000214576721
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        }
+      },
+      "e4x4-s0.5": {
+        "16": {
+          "episode_rounds": 4,
+          "episodes": 4,
+          "fill": [
+            0.6940000057220459,
+            0.6987500190734863,
+            0.686750054359436
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        },
+        "8": {
+          "episode_rounds": 4,
+          "episodes": 4,
+          "fill": [
+            0.3617500066757202,
+            0.35725000500679016,
+            0.3580000102519989
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        }
+      },
+      "e8x2-s0.25": {
+        "16": {
+          "episode_rounds": 2,
+          "episodes": 8,
+          "fill": [
+            0.5605000257492065,
+            0.5550000071525574,
+            0.5570000410079956
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.25
+        },
+        "8": {
+          "episode_rounds": 2,
+          "episodes": 8,
+          "fill": [
+            0.28325000405311584,
+            0.2824999988079071,
+            0.28025001287460327
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.25
+        }
+      },
+      "e8x2-s0.375": {
+        "16": {
+          "episode_rounds": 2,
+          "episodes": 8,
+          "fill": [
+            0.5782500505447388,
+            0.5750000476837158,
+            0.5732500553131104
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.375
+        },
+        "8": {
+          "episode_rounds": 2,
+          "episodes": 8,
+          "fill": [
+            0.29200002551078796,
+            0.29075002670288086,
+            0.2875000238418579
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.375
+        }
+      },
+      "e8x2-s0.5": {
+        "16": {
+          "episode_rounds": 2,
+          "episodes": 8,
+          "fill": [
+            0.5927500128746033,
+            0.5860000252723694,
+            0.5902500152587891
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "10": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "11": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "12": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "13": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "14": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "15": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "8": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "9": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7,
+            8,
+            9,
+            10,
+            11,
+            12,
+            13,
+            14,
+            15
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        },
+        "8": {
+          "episode_rounds": 2,
+          "episodes": 8,
+          "fill": [
+            0.2982500195503235,
+            0.296750009059906,
+            0.296750009059906
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 16,
+          "strength_ratio": 0.5
+        }
+      }
+    },
+    "bars": {},
+    "comparisons": {},
+    "scope": "the episode-length penalty of a refracted memory against the measured tenure, one operating point, massed schedules only",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "hashed_assembly_memory",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {
+        "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+        "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+      }
+    },
+    "execution_semantics": {
+      "kind": "organ",
+      "profiles": {
+        "e1x16-s0.25": {
+          "arc_refraction_charge": 0.025,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e1x16-s0.375": {
+          "arc_refraction_charge": 0.037500000000000006,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e1x16-s0.5": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e2x8-s0.5": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e4x4-s0.5": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e8x2-s0.25": {
+          "arc_refraction_charge": 0.025,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e8x2-s0.375": {
+          "arc_refraction_charge": 0.037500000000000006,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "e8x2-s0.5": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        }
+      }
+    },
+    "git_commit": "c57939b38ec0a8e62e23f35dcfff9b3acff947f5",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "observation_policy": null,
+    "parameters": {
+      "arm_specs": {
+        "e1x16-s0.25": [
+          1,
+          16,
+          0.25
+        ],
+        "e1x16-s0.375": [
+          1,
+          16,
+          0.375
+        ],
+        "e1x16-s0.5": [
+          1,
+          16,
+          0.5
+        ],
+        "e2x8-s0.5": [
+          2,
+          8,
+          0.5
+        ],
+        "e4x4-s0.5": [
+          4,
+          4,
+          0.5
+        ],
+        "e8x2-s0.25": [
+          8,
+          2,
+          0.25
+        ],
+        "e8x2-s0.375": [
+          8,
+          2,
+          0.375
+        ],
+        "e8x2-s0.5": [
+          8,
+          2,
+          0.5
+        ]
+      },
+      "arms": [
+        "e1x16-s0.5",
+        "e2x8-s0.5",
+        "e4x4-s0.5",
+        "e8x2-s0.5",
+        "e1x16-s0.375",
+        "e8x2-s0.375",
+        "e1x16-s0.25",
+        "e8x2-s0.25"
+      ],
+      "checkpoints": [
+        8,
+        16
+      ],
+      "device": "cuda",
+      "penalty_at": 256,
+      "readout": "masked",
+      "rounds_per_item": 16,
+      "rule": "refracted",
+      "tenure": {
+        "0.25": 59.49,
+        "0.375": 47.15,
+        "0.5": 41.6
+      }
+    },
+    "protocol": "memory.episode-tenure",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_refraction_period_law.md",
+    "registration_sha256": "9a558b91f947c7f577d16121f9e654345f8cff56f637ba482b8b81f5b7fd9bab",
+    "schema_version": 10,
+    "scientific_status": "VOID",
+    "script": "research/experiments/episode_tenure.py",
+    "script_sha256": "ed87f858216dce526a8117323742173f67f1bec5ecba35cc977c4de067d2ab5d",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "f60a1df372319fcc3a1a9d343242b1b2031b021126415136ccd68da3c74d1a71"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "8f6d3e8021a995ceec016be1313f234d39f49e4d6085c00592a4924ad73744a3",
+    "started_utc": "2026-09-13T19:12:28.600550+00:00",
+    "tag": "et-smoke-20260913"
+  },
+  "status": "complete"
+}

@@ -500,3 +500,76 @@ which owns it, and whose single-episode write is bit-identical to
 If PL-8 fails while PL-6 passes, the episode penalty is real and the tenure
 does not explain it, and the reading offered in the schedule study is
 withdrawn rather than amended.
+
+## Amendment 3 result (2026-09-13): the tenure does NOT explain the episode penalty, and the direction is reversed
+
+Artifact
+`research/results/runs/memory.episode-tenure/episode-tenure-20260913/results.json`
+(eight arms, seeds 42 to 61, pinned worktree at c57939b3; smoke
+`research/results/runs/memory.episode-tenure/et-smoke-20260913/results.json`,
+VOID). PL-9 and PL-10 pass; **PL-6 and PL-8 fail.**
+
+    arm             episode rounds   share of a tenure   M=64    M=128   M=256
+    e1x16-s0.5      16               38.5%               0.762   0.433   0.185
+    e2x8-s0.5        8               19.2%               0.893   0.517   0.180
+    e4x4-s0.5        4                9.6%               0.990   0.954   0.856
+    e8x2-s0.5        2                4.8%               0.982   0.980   0.987
+    e1x16-s0.375    16               33.9%               0.716   0.409   0.162
+    e8x2-s0.375      2                4.2%               0.981   0.982   0.995
+    e1x16-s0.25     16               26.9%               0.680   0.379   0.136
+    e8x2-s0.25       2                3.4%               0.998   0.997   1.000
+
+**PL-8 FAILS, and the sign is backwards.** The penalty, `rank1(8x2) -
+rank1(1x16)` at M = 256, against the episode's share of one tenure:
+
+    s/beta   share    penalty
+    0.500    38.5%    +0.8016  [+0.7768, +0.8263]
+    0.375    33.9%    +0.8328  [+0.8154, +0.8503]
+    0.250    26.9%    +0.8641  [+0.8524, +0.8757]
+
+The tenure account predicts the penalty SHRINKS as the episode becomes a
+smaller share of one. It grows, monotonically, and the intervals for the
+0.5 and 0.25 arms do not overlap. **The reading offered in
+`PREREG_presentation_schedule.md`, that the episode penalty is the assembly's
+tenure, is WITHDRAWN**, as Amendment 3 said it would be if this bar failed.
+
+**PL-9 PASSES, which is what makes the refutation clean.** The two strengths
+inside the register's capacity plateau have short arms differing by 0.0078
+against a 0.05 bar, so they are matched on capacity and the contrast really is
+a tenure contrast. The tenure moved 13% between them and the penalty moved the
+wrong way.
+
+**PL-6 FAILS too, and says the effect is a threshold rather than a gradient.**
+The ladder at `s = 0.5 beta` reads 0.185, 0.180, 0.856, 0.987 for episodes of
+16, 8, 4 and 2 rounds. It is not monotone: the 8-round episode is marginally
+worse than the 16-round one. What the numbers show is a step between 8 and 4
+rounds per episode, with the two long structures alike and the two short
+structures alike, not a smooth function of anything.
+
+### A better candidate, stated as post hoc and not adopted
+
+An episode begins with an inhibit, so its FIRST round has no recurrent
+contribution from the area and is driven by the stimulus alone; its remaining
+rounds have both. An item trained in `E` episodes therefore spends `E` of its
+16 rounds anchored on the stimulus without recurrence, and `16 - E` with it.
+The four structures give 1, 2, 4 and 8 such rounds.
+
+That is the quantity [[CAP-ANCHOR-RATIO]] already identifies as setting
+capacity at formation: the ratio of the stimulus anchor to the trained
+recurrent pull. It predicts the effect depends on the NUMBER of episodes
+rather than on their length or on any relation to the tenure, and the step
+between 2 and 4 episodes is where that ratio doubles from an eighth to a
+quarter.
+
+It also fits the strength direction that defeated the tenure account: the long
+arm degrades as strength falls (0.185, 0.162, 0.136) while the short arm does
+not (0.987, 0.995, 1.000), and refraction is the force that keeps a
+recurrence-dominated write from collapsing together.
+
+Note that the pairwise overlap statistic is at or below chance in every arm
+(0.79 to 0.95 times chance), so whatever the long episode is doing it is NOT
+showing up as merged assemblies, which is a constraint on any account.
+
+Testing this needs episodes held fixed while total rounds vary, which
+separates the episode count from the episode length. It is not attempted here
+and nothing above is adopted.

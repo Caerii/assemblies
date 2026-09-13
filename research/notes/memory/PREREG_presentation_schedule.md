@@ -371,6 +371,17 @@ the hub statistic at chance (1.04 to 1.25) where both massed schedules run to
 20 to 39 times chance, and recall follows. PS-1 and PS-2 pass, 20 of 20 brains
 each.
 
+> **The reading below is WITHDRAWN (2026-09-13).** Amendment 3 of
+> `PREREG_refraction_period_law.md` tested it directly, moving the tenure with
+> refraction strength while holding capacity inside the register's plateau.
+> The penalty moved the WRONG WAY: it grows as the episode becomes a smaller
+> share of a tenure (+0.8016, +0.8328, +0.8641 at shares of 38.5%, 33.9% and
+> 26.9%), with non-overlapping intervals at the extremes. The episode penalty
+> is real and it is not the tenure. A better candidate, also post hoc, is the
+> number of episodes rather than their length: each episode's first round is
+> driven by the stimulus alone, so the episode count sets the anchor to
+> recurrence ratio that [[CAP-ANCHOR-RATIO]] identifies.
+
 The refracted arm's story is new and was not predicted. One long episode is
 markedly worse than four short ones at load: 0.198 against 0.925 at M = 256.
 The plausible mechanism, stated as a reading and not adopted, is the bias
