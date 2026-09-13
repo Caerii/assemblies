@@ -10,7 +10,10 @@ from research.experiments import word_capacity as capacity
 from research.experiments.word_capacity_protocol import (
     REGISTERED_PROTOCOL, WordCapacityProtocol,
 )
-from research.runner import experiment_parser, run_experiment
+from research.runner import (
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
 
 PROTOCOL = "aligner.word-capacity-ladder"
 VERSION = "3.3"
@@ -61,7 +64,12 @@ def measure(record: dict) -> dict:
         raise ValueError("word-capacity ladder requires alignment semantics")
     if record.get("engine") != "scheduled_aligner":
         raise ValueError("word-capacity ladder 3.3 requires scheduled_aligner")
-    protocol = _validate_parameters(record.get("parameters"))
+    raw_parameters = record.get("parameters")
+    if not isinstance(raw_parameters, dict):
+        raise ValueError("word-capacity ladder parameters must be a mapping")
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(record["seeds"], STUDY_SEEDS)
+    protocol = _validate_parameters(raw_parameters)
     profile = execution.profiles["default"].to_dict()
     curves, summaries = {}, {}
     for name in protocol.cells:
@@ -104,6 +112,7 @@ def main(argv=None):
     parser.add_argument("--vocabulary-sizes", nargs="+", type=int)
     parser.add_argument("--feature-areas", nargs="+", type=_area, metavar="N:K")
     args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, STUDY_SEEDS)
     base = selected_protocol(smoke=args.smoke)
     ladder = None if args.feature_areas is None else tuple(args.feature_areas)
     protocol = base.select(

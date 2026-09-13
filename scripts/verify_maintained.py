@@ -49,6 +49,7 @@ MAINTAINED_FILES = (
     "research/experiments/seq_temporal_positions.py",
     "research/experiments/seq_capacity_scaling.py",
     "research/experiments/refraction_memory_numpy.py",
+    "research/experiments/word_capacity_ladder_run.py",
 )
 
 
