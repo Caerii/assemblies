@@ -93,10 +93,14 @@ silently. Use an individually registered shared-runner protocol above; changing 
 old argument names is not sufficient to reproduce the intended grid. The seven
 remaining legacy producers now reject unknown keywords directly as well.
 
-`primitives/run_all.py` also contains obsolete grid arguments; both its quick and
-full paths now fail at the producer boundary. Its full protocol migration remains
-open. Individual explicit producer arguments remain supported, but execution alone
-does not establish provenance or scientific adoption.
+`primitives/run_all.py` was archived on 2026-09-12 (`legacy/experiments/archived_2026_09/`):
+its grid arguments no longer matched the producers and both its paths failed at
+the producer boundary. The individual `primitives/test_*.py` scripts remain, and
+execution alone does not establish provenance or scientific adoption. The two
+first-generation hashed parity scripts (`gpu_hashed_substrate_parity.py`,
+`gpu_hashed_stim_parity.py`) are archived beside it: their import broke in
+637593ee and `neural_assemblies/tests/test_hashed_substrate_parity.py` is their
+replacement.
 
 
 The historical projection study's H4 weight-ratio probe was corrected after

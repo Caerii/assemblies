@@ -1,46 +1,36 @@
-# Archived Experiments
+# Archived experiments
 
-This directory contains older top-level experimental material that predates the
-current `research/` layout.
+Scripts that predate the shared runner and have a maintained replacement,
+kept for history with `git mv` so their log survives. Nothing here is a
+supported entry point; `research/experiments/README.md` lists what is.
 
-## Structure
+## archived_2026_09/
 
-- `hyperdimensional_assemblies/` - Investigation of Assembly Calculus + Hyperdimensional Computing integration
+Moved on 2026-09-12 per
+`docs/reviews/whole-codebase/STATIC_DEBT_DISPOSITIONS.md`:
 
-## Hyperdimensional Assemblies Investigation
+- `gpu_hashed_substrate_parity.py`, `gpu_hashed_stim_parity.py`: the first
+  drive-replay parity scripts for the hashed substrate. Both import
+  `_chain_table` from `torch_engine/_batched.py`, which moved to
+  `_hashed.py` in 637593ee (2026-08-25), so they have raised ImportError
+  since; their replacement with the same arms, parameter cases and
+  injected stimulus base runs as
+  `neural_assemblies/tests/test_hashed_substrate_parity.py`. Nothing cites
+  them.
+- `primitives_run_all.py` (was `research/experiments/primitives/run_all.py`):
+  the primitives suite runner. Its grid arguments no longer match the
+  producers, so both its quick and full paths failed at the producer
+  boundary; the individual `primitives/test_*.py` scripts remain and are
+  the entry points the registry names.
 
-The main investigation file is `assembly_hdc_investigation.py`, which provides a comprehensive, literate programming approach to understanding the intersection between Neural Assembly Theory and Hyperdimensional Computing.
+## Earlier material
 
-### Key Features
+The hyperdimensional-computing investigation an earlier version of this
+README described (`assembly_hdc_investigation.py`) is not tracked; the
+maintained module is `neural_assemblies/compute/hyperdimensional.py` with
+`neural_assemblies/tests/test_hyperdimensional_contract.py`.
 
-- **Literate Programming**: Each section builds intuition step by step
-- **Evidence-Based**: All claims backed by rigorous testing
-- **Comprehensive**: Covers all major aspects of the integration
-- **Educational**: Explains both theory and implementation
+## Current practice
 
-### Usage
-
-```bash
-python experiments/hyperdimensional_assemblies/assembly_hdc_investigation.py
-```
-
-### What You'll Learn
-
-1. How to integrate neural assemblies with HDC operations
-2. Information preservation capabilities and limitations
-3. Similarity computation accuracy
-4. Noise robustness and fault tolerance
-5. Scaling dynamics and compression ratios
-6. Why sequence encoding fails and potential solutions
-7. Assembly calculus challenges and opportunities
-8. Biological plausibility validation
-9. Evidence-based conclusions about system capabilities
-
-This investigation provides a solid foundation for understanding what works,
-what doesn't, and why.
-
-## Current Practice
-
-New runnable experiments should live under `research/experiments/`.
-This directory is archival and should not be used as the default place for new
-work.
+New runnable experiments live under `research/experiments/` and run through
+`python -m research.runner <command>`.

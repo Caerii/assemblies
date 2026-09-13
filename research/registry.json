@@ -52,7 +52,6 @@
       "results_dir": "research/results/primitives",
       "status": "active",
       "entry_points": [
-        "uv run python research/experiments/primitives/run_all.py --quick",
         "uv run python research/experiments/primitives/test_projection.py --quick"
       ],
       "focus": "Core AC primitives, ERP metrics, and composed mechanisms"

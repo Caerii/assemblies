@@ -204,6 +204,14 @@ decisions; triage them by role and provenance before tightening the gate.
   For each file write: retained role, consumer, contract/evidence link, owner,
   and migration or archival decision. Do not add broad directories to the
   maintained gate without cleaning their dependencies.
+  - Progress 2026-09-12: dispositions for the eight named files are in
+    `docs/reviews/whole-codebase/STATIC_DEBT_DISPOSITIONS.md` (MIGRATE 1:
+    `surprise_gain_recall.py`, whose registration lives in its docstring;
+    RETAIN-AS-DIAGNOSTIC 4; ARCHIVE 3). The three ARCHIVE files are moved
+    under `legacy/experiments/archived_2026_09/` with history: the two
+    first-generation hashed parity scripts (ImportError since 637593ee,
+    replaced by `test_hashed_substrate_parity.py`) and
+    `primitives/run_all.py` (its registry entry point removed).
 - [ ] **Review every tracked `cpp/` and legacy-tree file.** For each item,
   record stay/move/archive/delete, current consumers, build path, specification,
   and replacement. Remove only with a passing replacement and evidence audit.
