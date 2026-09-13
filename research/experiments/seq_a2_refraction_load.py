@@ -38,7 +38,10 @@ from research.experiments.seq_a2_word_order_fsm import (
     AMBIENT_P, BETA, K, N_STATE, ORDERS, ORGAN_P, PRESENTATIONS, SEEDS, STATES,
     order_correct, transitions_for,
 )
-from research.runner import experiment_parser, run_experiment
+from research.runner import (
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
 
 N_ARCS = (5000, 2000, 1000, 500, 350)
 
@@ -61,6 +64,8 @@ def build(seed, moods, n_arc, *, materialized=False, presentations=PRESENTATIONS
 
 
 def experiment(record):
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(record["seeds"], SEEDS)
     parameters = record["parameters"]
     seeds = record["seeds"]
     n_arcs = parameters["n_arcs"]
@@ -95,6 +100,7 @@ def main(argv=None):
     )
     parser.add_argument("--materialized", action="store_true")
     args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, tuple(SEEDS))
     parameters = {"n_arcs": list(N_ARCS[:2] if args.smoke else N_ARCS),
                   "ambient_p": AMBIENT_P, "organ_p": ORGAN_P, "k": K,
                   "n_state": N_STATE, "beta": BETA,
