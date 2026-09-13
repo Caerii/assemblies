@@ -166,6 +166,15 @@ _SEED_ADVICE = (
 #: What these files DO lack is seeds: they report 2-3. That is recorded as a
 #: limit in each note rather than hidden, and it is a sampling problem, not a
 #: statistic-choice problem, so it is not what this ratchet guards.
+#: JUSTIFICATION FOR THE 2026-09-13 BASELINE ADDITION (period law).
+#: `research/experiments/refraction_period_law.py` has ONE `np.mean` site,
+#: `brain_spacing`, which averages one brain's own relocation spacings. That is
+#: a mean over EVENTS WITHIN a seed, forming that seed's record, and the seed
+#: statistic built on top of it is `spacing_ensemble`, which is an
+#: `ensemble_from_values` over brains with an interval and the seeds as keys.
+#: An earlier draft also pooled every event of every brain into one mean, which
+#: IS a hand-rolled seed statistic and which this ratchet caught; it is gone,
+#: because pooling weights a brain by how often it happened to relocate.
 _ENGINE_ADVICE = (
     "\n\n  `Brain(...)` without `engine=` silently selects `numpy_sparse`,"
     "\n  whose candidate sampler INVENTS drive for neurons that have not fired."

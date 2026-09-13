@@ -41,7 +41,7 @@ from research.experiments.refraction_convergence import (
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "memory.refraction-period-law"
-VERSION = "1"
+VERSION = "2"          # v1 pooled spacings across brains; v2 is per brain with an interval
 REGISTRATION = "research/notes/memory/PREREG_refraction_period_law.md"
 REGISTERED_SEEDS = tuple(range(42, 62))
 
@@ -132,10 +132,25 @@ def _ens(values, label, seeds):
     return {**asdict(e), "low": e.low, "high": e.high}
 
 
-def mean_spacing(rows):
-    """Pooled mean spacing between event starts, or None when nothing recurred."""
-    pooled = [s for r in rows for s in r["spacings"]]
-    return float(np.mean(pooled)) if pooled else None
+def brain_spacing(row):
+    """One brain's mean spacing between event starts, or None if it never recurred."""
+    return float(np.mean(row["spacings"])) if row["spacings"] else None
+
+
+def spacing_ensemble(rows, label, seeds):
+    """Mean spacing WITH an interval, over brains.
+
+    The brain is the unit of replication, so the estimand is the mean of the
+    per-brain means and not a pool over every event of every brain: pooling
+    weights a brain by how many times it happened to relocate. Returns None
+    when fewer than three brains recurred, which `ensemble_from_values`
+    refuses anyway.
+    """
+    paired = [(s, v) for s, r in zip(seeds, rows) if (v := brain_spacing(r)) is not None]
+    if len(paired) < 3:
+        return None
+    e = ensemble_from_values([v for _, v in paired], label, keys=[s for s, _ in paired])
+    return {**asdict(e), "low": e.low, "high": e.high}
 
 
 def experiment(record):
@@ -153,53 +168,69 @@ def experiment(record):
             rows = run_cell(seeds, w_max, beta, ratio, rounds=rounds,
                             device=p["device"],
                             organ_semantics=record["execution_semantics"]["profiles"][f"{name}.{arm}"])
-            pooled = mean_spacing(rows)
+            cell_spacing = spacing_ensemble(rows, f"{name}:{arm}:spacing", seeds)
+            reloc = _ens([r["n_relocations"] for r in rows], f"{name}:{arm}:reloc", seeds)
             arms[arm] = {
-                "rows": rows, "mean_spacing": pooled,
-                "relocations": _ens([r["n_relocations"] for r in rows], f"{name}:{arm}:reloc", seeds),
+                "rows": rows, "spacing": cell_spacing, "relocations": reloc,
                 "stable_fraction": _ens([r["stable_fraction"] for r in rows], f"{name}:{arm}:stable", seeds),
             }
-            err = (None if pooled is None else abs(pooled - predicted) / predicted)
-            print(f"  {name:<10s} {arm:<10s} rounds {rounds:>4d} relocations/brain "
-                  f"{np.mean([r['n_relocations'] for r in rows]):>5.1f}  mean spacing "
-                  f"{'n/a' if pooled is None else f'{pooled:7.2f}'}  predicted {predicted:7.2f}"
-                  f"{'' if err is None else f'  error {err * 100:5.1f}%'}", flush=True)
+            if cell_spacing is None:
+                print(f"  {name:<10s} {arm:<10s} rounds {rounds:>4d}  "
+                      f"relocations/brain {reloc['mean']:>5.1f}  never recurred  "
+                      f"predicted {predicted:7.2f}", flush=True)
+            else:
+                err = abs(cell_spacing["mean"] - predicted) / predicted
+                print(f"  {name:<10s} {arm:<10s} rounds {rounds:>4d}  "
+                      f"relocations/brain {reloc['mean']:>5.1f}  spacing "
+                      f"{cell_spacing['mean']:7.2f} "
+                      f"[{cell_spacing['low']:.2f}, {cell_spacing['high']:.2f}]  "
+                      f"predicted {predicted:7.2f}  error {err * 100:5.1f}%", flush=True)
         cells[name] = {"w_max": w_max, "beta": beta, "rounds": rounds,
                        "predicted_period": predicted, "arms": arms}
 
     bars, comparisons = {}, {}
     if not smoke:
-        def spacing(name):
-            return cells[name]["arms"]["refracted"]["mean_spacing"]
+        # Bind every measured spacing once. A cell whose refracted arm never
+        # recurred has no spacing, and a missing measurement must FAIL its
+        # bars rather than be skipped past, so `measured` is checked for
+        # completeness before any comparison is formed.
+        measured: dict[str, float] = {}
+        for key, c in cells.items():
+            s = c["arms"]["refracted"]["spacing"]
+            if s is not None:
+                measured[key] = float(s["mean"])
+        complete = len(measured) == len(cells)
         beta_cells = [cell_name(20.0, b) for b in (0.20, 0.10, 0.05)]
         wmax_cells = [cell_name(w, 0.10) for w in (5.0, 20.0, 100.0)]
-        beta_ratio = (None if spacing(beta_cells[0]) in (None, 0)
-                      else spacing(beta_cells[2]) / spacing(beta_cells[0]))
-        wmax_ratio = (None if spacing(wmax_cells[0]) in (None, 0)
-                      else spacing(wmax_cells[2]) / spacing(wmax_cells[0]))
+
+        def lever_ratio(cell_list):
+            lo, hi = measured.get(cell_list[0]), measured.get(cell_list[-1])
+            return None if not lo or hi is None else hi / lo
+
+        def rises(cell_list):
+            got = [measured.get(k) for k in cell_list]
+            return all(a is not None and b is not None and a < b
+                       for a, b in zip(got, got[1:]))
+        beta_ratio = lever_ratio(beta_cells)
+        wmax_ratio = lever_ratio(wmax_cells)
+        errors = {key: abs(v - cells[key]["predicted_period"]) / cells[key]["predicted_period"]
+                  for key, v in measured.items()}
         comparisons = {
-            "measured_spacing": {key: spacing(key) for key in cells},
-            "predicted_period": {key: cells[key]["predicted_period"] for key in cells},
-            "relative_error": {key: (None if spacing(key) is None else
-                                     abs(spacing(key) - cells[key]["predicted_period"])
-                                     / cells[key]["predicted_period"]) for key in cells},
+            "measured_spacing": dict(measured),
+            "spacing_interval": {key: c["arms"]["refracted"]["spacing"] for key, c in cells.items()},
+            "predicted_period": {key: c["predicted_period"] for key, c in cells.items()},
+            "relative_error": errors,
+            "cells_without_a_measurement": [k for k in cells if k not in measured],
             "beta_ratio_0.05_over_0.20": beta_ratio,
             "wmax_ratio_100_over_5": wmax_ratio,
         }
-        errors = comparisons["relative_error"]
         bars = {
             "PL-1 the law holds in every cell: mean spacing within 15% of the predicted period":
-                all(v is not None and v <= 0.15 for v in errors.values()),
+                complete and all(v <= 0.15 for v in errors.values()),
             "PL-2 beta is inverse: spacing strictly decreasing in beta and the 0.05/0.20 ratio >= 3.0":
-                all(spacing(a) is not None and spacing(b) is not None
-                    and spacing(a) < spacing(b)
-                    for a, b in zip(beta_cells, beta_cells[1:]))
-                and beta_ratio is not None and beta_ratio >= 3.0,
+                rises(beta_cells) and beta_ratio is not None and beta_ratio >= 3.0,
             "PL-3 w_max is logarithmic and weak: spacing strictly increasing in w_max and the 100/5 ratio <= 3.0":
-                all(spacing(a) is not None and spacing(b) is not None
-                    and spacing(a) < spacing(b)
-                    for a, b in zip(wmax_cells, wmax_cells[1:]))
-                and wmax_ratio is not None and wmax_ratio <= 3.0,
+                rises(wmax_cells) and wmax_ratio is not None and wmax_ratio <= 3.0,
             "PL-4 the levers are ordered: the beta ratio exceeds the w_max ratio despite w_max moving further":
                 beta_ratio is not None and wmax_ratio is not None and beta_ratio > wmax_ratio,
             "PL-5 relocation is refraction, not the clip: no control relocation anywhere, >= 3 on every refracted brain":
