@@ -47,7 +47,7 @@ def main():
             b = build(**kw)
             recs = []
             for i, pat in enumerate(pats):
-                wb = int(b.areas["LEX"].w)
+                wb = int(b.areas["LEX"].recruited_count)
                 a = drive(b, pat)
                 recs.append(int(np.sum(a >= wb)) / max(1, len(a)))
             st = b._engine._areas["LEX"]

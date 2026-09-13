@@ -153,7 +153,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
             stim_name = f"STIM_{i}"
             
             # Record support before this stimulus
-            support_before = b.areas["TARGET"].w
+            support_before = b.areas["TARGET"].recruited_count
             
             for _ in range(config.n_projection_rounds):
                 b.project(
@@ -162,7 +162,7 @@ class CompetitionMechanismsExperiment(ExperimentBase):
                 )
             
             # Record support after
-            support_after = b.areas["TARGET"].w
+            support_after = b.areas["TARGET"].recruited_count
             
             assemblies[stim_name] = np.array(b.areas["TARGET"].winners, dtype=np.uint32)
             support_history.append({

@@ -319,3 +319,21 @@ adopted as `SEQ-TEMPORAL-CARRY` with the mechanism stated as measured
 (cells present at g = 0, doubled and made readable by predicted-win),
 not as registered. TM-10 (the feature register, side by side) is reported
 under PREREG_feature_register.md.
+
+## Replayed through the shared runner (2026-09-12)
+
+Amendment 2's fresh-seed cell (seeds 62 to 81, gap 2, gains 0 and 1) was
+re-run as `python -m research.runner a3-transducer --arm temporal --seeds
+62..81 --gap 2 --gains 0 1` from a worktree pinned at commit 1e09c910, with
+one frozen organ profile per gain and the hashed core checking the profile
+it builds:
+`research/results/runs/sequence.a3-transducer/a3-temporal-replay-20260912/results.json`.
+TM-2 and TM-3 PASS at g = 1 as before (+0.1493 over the bigram, lower bound
+0.1401; state-blind delta +0.1461). Every per-seed value the legacy file
+`research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json`
+recorded (bigram, oracle, and per gain the MRR, the bigram delta and the
+state-blind delta: 160 numbers) is reproduced to the comparator's tolerance;
+receipt `research/results/comparisons/a3-temporal-replay-20260912.json`
+(kind `a3-temporal`). The legacy file's pooled TM-9 mechanism numbers are
+void (`AUDIT_temporal_position_pooling.md`) and were not replayed; the
+migrated arm refuses to collect them.

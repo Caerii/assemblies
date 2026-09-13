@@ -222,33 +222,43 @@ W_BASELINE = {
     "neural_assemblies/simulation/advanced_simulations.py": 0,
     "legacy/root_modules/image_learner.py": 8,
     "neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py": 1,
-    "research/experiments/capacity/lexicon_capacity.py": 6,
+    # 2026-09-12: recruitment reads migrated to `recruited_count`
+    "research/experiments/capacity/lexicon_capacity.py": 0,
+    # KEPT: assigns `.w = result.num_ever_fired` after a direct engine call,
+    # mirroring the engine sync the Brain does after `project`; historical
+    # ERP path, a write not a read of the alias (also instability.py,
+    # settling.py, primitives/diagnose_erp_dynamics.py below)
     "research/experiments/metrics/measurement.py": 4,
-    "research/experiments/recruitment/recruitment_mechanisms.py": 4,
+    "research/experiments/recruitment/recruitment_mechanisms.py": 0,
     # the original repository's Python 2 test script, archived 2026-09-09
     "legacy/scripts/simulations/test_brain_core.py": 4,
     "legacy/scripts/simulations/turing_sim.py": 3,
     "neural_assemblies/simulation/turing_simulations.py": 0,
-    "research/experiments/_substrate.py": 3,
+    "research/experiments/_substrate.py": 0,
+    # KEPT: saves and restores the facade's `w` together with `winners` as a
+    # state snapshot around a probe; a restore, not a measurement
     "research/experiments/p600_metric_comparison.py": 3,
     "research/experiments/primitives/diagnose_erp_dynamics.py": 3,
-    "research/experiments/recruitment/smoke.py": 3,
-    "research/experiments/distinctiveness/test_competition_mechanisms.py": 2,
-    "research/experiments/recurrent_assembly_decay.py": 2,
+    # KEPT (2): `st.w` / `b._engine._areas["PHON"].w` are the ENGINE state's
+    # materialized count, printed as such; the facade read migrated
+    "research/experiments/recruitment/smoke.py": 2,
+    "research/experiments/distinctiveness/test_competition_mechanisms.py": 0,
+    "research/experiments/recurrent_assembly_decay.py": 0,
     "legacy/root_modules/parser.py": 1,
     "legacy/root_modules/recursive_parser.py": 1,
     "neural_assemblies/language/debugger.py": 1,
     "neural_assemblies/simulation/density_simulator.py": 0,
-    "research/experiments/erp_p600_probe_contamination.py": 1,
+    "research/experiments/erp_p600_probe_contamination.py": 0,
     "research/experiments/metrics/instability.py": 1,
     "research/experiments/metrics/settling.py": 1,
+    # KEPT: `self._areas[src].w` inside an engine subclass, the materialized row count
     "research/experiments/recruitment/diagnose_synaptic_scaling.py": 1,
     # E10's committed census (#139): `eng._areas[src].w` as a ROW BOUND,
     # min'd against the connectome's true shape -- it means MATERIALIZED
     # count and cannot overrun. The archival script stays as run; caught
     # late because no full live-tree suite ran between E10 and #149.
     "research/experiments/wmax_census.py": 1,
-    "research/experiments/worker_divergence_probe.py": 1,
+    "research/experiments/worker_divergence_probe.py": 0,
 }
 
 _W_ADVICE = (

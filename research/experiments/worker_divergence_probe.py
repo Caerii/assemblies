@@ -63,7 +63,7 @@ def probe(n: int, m_items: int, seed: int) -> dict:
         "n_stim_sigs_checked": len(sigs),
         "first_sig": sigs[0] if sigs else None,
         "second_sig": sigs[1] if len(sigs) > 1 else None,
-        "area_w": int(brain.areas["L"].w),
+        "area_w": int(brain.areas["L"].recruited_count),
         "first_assembly_head": list(assemblies[0][:6]),
         "last_assembly_head": list(assemblies[-1][:6]),
     }

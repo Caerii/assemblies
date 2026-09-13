@@ -211,7 +211,7 @@ def run_one(cfg: Config, checkpoints: Sequence[int]) -> Dict:
 
     exhausted_at: Optional[int] = None
     for i in range(cfg.vocab_max):
-        w_before = int(lex.w)                 # read BEFORE inhibit: the
+        w_before = int(lex.recruited_count)   # read BEFORE inhibit: the
         # Area.winners setter clobbers .w on inhibit, the engine restores it
         # on the next projection, so w_before must be sampled here.
         try:
@@ -225,7 +225,7 @@ def run_one(cfg: Config, checkpoints: Sequence[int]) -> Dict:
                 raise
             exhausted_at = i
             break
-        w_after = int(lex.w)
+        w_after = int(lex.recruited_count)
         recruited = int(np.sum(assembly >= w_before))
         stored.append(assembly)
         per_word.append({
@@ -261,8 +261,8 @@ def run_one(cfg: Config, checkpoints: Sequence[int]) -> Dict:
         "per_word": per_word,
         "checkpoints": cp_results,
         "train_seconds": time.perf_counter() - t0,
-        "final_w": int(lex.w),
-        "final_w_over_n": int(lex.w) / cfg.n,
+        "final_w": int(lex.recruited_count),
+        "final_w_over_n": int(lex.recruited_count) / cfg.n,
         "exhausted_at": exhausted_at,
         "vocab_learned": len(stored),
     }
@@ -328,8 +328,8 @@ def _probe_checkpoint(b: Brain, cfg: Config, pats, cats, stored, V: int) -> Dict
         "V": V,
         "probe_failures": probe_failures,
         "probes_ok": len(self_ov),
-        "w": int(b.areas["LEX"].w),
-        "w_over_n": int(b.areas["LEX"].w) / cfg.n,
+        "w": int(b.areas["LEX"].recruited_count),
+        "w_over_n": int(b.areas["LEX"].recruited_count) / cfg.n,
         "retrieval_overlap_mean": _m(self_ov),
         "retrieval_overlap_std": float(np.std(self_ov)) if self_ov else nan,
         "retrieval_overlap_first_decile": _m(self_ov, slice(0, dec)),

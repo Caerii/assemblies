@@ -183,7 +183,7 @@ def run_one(cfg: Config, checkpoints: Sequence[int]) -> Dict:
 
     exhausted_at: Optional[int] = None
     for i in range(cfg.vocab_max):
-        w_before = int(lex.w)
+        w_before = int(lex.recruited_count)
         try:
             assembly = _drive(b, pats[i], cfg.train_rounds, cfg.mode)
         except RuntimeError as exc:
@@ -192,7 +192,7 @@ def run_one(cfg: Config, checkpoints: Sequence[int]) -> Dict:
             exhausted_at = i
             break
         recruited = int(np.sum(assembly >= w_before))
-        w_after = int(lex.w)
+        w_after = int(lex.recruited_count)
         stored.append(assembly)
         per_word.append({
             "index": i,
@@ -227,8 +227,8 @@ def run_one(cfg: Config, checkpoints: Sequence[int]) -> Dict:
         "probe_nobias": nobias,
         "bias_stats": _bias_stats(b, cfg),
         "train_seconds": time.perf_counter() - t0,
-        "final_w": int(lex.w),
-        "final_w_over_n": int(lex.w) / cfg.n,
+        "final_w": int(lex.recruited_count),
+        "final_w_over_n": int(lex.recruited_count) / cfg.n,
         "exhausted_at": exhausted_at,
         "vocab_learned": len(stored),
     }

@@ -70,7 +70,7 @@ ARMS = [
 
 
 def total_w(brain) -> int:
-    return sum(int(a.w) for a in brain.areas.values())
+    return sum(int(a.recruited_count) for a in brain.areas.values())
 
 
 def probe_frame(parser, words, guard, reset_inside=False):

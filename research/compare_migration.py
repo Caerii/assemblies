@@ -171,7 +171,8 @@ def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=
             if not _equal(observations[name]["values"], baseline[name]["values"]):
                 errors.append(f"{name}: per-seed values differ")
             checked += len(baseline[name]["values"])
-        gains = [f"g{float(g):g}" for g in record["parameters"]["gains"]]
+        # the arm spells its cells `g{float}` ("g0.0", "g1.0", "g4.0"), as the legacy files did
+        gains = [f"g{float(g)}" for g in record["parameters"]["gains"]]
         for key in gains:
             if key not in observations or key not in baseline:
                 errors.append(f"{key}: missing candidate or historical cell")

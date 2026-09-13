@@ -537,7 +537,7 @@ def main() -> None:
     trained = build(brain, "s", "A", 12)
     raw = np.asarray(brain.areas["A"].winners, dtype=np.int64)
     print(f"     read()           max {trained.max():>5}  (neuron IDs, n={n})")
-    print(f"     areas[A].winners max {raw.max():>5}  (compact, w={brain.areas['A'].w})")
+    print(f"     areas[A].winners max {raw.max():>5}  (compact; recruited={brain.areas['A'].recruited_count})")
     print(f"     overlap between them: {similarity(raw, trained):.4f}"
           f"   vs chance {k / n:.4f}")
     print("     <- AT CHANCE, not zero. That is the trap: a cross-space")
@@ -566,9 +566,9 @@ def main() -> None:
               f"   self-overlap after 8 autonomous steps {v:.3f}{mark}")
 
     print("\n  4. PROBES DO NOT MUTATE")
-    before_w = brain.areas["A"].w
+    before_w = brain.areas["A"].recruited_count
     again = cue(brain, "s", "A", 12)
-    print(f"     w {before_w} -> {brain.areas['A'].w}, "
+    print(f"     recruited {before_w} -> {brain.areas['A'].recruited_count}, "
           f"cue matches trained at {similarity(again, trained):.4f}")
 
     print("\n  5. UNDER-POWERED RATES ARE LABELLED")

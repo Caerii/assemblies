@@ -182,7 +182,7 @@ def trial(build, norm, seed):
         brain.project({"s": ["A"]}, {"A": ["A"]} if build == "recurrent" else {})
     trained = _snap(brain, "A")
 
-    w0 = brain.areas["A"].w
+    w0 = brain.areas["A"].recruited_count
     z0 = indegree_z(brain, "A", brain.areas["A"].winners)
 
     # Autonomous: stimulus removed, self-projection only. This is the operation
@@ -194,7 +194,7 @@ def trial(build, norm, seed):
         cur = _snap(brain, "A")
         vs_orig.append(overlap(cur, trained))
         vs_prev.append(overlap(cur, prev))
-        ws.append(brain.areas["A"].w)
+        ws.append(brain.areas["A"].recruited_count)
         prev = cur
 
     return dict(vs_orig=vs_orig, vs_prev=vs_prev, w0=w0, ws=ws,
