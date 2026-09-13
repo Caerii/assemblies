@@ -56,6 +56,20 @@ class TimeHasNoHook(unittest.TestCase):
             self.assertEqual(elapse(gap), 0)
 
 
+class RecordIsSerializable(unittest.TestCase):
+    def test_numpy_bools_do_not_reach_the_record(self):
+        # a numpy comparison yields np.bool_, which json refuses; a run that
+        # measures for minutes and then cannot write its artifact is lost
+        import json
+
+        import numpy as np
+        raw = {"a": np.mean([1.0, 0.0]) >= 0.4, "b": True}
+        with self.assertRaises(TypeError):
+            json.dumps(raw)
+        self.assertEqual(json.loads(json.dumps({k: bool(v) for k, v in raw.items()})),
+                         {"a": True, "b": True})
+
+
 class Plans(unittest.TestCase):
     def test_total_rounds_per_item_are_held_at_the_published_collapse_point(self):
         # every arm spends the same rounds per item; only their arrangement

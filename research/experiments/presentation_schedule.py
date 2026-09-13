@@ -424,6 +424,10 @@ def experiment(record):
                                               cell("massed-control", at)["pairwise_x"])) >= 18 * n // 20,
         }
         comparisons["v1_checkpoint"] = at
+        # numpy comparisons leak np.bool_, which json refuses; the record must
+        # hold plain bools or the whole run is lost after the measurement
+        bars = {name: bool(ok) for name, ok in bars.items()}
+        superseded = {name: bool(ok) for name, ok in superseded.items()}
         for name, ok in bars.items():
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
         for name, ok in superseded.items():
