@@ -273,9 +273,10 @@ def _resolved_conditions(record):
         values = dict(parameters["configuration"])
         values["checkpoints"] = tuple(values["checkpoints"])
         return {"default": CapacityProtocol(**values)}, False
+    pairings = ({"control", "refracted"}, {"anchor_low", "anchor_high"})
     if ("configuration" in parameters or not isinstance(parameters["conditions"], dict)
-            or set(parameters["conditions"]) != {"control", "refracted"}):
-        raise ValueError("paired conditions must be exactly control and refracted")
+            or set(parameters["conditions"]) not in pairings):
+        raise ValueError("paired conditions must be exactly control and refracted, or anchor_low and anchor_high")
     conditions = {}
     for name, raw in parameters["conditions"].items():
         if (not isinstance(name, str) or not name
@@ -287,6 +288,20 @@ def _resolved_conditions(record):
             conditions[name] = CapacityProtocol(**values)
         except (KeyError, TypeError) as exc:
             raise ValueError(f"invalid {name} condition configuration") from exc
+    if set(conditions) == {"anchor_low", "anchor_high"}:
+        # PREREG_anchor_ratio.md, sensitivity replay: two stimulus anchors
+        # under one otherwise identical unrefracted protocol.
+        low, high = conditions["anchor_low"], conditions["anchor_high"]
+        if (low.refracted or high.refracted or low.refracted_factor != 0.0
+                or high.refracted_factor != 0.0 or low.converge or high.converge):
+            raise ValueError("anchor conditions must be unrefracted and ungated")
+        if (low.stim_size is None or high.stim_size is None
+                or not low.stim_size < high.stim_size):
+            raise ValueError("anchor conditions need explicit stimulus sizes with low < high")
+        if ({key: value for key, value in asdict(low).items() if key != "stim_size"}
+                != {key: value for key, value in asdict(high).items() if key != "stim_size"}):
+            raise ValueError("anchor conditions may differ only in the stimulus anchor")
+        return conditions, True
     control, treatment = conditions["control"], conditions["refracted"]
     if (control.refracted or control.refracted_factor != 0.0
             or treatment.refracted is not True or treatment.refracted_factor <= 0
@@ -400,6 +415,8 @@ def main(argv=None):
     ap.add_argument("--converge", action="store_true")
     ap.add_argument("--compare-refraction", action="store_true",
                     help="paired Hebbian control and refracted masked-readout conditions")
+    ap.add_argument("--compare-anchors", nargs=2, type=int, metavar=("LOW", "HIGH"),
+                    help="paired unrefracted conditions differing only in the stimulus anchor size")
     ap.add_argument("--device", default=DEV)
     ap.add_argument("--distinct-gate", type=float, default=DISTINCT_GATE)
     ap.add_argument("--distinct-low-bar", type=float, default=0.9)
@@ -420,6 +437,10 @@ def main(argv=None):
         if args.compare_refraction and (args.refracted or args.converge
                                         or args.readout != "net"):
             raise ValueError("--compare-refraction owns refraction, gate, and masked readout")
+        if args.compare_anchors and (args.compare_refraction or args.refracted
+                                     or args.converge or args.stim_size is not None
+                                     or not args.compare_anchors[0] < args.compare_anchors[1]):
+            raise ValueError("--compare-anchors owns the stimulus size (LOW < HIGH) and is unrefracted")
         config = CapacityProtocol(checkpoints=checkpoints, p=args.p, beta=args.beta,
                                   rounds=args.rounds, stim_size=args.stim_size,
                                   refracted=args.refracted, readout=args.readout,
@@ -435,7 +456,13 @@ def main(argv=None):
             checkpoints=checkpoints, p=args.p, beta=args.beta, rounds=args.rounds,
             stim_size=args.stim_size, refracted=True, readout="masked",
             converge=False, refracted_factor=args.refracted_factor)),
-    } if args.compare_refraction else None)
+    } if args.compare_refraction else {
+        name: asdict(CapacityProtocol(
+            checkpoints=checkpoints, p=args.p, beta=args.beta, rounds=args.rounds,
+            stim_size=size, refracted=False, readout=args.readout,
+            converge=False, refracted_factor=0.0))
+        for name, size in zip(("anchor_low", "anchor_high"), args.compare_anchors)
+    } if args.compare_anchors else None)
     profiles = {}
     for condition, values in ((conditions or {"default": asdict(config)}).items()):
         for arm in arms:

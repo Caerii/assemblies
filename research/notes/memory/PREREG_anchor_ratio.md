@@ -82,3 +82,37 @@ dependence is the pull's second-order chance-overlap term, still unquoted).
 ## Evidence disposition (2026-09-12)
 
 Closed with its Result section (PASS 3/3). Retained artifacts: the three excursion logs research/results/logs/anchor_ratio_A1.log, research/results/logs/anchor_ratio_A2.log and research/results/logs/anchor_ratio_A3.log. No runner record or source archive exists for them; the register entry CAP-ANCHOR-RATIO carries that provenance gap.
+
+## Sensitivity replay (2026-09-12, registered before running)
+
+`CAP-ANCHOR-RATIO` is adopted on the three excursions above, whose logs have
+no run record. This replay retains the anchor contrast itself as a per-seed
+artifact the register can check, on the maintained capacity protocol
+(half-cue rank-1 recall; `research/experiments/seq_capacity_scaling.py`,
+`--compare-anchors`), not as a reproduction of the 2026-09-03 numbers,
+whose readout differed.
+
+Protocol: `python -m research.runner capacity-scaling --tag UNIQUE
+--registration research/notes/memory/PREREG_anchor_ratio.md
+--compare-anchors 100 200 --arms B --nk 4000:100 --rounds 8
+--ms 8,12,16,20,24,28,32,40,48,64,96,128`; p = 0.5, beta = 0.10,
+w_max = 20, net readout, unrefracted, ungated, seeds 42 to 61 (twenty
+brains), the two conditions consuming identical measurement samples.
+
+Bars:
+
+- **AN-1, the anchor law's direction.** The ceiling M* of the anchor-200
+  condition is at least twice that of the anchor-100 condition (F2 measured
+  2.86 under the earlier readout; the law says (200/100)^1.52 = 2.87). Both
+  ceilings must be interior to the grid (not censored).
+- **AN-2, the retained per-seed contrast.** Let M_c be the largest checkpoint
+  at which every brain's anchor-200 rank-1 recall is at least 0.5. At M_c the
+  anchor-200 rank-1 exceeds the anchor-100 rank-1 by at least 0.3 on every
+  brain. This is the register's sensitivity check; its checkpoint is chosen
+  by the rule just stated, not by inspection.
+- **AN-3, a shared floor.** At M = 8 both conditions recall on every brain
+  (rank-1 at least 0.9): the anchor moves the ceiling, not the low-load
+  regime.
+
+A bar that fails is recorded with its numbers; the entry's caveat then says
+what the maintained protocol supports.

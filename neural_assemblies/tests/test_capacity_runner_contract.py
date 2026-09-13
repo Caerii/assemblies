@@ -181,3 +181,80 @@ def test_comparison_cli_records_two_complete_semantic_profiles(monkeypatch):
     assert set(record["organ_semantics"]) == {"control.B", "refracted.B"}
     assert record["organ_semantics"]["control.B"].arc_refraction_charge == 0.0
     assert record["organ_semantics"]["refracted.B"].arc_refraction_charge == 0.05
+
+
+def test_paired_anchor_conditions_share_seed_and_measurement_identity(monkeypatch):
+    """PREREG_anchor_ratio.md sensitivity replay: two anchors, one protocol."""
+    calls = []
+
+    def fake_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
+                  organ_semantics):
+        calls.append((protocol.stim_size, tuple(seeds), rng.integers(1_000_000)))
+        score = 1.0 if protocol.stim_size == 200 else 0.0
+        return {4: {"rank1": [score] * 3, "pairwise_x": [0.0] * 3,
+                    "distinct": [1.0] * 3, "fill": [0.1] * 3}}
+
+    monkeypatch.setattr(capacity, "run_cell", fake_cell)
+    common = asdict(capacity.CapacityProtocol(checkpoints=(4,), refracted_factor=0.0))
+    low = {**common, "stim_size": 100}
+    high = {**common, "stim_size": 200}
+    profile = capacity.describe_assembly_memory(
+        norm_init=True, synaptic_scaling=False, strength=0.0).to_dict()
+    result = capacity.experiment({
+        "seeds": [7, 13, 19], "mode": "study",
+        "parameters": {"conditions": {"anchor_low": low, "anchor_high": high},
+                       "arms": ["B"], "nk": [[100, 10]], "measurement_seed": 1234,
+                       "half_bar": 0.5, "distinct_gate": 3.0,
+                       "distinct_low_bar": 0.9,
+                       "arm_settings": {"B": {"norm_init": True,
+                                                "synaptic_scaling": False}},
+                       "device": "cuda:0"},
+        "execution_semantics": {"profiles": {"anchor_low.B": profile,
+                                             "anchor_high.B": profile}},
+    })
+    assert [call[:2] for call in calls] == [(100, (7, 13, 19)), (200, (7, 13, 19))]
+    assert calls[0][2] == calls[1][2]
+    assert set(result["conditions"]) == {"anchor_low", "anchor_high"}
+
+
+@pytest.mark.parametrize("change", [
+    {"rounds": 9},                                   # differs beyond the anchor
+    {"refracted": True, "refracted_factor": 0.5},    # not unrefracted
+    {"stim_size": 50},                               # high not above low
+])
+def test_paired_anchor_rejects_a_nonisolated_or_inverted_pair(monkeypatch, change):
+    monkeypatch.setattr(capacity, "run_cell",
+                        lambda *args, **kwargs: pytest.fail("invalid pair reached GPU"))
+    common = asdict(capacity.CapacityProtocol(checkpoints=(4,), refracted_factor=0.0))
+    with pytest.raises(ValueError, match="anchor"):
+        capacity.experiment({
+            "seeds": [7, 13, 19], "mode": "study",
+            "parameters": {"conditions": {"anchor_low": {**common, "stim_size": 100},
+                                           "anchor_high": {**common, "stim_size": 200, **change}},
+                           "arms": ["B"], "nk": [[100, 10]],
+                           "measurement_seed": 1234, "half_bar": 0.5,
+                           "distinct_gate": 3.0, "distinct_low_bar": 0.9,
+                           "arm_settings": {"B": {"norm_init": True,
+                                                    "synaptic_scaling": False}},
+                           "device": "cuda:0"},
+        })
+
+
+def test_anchor_comparison_cli_records_two_conditions_and_profiles(monkeypatch):
+    records = []
+    monkeypatch.setattr(capacity, "run_experiment", lambda **kw: records.append(kw))
+    capacity.main(["--tag", "fixture", "--registration", "fixture.md",
+                   "--compare-anchors", "100", "200", "--arms", "B",
+                   "--nk", "4000:100", "--ms", "8,128"])
+    record = records[0]
+    assert record["protocol_version"] == "3"
+    conditions = record["parameters"]["conditions"]
+    assert set(conditions) == {"anchor_low", "anchor_high"}
+    assert conditions["anchor_low"]["stim_size"] == 100
+    assert conditions["anchor_high"]["stim_size"] == 200
+    assert not conditions["anchor_high"]["refracted"]
+    assert set(record["organ_semantics"]) == {"anchor_low.B", "anchor_high.B"}
+    assert record["organ_semantics"]["anchor_low.B"].arc_refraction_charge == 0.0
+    with pytest.raises(SystemExit):
+        capacity.main(["--tag", "x", "--registration", "fixture.md",
+                       "--compare-anchors", "200", "100", "--arms", "B", "--nk", "4000:100"])
