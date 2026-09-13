@@ -13,7 +13,9 @@ clears the threshold (research/experiments/_substrate.py), so `M* = 8` on a
 grid starting at 8 means the control was already below the bar there, which is
 what the instrument measures too.
 
-Marked `gpu`: the hashed substrate needs the device.
+Marked `gpu`, and skipped when the fused kernels cannot build: the hashed
+area compiles them on construction, which needs the documented developer
+shell, so the maintained gate skips these rather than failing them.
 """
 from __future__ import annotations
 
@@ -21,6 +23,22 @@ import numpy as np
 import pytest
 
 pytestmark = pytest.mark.gpu
+
+
+@pytest.fixture
+def fused():
+    """Skip rather than fail when the fused kernels cannot build.
+
+    `HashedArea` compiles them on construction, and that needs the documented
+    developer shell (`scripts/cuda-dev.cmd`: vcvars64, ninja, CUDA_HOME). The
+    maintained gate runs without it, so a bare `gpu` mark is not enough: the
+    two tests that construct a hashed area request this one. The third needs
+    no device and runs everywhere.
+    """
+    from neural_assemblies.core.torch_engine import _fused_cuda
+    if not _fused_cuda.available():
+        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
+
 
 SEEDS = list(range(42, 46))
 ITEMS = 8
@@ -61,7 +79,7 @@ def _sorted(winners):
     return np.sort(winners.cpu().numpy(), axis=1)
 
 
-def test_one_episode_reproduces_the_protocols_write_bit_for_bit():
+def test_one_episode_reproduces_the_protocols_write_bit_for_bit(fused):
     protocol_mem, protocol_winners = _protocol(ITEMS)
     instrument_mem, instrument_winners = _instrument(ITEMS)
     for i, (a, b) in enumerate(zip(protocol_winners, instrument_winners)):
@@ -70,7 +88,7 @@ def test_one_episode_reproduces_the_protocols_write_bit_for_bit():
                                   instrument_mem.fill.cpu().numpy())
 
 
-def test_splitting_the_episode_does_change_the_write():
+def test_splitting_the_episode_does_change_the_write(fused):
     """The true negative: if the instrument returned the protocol's winners
     whatever the schedule, the whole study would be measuring nothing."""
     from research.experiments.presentation_schedule import (
