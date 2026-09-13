@@ -459,3 +459,101 @@ this read.
 
 PS-3 and PS-7 stay failed and are reported on every run as superseded, with
 SR-1, SR-2 and SR-3.
+
+## Amendment 2 result (2026-09-13): the read was not the cause, the instrument IS the protocol, and the write-order reading is WITHDRAWN
+
+Artifact
+`research/results/runs/memory.presentation-schedule/presentation-schedule-read16-20260913/results.json`
+(protocol version 3, seeds 42 to 61, pinned worktree at 7f9ae3c2). PS-1, PS-2,
+PS-4, PS-6, PS-8 and PS-10 pass; PS-3, PS-5, PS-7, PS-9 and PS-11 fail.
+
+    mean rank-1, 16-round read   M=8    M=16   M=32   M=64   M=128  M=256
+    single-control               0.175  0.091  0.044  0.020  0.017  0.002
+    massed-control               0.144  0.069  0.033  0.016  0.004  0.001
+    interleaved-control          1.000  1.000  1.000  1.000  0.355  0.000
+    single-refracted             1.000  1.000  1.000  0.762  0.408  0.195
+    massed-refracted             1.000  1.000  1.000  0.990  0.963  0.846
+    interleaved-refracted        1.000  1.000  1.000  1.000  1.000  1.000
+
+### PS-9 FAILED, and a parity test settles why: the bar's premise was wrong
+
+Lengthening the read from 8 frozen rounds to 16 moved the single-episode
+control from 0.150 to 0.175 at M = 8, nowhere near the 0.5 the bar asked for,
+with its hub statistic at 35.5. The read was not the cause.
+
+The registration said that if PS-9 failed the write must be diffed against
+`AssemblyMemory.store` line by line before any further comparison is reported.
+That diff is now a test,
+`neural_assemblies/tests/test_presentation_schedule_parity.py`, and it shows
+the write is **bit-identical**: one episode of sixteen rounds through
+`ScheduledMemory.visit` returns the same sorted winners as
+`AssemblyMemory.store` on every one of eight items and four brains, with
+identical fill. A true negative in the same file confirms the test can fail,
+by showing that splitting the budget DOES change the winners.
+
+So the instrument is the protocol, and the fault is in what PS-7 and PS-9
+compared it to. `M* = 8` was read as "recall near 0.5 at M = 8". It is not:
+`ceiling_from_curve` returns the grid's FIRST point whenever NO point clears
+the threshold (`research/experiments/_substrate.py`, the `if not above`
+branch), so `M* = 8` on a grid that starts at 8 means the control was already
+below the bar there. Recall of 0.15 to 0.18 at M = 8 is exactly what that
+describes, and the third test in the parity file pins the sentinel so the
+misreading cannot recur.
+
+**The Amendment 1 caveat is therefore LIFTED.** Numbers from this protocol may
+be compared with the capacity line, because the write is the same write. PS-7
+and PS-9 stay recorded as failed; they failed on their premise.
+
+### PS-3 and PS-11 FAILED, and the write-order mechanism is NOT established
+
+PS-11 put the write-order signature at M = 8, where the massed control is not
+yet on the floor. It failed, and in the OPPOSITE direction to the prediction:
+
+    massed control, M = 8    first item 0.050    last item 0.200
+                             first > last on 1 of 20 brains
+
+At M = 8 the LAST item is the one that survives, which is recency, not
+primacy. At M = 32 the version-1 curve in eighths was 0.04, 0.19, 0.04 and
+then zeros, which is neither: a bump just after the start. PS-3 failed there
+because both ends sit on the floor on 17 of 20 brains.
+
+**The reading offered in the version-1 result, that the effect is hub
+formation by the items written FIRST and that staleness is refuted, is
+withdrawn.** It was drawn from checkpoints where the massed control is at or
+near zero everywhere, which cannot support a claim about which items survive.
+What survives the withdrawal is the part the hub statistic carries directly,
+and that is unaffected: the massed schedules run at 20 to 39 times chance
+overlap while interleaving holds 1.04 to 1.27, so interleaving demonstrably
+prevents the merging. WHICH items become the attractors is not established by
+this instrument, and a study that wants it needs checkpoints chosen for having
+signal and a per-item curve as its primary quantity rather than a by-product.
+
+### PS-5 FAILED under the longer read, which is itself a result
+
+    interleaved control at M = 128    8-round read 0.741    16-round read 0.355
+
+More completion rounds make the interleaved control WORSE at the edge of its
+range, while leaving every arm at M <= 64 at 1.000 and the refracted arms
+essentially unchanged. A longer frozen completion gives a half cue more
+opportunity to walk into a neighbouring basin, and the interleaved control at
+M = 128 is exactly where basins are closest. Reported, not barred: the cliff
+in PS-5 is real in both reads, and only its position moved.
+
+### PS-10 PASSED: the finding is robust to the read
+
+    refracted, massed minus single at M = 256    +0.6508  [+0.6165, +0.6851]
+    control, interleaved minus massed at M = 64  +0.9836  [+0.9820, +0.9852]
+
+The dissociation between splitting and ordering survives a change in how a
+stored assembly is read, which is what PS-10 was written to check. That, with
+PS-1, PS-2 and PS-4, is what this registration supports:
+
+- an unrefracted memory needs ORDER, and interleaving takes it from 0.14 to
+  1.000 through M = 64 while holding the hub statistic at chance;
+- a refracted memory needs SHORT EPISODES, worth +0.65 at M = 256;
+- neither substitutes for the other, since interleaving still adds on the
+  refracted arms and the interleaved control still falls off a cliff;
+- idle spacing changes nothing, bit for bit, because the substrate has no
+  decay term.
+
+What it does not support is any account of WHICH items are lost.
