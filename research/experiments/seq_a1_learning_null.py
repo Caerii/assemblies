@@ -6,7 +6,10 @@ from pathlib import Path
 from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
 from neural_assemblies import describe_hashed_arc_fsm
 from research.experiments.seq_a1_horizon_hashed import HorizonProtocol, run_width
-from research.runner import ROOT, experiment_parser, run_experiment
+from research.runner import (
+    ROOT, experiment_parser, run_experiment,
+    validate_registered_seeds, validate_seed_identities,
+)
 
 REFERENCE = "research/results/runs/sequence.a1-horizon/horizon-record-consumed-20260910/run.json"
 BARS = {"trained_accuracy_low": .99, "null_accuracy_high": .9,
@@ -41,6 +44,8 @@ def score_pair(rows, seeds, bars):
 
 def experiment(record):
     parameters, seeds = record["parameters"], record["seeds"]
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(seeds, list(range(1, 21)))
     protocols = {arm: HorizonProtocol.from_parameters(values)
                  for arm, values in parameters["protocols"].items()}
     if set(protocols) != {"trained", "null"}:
@@ -69,11 +74,10 @@ def experiment(record):
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=("hashed_arc_fsm",),
+    parser = experiment_parser(__doc__ or "", engines=("hashed_arc_fsm",),
                                default_seeds=tuple(range(1, 21)))
     args = parser.parse_args(argv)
-    if not args.smoke and args.seeds != list(range(1, 21)):
-        parser.error("this registration requires seed identities 1..20 in order")
+    validate_registered_seeds(parser, args, tuple(range(1, 21)))
     reference = json.loads((ROOT / REFERENCE).read_text(encoding="utf-8"))
     trained = HorizonProtocol.from_parameters(reference["parameters"])
     if args.smoke:
