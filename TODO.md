@@ -206,7 +206,18 @@ source-linked contract, negative control, and relevant gate are all present.
     coordinate with the first five that cuts the mean error from 4.05% to
     0.78% and is closer in 3 of 3 (PD-1, PD-2 pass). Neither form lands inside
     a 95% interval: at 0.02 to 0.12 rounds wide the measurement is sharper
-    than either approximation, which is recorded rather than smoothed over. The unrefracted control relocates ZERO times in every cell
+    than either approximation, which is recorded rather than smoothed over.
+    Amendment 2 then found the law's SCOPE: sweeping the refraction strength
+    at one operating point gives 59.49, 47.15, 41.60 and 40.78 rounds at
+    s/beta 0.25, 0.375, 0.5 and 0.625, a 25.9% spread, so the period depends
+    strongly on strength and the formula's lack of a strength term is a
+    condition rather than a generality. Both candidate closed forms are
+    refuted (ST-1, ST-2, ST-3 fail) and the dependence stands as four measured
+    points with none adopted. The law is exact where the repository works,
+    s = 0.5 beta, which is the adopted operating strength. A dissociation
+    worth chasing: strength is a capacity SWITCH flat over 0.3-0.6 beta, yet
+    tenure moves 13% between 0.375 and 0.5 beta inside that plateau, so a
+    strength chosen for capacity is not thereby chosen for tenure. The unrefracted control relocates ZERO times in every cell
     though its weights clip on the same schedule, so the clip alone does not
     move an assembly. **This is the deadline any retention rule has to move,
     and it says how:** for small beta the period is

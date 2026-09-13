@@ -791,7 +791,20 @@ _RESULTS: List[Result] = [
               "registered 10% tolerance), with the first relocation on round "
               "42 on ALL FORTY brains and no spread, because the deadline is "
               "set by the potentiation schedule and not by the connectome. "
-              "The formula is a LAW, not a number that landed: swept across "
+              "The formula is a LAW AT s = 0.5 beta, the adopted operating "
+              "strength, and ONLY there: a four-arm strength sweep at one "
+              "operating point measured 59.49, 47.15, 41.60 and 40.78 rounds "
+              "at s/beta = 0.25, 0.375, 0.5 and 0.625, a 25.9% spread, so the "
+              "period depends strongly on strength and the formula carries no "
+              "strength term. A 1/2s erosion term, which the mechanism "
+              "suggests and which coincides with the written form exactly at "
+              "0.5 beta, is closer in three arms of four and still wrong by "
+              "16.6% at the slowest; NEITHER closed form is adopted and the "
+              "dependence stands as four measured points. Capacity and tenure "
+              "part company here: strength is a capacity SWITCH with one "
+              "plateau over 0.3-0.6 beta, yet tenure moves 13% between 0.375 "
+              "and 0.5 beta inside it. At the adopted strength the law was "
+              "swept across "
               "beta in {0.05, 0.10, 0.20} and w_max in {5, 20, 100} on twenty "
               "brains per cell it holds in every cell to 4.1%, with the "
               "measured w_max ratio 2.354 against a predicted 2.34. The "
@@ -848,7 +861,13 @@ _RESULTS: List[Result] = [
               "anti-merging force of [[REFRACTION-ANTI-MERGING]]: ~25x the "
               "Hebbian ceiling, read with the bias masked.",
         source="This repository; PREREG_refraction_capacity.md.",
-        evidence=("period-law-amendment2-20260913 (three cells unseen by the "
+        evidence=("period-law-strength-20260913 (four strengths at w_max 20, "
+                  "beta 0.10, twenty brains each): 59.49 [59.46, 59.51], "
+                  "47.15 [47.10, 47.20], 41.60 [41.54, 41.66], 40.78 "
+                  "[38.98, 42.58] at s/beta 0.25, 0.375, 0.5, 0.625; ST-1, "
+                  "ST-2 and ST-3 all FAIL, so the period is neither "
+                  "strength-independent nor of the 1/2s form",
+                  "period-law-amendment2-20260913 (three cells unseen by the "
                   "refinement, twenty brains each): measured 13.57, 20.83, "
                   "30.23 at (w_max, beta) = (8, 0.25), (12, 0.18), (25, 0.15) "
                   "against plain 12.82, 20.11, 29.43 and discretised 13.50, "
@@ -901,6 +920,7 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-20260913/results.json", "artifact"),
             EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-v2-20260913/results.json", "artifact"),
             EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-amendment2-20260913/results.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-strength-20260913/results.json", "artifact"),
             EvidenceRef("research/notes/memory/PREREG_refraction_period_law.md", "registration"),
             EvidenceRef("research/experiments/refraction_period_law.py", "producer"),
             EvidenceRef("research/notes/memory/PREREG_refraction_convergence.md", "registration"),
@@ -920,9 +940,15 @@ _RESULTS: List[Result] = [
         caveat="The critical ratio is bracketed in (0.5, 0.7) at one operating "
                "point on forty brains (the earlier (0.7, 0.8) came from the "
                "16-brain diagnostic); a transient-handicap estimate gives "
-               "~2/3. The period law now holds across EIGHT cells (beta "
-               "0.05-0.25, w_max 5-100) in its discretised form, but at ONE "
-               "area size, ONE "
+               "~2/3. The period law holds across EIGHT cells (beta "
+               "0.05-0.25, w_max 5-100) in its discretised form AT s = 0.5 "
+               "beta ONLY: a strength sweep refuted both the "
+               "strength-independent form and the 1/2s form, and the "
+               "dependence on strength stands as four measured points with no "
+               "adopted closed form. The 0.625 arm sits near the churn "
+               "transition and carries an interval 70x wider than the others, "
+               "so it is the least trustworthy of the four. Everything is at "
+               "ONE "
                "density and ONE refraction strength: the formula carries no "
                "strength term and strength was not varied, so the period's "
                "independence of s is suggested by the algebra and NOT "

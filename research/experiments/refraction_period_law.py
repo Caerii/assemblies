@@ -323,13 +323,22 @@ def experiment(record):
                     all(r["n_relocations"] >= 3 for k in strength_cells
                         for r in cells[k]["arms"]["refracted"]["rows"]),
             })
-        ceiled_err = comparisons["ceiled_relative_error"]
-        if ceiled_err and errors:
-            closer = sum(ceiled_err[k] < errors[k] for k in ceiled_err)
+        # PD-1 and PD-2 compare two STRENGTH-FREE forms, so they are a claim
+        # about the (w_max, beta) surface at the default strength. Judging
+        # them on cells at other strengths compares two forms that are both
+        # wrong there and says nothing about the discretisation.
+        default_cells = [k for k, c in cells.items()
+                         if c.get("strength_ratio", STRENGTH_RATIO) == STRENGTH_RATIO]
+        ceiled_err = {k: v for k, v in comparisons["ceiled_relative_error"].items()
+                      if k in default_cells}
+        errors_default = {k: v for k, v in errors.items() if k in default_cells}
+        comparisons["default_strength_cells"] = default_cells
+        if ceiled_err and errors_default:
+            closer = sum(ceiled_err[k] < errors_default[k] for k in ceiled_err)
             # means over CELLS, not over seeds: each cell's own error is
             # already a seed statistic with an interval
             ceiled_mean = float(np.mean(list(ceiled_err.values())))
-            plain_mean = float(np.mean(list(errors.values())))
+            plain_mean = float(np.mean(list(errors_default.values())))
             comparisons["mean_relative_error"] = {"plain": plain_mean, "ceiled": ceiled_mean}
             bars.update({
                 "PD-1 the discretised form is closer in at least two thirds of the cells":

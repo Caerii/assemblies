@@ -378,3 +378,69 @@ study found the area churns there with no period to measure.
 
 Whichever form survives, the register entry's period sentence gains an
 explicit strength condition, because the present sentence has none.
+
+## Amendment 2 result (2026-09-13): the period depends STRONGLY on strength, and NEITHER closed form survives
+
+Artifact
+`research/results/runs/memory.refraction-period-law/period-law-strength-20260913/results.json`
+(four strengths at w_max = 20, beta = 0.10, seeds 42 to 61, pinned worktree at
+0b5013a3). ST-4 passes; **ST-1, ST-2 and ST-3 all fail.**
+
+    s/beta   measured   95% interval      form A    err      form B    err      relocations
+    0.250    59.49      [59.46, 59.51]    41.50     43.34%   51.00     16.64%   4
+    0.375    47.15      [47.10, 47.20]    41.50     13.61%   44.67      5.56%   5
+    0.500    41.60      [41.54, 41.66]    41.50      0.24%   41.50      0.24%   5
+    0.625    40.78      [38.98, 42.58]    41.50      1.73%   39.60      2.98%   5 to 7
+
+**ST-1 FAILS decisively.** The four periods spread 25.9% about their mean
+against a 5% bar, falling monotonically with strength: 59.49, 47.15, 41.60,
+40.78. The period is not independent of the refraction strength. **The formula
+as the register states it, with no strength term, is only correct at the
+strength every earlier cell was measured at.**
+
+**ST-2 FAILS too.** The `1/2s` form is closer than the flat form in three of
+the four arms and is still wrong by 16.6% at the slowest one. Reading the
+erosion term alone (measured period minus the 32-round climb) gives 27.49,
+15.15, 9.60 and 8.78 rounds against the form's 19.00, 12.67, 9.50 and 7.60.
+The shape is right in direction and wrong in magnitude.
+
+**ST-3 FAILS, which the registration anticipated and named.** Both forms fail,
+so neither closed form survives and the second term is reported as measured
+values with no adopted form. No replacement is fitted here: a form chosen to
+match these four points would be exactly the post hoc move that Amendment 1
+was written to avoid.
+
+### What this costs and what it does not
+
+The period law is unchanged where it was measured. At `s = 0.5 beta` the
+discretised form predicts every one of the eight (w_max, beta) cells to under
+one per cent, and that strength is not an arbitrary choice: it is the adopted
+operating point of [[REFRACTION-ANTI-MERGING]]. What the register may no
+longer say is that the period is a function of `w_max` and `beta` alone. It
+gains an explicit condition.
+
+A dissociation worth recording. The register already says refraction strength
+is a SWITCH for capacity, with one plateau across 0.3 to 0.6 beta. Tenure is
+not flat there at all: between `s = 0.375 beta` and `s = 0.5 beta`, both
+inside that plateau, the period moves 13%. **Capacity and tenure respond
+differently to the same knob**, so a strength chosen for capacity is not
+thereby a strength chosen for how long an address survives.
+
+Two instrument notes. The `0.625` arm has by far the widest interval, 3.6
+rounds against about 0.05 elsewhere, and 5 to 7 relocations per brain rather
+than an identical count: it sits near the transition where the convergence
+study found the area begins to churn, so its point is the least trustworthy of
+the four. And PD-1 and PD-2 were evaluated on these strength cells in this
+run, where both strength-free forms are wrong by construction; the bars are
+now scoped to default-strength cells, and their verdicts here are void rather
+than informative.
+
+### What would settle the form
+
+The erosion term is the margin at the clip divided by the rate it is spent.
+Both depend on strength: a smaller `s` lets net drive grow further before the
+clip, giving a bigger margin, and then spends it more slowly. That predicts a
+term in `(beta - s)/s` rather than in `1/s`, which the four points do not
+cleanly fit either. Settling it needs the margin measured directly rather than
+inferred from the period, which is a different instrument and is not attempted
+here.
