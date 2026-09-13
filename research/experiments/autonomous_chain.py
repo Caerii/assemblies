@@ -26,7 +26,7 @@ from neural_assemblies.diagnostics import ensemble_from_values
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "sequence.autonomous-chain"
-VERSION = "2"          # v2 adds Amendment 1's fixed-grid limit arms
+VERSION = "3"          # v2: Amendment 1 limit grid; v3: Amendment 2 collidable states
 REGISTRATION = "research/notes/sequence/PREREG_autonomous_chain.md"
 #: Seeds 42-45 were used by the exploratory probe that informed the bars, so
 #: the study runs on a block no probe has touched.
@@ -72,6 +72,70 @@ def limit_arms():
 
 LIMIT_SPECS = limit_arms()
 
+#: Amendment 2. Every earlier result assigns each state a DISJOINT block, so
+#: state collision is impossible by construction. These arms replace the code
+#: with random k-subsets and shrink the state area until collision is forced.
+#: L * k = 16000 here, so the last two arms cannot be disjoint.
+STATE_L, STATE_ARC = 160, 3000
+STATE_AREAS = (64000, 32000, 16000, 8000, 4000)
+
+
+def state_arms():
+    """name -> (n_state, code) where code is 'blocks' or 'random'."""
+    out = {f"blocks-n{STATE_AREAS[0]}": (STATE_AREAS[0], "blocks")}
+    out.update({f"random-n{n}": (n, "random") for n in STATE_AREAS})
+    return out
+
+
+STATE_SPECS = state_arms()
+
+
+def state_code(seeds, n_state, kind, n_states, k, device):
+    """[n_states, k] compact indices: disjoint blocks, or random k-subsets.
+
+    Random subsets overlap at about chance k / n_state when the area is roomy
+    and are FORCED to overlap once n_states * k exceeds it.
+    """
+    from neural_assemblies.core._torch_ops import torch_ops
+    if kind == "blocks":
+        if n_states * k > n_state:
+            raise ValueError("disjoint blocks do not fit in the state area")
+        return torch_ops.arange(n_states * k, device=device,
+                                dtype=torch_ops.int64).view(n_states, k)
+    gen = torch_ops.Generator(device="cpu")
+    gen.manual_seed(int(seeds[0]))
+    rows = [torch_ops.randperm(n_state, generator=gen)[:k] for _ in range(n_states)]
+    return torch_ops.stack(rows).to(device).to(torch_ops.int64)
+
+
+def decode_by_overlap(winners, code):
+    """[B] index of the code row the winners overlap most.
+
+    The block readout decodes by integer division and assumes contiguous
+    disjoint blocks, so a collidable code needs this instead. The disjoint arm
+    is decoded the same way, so the two are compared on ONE readout.
+    """
+    # [S, k] code against [B, k] winners -> [B, S] overlap counts
+    hit = (winners.unsqueeze(1).unsqueeze(-1) == code.unsqueeze(0).unsqueeze(2))
+    return hit.any(-1).sum(-1).argmax(1)
+
+
+def code_overlap(code, k):
+    """Mean pairwise overlap between distinct code rows, as a fraction of k."""
+    from neural_assemblies.core._torch_ops import torch_ops
+    srt = torch_ops.sort(code, dim=1).values
+    S = srt.shape[0]
+    total, pairs = 0.0, 0
+    for i in range(S):
+        a = srt[i].unsqueeze(0).expand(S - i - 1, k) if i + 1 < S else None
+        if a is None:
+            continue
+        b = srt[i + 1:]
+        idx = torch_ops.searchsorted(a.contiguous(), b.contiguous()).clamp_(max=k - 1)
+        total += float((torch_ops.gather(a, 1, idx) == b).sum()) / k
+        pairs += S - i - 1
+    return total / max(pairs, 1)
+
 
 def profile_for(ratio):
     """The organ profile of one arm. `ratio` is a fraction of beta."""
@@ -97,8 +161,13 @@ def consecutive_correct(visited, length):
     return got
 
 
+#: sampled pairs for the collapse measurement; the full set is quadratic in L
+PAIR_SAMPLE = 512
+
+
 def arc_collapse(fsm, states, nbrain):
-    """Mean pairwise overlap between the ARC assemblies of distinct states.
+    """Mean pairwise overlap between the ARC assemblies of distinct states,
+    over a fixed sample of pairs.
 
     The anti-swamping measurement: if the constant tick swamps the state, every
     state drives the SAME arc and this rises towards 1. Chance is k / n_arc.
@@ -113,15 +182,23 @@ def arc_collapse(fsm, states, nbrain):
         arcs.append(torch_ops.sort(fsm.arc.winners, dim=1).values.clone())
     stack = torch_ops.stack(arcs)            # [S, B, k]
     S, _, k = stack.shape
-    total = torch_ops.zeros(nbrain, dtype=torch_ops.float32, device=stack.device)
-    pairs = 0
-    for i in range(S):
-        for j in range(i + 1, S):
-            a, b = stack[i], stack[j]
-            idx = torch_ops.searchsorted(a.contiguous(), b.contiguous()).clamp_(max=k - 1)
-            total += (torch_ops.gather(a, 1, idx) == b).sum(1).float() / k
-            pairs += 1
-    return (total / max(pairs, 1)).cpu().numpy().tolist()
+    # SAMPLE pairs rather than enumerate them: the full set is quadratic in the
+    # chain length and at S = 512 that is 130k tensor comparisons, which took
+    # 13 minutes on one cell before this was fixed. The capacity protocol
+    # samples for the same reason.
+    want = min(PAIR_SAMPLE, S * (S - 1) // 2)
+    gen = torch_ops.Generator(device="cpu")
+    gen.manual_seed(0)
+    ia = torch_ops.randint(0, S, (want,), generator=gen)
+    ib = torch_ops.randint(0, S, (want,), generator=gen)
+    keep = ia != ib
+    ia, ib = ia[keep].to(stack.device), ib[keep].to(stack.device)
+    if ia.numel() == 0:
+        return [0.0] * nbrain
+    a, b = stack[ia], stack[ib]              # [P, B, k], sorted along k
+    idx = torch_ops.searchsorted(a.contiguous(), b.contiguous()).clamp_(max=k - 1)
+    hit = (torch_ops.gather(a, 2, idx) == b).sum(2).float() / k     # [P, B]
+    return hit.mean(0).cpu().numpy().tolist()
 
 
 def run_arm(seeds, length, presentations, ratio, density, *, device,

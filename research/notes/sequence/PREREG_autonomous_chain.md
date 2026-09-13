@@ -218,3 +218,84 @@ whose `exact_length` is the top of the grid are CENSORED and reported as such.
 If AL-2 fails, the limit is not an arc property and the account above is
 withdrawn. If AL-3 fails high the square law survives; if it fails low the
 limit is linear in `n/k` and is a different mechanism from capacity.
+
+## Instrument note (2026-09-13): the collapse measure now SAMPLES pairs
+
+The arc-overlap measurement enumerated every pair of states, which is quadratic
+in the chain length: 8128 pairs at L = 128 and 130816 at L = 512. The limit
+grid spent thirteen minutes on a single cell before this was found, and was
+stopped. It now samples a fixed 512 pairs with a pinned generator, as the
+capacity protocol does for the same reason.
+
+The first study's arc-overlap numbers (0.0000 at L = 32, 0.0108 at L = 128)
+were EXHAUSTIVE. Sampled and exhaustive values are comparable in expectation
+but not identical, so that quantity is comparable within a protocol version
+and not across the change. No bar in the first study depended on a difference
+smaller than the sampling error: its arms read 0.0000 against 1.0000.
+
+## Amendment 2 (2026-09-13, registered before running): let the STATES collide, which is the one difference from the papers
+
+Every sequence result in this repository -- the finite-state machine, the
+transducer, the temporal carry, and the chain above -- assigns each state its
+own DISJOINT block of neurons before training. `HashedArcFSM` builds
+`blocks = arange(n_states * k).view(n_states, k)` and `read_state` decodes by
+integer division, so two states can never share a neuron and state collision is
+impossible by construction.
+
+The papers form state assemblies by projection, where two states can land on
+overlapping neurons. That is the single remaining difference from their
+setting, and it is not a detail: it means the whole sequence line has been
+measured in a world where one of the two failure modes cannot occur. Amendment
+1 already shows the other one biting -- when the ARC crowds, the chain dies --
+and states are the other half of that conjunction.
+
+**The variable is state crowding**, `L * k / n_state`. At `n_state = L * k` the
+disjoint blocks exactly fill the area; below that, any assignment must overlap.
+
+### What runs
+
+The chain of Amendment 1 at a cell it recalls exactly (`L = 160`,
+`n_arc = 3000`, 20 of 20 exact), with the state code replaced by RANDOM
+`k`-subsets of `n_state` and `n_state` swept. Because the assigned code is no
+longer contiguous, the block readout cannot be used: states are decoded by
+MAXIMUM OVERLAP against the code, which is the readout the papers' setting
+needs anyway. The disjoint-block arm is run through the same decoder so the
+two are compared on one readout and not on two.
+
+`n_state` in {64000, 32000, 16000, 8000, 4000}; `L * k = 16000`, so the last
+two force overlap and the first two do not.
+
+Retained per brain and arm: consecutive correct, total correct, the mean
+pairwise overlap between STATE codes, and the mean pairwise overlap between the
+arcs.
+
+- **SC-1, the decoder is not the treatment.** With disjoint blocks, the
+  overlap decoder reproduces the block decoder's result: 20 of 20 exact at
+  `L = 160, n_arc = 3000`. If this fails, every later comparison is confounded
+  by the readout and the amendment is void.
+- **SC-2, a roomy random code is as good as a disjoint one.** At
+  `n_state = 64000`, where random `k`-subsets overlap at about chance, 20 of 20
+  brains are exact. PREDICTION: passes. Random assignment per se must not be
+  the thing that breaks it.
+- **SC-3, crowding the states breaks the chain.** At `n_state = 4000`, where
+  the code cannot be disjoint, fewer than 5 of 20 brains are exact.
+- **SC-4, it is the states and not the arc.** `n_arc` is identical in every
+  arm, and the mean pairwise ARC overlap differs by less than 0.05 between the
+  roomiest and most crowded state arms, while the mean pairwise STATE overlap
+  differs by more than 0.05.
+  PREDICTION: uncertain. If the arc overlap moves too, the arms are not
+  isolating the state and SC-3 cannot be read as a state effect.
+- **SC-5, the break is a chain death.** In every broken arm, total correct
+  equals consecutive correct on every brain, as AL-1.
+
+### What a pass would mean, stated in advance
+
+That the sequence line's exact results depend on a construction choice the
+papers do not make, and that state collision is a failure mode we have never
+measured. It would NOT by itself establish that the papers' 20-to-40 limit is
+state collision: that needs the limit measured as a function of crowding and
+compared against their parameters, which is a further study.
+
+A fail of SC-3 would be the stronger result: it would say the chain tolerates
+state collision, that teacher-forcing is not doing the work, and that our
+sequence results carry over to the papers' setting unchanged.
