@@ -1,0 +1,21 @@
+{
+  "candidate": "research/results/runs/sequence.a3-transducer/a3-temporal-replay-20260912/results.json",
+  "candidate_sha256": "6f2217873b357a354cc62341ba0a4766c07749819ee9aa5c78169e09b98c33db",
+  "comparator_sha256": "86c67447194758773df733964c44b1f4c07eeab23e70b5e7b176607385d56a39",
+  "comparator_source": {
+    "git_commit": "3f9238de3a58295104e119a9019bd218d52ba0d8",
+    "inventory": "source-inputs-v3",
+    "source_sha256": "8d9137b6e2eee0513d416cfcc842de03963b577245e3a30b1c0f8152f03740bd"
+  },
+  "comparison_version": 4,
+  "comparisons": 160,
+  "errors": [],
+  "kind": "a3-temporal",
+  "numerical_match": true,
+  "reference": "research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2_amend2_fresh.json",
+  "reference_seeds": null,
+  "reference_sha256": "3bedc5af7598e532531562f661dc67150b7d338a9453bf472656d6201ed72971",
+  "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict",
+  "treatment_reference": null,
+  "treatment_reference_sha256": null
+}

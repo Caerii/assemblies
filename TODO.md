@@ -33,9 +33,13 @@ source-linked contract, negative control, and relevant gate are all present.
     one frozen organ profile per configuration, the strength arm's
     reference cell a declared input artifact; the numpy study is kept as
     `legacy_numpy_study`, void under the sampler audit). The two arc
-    diagnostics have their disposition in the experiments README. Open:
-    the temporal-arm replay on seeds 62..81 and its receipt (comparator
-    kind `a3-temporal`).
+    diagnostics have their disposition in the experiments README. The
+    temporal-arm replay on seeds 62..81 reproduces the committed file's
+    160 per-seed values (receipt
+    `research/results/comparisons/a3-temporal-replay-20260912.json`). What
+    remains under this item is the migration boundary already written
+    (two S5 forensic scripts, the wander diagnostic) and the numpy A3 study,
+    void under the sampler audit.
 - [ ] **Complete the evidence graph.** Require every results artifact to carry
   script, commit/source digest, engine, protocol version, seeds, tag, parameters,
   and semantic profile. Require every register evidence edge and every
@@ -101,6 +105,13 @@ source-linked contract, negative control, and relevant gate are all present.
   explicitly named materialized extent. Add typed wrappers at every public
   boundary and reject raw mixed-space arrays in runtime paths. Remove or isolate
   legacy consumers after migration, with a written disposition for each.
+  - Progress 2026-09-12: raw-w reads that meant recruitment are migrated in
+    the simulation modules and eight experiment files; every kept site has
+    a disposition in the ratchet baseline (writes mirroring the engine sync,
+    a snapshot restore, engine-internal materialized counts, two deliberate
+    demonstrations). Remaining: the field itself (`Area.w`, the engines'
+    state objects, `Brain`'s sync sites), typed wrappers at the public
+    boundaries, and rejection of raw mixed-space arrays in runtime paths.
 - [ ] **Unify backend conformance semantics.** Define one executable conformance
   matrix for projection, association, reciprocal projection, merge, completion,
   and attention across explicit NumPy, exact NumPy, sparse NumPy, Torch, CUDA,
