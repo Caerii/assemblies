@@ -163,3 +163,56 @@ The same reduced smoke protocol was rerun only to validate the new compressed ra
 attachment boundary. Reconstructing its corpus and arm records from the attachment
 is exactly equal to the earlier schema 4 smoke; it remains scientifically `VOID`.
 Evidence: [schema 5 CUDA smoke](../../results/runs/sequence.temporal-positions/temporal-positions-schema5-smoke-20260910/results.json).
+
+## Amendment 1 (2026-09-12, registered before running): the decay law across gaps 3 to 6
+
+The gap-2 result located the carry (present at the first distractor, absent
+at the second under the plain conjunction; present at both with
+predicted-win). The backlog asks for the decay law: the same instrument at
+gaps 3, 4, 5 and 6, twenty hashed seeds each, with a preregistered decay
+model. Nothing in the gap-2 record changes; it stays protocol version 1.
+
+**Instrument (protocol version 2).** `python -m research.runner
+temporal-positions --gap G` for G in {2, 3, 4, 5, 6}, everything else as
+registered above (seeds 82 to 101; the same n, k, p, organ p, beta, w_max,
+rounds, sentence counts and arms). The chain at gap G is `AUX N^G VERB N^G
+PRON N^G TAG`; the processed positions are 3G + 3, the agreeing tokens sit
+at 0, G+1 and 2G+2, and offset j (1..G) is the j-th distractor noun after an
+agreeing token. Per brain and arm the run retains `D` (mean contrast over
+all distractors), `D_j` for every offset, the paired `D_1 - D_G`, and the
+whole position curve. The gap-2 run under version 2 must reproduce the
+version-1 estimands to the comparator's tolerance; that replay is part of
+this amendment.
+
+**Decay model, fixed now.** On the g = 1 arm, the brain-level mean carry at
+offset j is modelled as geometric, `D_j = A r^(j-1)`, fitted by least
+squares on the offset means pooled over the four new gaps (j from 1 to 6,
+one point per gap and offset), with r reported with a bootstrap interval
+over brains. A pooled r in (0, 1) with the fit's residual below the
+between-gap spread of `D_1` supports one decay constant for the mechanism;
+a plain conjunction (g = 0) is modelled the same way separately. No bar is
+placed on r; the bars are on the quantities that decide whether the carry
+exists at all at each gap.
+
+**Bars per gap (each gap judged on its own twenty brains).**
+
+- **DL-1, the carry starts.** Lower 95% bound of `D_1(g=1) > 0.05`.
+  PREDICTION: passes at every gap (the first distractor follows an agreeing
+  token whatever the gap).
+- **DL-2, the carry decays.** Lower 95% bound of paired `D_1(g=1) -
+  D_G(g=1) > 0`. PREDICTION: passes at every gap (at gap 2 the paired
+  difference was 0.0365 [0.0291, 0.0440]).
+- **DL-3, the carry persists to the last distractor.** Lower 95% bound of
+  `D_G(g=1) > 0.02`. PREDICTION: uncertain, and the point of the study: the
+  register entry's claim (carry across two and three distractors) predicts
+  passes at gaps 3; beyond that nothing has been measured.
+- **DL-4, instrument.** Upper 95% bound of `D(state-blind g=1) < 0.02`, as
+  TP-4. Failure at a gap voids that gap.
+- **DL-5, the plain conjunction stops at one.** Upper 95% bound of
+  `D_2(g=0) < 0.02` at every gap, as the gap-2 result found (0.0037
+  [-0.0009, 0.0084]).
+
+TP-1 to TP-4 are also evaluated at every gap and reported. Failed bars are
+retained with their numbers; the gap at which DL-3 first fails, if any, is
+the measured horizon of the predicted-win carry and is reported as such,
+not as a fitted extrapolation.

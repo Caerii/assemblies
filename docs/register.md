@@ -27,7 +27,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`HEBB-OUTER-PRODUCT`](#hebb-outer-product) | PROVED | Not an empirical entry | The Hebbian co-firing count is a SUM OF RANK-1 OUTER PRODUCTS: count = SUM_t x_{t-1} x_t^T, with x_t the 0/1 winner indicator at round t. |
 | [`DRIVE-SPLIT`](#drive-split) | PROVED | Not an empirical entry | With a Bernoulli 0/1 base B and G[i,j] = chain(1, count[i,j]), the drive splits as 1_S^T (B (.) G) = 1_S^T B + SUM_{i in S, j} B[i,j] D[i,j] where D = G - 1 is nonzero only on potentiated cells. |
 | [`CAP-RATIO`](#cap-ratio) | MEASURED | hashed AssemblyMemory / exact count-then-apply path | The assembly-capacity ceiling M* is a function of n/k ALONE, not of n and k separately. |
-| [`CAP-ANCHOR-RATIO`](#cap-anchor-ratio) | MEASURED | hashed AssemblyMemory / capacity-scaling protocol | The capacity ceiling is set at FORMATION by the ratio of the stimulus anchor to the trained recurrent pull. |
+| [`CAP-ANCHOR-RATIO`](#cap-anchor-ratio) | MEASURED | hashed_assembly_memory, capacity-scaling protocol (retained paired-anchor replay of 20 brains; the original excursions are logs without run records) | The capacity ceiling is set at FORMATION by the ratio of the stimulus anchor to the trained recurrent pull. |
 | [`CAP-CLIFF`](#cap-cliff) | MEASURED | hashed AssemblyMemory / exact count-then-apply path | Capacity failure is a CLIFF, not a slope: past the ceiling the assemblies shatter rather than degrading gracefully. |
 
 ## SEQ-TIME-IN-WEIGHTS
@@ -565,7 +565,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository; PREREG_formation_interference.md (F2) and PREREG_anchor_ratio.md (A1-A3).
 
-**Engine / substrate.** hashed AssemblyMemory / capacity-scaling protocol
+**Engine / substrate.** hashed_assembly_memory, capacity-scaling protocol (retained paired-anchor replay of 20 brains; the original excursions are logs without run records)
 
 **Claim.** The capacity ceiling is set at FORMATION by the ratio of the stimulus anchor to the trained recurrent pull. Density p and gain beta enter through that ratio, so an excursion in either is undone by a computed change in anchor size.
 
@@ -577,15 +577,20 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - F2: anchor 100 -> 200 lifts M* 23.5 -> 67.1 (2.86x), while retrieval never sees the stimulus
 - A1-A3: beta 0.20 / p 0.7 / p 0.3 excursions with uncompensated M* 8.0 / 17.6 / 28.8 land at 29.4 / 25.0 / 25.3 once the anchor is set from the measured exponents -- a 3.6x spread collapses to 1.18x, all within 25% of 23.5
 - F3: past the cliff, erosion is retroactive and diffuse (early items fail worst), not one-shot capture
+- anchor-pair-20260912 (20 brains, half-cue rank-1 readout, PREREG_anchor_ratio.md sensitivity replay, AN-1 to AN-3 PASS): M* 23.3 at anchor 100 against 70.5 at anchor 200, ratio 3.02 (the law's (200/100)^1.52 = 2.87); at M = 48 every anchor-200 brain recalls 1.000 while anchor-100 is at most 0.03
 
 **Evidence files.**
 - [research/notes/memory/PREREG_anchor_ratio.md](../research/notes/memory/PREREG_anchor_ratio.md) (registration)
 - [research/notes/memory/PREREG_formation_interference.md](../research/notes/memory/PREREG_formation_interference.md) (registration)
+- [research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json](../research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json) (artifact) â€” paired anchors 100 and 200 at one cell; not the p and beta excursions
 - [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
 
-**Provenance gap.** registered legacy outcomes are not yet packaged as immutable runner artifacts
+**Provenance gap.** the A1-A3 excursion outcomes are logs without a run record; the anchor contrast itself has one
 
-**Sensitivity gap.** Registered legacy outcomes are not yet packaged with an immutable anchor-disabled comparison.
+**Mechanism sensitivity.**
+- stimulus anchor 200 against 100 at (4000, 100), unrefracted, at M = 48: the largest checkpoint every anchor-200 brain still recalls (1.000), where anchor-100 has collapsed (at most 0.03): `observations/conditions/anchor_high/cells/B~14000~1100/checkpoints/48/rank1` all-greater `observations/conditions/anchor_low/cells/B~14000~1100/checkpoints/48/rank1` by at least 0.3, retained in [research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json](../research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json) and paired by `run/seeds`.
+
+**Sensitivity gap.** The retained check is the anchor contrast at one cell; the p and beta excursions (A1-A3) and their computed compensation remain logs without a run record.
 
 **Caveat.** A1 sits on the numeric band's edge (29.4 vs < 29.4) and passes on the registered prose criterion; all three compensated cells overshoot upward, so the anchor exponent is probably slightly high. The (n/k)^2 dependence of CAP-RATIO is the pull's chance-overlap term and is NOT derived here.
 

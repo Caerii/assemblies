@@ -1105,10 +1105,19 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="CAP-ANCHOR-RATIO",
-        engine="hashed AssemblyMemory / capacity-scaling protocol",
+        engine="hashed_assembly_memory, capacity-scaling protocol (retained paired-anchor replay of 20 brains; the original excursions are logs without run records)",
         status=Status.MEASURED,
-        sensitivity_gap="Registered legacy outcomes are not yet packaged with "
-                        "an immutable anchor-disabled comparison.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/anchor_high/cells/B~14000~1100/checkpoints/48/rank1",
+            control_path="observations/conditions/anchor_low/cells/B~14000~1100/checkpoints/48/rank1",
+            relation="all-greater", minimum_effect=0.3,
+            mechanism="stimulus anchor 200 against 100 at (4000, 100), unrefracted, at M = 48: the largest checkpoint every anchor-200 brain still recalls (1.000), where anchor-100 has collapsed (at most 0.03)",
+        ),),
+        sensitivity_gap="The retained check is the anchor contrast at one cell; "
+                        "the p and beta excursions (A1-A3) and their computed "
+                        "compensation remain logs without a run record.",
         claim="The capacity ceiling is set at FORMATION by the ratio of the "
               "stimulus anchor to the trained recurrent pull. Density p and "
               "gain beta enter through that ratio, so an excursion in either "
@@ -1122,13 +1131,20 @@ _RESULTS: List[Result] = [
                   "25.3 once the anchor is set from the measured exponents -- "
                   "a 3.6x spread collapses to 1.18x, all within 25% of 23.5",
                   "F3: past the cliff, erosion is retroactive and diffuse "
-                  "(early items fail worst), not one-shot capture"),
+                  "(early items fail worst), not one-shot capture",
+                  "anchor-pair-20260912 (20 brains, half-cue rank-1 readout, "
+                  "PREREG_anchor_ratio.md sensitivity replay, AN-1 to AN-3 PASS): "
+                  "M* 23.3 at anchor 100 against 70.5 at anchor 200, ratio 3.02 "
+                  "(the law's (200/100)^1.52 = 2.87); at M = 48 every anchor-200 "
+                  "brain recalls 1.000 while anchor-100 is at most 0.03"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_anchor_ratio.md", "registration"),
             EvidenceRef("research/notes/memory/PREREG_formation_interference.md", "registration"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json", "artifact",
+                        "paired anchors 100 and 200 at one cell; not the p and beta excursions"),
             EvidenceRef("research/experiments/seq_capacity_scaling.py", "producer"),
         ),
-        provenance_gap="registered legacy outcomes are not yet packaged as immutable runner artifacts",
+        provenance_gap="the A1-A3 excursion outcomes are logs without a run record; the anchor contrast itself has one",
         preconditions=("n=4000, k=100, T=8, w_max=20, arm B, 16 brains; "
                        "one operating-point neighbourhood",
                        "exponents s^1.52 p^-0.6 beta^-1.3 are two- and "

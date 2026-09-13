@@ -22,9 +22,12 @@ total at import; keep this summary in step with it):
 WHAT "EMERGENT" MEANS HERE, precisely.  Nothing in training tells the model
 that "dog" is a noun.  Training presents a word form together with whichever
 sensory modality accompanied it, and the routing table
-``areas.GROUNDING_TO_CORE`` sends each modality to a different core area.  A
-word's part of speech is then just: which core area holds a stable assembly
-for it.  What is BUILT IN is the routing table and the area inventory; what is
+``areas.GROUNDING_TO_CORE`` sends each modality to a different core area.  The
+category ``parse`` reports is a dictionary entry: ``compile_corpus`` writes it
+from ``category_oracle`` before any projection and ``train_lexicon`` writes
+``CORE_TO_CATEGORY[core]`` when it snapshots; the neural readout serves only a
+form with a stimulus and no cache or lexicon entry (card E2/E6).  What is
+BUILT IN is the routing table and the area inventory; what is
 LEARNED is the assignment of words to categories and the bindings between
 them.  A reader evaluating the claim should hold that line firmly -- the
 architecture is given, the lexicon and its structure are not.
@@ -555,6 +558,12 @@ class CoreParserMixin(
         # use of interarea inhibition in our model" (Mitropolsky &
         # Papadimitriou 2025, sec. 2.3) -- was inert, and role exclusivity was
         # enforced by a Python set instead.
+        #
+        # Registered, not firing: `add_mutual_inhibition` acts only when one
+        # `project()` co-targets two group members, and no training or parse
+        # projection does (card E3/E7; tests/test_parser_card_regressions.py).
+        # Role exclusivity is still the slot sequence in
+        # `parse_roles_by_reconstruction` and `clear_activity`.
         for group in MUTUAL_INHIBITION_GROUPS:
             present = [a for a in group if a in self.brain.areas]
             if len(present) > 1:
@@ -666,10 +675,17 @@ class CoreParserMixin(
     def parse(self, words: List[str]) -> dict:
         """Parse a sentence through the full pipeline.
 
-        1. Classify each word via differential readout
-        2. Assign thematic roles via neural readout + mutual inhibition
-        3. Identify phrase boundaries
-        4. Detect tense, mood, polarity
+        1. Classify each word by cache lookup (``classify_word_cached``);
+           the neural readout runs only for a form in no cache and no
+           lexicon (card E6)
+        2. Assign thematic roles by gate -> record -> recall
+           (``parse_roles_by_reconstruction``); exclusivity is the slot
+           sequence and ``clear_activity``, the registered mutual-inhibition
+           group never fires (card E7)
+        3. Identify phrase boundaries: a rule over the category strings
+        4. Detect tense, mood, polarity from word lists; the areas that
+           ``include_word_order``/``include_morphology`` train are not read
+           (card E8)
 
         Args:
             words: List of word strings.

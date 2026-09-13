@@ -1,0 +1,184 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "anchor_high.B": {
+        "arc_refraction_charge": 0.0,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "anchor_low.B": {
+        "arc_refraction_charge": 0.0,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "22e037e7bbbb4c994ec954f4ff7883709b603b3f",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "arm_settings": {
+      "B": {
+        "norm_init": true,
+        "synaptic_scaling": false
+      }
+    },
+    "arms": [
+      "B"
+    ],
+    "conditions": {
+      "anchor_high": {
+        "beta": 0.1,
+        "checkpoints": [
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          40,
+          48,
+          64,
+          96,
+          128
+        ],
+        "converge": false,
+        "p": 0.5,
+        "pair_sample": 200,
+        "readout": "net",
+        "recall_sample": 32,
+        "refracted": false,
+        "refracted_factor": 0.0,
+        "rounds": 8,
+        "stim_size": 200,
+        "w_max": 20.0
+      },
+      "anchor_low": {
+        "beta": 0.1,
+        "checkpoints": [
+          8,
+          12,
+          16,
+          20,
+          24,
+          28,
+          32,
+          40,
+          48,
+          64,
+          96,
+          128
+        ],
+        "converge": false,
+        "p": 0.5,
+        "pair_sample": 200,
+        "readout": "net",
+        "recall_sample": 32,
+        "refracted": false,
+        "refracted_factor": 0.0,
+        "rounds": 8,
+        "stim_size": 100,
+        "w_max": 20.0
+      }
+    },
+    "device": "cuda",
+    "distinct_gate": 3.0,
+    "distinct_low_bar": 0.9,
+    "distinctness": "64-bit set hash; collisions possible",
+    "half_bar": 0.5,
+    "measurement_seed": 1234,
+    "nk": [
+      [
+        4000,
+        100
+      ]
+    ]
+  },
+  "protocol": "memory.capacity-scaling",
+  "protocol_version": "3",
+  "registration": "research/notes/memory/PREREG_anchor_ratio.md",
+  "registration_sha256": "b000c0c7dcd997e9a0f1e9f3795c4bd71713bad27fd94657a19555f6edd89004",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_capacity_scaling.py",
+  "script_sha256": "88360c0a1e4fb5dd2b2c1bad28ec05c8f67715934812b09c557416b52b71b81d",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "348e4a92ac7c0f73e6c26a06f4bf40a90e5564e48ce33e108472068a570b8ae1"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "501ed181186701b8d018c88984ca027fcb462597c1641e335da1b087a1501deb",
+  "started_utc": "2026-09-13T03:50:08.029469+00:00",
+  "tag": "anchor-pair-20260912"
+}

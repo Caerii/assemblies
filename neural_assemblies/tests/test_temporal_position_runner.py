@@ -23,12 +23,24 @@ def test_score_arms_uses_paired_brains_and_fixed_distractor_positions():
     seeds = [11, 17, 23]
     arms = {arm: reports(seeds, arm) for arm in study.ARMS}
     scored = study.score_arms(arms, seeds, study.REGISTERED)
-    assert scored["checks"] == {
+    assert {key: value for key, value in scored["checks"].items() if key.startswith("TP")} == {
         "TP-1 predicted-win amplification": True,
         "TP-2 state dependence": True,
         "TP-3 plain conjunction carry": True,
         "TP-4 state-blind negative": True,
     }
+    # Amendment 1 adds the decay-law bars at every gap. The fake g=0 curve
+    # keeps 0.08 at the second offset, so DL-5 (plain conjunction absent at
+    # offset 2) is False here by construction; the others hold.
+    decay = {key: value for key, value in scored["checks"].items() if key.startswith("DL")}
+    assert decay == {
+        "DL-1 carry starts at offset 1 (g=1)": True,
+        "DL-2 carry decays across the gap (g=1)": True,
+        "DL-3 carry persists at offset 2 (g=1)": True,
+        "DL-4 state-blind negative": True,
+        "DL-5 plain conjunction absent at offset 2 (g=0)": False,
+    }
+    assert scored["summaries"]["g1"]["decay_curve"] == {"1": pytest.approx(.22), "2": pytest.approx(.18)}
     assert scored["summaries"]["g0"]["D"]["values"] == pytest.approx((.1, .1, .1))
     assert scored["summaries"]["g0"]["D1_minus_D2"]["mean"] == pytest.approx(.04)
     assert set(scored["summaries"]["g1"]["positions"]) == {str(i) for i in range(9)}
@@ -42,7 +54,7 @@ def test_score_arms_rejects_seed_or_position_drift():
         study.score_arms(arms, seeds, study.REGISTERED)
     arms = {arm: reports(seeds, arm) for arm in study.ARMS}
     arms["g1"][0]["analysis"]["positions"].pop()
-    with pytest.raises(ValueError, match="complete gap-2"):
+    with pytest.raises(ValueError, match="complete gap position curve"):
         study.score_arms(arms, seeds, study.REGISTERED)
 
 
@@ -74,7 +86,7 @@ def test_main_routes_fixed_smoke_protocol_through_shared_runner(monkeypatch):
     monkeypatch.setattr(study, "run_experiment", writer)
     study.main(["--tag", "unit-smoke", "--smoke", "--seeds", "1", "2", "3"])
     assert called["protocol"] == "sequence.temporal-positions"
-    assert called["protocol_version"] == "1"
+    assert called["protocol_version"] == "2"   # Amendment 1: the gap is a parameter
     assert called["registration"].endswith("PREREG_temporal_positions.md")
     assert called["parameters"] == study.SMOKE and called["minimum_study_seeds"] == 20
 

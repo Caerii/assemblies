@@ -27,7 +27,9 @@ def test_mechanism_request_stops_before_gpu_construction():
 
 
 def test_chain_processed_positions_include_informative_non_distractors():
-    import ntp_agree
+    # The package path: the bare name only resolved while a legacy script
+    # inserted study4/ into sys.path at import.
+    from research.experiments.study4 import ntp_agree
     old_chain,old_gap=ntp_agree.CHAIN,ntp_agree.GAP
     try:
         ntp_agree.use_chain(True,gap=2)

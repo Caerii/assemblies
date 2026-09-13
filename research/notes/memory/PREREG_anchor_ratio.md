@@ -116,3 +116,25 @@ Bars:
 
 A bar that fails is recorded with its numbers; the entry's caveat then says
 what the maintained protocol supports.
+
+## Sensitivity replay result (2026-09-12, twenty brains: AN-1, AN-2, AN-3 PASS)
+
+Artifact:
+`research/results/runs/memory.capacity-scaling/anchor-pair-20260912/results.json`
+(engine `hashed_assembly_memory`, seeds 42 to 61, run from the pinned
+runs worktree at commit 22e037e7).
+
+| condition | M* (half-cue rank-1, interior) | rank-1 at M = 24 | at M = 48 | at M = 64 |
+|---|---:|---:|---:|---:|
+| anchor 100 | 23.3 | mean 0.41 (min 0.04) | min 0.00, max 0.03 | 0.02 |
+| anchor 200 | 70.5 | 1.000 on every brain | 1.000 on every brain | mean 0.66 |
+
+- **AN-1 PASS.** 70.5 / 23.3 = 3.02, above the bar of 2 and within 6% of the
+  law's (200/100)^1.52 = 2.87; both ceilings are interior to the grid. Under
+  the maintained half-cue readout the two ceilings (23.3 and 70.5) are
+  within 1% and 5% of the 2026-09-03 stimulus-cued values (23.5 and 67.1).
+- **AN-2 PASS.** M_c = 48 (the largest checkpoint at which every anchor-200
+  brain recalls at least 0.5: all twenty recall 1.000 there). At M = 48 the
+  anchor-200 minus anchor-100 rank-1 difference is at least 0.969 on every
+  brain. This is the register's retained check for `CAP-ANCHOR-RATIO`.
+- **AN-3 PASS.** At M = 8 every brain in both conditions recalls 1.000.

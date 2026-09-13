@@ -63,10 +63,13 @@ class RoleBindingMixin:
     def train_roles(self, sentences: List[GroundedSentence]):
         """Phase 2: Role binding from annotated sentences.
 
-        For each word with a role annotation (agent/patient):
-        1. Activate word in its core area (project phon -> core)
+        For each word with a role annotation in ``ROLE_LABEL_TO_AREA``
+        (agent/action/patient/goal; theme/source/location are skipped):
+        1. Activate word in its core area: replay the stored core snapshot,
+           phon -> core with plasticity only when none is stored
         2. Fix the core assembly
-        3. Project core -> role_area with recurrence
+        3. One feed-forward step core -> role_area, then one step
+           core -> role_area + role_area -> role_area (``ops.bind``, card E1)
         4. Snapshot the role assembly
 
         Pattern follows parser.py:train_roles().
