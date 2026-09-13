@@ -219,7 +219,19 @@ class TestLiteratureParity:
         assert not b.areas
 
     def test_sequence_memorize_ordered_recall(self):
-        """Dabagia 2025: LRI enables multi-step ordered recall after memorization."""
+        """Dabagia 2025: memorize, then cue-retrieve the first assembly.
+
+        NOTE (2026-09-13): despite the name, the assertions below describe the
+        CUE, not multi-step recall. `ordered_recall` snapshots after firing the
+        cue, so `recalled[0]` is the cued assembly; both assertions hold on a
+        run that advances ZERO steps, and measurement says that is what
+        happens. This also runs on the SAMPLED connectome, where cue retrieval
+        reads 0.92 against 0.30 materialized. The paper's actual claim is
+        registered and pinned in
+        research/notes/sequence/PREREG_ordered_recall_reproduction.md and
+        neural_assemblies/tests/test_ordered_recall_advances.py; do not read
+        this test as evidence for it.
+        """
         b = _brain()
         for i in range(3):
             b.add_stimulus(f"s{i}", K)
