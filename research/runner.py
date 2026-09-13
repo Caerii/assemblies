@@ -134,7 +134,11 @@ def validate_registered_seeds(
     try:
         validate_seed_identities(supplied, expected)
     except ValueError:
-        parser.error(f"study requires registered seeds {expected[0]}..{expected[-1]} in order")
+        if expected == list(range(expected[0], expected[-1] + 1)):
+            label = f"{expected[0]}..{expected[-1]}"
+        else:
+            label = repr(expected)
+        parser.error(f"study requires registered seeds {label} in order")
 
 
 def validate_seed_identities(

@@ -31,6 +31,11 @@ def test_registered_seed_policy_is_shared_and_strict():
             parser, argparse.Namespace(seeds=[10, 12, 11], smoke=False),
             (10, 11, 12),
         )
+    with pytest.raises(SystemExit):
+        runner.validate_registered_seeds(
+            parser, argparse.Namespace(seeds=[42, 2, 1], smoke=False),
+            (42, 1, 2),
+        )
     runner.validate_seed_identities([10, 11, 12], (10, 11, 12))
     with pytest.raises(ValueError, match="registered identities"):
         runner.validate_seed_identities([10, 12, 11], (10, 11, 12))
