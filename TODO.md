@@ -285,6 +285,31 @@ source-linked contract, negative control, and relevant gate are all present.
   ln(1+beta)` gives 26.5 / 33.8 / 41.0 at w_max 5 / 10 / 20, so the limit may
   be the weight clip we already have in closed form. It needs recall that
   advances, so it waits.
+- [x] **Autonomous chain recall, built on the mechanism that works.** DONE
+  2026-09-13, `research/notes/sequence/PREREG_autonomous_chain.md`, all five
+  bars pass on twenty fresh brains. Driving the refracted arc with a SINGLE
+  CONSTANT symbol makes the chain autonomous: the tick carries nothing, so
+  every advance comes from the state through the arc. Recall is exact at
+  length 32 and at length 128 on 20 of 20 brains, four times the top of the
+  20-to-40 band the papers report. Refraction is the entire mechanism and the
+  null is total: with strength 0 not one brain takes a single correct step.
+  The reason is measured rather than inferred -- the arc assemblies of distinct
+  states are IDENTICAL without refraction (overlap 1.0000) and disjoint with it
+  (0.0000, chance 0.0100), because the tick appears in all 32 transitions and
+  each state in one, which is [[ARC-CONJUNCT-EXPOSURE]] at its extreme. That
+  contrast is now the entry's second retained check. The perfect score moves
+  four ways (undertraining at 5 and 10 presentations, arc density 0.05 and
+  0.02) and the failure modes are distinguishable: refraction off collapses the
+  ARCS, undertraining and sparsity leave them disjoint.
+- [ ] **Where the sequence-length limit actually is: state FORMATION.** The
+  study above localizes it away from the arc and the sequence mechanism. What
+  remains is the one difference from the papers' setting: our states are
+  teacher-forced onto disjoint blocks, theirs are formed by projection where
+  they can overlap and interfere. Replacing the teacher-forced blocks with
+  projection-formed states and finding where the chain breaks is the next
+  study, and it is the one that would say whether the reported 20-to-40 limit
+  is state collision. Until it runs, nothing here refutes or explains that
+  limit and no such claim is made.
 - [ ] **Wake the inhibition primitives the papers depend on.** All three roles
   the two papers use are implemented here and unexercised: inter-area mutual
   inhibition is provably dormant (a strict xfail records 1361 training
