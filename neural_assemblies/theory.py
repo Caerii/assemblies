@@ -763,6 +763,13 @@ _RESULTS: List[Result] = [
             relation="all-greater", minimum_effect=0.5,
             mechanism="refraction strength 0.5 beta against beta on the same recurrent area (n 4000, k 100, p 0.5, beta 0.10, w_max 20), late consecutive-round overlap over rounds 200 to 240: 0.904 to 0.932 against 0.003 to 0.007 on every paired brain; the s = beta area reshuffles its winners every round",
         ), SensitivityCheck(
+            artifact="research/results/runs/memory.refraction-period-law/period-law-20260913/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/w20b0.1/arms/refracted/rows/*/n_relocations",
+            control_path="observations/cells/w20b0.1/arms/control/rows/*/n_relocations",
+            relation="all-greater", minimum_effect=3,
+            mechanism="refraction on against off at the same operating point and the same weight clip: 5 relocations on every refracted brain against 0 on every control brain, so the clip alone does not move an assembly and the bias charging past it is the whole mechanism",
+        ), SensitivityCheck(
             artifact="research/results/runs/memory.refraction-convergence/refraction-convergence-fresh-20260913/results.json",
             sample_path="run/seeds",
             treatment_path="observations/arms/s0.5/rows/*/stable_fraction",
@@ -784,6 +791,17 @@ _RESULTS: List[Result] = [
               "registered 10% tolerance), with the first relocation on round "
               "42 on ALL FORTY brains and no spread, because the deadline is "
               "set by the potentiation schedule and not by the connectome. "
+              "The formula is a LAW, not a number that landed: swept across "
+              "beta in {0.05, 0.10, 0.20} and w_max in {5, 20, 100} on twenty "
+              "brains per cell it holds in every cell to 4.1% and in four of "
+              "five to 1.6%, with the measured w_max ratio 2.354 against a "
+              "predicted 2.34. For small beta it is within half a percent of "
+              "(ln w_max + 1)/beta, so TENURE IS BOUGHT WITH BETA AND NOT "
+              "WITH THE WEIGHT CEILING: a fourfold beta change moved the "
+              "period by 3.6, a twentyfold w_max change by 2.4. The "
+              "unrefracted control had ZERO relocations on every brain of "
+              "every cell though its weights clip on the same schedule, so "
+              "the clip alone does not move an assembly. "
               "Between relocations the winners are unchanged: 5 relocations of "
               "6-10 rounds each in 240, stable fraction 0.80-0.84. A "
               "FEEDFORWARD area at s = beta does the same more often (11-32 "
@@ -821,7 +839,14 @@ _RESULTS: List[Result] = [
               "anti-merging force of [[REFRACTION-ANTI-MERGING]]: ~25x the "
               "Hebbian ceiling, read with the bias masked.",
         source="This repository; PREREG_refraction_capacity.md.",
-        evidence=("refraction-convergence-fresh-20260913 (the confirmatory "
+        evidence=("period-law-20260913 (five cells, twenty brains each): "
+                  "measured mean spacing 22.05, 41.60, 79.92 at beta 0.20, "
+                  "0.10, 0.05 (w_max 20) and 25.06, 41.60, 58.98 at w_max 5, "
+                  "20, 100 (beta 0.10), against predictions 21.18, 40.93, "
+                  "80.40, 24.89, 58.22; one doublet in 681 spacings; control "
+                  "relocations 0 of 0 in every cell with stable fraction "
+                  "1.000",
+                  "refraction-convergence-fresh-20260913 (the confirmatory "
                   "block, seeds 62-81, protocol version 3): all ten "
                   "Amendment 2 bars pass -- 5 relocations per brain, first at "
                   "round 42, spacings 40-43 (mean 41.52 against the predicted "
@@ -853,6 +878,9 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/runs/memory.refraction-convergence/refraction-convergence-20260913/results.json", "artifact"),
             EvidenceRef("research/results/runs/memory.refraction-convergence/refraction-convergence-v2-20260913/results.json", "artifact"),
             EvidenceRef("research/results/runs/memory.refraction-convergence/refraction-convergence-fresh-20260913/results.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-20260913/results.json", "artifact"),
+            EvidenceRef("research/notes/memory/PREREG_refraction_period_law.md", "registration"),
+            EvidenceRef("research/experiments/refraction_period_law.py", "producer"),
             EvidenceRef("research/notes/memory/PREREG_refraction_convergence.md", "registration"),
             EvidenceRef("research/experiments/refraction_convergence.py", "producer"),
             EvidenceRef("research/experiments/seq_refraction_wander.py", "producer"),
@@ -870,10 +898,12 @@ _RESULTS: List[Result] = [
         caveat="The critical ratio is bracketed in (0.5, 0.7) at one operating "
                "point on forty brains (the earlier (0.7, 0.8) came from the "
                "16-brain diagnostic); a transient-handicap estimate gives "
-               "~2/3. The period law is measured at ONE operating point: its "
-               "predicted dependence on w_max and beta is not measured, and a "
-               "sweep that moves the period as the formula says is the "
-               "obvious next test. Three bars of Amendment 1 failed on "
+               "~2/3. The period law now holds across a surface (five cells, "
+               "beta 0.05-0.20, w_max 5-100), but at ONE area size, ONE "
+               "density and ONE refraction strength: the formula carries no "
+               "strength term and strength was not varied, so the period's "
+               "independence of s is suggested by the algebra and NOT "
+               "measured. Three bars of Amendment 1 failed on "
                "mis-set thresholds (formation counted as an event; "
                "relocations run ~8 rounds, not 2-4) and are retained. Whether "
                "REFRACTION-NEEDS-LOAD's under-loaded non-convergence is this "

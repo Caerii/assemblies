@@ -1,0 +1,635 @@
+{
+  "attachments": {},
+  "observations": {
+    "bars": {},
+    "cells": {
+      "w20b0.2": {
+        "arms": {
+          "control": {
+            "mean_spacing": null,
+            "relocations": {
+              "ci": 0.0,
+              "high": 0.0,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w20b0.2:control:reloc",
+              "low": 0.0,
+              "mean": 0.0,
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "rows": [
+              {
+                "event_lengths": [
+                  1
+                ],
+                "event_starts": [
+                  2
+                ],
+                "fill": 0.027500001713633537,
+                "n_events": 1,
+                "n_relocations": 0,
+                "relocated_fraction": 0.0,
+                "relocation_lengths": [],
+                "relocation_starts": [],
+                "seed": 1,
+                "spacings": [],
+                "stable_fraction": 1.0
+              },
+              {
+                "event_lengths": [
+                  1
+                ],
+                "event_starts": [
+                  2
+                ],
+                "fill": 0.02850000187754631,
+                "n_events": 1,
+                "n_relocations": 0,
+                "relocated_fraction": 0.0,
+                "relocation_lengths": [],
+                "relocation_starts": [],
+                "seed": 2,
+                "spacings": [],
+                "stable_fraction": 1.0
+              },
+              {
+                "event_lengths": [
+                  1
+                ],
+                "event_starts": [
+                  2
+                ],
+                "fill": 0.027750002220273018,
+                "n_events": 1,
+                "n_relocations": 0,
+                "relocated_fraction": 0.0,
+                "relocation_lengths": [],
+                "relocation_starts": [],
+                "seed": 3,
+                "spacings": [],
+                "stable_fraction": 1.0
+              }
+            ],
+            "stable_fraction": {
+              "ci": 0.0,
+              "high": 1.0,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w20b0.2:control:stable",
+              "low": 1.0,
+              "mean": 1.0,
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          },
+          "refracted": {
+            "mean_spacing": 21.333333333333332,
+            "relocations": {
+              "ci": 0.0,
+              "high": 2.0,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w20b0.2:refracted:reloc",
+              "low": 2.0,
+              "mean": 2.0,
+              "values": [
+                2.0,
+                2.0,
+                2.0
+              ]
+            },
+            "rows": [
+              {
+                "event_lengths": [
+                  2,
+                  4,
+                  5
+                ],
+                "event_starts": [
+                  2,
+                  23,
+                  45
+                ],
+                "fill": 0.12849999964237213,
+                "n_events": 3,
+                "n_relocations": 2,
+                "relocated_fraction": 0.12195121951219512,
+                "relocation_lengths": [
+                  4,
+                  5
+                ],
+                "relocation_starts": [
+                  23,
+                  45
+                ],
+                "seed": 1,
+                "spacings": [
+                  21,
+                  22
+                ],
+                "stable_fraction": 0.7804878048780488
+              },
+              {
+                "event_lengths": [
+                  2,
+                  4,
+                  5
+                ],
+                "event_starts": [
+                  2,
+                  23,
+                  44
+                ],
+                "fill": 0.10500000417232513,
+                "n_events": 3,
+                "n_relocations": 2,
+                "relocated_fraction": 0.0975609756097561,
+                "relocation_lengths": [
+                  4,
+                  5
+                ],
+                "relocation_starts": [
+                  23,
+                  44
+                ],
+                "seed": 2,
+                "spacings": [
+                  21,
+                  21
+                ],
+                "stable_fraction": 0.7804878048780488
+              },
+              {
+                "event_lengths": [
+                  1,
+                  6,
+                  5
+                ],
+                "event_starts": [
+                  2,
+                  22,
+                  45
+                ],
+                "fill": 0.13050000369548798,
+                "n_events": 3,
+                "n_relocations": 2,
+                "relocated_fraction": 0.12195121951219512,
+                "relocation_lengths": [
+                  6,
+                  5
+                ],
+                "relocation_starts": [
+                  22,
+                  45
+                ],
+                "seed": 3,
+                "spacings": [
+                  20,
+                  23
+                ],
+                "stable_fraction": 0.7317073170731707
+              }
+            ],
+            "stable_fraction": {
+              "ci": 0.06996183300405635,
+              "high": 0.8341894752804792,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w20b0.2:refracted:stable",
+              "low": 0.6942658092723665,
+              "mean": 0.7642276422764228,
+              "values": [
+                0.7804878048780488,
+                0.7804878048780488,
+                0.7317073170731707
+              ]
+            }
+          }
+        },
+        "beta": 0.2,
+        "predicted_period": 21.181037153437266,
+        "rounds": 60,
+        "w_max": 20.0
+      },
+      "w5b0.1": {
+        "arms": {
+          "control": {
+            "mean_spacing": null,
+            "relocations": {
+              "ci": 0.0,
+              "high": 0.0,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w5b0.1:control:reloc",
+              "low": 0.0,
+              "mean": 0.0,
+              "values": [
+                0.0,
+                0.0,
+                0.0
+              ]
+            },
+            "rows": [
+              {
+                "event_lengths": [
+                  2
+                ],
+                "event_starts": [
+                  2
+                ],
+                "fill": 0.033250000327825546,
+                "n_events": 1,
+                "n_relocations": 0,
+                "relocated_fraction": 0.0,
+                "relocation_lengths": [],
+                "relocation_starts": [],
+                "seed": 1,
+                "spacings": [],
+                "stable_fraction": 1.0
+              },
+              {
+                "event_lengths": [
+                  2
+                ],
+                "event_starts": [
+                  2
+                ],
+                "fill": 0.036500003188848495,
+                "n_events": 1,
+                "n_relocations": 0,
+                "relocated_fraction": 0.0,
+                "relocation_lengths": [],
+                "relocation_starts": [],
+                "seed": 2,
+                "spacings": [],
+                "stable_fraction": 1.0
+              },
+              {
+                "event_lengths": [
+                  1
+                ],
+                "event_starts": [
+                  2
+                ],
+                "fill": 0.03100000135600567,
+                "n_events": 1,
+                "n_relocations": 0,
+                "relocated_fraction": 0.0,
+                "relocation_lengths": [],
+                "relocation_starts": [],
+                "seed": 3,
+                "spacings": [],
+                "stable_fraction": 1.0
+              }
+            ],
+            "stable_fraction": {
+              "ci": 0.0,
+              "high": 1.0,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w5b0.1:control:stable",
+              "low": 1.0,
+              "mean": 1.0,
+              "values": [
+                1.0,
+                1.0,
+                1.0
+              ]
+            }
+          },
+          "refracted": {
+            "mean_spacing": 24.0,
+            "relocations": {
+              "ci": 0.0,
+              "high": 2.0,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w5b0.1:refracted:reloc",
+              "low": 2.0,
+              "mean": 2.0,
+              "values": [
+                2.0,
+                2.0,
+                2.0
+              ]
+            },
+            "rows": [
+              {
+                "event_lengths": [
+                  3,
+                  7,
+                  10
+                ],
+                "event_starts": [
+                  2,
+                  25,
+                  50
+                ],
+                "fill": 0.15425001084804535,
+                "n_events": 3,
+                "n_relocations": 2,
+                "relocated_fraction": 0.17073170731707318,
+                "relocation_lengths": [
+                  7,
+                  10
+                ],
+                "relocation_starts": [
+                  25,
+                  50
+                ],
+                "seed": 1,
+                "spacings": [
+                  23,
+                  25
+                ],
+                "stable_fraction": 0.5853658536585366
+              },
+              {
+                "event_lengths": [
+                  4,
+                  6,
+                  8
+                ],
+                "event_starts": [
+                  2,
+                  26,
+                  50
+                ],
+                "fill": 0.1355000138282776,
+                "n_events": 3,
+                "n_relocations": 2,
+                "relocated_fraction": 0.12195121951219512,
+                "relocation_lengths": [
+                  6,
+                  8
+                ],
+                "relocation_starts": [
+                  26,
+                  50
+                ],
+                "seed": 2,
+                "spacings": [
+                  24,
+                  24
+                ],
+                "stable_fraction": 0.6585365853658537
+              },
+              {
+                "event_lengths": [
+                  3,
+                  6,
+                  8
+                ],
+                "event_starts": [
+                  2,
+                  25,
+                  50
+                ],
+                "fill": 0.14100000262260437,
+                "n_events": 3,
+                "n_relocations": 2,
+                "relocated_fraction": 0.14634146341463414,
+                "relocation_lengths": [
+                  6,
+                  8
+                ],
+                "relocation_starts": [
+                  25,
+                  50
+                ],
+                "seed": 3,
+                "spacings": [
+                  23,
+                  25
+                ],
+                "stable_fraction": 0.6585365853658537
+              }
+            ],
+            "stable_fraction": {
+              "ci": 0.10494274950608452,
+              "high": 0.7390890909694992,
+              "keys": [
+                1,
+                2,
+                3
+              ],
+              "label": "w5b0.1:refracted:stable",
+              "low": 0.5292035919573301,
+              "mean": 0.6341463414634146,
+              "values": [
+                0.5853658536585366,
+                0.6585365853658537,
+                0.6585365853658537
+              ]
+            }
+          }
+        },
+        "beta": 0.1,
+        "predicted_period": 24.886317030755073,
+        "rounds": 60,
+        "w_max": 5.0
+      }
+    },
+    "comparisons": {},
+    "scope": "the relocation period of one refracted recurrent assembly against w_max and beta, hashed substrate, n = 4000, k = 100, p = 0.5",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "hashed_assembly_memory",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {
+        "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+        "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+      }
+    },
+    "execution_semantics": {
+      "kind": "organ",
+      "profiles": {
+        "w20b0.2.control": {
+          "arc_refraction_charge": 0.0,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "training-trajectory",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "w20b0.2.refracted": {
+          "arc_refraction_charge": 0.1,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "training-trajectory",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "w5b0.1.control": {
+          "arc_refraction_charge": 0.0,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "training-trajectory",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 5.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "w5b0.1.refracted": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "training-trajectory",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 5.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        }
+      }
+    },
+    "git_commit": "091ad241abfdfce5410690a32ae95d2abd748946",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "observation_policy": null,
+    "parameters": {
+      "arms": [
+        "refracted",
+        "control"
+      ],
+      "cells": [
+        [
+          20.0,
+          0.2
+        ],
+        [
+          5.0,
+          0.1
+        ]
+      ],
+      "device": "cuda",
+      "formation_round": 2,
+      "k": 100,
+      "n": 4000,
+      "p": 0.5,
+      "predicted_period": {
+        "w20b0.2": 21.181037153437266,
+        "w5b0.1": 24.886317030755073
+      },
+      "relocated": 0.5,
+      "rounds_by_cell": {
+        "w20b0.2": 60,
+        "w5b0.1": 60
+      },
+      "stable": 0.95,
+      "stable_from": 20,
+      "strength_ratio": 0.5
+    },
+    "protocol": "memory.refraction-period-law",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_refraction_period_law.md",
+    "registration_sha256": "496e5c820feae5a472c4449b57cf1c00a979b661b60c4b8110bdc4d1d5b2923f",
+    "schema_version": 10,
+    "scientific_status": "VOID",
+    "script": "research/experiments/refraction_period_law.py",
+    "script_sha256": "31fc956c1f7084f9d33758cb65878308266a7d516b5ce6b246b86e5e7a1c11b0",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "630f59a344b3268371e2a151780bf1dd8b339e658a0cbda977a8865b77ed977a"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "5d8c228419fea9e7b8860c6b49b3b0944646c68fb97271a7ba188b5de15c73af",
+    "started_utc": "2026-09-13T17:55:03.252343+00:00",
+    "tag": "pl-smoke-20260913"
+  },
+  "status": "complete"
+}

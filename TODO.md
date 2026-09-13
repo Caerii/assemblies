@@ -193,13 +193,22 @@ source-linked contract, negative control, and relevant gate are all present.
   transition-organ behavior from 20 through 200 presentations, with both
   retention and new-learning bars. Preserve failed homeostasis attempts and
   identify the mechanism that relocates the arc.
-  - Progress 2026-09-13: the mechanism that relocates is identified and
-    confirmed. A refracted recurrent area relocates on a FIXED PERIOD equal
-    to the clip arithmetic `ln(w_max)/ln(1+beta) + (1-1/w_max)/beta = 40.93`
-    rounds, measured 41.60 and 41.52 on two disjoint blocks of twenty brains,
-    with the first relocation landing on round 42 on all forty
-    (`PREREG_refraction_convergence.md`, Amendment 2). No weight rule is
-    tested yet; what exists is the deadline the rule would have to move.
+  - Progress 2026-09-13: the mechanism that relocates is identified, confirmed
+    and now measured as a LAW. A refracted recurrent area relocates on a fixed
+    period equal to the clip arithmetic
+    `ln(w_max)/ln(1+beta) + (1-1/w_max)/beta`, which holds across five cells
+    (beta 0.05 to 0.20, w_max 5 to 100, twenty brains each) to 4.1% in the
+    worst cell and 1.6% in four of five, with the measured w_max ratio 2.354
+    against a predicted 2.34 (`PREREG_refraction_period_law.md`, PL-1 to PL-5
+    all pass). The unrefracted control relocates ZERO times in every cell
+    though its weights clip on the same schedule, so the clip alone does not
+    move an assembly. **This is the deadline any retention rule has to move,
+    and it says how:** for small beta the period is
+    `(ln w_max + 1)/beta`, so tenure is bought with beta and not with the
+    weight ceiling (a fourfold beta change moved it 3.6x, a twentyfold w_max
+    change only 2.4x). Still untested: whether the period depends on the
+    refraction strength, and any weight rule that preserves behaviour past the
+    deadline.
 - [ ] **Presentation schedule as a control variable.** At a FIXED round budget
   per item, the arrangement of those rounds moves assembly-memory recall as
   much as the plasticity rule does, and the two rules want opposite

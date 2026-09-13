@@ -1,7 +1,9 @@
 # Registration: is the relocation period the clip arithmetic, or a coincidence at one operating point?
 
-> **Status (2026-09-13): registered, not yet run.** Bars fixed before the
-> instrument exists.
+> **Status (2026-09-13): run; ALL FIVE BARS PASS.** The period follows the
+> clip arithmetic across a fourfold range in beta and a twentyfold range in
+> w_max, to 4.1% in the worst cell. Bars were fixed before the instrument
+> existed. Part 2 is still unrun.
 
 ## Why
 
@@ -121,3 +123,63 @@ period` and not of `episode_rounds` itself, which is testable two ways.
 
 Part 2 needs the presentation-schedule instrument parameterised by `w_max` and
 `beta` and is registered now so its bars precede that work.
+
+## Result (2026-09-13): the formula is a law across the surface, not a number that landed
+
+Artifact
+`research/results/runs/memory.refraction-period-law/period-law-20260913/results.json`
+(seeds 42 to 61, twenty brains per cell, pinned worktree at 091ad241; smoke
+`research/results/runs/memory.refraction-period-law/pl-smoke-20260913/results.json`,
+VOID). Verdict PASS on PL-1 to PL-5.
+
+    cell        w_max  beta   predicted  measured  error  relocations/brain  spacings
+    w20b0.2     20     0.20   21.18      22.05     4.1%   10                 21 to 24
+    w20b0.1     20     0.10   40.93      41.60     1.6%   5                  40 to 44
+    w20b0.05    20     0.05   80.40      79.92     0.6%   5 or 6             78 to 85
+    w5b0.1      5      0.10   24.89      25.06     0.7%   9                  23 to 28
+    w100b0.1    100    0.10   58.22      58.98     1.3%   5                  57 to 61
+
+**PL-1 PASS.** Every cell is within 4.1% of its prediction against a 15% bar,
+and four of the five are within 1.6%. The spacings are tight: across 681
+measured spacings there is exactly ONE below 10 rounds, a doublet in the
+`w20b0.05` cell where an event reopens two rounds after closing, the same
+structure the feedforward arm showed in `PREREG_refraction_convergence.md`.
+Excluding it moves that cell's error from 0.6% to 0.4%; nothing else changes.
+
+**PL-2 PASS.** Spacing falls strictly with beta, 79.92, 41.60, 22.05 at beta
+0.05, 0.10, 0.20, and the 0.05-over-0.20 ratio is 3.625 against a bar of 3.0
+and a predicted 3.80.
+
+**PL-3 PASS.** Spacing rises strictly with w_max, 25.06, 41.60, 58.98 at
+w_max 5, 20, 100, and the 100-over-5 ratio is **2.354 against a predicted
+2.34**, which is the closest agreement in the run.
+
+**PL-4 PASS.** The fourfold beta change moves the period by 3.625; the
+twentyfold w_max change moves it by 2.354. The lever ordering is measured, not
+asserted: beta is inverse and the weight ceiling is logarithmic, so buying
+tenure with the ceiling costs twenty times the parameter change for two thirds
+the effect.
+
+**PL-5 PASS, and it is the bar that names the mechanism.** In every one of the
+five cells the unrefracted control had **zero** relocations on **every** brain,
+with `stable_fraction` exactly 1.000 throughout. The control's weights clip on
+the same schedule as the refracted arm's, so the clip alone does not move an
+assembly. What moves it is the bias continuing to charge after the clip has
+stopped the raw drive from growing, which is the second term of the formula.
+Refraction is the whole of the relocation.
+
+### What this establishes
+
+The relocation period of a refracted recurrent assembly is a closed-form
+function of the weight arithmetic, verified on a surface rather than at a
+point. For small beta it is within half a percent of `(ln w_max + 1) / beta`,
+so the design rule is: **tenure is bought with beta and not with the weight
+ceiling.**
+
+### Scope
+
+One area size (n = 4000, k = 100, p = 0.5), one refraction strength
+(0.5 beta), one stimulus. The formula has no strength term and the run did not
+vary strength, so whether the period is independent of s, as the algebra
+suggests and as the 0.5-beta agreement is consistent with, is NOT measured. A
+strength sweep is the obvious extension and is not claimed here.

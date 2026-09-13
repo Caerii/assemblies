@@ -1,0 +1,169 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "w20b0.2.control": {
+        "arc_refraction_charge": 0.0,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "training-trajectory",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "w20b0.2.refracted": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "training-trajectory",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "w5b0.1.control": {
+        "arc_refraction_charge": 0.0,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "training-trajectory",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 5.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "w5b0.1.refracted": {
+        "arc_refraction_charge": 0.05,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "training-trajectory",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 5.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "091ad241abfdfce5410690a32ae95d2abd748946",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "observation_policy": null,
+  "parameters": {
+    "arms": [
+      "refracted",
+      "control"
+    ],
+    "cells": [
+      [
+        20.0,
+        0.2
+      ],
+      [
+        5.0,
+        0.1
+      ]
+    ],
+    "device": "cuda",
+    "formation_round": 2,
+    "k": 100,
+    "n": 4000,
+    "p": 0.5,
+    "predicted_period": {
+      "w20b0.2": 21.181037153437266,
+      "w5b0.1": 24.886317030755073
+    },
+    "relocated": 0.5,
+    "rounds_by_cell": {
+      "w20b0.2": 60,
+      "w5b0.1": 60
+    },
+    "stable": 0.95,
+    "stable_from": 20,
+    "strength_ratio": 0.5
+  },
+  "protocol": "memory.refraction-period-law",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_period_law.md",
+  "registration_sha256": "496e5c820feae5a472c4449b57cf1c00a979b661b60c4b8110bdc4d1d5b2923f",
+  "schema_version": 10,
+  "scientific_status": "VOID",
+  "script": "research/experiments/refraction_period_law.py",
+  "script_sha256": "31fc956c1f7084f9d33758cb65878308266a7d516b5ce6b246b86e5e7a1c11b0",
+  "seeds": [
+    1,
+    2,
+    3
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "630f59a344b3268371e2a151780bf1dd8b339e658a0cbda977a8865b77ed977a"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "5d8c228419fea9e7b8860c6b49b3b0944646c68fb97271a7ba188b5de15c73af",
+  "started_utc": "2026-09-13T17:55:03.252343+00:00",
+  "tag": "pl-smoke-20260913"
+}
