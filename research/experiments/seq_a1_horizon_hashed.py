@@ -96,16 +96,16 @@ class HorizonProtocol:
 
 
 def digit_strings(seeds, length):
-    import torch
-    out = torch.zeros(len(seeds), length, dtype=torch.int64)
+    from neural_assemblies.core._torch_ops import torch_ops
+    out = torch_ops.zeros(len(seeds), length, dtype=torch_ops.int64)
     for b, seed in enumerate(seeds):
         rng = random.Random(seed * 7919)
-        out[b] = torch.tensor([rng.randrange(10) for _ in range(length)])
+        out[b] = torch_ops.tensor([rng.randrange(10) for _ in range(length)])
     return out
 
 
 def run_width(seeds, p, protocol, organ_semantics=None):
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
     from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
     length = protocol.length
     fsm = HashedArcFSM(seeds, ALL_STATES, ALL_SYMBOLS, mod3_transition_table(),
@@ -118,16 +118,16 @@ def run_width(seeds, p, protocol, organ_semantics=None):
     fsm.check()
     digits = digit_strings(seeds, length).to(protocol.device)
     # ground truth: running residue per brain
-    truth = torch.cumsum(digits, dim=1) % 3
+    truth = torch_ops.cumsum(digits, dim=1) % 3
     fsm.arc.inhibit()
     fsm.cue_state("0")
-    got = torch.zeros_like(digits)
-    exact = torch.zeros(len(seeds), dtype=torch.int64, device=protocol.device)
+    got = torch_ops.zeros_like(digits)
+    exact = torch_ops.zeros(len(seeds), dtype=torch_ops.int64, device=protocol.device)
     for t in range(length):
         got[:, t] = fsm.step(digits[:, t])
         # exact: every winner inside the true block
         blk = fsm.state.winners // protocol.k
-        exact += (blk == truth[:, t].view(-1, 1)).all(dim=1).to(torch.int64)
+        exact += (blk == truth[:, t].view(-1, 1)).all(dim=1).to(torch_ops.int64)
     correct = (got == truth).cpu().numpy()
     exact = (exact.cpu().numpy() / length)
     rows = []
