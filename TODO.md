@@ -339,6 +339,25 @@ source-linked contract, negative control, and relevant gate are all present.
     assemblies whose overlap tracks input similarity, and the papers' states
     are projection-formed), and higher load than 4.03. The item stays open on
     those three.
+  - REVISED 2026-09-13 (`chain-margin-20260913`, Amendment 4): the null above
+    was a CEILING EFFECT. At the marginal cell (n_arc = 2000, L = 256, 14/20
+    exact) the same sweep is devastating -- mean consecutive-correct falls
+    251.8, 220.8, 180.8, 142.0, 110.0 as load runs 0.40 to 6.42, losing 142 of
+    256 steps. So the chain tolerates state collision only where it has margin.
+    `SEQ-STATE-COLLISION-TOLERATED` is rescoped accordingly; the id reads too
+    strongly on its own and says so in its caveat.
+    Three of the five MC bars cannot carry that conclusion and this is recorded
+    rather than glossed: all five read `exact/20`, every random arm is 0/20
+    roomy and crowded alike, so MC-3 passed VACUOUSLY (0 <= 0) and MC-2 passed
+    by comparing the tightest random arm against BLOCKS, mixing crowding with
+    the separate cost of randomness (3.7 steps of 256, which exact/20 magnifies
+    into 14 -> 0). The dose-response lives in `mean correct`, which no bar
+    reads. Third time `exact@L` tie-fragility has bitten this registration.
+    MC-4 FAILED: arc overlap moves 0.0868 across the random arms against a 0.05
+    bar, so the cost is NOT attributed to state collision specifically.
+    STILL CONFOUNDED: Amendments 2 and 4 differ in margin AND in load (4.03 vs
+    6.42). The cheap run that separates them -- sweep the roomy cell to
+    n_state 2500 and 2000, load 6.44 and 8.05 -- is not yet run.
   - Amendment 3 ran on the fresh block 82..101 (`chain-limit-am3-20260913`):
     AL-6 CONFIRMS (median first error at 0.99-1.00 of L in every edge cell),
     AL-8 and AL-9 pass on the corrected instrument, AL-7 FAILED on a two-point

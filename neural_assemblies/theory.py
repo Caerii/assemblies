@@ -282,43 +282,58 @@ _RESULTS: List[Result] = [
             relation="all-less", minimum_effect=0.03,
             mechanism="the collidable code demonstrably reaches the organ: arc overlap falls on EVERY brain (0.034 to 0.068) between the disjoint code and the 4000-neuron random code, while consecutive-correct stays at 160 on every brain in both -- the knob turns and the outcome does not, which is what makes this null a measurement rather than a saturation",
         ),),
-        sensitivity_gap="The null is established at ONE cell with margin "
-                        "(L = 160, n_arc = 3000, 20/20 exact in every arm). No "
-                        "retained arm tests collision at a marginal cell, where "
-                        "a costless treatment could still be decisive; "
-                        "n3000-L384 (5/20) is the cell that would say.",
-        claim="The autonomous chain TOLERATES state collision. Replacing the "
-              "teacher-forced disjoint block code with random k-subsets and "
-              "shrinking the state area over a sixteenfold range of load -- "
-              "(L+1)k/n_state from 0.25 to 4.03, so that at the tightest area "
-              "every neuron carries about four states and a disjoint code is "
-              "impossible -- leaves every one of 20 brains exact on all 160 "
-              "steps in all six arms. Measured state overlap tracks the k/n "
-              "arithmetic exactly (0.0016 to 0.0251). So the disjoint code is "
-              "NOT what carries this repository's sequence results, and they "
-              "are not an artifact of a world where state collision cannot "
-              "happen.",
+        sensitivity_gap="The cost at the marginal cell is NOT attributed to "
+                        "state collision specifically: MC-4 failed, the arc "
+                        "overlap moving 0.0868 across the random arms against "
+                        "a 0.05 bar, so crowding the state area changes the arc "
+                        "too. And margin and load are confounded between the "
+                        "two runs (20/20-with-room at load 4.03 against 14/20 "
+                        "at load 6.42); sweeping the roomy cell to load 8 is "
+                        "the run that would separate them, and it has not run.",
+        claim="The autonomous chain tolerates state collision ONLY WHERE IT HAS "
+              "MARGIN, and the margin is doing the work. At a cell with room "
+              "(L = 160, n_arc = 3000, 20/20 exact) all six arms stay 20/20 "
+              "exact across load (L+1)k/n_state from 0.25 to 4.03, where at "
+              "the tightest area a disjoint code is impossible. At a MARGINAL "
+              "cell (L = 256, n_arc = 2000, 14/20 exact) the same sweep is "
+              "devastating: mean consecutive-correct falls 251.8, 220.8, "
+              "180.8, 142.0, 110.0 as load runs 0.40 to 6.42, losing 142 of "
+              "256 steps. Measured state overlap tracks the k/n arithmetic "
+              "exactly in both (0.0016 to 0.0251). Separately and much "
+              "smaller, a random code costs 3.7 steps of 256 against the "
+              "contiguous block code even when roomy, which is unexplained.",
         source="This repository.",
-        evidence=("research/experiments/autonomous_chain.py --states: six arms, "
-                  "blocks-n64000 plus random-n{64000,32000,16000,8000,4000}, "
-                  "all 20/20 exact; SC-3 (fewer than 5/20 exact at the "
-                  "smallest area) FAILED, which the registration named in "
-                  "advance as the stronger outcome",
-                  "arc overlap FALLS as the state area shrinks, 0.0921 to "
-                  "0.0447: crowding the states made the arcs more distinct, "
-                  "which is unexplained",),
+        evidence=("--states at the roomy cell: six arms all 20/20 exact; SC-3 "
+                  "FAILED, which the registration named in advance as the "
+                  "stronger outcome",
+                  "--margin at the marginal cell: mean correct 255.5 (blocks), "
+                  "251.8, 220.8, 180.8, 142.0, 110.0 (random, load 0.40 to "
+                  "6.42) -- a monotone dose-response",
+                  "the marginal run's BARS cannot carry this: all five read "
+                  "exact/20, every random arm is 0/20 roomy and crowded alike, "
+                  "so MC-3 passed vacuously (0 <= 0) and MC-2 passed by "
+                  "comparing the tightest random arm against BLOCKS, mixing "
+                  "crowding with the randomness cost. The dose-response is on "
+                  "mean correct, which no bar reads",
+                  "arc overlap FALLS as the state area shrinks in both runs "
+                  "(0.0921 to 0.0447 roomy; 0.1493 to 0.0625 marginal): "
+                  "crowding the states made the arcs more distinct, which is "
+                  "unexplained and which breaks the isolation bar",),
         evidence_refs=(
             EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json", "artifact",
-                        "six arms, per-brain correct/arc_overlap, per-arm state overlap and load"),
+                        "roomy cell: six arms, per-brain correct/arc_overlap, per-arm state overlap and load"),
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-margin-20260913/results.json", "artifact",
+                        "marginal cell: the same six arms, where the dose-response appears"),
             EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
             EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
         ),
         caveat="Random k-subsets are UNCORRELATED. Projection forms assemblies "
                "whose overlap tracks input similarity, which is structured "
-               "interference this sweep does not produce, and the papers' "
-               "states are projection-formed. This measures collision per se, "
-               "not correlated collision, and it stops at 4.03 states per "
-               "neuron: nothing here says where the chain would break.",
+               "interference neither sweep produces, and the papers' states are "
+               "projection-formed. This measures collision per se, not "
+               "correlated collision. The id is kept for citation stability but "
+               "reads too strongly on its own: the tolerance is conditional on "
+               "margin, and what the crowding cost is ATTRIBUTABLE to is open.",
     ),
 
     Result(

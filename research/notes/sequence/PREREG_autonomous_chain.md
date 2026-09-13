@@ -664,3 +664,72 @@ would then generalise rather than being a ceiling artifact.
 Either way the third limit stands and is NOT addressed here: random `k`-subsets
 are uncorrelated, and projection forms assemblies whose overlap tracks input
 similarity. Correlated collision remains unmeasured.
+
+## Amendment 4 result (2026-09-13): crowding costs enormously, and three of the five bars cannot show it
+
+Run `chain-margin-20260913`, block 62..81, `n_arc = 2000, L = 256`. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-margin-20260913/results.json`.
+
+    PASS  MC-1   PASS  MC-2   PASS  MC-3   FAIL  MC-4   FAIL  MC-5
+
+    arm               load   exact/20   mean correct   of L      range
+    blocks-n64000     0.40      14/20          255.5   1.00   253..256
+    random-n64000     0.40       0/20          251.8   0.98   249..253
+    random-n32000     0.80       0/20          220.8   0.86   137..252
+    random-n16000     1.61       0/20          180.8   0.71   137..251
+    random-n8000      3.21       0/20          142.0   0.55   123..175
+    random-n4000      6.42       0/20          110.0   0.43    31..133
+
+**The science: crowding the states is devastating at a marginal cell.** Mean
+consecutive-correct falls 251.8 -> 220.8 -> 180.8 -> 142.0 -> 110.0 as load
+runs 0.40 to 6.42 -- a monotone dose-response losing 142 of 256 steps. At the
+tightest area the chain gets less than half way. **Amendment 2's null was a
+ceiling effect**, exactly as MC-2 was registered to mean: the chain absorbs
+state collision while it has margin and does not when it has none.
+
+**But three of the five bars cannot carry that conclusion, and I have to say
+so.** All five used `exact/20` as the outcome, and every random arm is 0 of 20
+-- roomy and crowded alike.
+
+- **MC-3 passed VACUOUSLY.** "Every crowded arm at most every roomy arm" is
+  `0 <= 0`. It would pass against any data in which the random arms are all
+  zero, including data with no crowding effect at all.
+- **MC-2 passed for a confounded reason.** It compares the tightest RANDOM arm
+  against the BLOCKS arm, so it mixes crowding with whatever randomness alone
+  costs. With the roomy random arm already at 0, MC-2 would pass with zero
+  crowding effect. Its PASS does not support the sentence it states. The
+  dose-response above does support that sentence -- but on `mean correct`,
+  which no bar reads.
+- **MC-5 failed and is the reason.** Randomness per se costs: blocks 255.5 to
+  roomy random 251.8, **3.7 steps of 256**, about 1.4%. That is small, and
+  `exact/20` magnifies it into 14 -> 0 because exactness is all-or-nothing. So
+  the two effects differ by a factor of forty (3.7 against 141.8) and the
+  registered outcome statistic cannot tell them apart.
+- **MC-4 failed: the arms do not isolate the state.** Arc overlap moves 0.1493
+  to 0.0625 across the random arms, a gap of 0.0868 against the 0.05 bar. The
+  arc changes when the states are crowded -- same direction as Amendment 2,
+  now large enough to break the bar. **Attribution of the cost to state
+  collision specifically is therefore NOT established**, only that crowding the
+  state area costs the chain.
+
+This is the tie-fragility of `exact@L` biting a third time in this
+registration, after `exact_length` in Amendment 1 and the two-point median in
+AL-7. The graded measure was retained and answered the question immediately; no
+re-run was needed. Bars on this line should read `mean correct` and reserve
+`exact/20` for cells where it is not saturated.
+
+**Why unexplained (again): a roomy random code should be nearly free.** At
+`n_state = 64000` the code's pairwise overlap is 0.0016 of `k` and a disjoint
+assignment is possible in principle. Why the contiguous block code is worth 3.7
+steps over a scattered one at the same overlap is not answered here.
+
+### What is confounded between Amendments 2 and 4, and the run that would fix it
+
+Amendment 2 (no cost) and Amendment 4 (large cost) differ in TWO ways at once:
+the cell's margin (20/20 with room against 14/20) AND the load reached (4.03
+against 6.42). Nothing here separates them.
+
+The clean test is cheap and is NOT yet run: sweep the ROOMY cell
+(`L = 160, n_arc = 3000`) down to state areas that reach load 6.42 and beyond
+-- `n_state` of 2500 and 2000 give 6.44 and 8.05. If the roomy cell absorbs
+load 8 without cost, margin is the variable; if it breaks near 6.4, load is.
