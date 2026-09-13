@@ -37,7 +37,12 @@ from neural_assemblies.programs.mod3_fsm import (                         # noqa
     ALL_STATES, ALL_SYMBOLS, mod3_transition_table)
 from seq_a1_fsm_parity import BETA, K, N_ARC, N_STATE, PRESENTATIONS      # noqa: E402
 from _results import results_path  # noqa: E402
-from research.runner import experiment_parser, run_experiment  # noqa: E402
+from research.runner import (  # noqa: E402
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
+
+REGISTERED_SEEDS = tuple(range(1, 21))
 
 LENGTH = 2000
 P_VALUES = (0.3, 0.4)
@@ -155,6 +160,8 @@ def gate3(hashed_rows, numpy_rows, p, length=LENGTH):
 
 
 def experiment(record):
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(record["seeds"], REGISTERED_SEEDS)
     """Run the registered horizon measurement from resolved runner inputs."""
     smoke = record['mode'] == 'smoke'
     # Specification: neural_assemblies/ir/VERIFICATION.md#contract-horizon-execution
@@ -198,9 +205,10 @@ def experiment(record):
 
 
 def main(argv=None):
-    ap = experiment_parser(__doc__, engines=('hashed_arc_fsm',),
-                           default_seeds=tuple(range(1, 21)))
+    ap = experiment_parser(__doc__ or "A1 horizon study", engines=('hashed_arc_fsm',),
+                           default_seeds=REGISTERED_SEEDS)
     args = ap.parse_args(argv)
+    validate_registered_seeds(ap, args, REGISTERED_SEEDS)
     w_max = inspect.signature(Brain).parameters['w_max'].default
     path = run_experiment(
         script=__file__, protocol='sequence.a1-horizon', protocol_version='2',
