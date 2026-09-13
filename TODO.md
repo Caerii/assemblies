@@ -213,11 +213,17 @@ source-linked contract, negative control, and relevant gate are all present.
   decay term, and the registration asserts that bit for bit rather than
   measuring it. Open: PS-7 failed, so the instrument does not reproduce the
   capacity line's published cell and every number is internal to its six arms;
-  Amendment 2 registers the candidate cause (the read uses 8 frozen completion
-  rounds where the protocol reads with as many as it writes). Adding a decay
-  constant would make genuine time-mediated spacing possible and would turn the
-  refraction bias into a relative refractory period; that is a substrate change
-  and needs its own registration.
+  Amendments 1 and 2 closed the instrument question: a parity test shows the
+  single-episode write is BIT-IDENTICAL to `AssemblyMemory.store`, and PS-7 and
+  PS-9 failed on a misread premise (a published `M*` equal to the grid's first
+  point is a sentinel for "already collapsed there", not a recall near the
+  bar), so the scoping caveat is lifted and these numbers are comparable to the
+  capacity line. What is NOT established, with two failed bars behind the
+  withdrawal, is WHICH items a massed schedule loses: the write-order sign
+  reverses between M = 8 and M = 32, so only the hub statistic carries the
+  mechanism. Adding a decay constant would make genuine time-mediated spacing
+  possible and would turn the refraction bias into a relative refractory
+  period; that is a substrate change and needs its own registration.
 - [ ] **Derive or qualify the square capacity law.** Relate the measured
   approximately `0.40 (n/k)^2` ceiling and drifting exponents to Willshaw and
   sparse-Hopfield assumptions; state which assumptions hold and which constant
