@@ -35,7 +35,10 @@ from typing import Any
 
 import numpy as np
 
-from research.runner import experiment_parser, run_experiment
+from research.runner import (
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
 
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
@@ -202,6 +205,8 @@ def summarize(arm):
 
 
 def experiment(record):
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(record["seeds"], SEEDS)
     seeds = record["seeds"]
     presentations = record["parameters"]["presentations"]
     arms = []
@@ -240,6 +245,7 @@ def main(argv=None):
         engines=("numpy_sparse",), default_seeds=SEEDS,
     )
     args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, SEEDS)
     presentations = 2 if args.smoke else PRESENTATIONS
     parameters = {"n_arc": N_ARC, "n_state": N_STATE, "k": K, "p": P,
                   "beta": BETA, "presentations": presentations,
