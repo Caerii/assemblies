@@ -131,8 +131,19 @@ def validate_registered_seeds(
         if len(supplied) != smoke_count:
             parser.error(f"smoke requires exactly {smoke_count} explicit seeds")
         return
-    if supplied != expected:
+    try:
+        validate_seed_identities(supplied, expected)
+    except ValueError:
         parser.error(f"study requires registered seeds {expected[0]}..{expected[-1]} in order")
+
+
+def validate_seed_identities(
+    supplied: list[int] | tuple[int, ...],
+    registered: list[int] | tuple[int, ...],
+) -> None:
+    """Reject a measurement whose seed identities differ from registration."""
+    if list(supplied) != list(registered):
+        raise ValueError('supplied seeds differ from the registered identities or order')
 
 
 def _repo_file(path: str | Path) -> Path:

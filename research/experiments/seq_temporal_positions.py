@@ -11,7 +11,10 @@ from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
 from neural_assemblies import describe_hashed_transducer
 from research.experiments.study4.ntp_agree import CHAIN_CLASSES, generate_chain
 from research.experiments.temporal_observations import capture_chain_arcs
-from research.runner import ExperimentOutput, experiment_parser, run_experiment
+from research.runner import (
+    ExperimentOutput, experiment_parser, run_experiment,
+    validate_registered_seeds, validate_seed_identities,
+)
 
 
 ARMS = {
@@ -172,8 +175,8 @@ def _validate_parameters(parameters, mode):
 def experiment(record):
     parameters, seeds = record["parameters"], record["seeds"]
     _validate_parameters(parameters, record["mode"])
-    if record["mode"] == "study" and seeds != list(range(82, 102)):
-        raise ValueError("the registered study requires seeds 82 through 101 in order")
+    if record["mode"] == "study":
+        validate_seed_identities(seeds, list(range(82, 102)))
     arms = {name: [] for name in ARMS}
     # Keep each seed chunk adjacent across arms so paired brains share execution conditions.
     size = parameters["batch_size"]
@@ -214,8 +217,7 @@ def main(argv=None):
     parser = experiment_parser(__doc__, engines=("hashed_transducer",),
                                default_seeds=tuple(range(82, 102)))
     args = parser.parse_args(argv)
-    if not args.smoke and args.seeds != list(range(82, 102)):
-        parser.error("this registration requires seed identities 82 through 101 in order")
+    validate_registered_seeds(parser, args, tuple(range(82, 102)))
     parameters = SMOKE if args.smoke else REGISTERED
     path = run_experiment(
         script=Path(__file__), protocol="sequence.temporal-positions", protocol_version="1",
