@@ -11,11 +11,23 @@ SR-4 asserts exactly that, bit for bit). What is left is ORDER at matched
 presentation count: massed (`AAAA BBBB`) against interleaved (`ABAB ABAB`),
 crossed with the Hebbian control and the refracted memory.
 
-The prediction is an interaction. The control's collapse at T = 16 is
-recorded as hub formation, the items written FIRST becoming attractors
-([[REFRACTION-ANTI-MERGING]], PREREG_refraction_memory.md); refraction's
-whole job is to stop that. A schedule that denies any item a long consecutive
-run should therefore help the control and do nothing for the refracted arm.
+The prediction is an interaction. The control's collapse at 16 rounds per
+item is recorded as hub formation, the items written FIRST becoming
+attractors ([[REFRACTION-ANTI-MERGING]], PREREG_refraction_memory.md);
+refraction's whole job is to stop that. A schedule that denies any item a long
+consecutive run should therefore help the control and do nothing for the
+refracted arm.
+
+TOTAL ROUNDS PER ITEM ARE HELD AT 16 in every arm, the published collapse
+point. What varies is their arrangement: the capacity protocol spends them as
+ONE episode (inhibit, then 16 rounds of the item's stimulus alongside
+recurrence), and this study splits them into `EPISODES` episodes of
+`EPISODE_ROUNDS` rounds each and either runs an item's episodes back to back
+(massed) or round-robins them across items (interleaved). An episode must be
+several rounds long because the protocol's recurrence only engages from the
+second round of an episode: a one-round episode inhibits the area, reads the
+stimulus alone, and stores nothing, which a smoke run confirmed by recalling
+at chance.
 
 Run:  python -m research.runner presentation-schedule --tag UNIQUE
       (smoke: --smoke --seeds 1 2 3; VOID)
@@ -39,10 +51,13 @@ REGISTRATION = "research/notes/memory/PREREG_presentation_schedule.md"
 REGISTERED_SEEDS = tuple(range(42, 62))
 
 N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
-T_VISITS = 16                      # presentations per item, the control's collapse window
+TOTAL_ROUNDS = 16                  # rounds per item in EVERY arm: the published collapse point
+EPISODE_ROUNDS = 4                 # rounds inside one episode; recurrence engages from round 2
+EPISODES = TOTAL_ROUNDS // EPISODE_ROUNDS
+RECALL_ROUNDS = 8                  # frozen rounds of the half-cue read, the protocol's value
 CHECKPOINTS = (8, 16, 32, 64, 128, 256)
 SMOKE_CHECKPOINTS = (4, 8)
-SMOKE_VISITS = 4
+SMOKE_EPISODES = 2
 RECALL_SAMPLE, PAIR_SAMPLE = 64, 512
 STRENGTH = 0.5                     # as a fraction of beta, the adopted refracted setting
 
@@ -63,12 +78,14 @@ def profile_for(strength):
 
 
 def visit_order(schedule: str, items: int, visits: int) -> list[int]:
-    """The item visited at each step, for `items` items and `visits` each.
+    """The item whose EPISODE runs at each step, for `items` items.
 
-    `massed` finishes an item before starting the next; `interleaved` makes
-    one pass over every item and repeats. Both return exactly
-    ``items * visits`` steps and exactly ``visits`` of every item, which is
-    what "matched presentation count" means and what bar SR-5 checks.
+    `massed` finishes an item's episodes before starting the next;
+    `interleaved` gives every item one episode per pass and repeats. Both
+    return exactly ``items * visits`` episodes and exactly ``visits`` of every
+    item, which is what "matched presentation count" means and what bar SR-5
+    checks. Every episode is the same length, so total ROUNDS per item are
+    matched too.
     """
     if schedule == "massed":
         return [i for i in range(items) for _ in range(visits)]
@@ -103,6 +120,7 @@ class SchedulePlan:
     strength: float
     checkpoints: tuple[int, ...]
     visits: int
+    episode_rounds: int = EPISODE_ROUNDS
 
     def __post_init__(self):
         if self.schedule not in SCHEDULES:
@@ -113,6 +131,13 @@ class SchedulePlan:
             raise ValueError("visits must be positive and checkpoints non-empty")
         if tuple(sorted(set(self.checkpoints))) != tuple(self.checkpoints):
             raise ValueError("checkpoints must be strictly increasing")
+        if self.episode_rounds < 2:
+            raise ValueError("an episode needs at least 2 rounds or recurrence "
+                             "never engages and the write stores nothing")
+
+    @property
+    def rounds_per_item(self):
+        return self.visits * self.episode_rounds
 
 
 class ScheduledMemory:
@@ -126,33 +151,39 @@ class ScheduledMemory:
     the registration; the capacity protocol has no need to revisit.
     """
 
-    def __init__(self, seeds, *, strength, items, visits, device):
+    def __init__(self, seeds, *, strength, items, visits, device,
+                 episode_rounds=EPISODE_ROUNDS):
         from neural_assemblies.core.torch_engine._hashed import HashedArea, StimulusFiber
         from neural_assemblies.core.torch_engine._memory import recurrent_fiber
 
         self.seeds = [int(s) for s in seeds]
         self.B, self.device = len(self.seeds), device
         self.strength = float(strength)
+        self.episode_rounds = int(episode_rounds)
         sd = [to_i32(_seeding.fnv1a_pair_seed(s, "A", "A")) for s in self.seeds]
         self.area = HashedArea(N, K, sd, device=device,
                                refracted_strength=self.strength * BETA)
         self.area.masked_readout = self.strength > 0
         self.fiber = recurrent_fiber(sd, N, P, beta=BETA, w_max=W_MAX, norm_init=True,
                                      synaptic_scaling=False,
-                                     max_rounds=items * visits, device=device)
+                                     max_rounds=items * visits * self.episode_rounds,
+                                     device=device)
         self.stimuli = []
         for i in range(items):
             ss = [to_i32(_seeding.fnv1a_pair_seed(s, f"s{i}", "A")) for s in self.seeds]
             self.stimuli.append(StimulusFiber(ss, K, N, P, beta=BETA, w_max=W_MAX,
-                                              norm_init=True, max_rounds=visits,
+                                              norm_init=True,
+                                              max_rounds=visits * self.episode_rounds,
                                               device=device))
         self.visits_made = [0] * items
 
     def visit(self, item: int):
-        """One presentation of `item`: inhibit, then one round of its stimulus
-        alongside recurrence. Returns the winners [B, k]."""
+        """One EPISODE of `item`: inhibit, then `episode_rounds` rounds of its
+        stimulus alongside recurrence -- the capacity protocol's write, spent
+        in a shorter episode. Recurrence engages from the second round, which
+        is why an episode of one round stores nothing. Returns winners [B, k]."""
         self.area.inhibit()
-        win = self.area.project(1, [self.fiber, self.stimuli[item]])
+        win = self.area.project(self.episode_rounds, [self.fiber, self.stimuli[item]])
         self.visits_made[item] += 1
         return cast(Any, win)
 
@@ -160,7 +191,7 @@ class ScheduledMemory:
         """Complete `cue` by frozen recurrent rounds; masked whenever refracted."""
         from neural_assemblies.core._torch_ops import torch_ops
         self.area.winners = cue.to(torch_ops.int64)
-        return self.area.project(T_VISITS, [self.fiber], freeze=True,
+        return self.area.project(RECALL_ROUNDS, [self.fiber], freeze=True,
                                  mask_bias=(True if self.strength > 0 else None))
 
     @property
@@ -238,7 +269,8 @@ def run_arm(plan: SchedulePlan, seeds, rng, *, device, organ_semantics, idle_gap
     out, presentations = {}, 0
     for M in plan.checkpoints:
         mem = ScheduledMemory(seeds, strength=plan.strength, items=M,
-                              visits=plan.visits, device=device)
+                              visits=plan.visits, device=device,
+                              episode_rounds=plan.episode_rounds)
         last = [None] * M
         for step in visit_order(plan.schedule, M, plan.visits):
             if idle_gap:
@@ -249,7 +281,8 @@ def run_arm(plan: SchedulePlan, seeds, rng, *, device, organ_semantics, idle_gap
         presentations = M * plan.visits
         stored = [cast(Any, w) for w in last]
         out[str(M)] = {**measure(mem, stored, np.random.default_rng(rng.integers(1 << 31))),
-                       "presentations": presentations, "visits_per_item": plan.visits}
+                       "presentations": presentations, "visits_per_item": plan.visits,
+                       "rounds_per_item": plan.rounds_per_item}
         if M == m_max:
             out["final_winners_digest"] = int(
                 _set_hash(torch_ops.sort(torch_ops.stack(stored).long(), dim=2).values
@@ -264,14 +297,15 @@ def experiment(record):
     seeds = list(record["seeds"])
     smoke = record["mode"] == "smoke"
     checkpoints = tuple(p["checkpoints"])
-    visits = int(p["visits"])
+    visits, episode_rounds = int(p["visits"]), int(p["episode_rounds"])
     rng = np.random.default_rng(0)
 
     arms = {}
     for name in p["arms"]:
         schedule, rule = name.rsplit("-", 1)
         plan = SchedulePlan(schedule=schedule, rule=rule, strength=RULES[rule],
-                            checkpoints=checkpoints, visits=visits)
+                            checkpoints=checkpoints, visits=visits,
+                            episode_rounds=episode_rounds)
         arms[name] = run_arm(plan, seeds, rng, device=p["device"],
                              organ_semantics=record["execution_semantics"]["profiles"][name])
         tail = arms[name][str(max(checkpoints))]
@@ -281,7 +315,8 @@ def experiment(record):
 
     # SR-4: the idle arm must reproduce massed-control bit for bit.
     idle = run_arm(SchedulePlan(schedule="massed", rule="control", strength=0.0,
-                                checkpoints=checkpoints, visits=visits),
+                                checkpoints=checkpoints, visits=visits,
+                                episode_rounds=episode_rounds),
                    seeds, np.random.default_rng(0), device=p["device"],
                    organ_semantics=record["execution_semantics"]["profiles"]["massed-control"],
                    idle_gap=p["idle_gap"])
@@ -324,6 +359,7 @@ def experiment(record):
             sr2[str(M)] = {**asdict(d), "low": d.low, "high": d.high}
         comparisons["sr2"] = sr2
         counts_ok = all(c["presentations"] == M * visits and c["visits_per_item"] == visits
+                        and c["rounds_per_item"] == visits * episode_rounds
                         for arm in arms.values() for M, c in
                         ((int(key), value) for key, value in arm.items() if key.isdigit()))
         bars = {
@@ -336,7 +372,7 @@ def experiment(record):
                 at is not None and comparisons["sr3_brains_lower_hub"] >= 18 * n // 20,
             "SR-4 idle spacing is a no-op: the idle arm's stored assemblies are bit-identical":
                 identical,
-            "SR-5 instrument: every arm presents M x T times and T per item":
+            "SR-5 instrument: every arm runs M x E episodes, E per item, and the registered rounds per item":
                 counts_ok,
         }
         for name, ok in bars.items():
@@ -357,9 +393,12 @@ def main(argv=None):
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, REGISTERED_SEEDS)
     checkpoints = SMOKE_CHECKPOINTS if args.smoke else CHECKPOINTS
-    visits = SMOKE_VISITS if args.smoke else T_VISITS
+    visits = SMOKE_EPISODES if args.smoke else EPISODES
     parameters = {"n": N, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "checkpoints": list(checkpoints), "visits": visits,
+                  "episode_rounds": EPISODE_ROUNDS,
+                  "rounds_per_item": visits * EPISODE_ROUNDS,
+                  "recall_rounds": RECALL_ROUNDS,
                   "arms": list(ARMS), "strength": STRENGTH, "idle_gap": 8,
                   "recall_sample": RECALL_SAMPLE, "pair_sample": PAIR_SAMPLE,
                   "device": args.device}

@@ -55,35 +55,53 @@ the refracted arm read with the bias MASKED and the control read plain. Seeds
 42 to 61, twenty brains, paired across all four arms.
 
 **The visit primitive.** Every arm is built from one primitive so the arms
-differ only in ORDER: a visit to item i is `inhibit_areas([A])` then
-`project({s_i: [A]}, {A: [A]})` for `r = 1` round. An item's stimulus fiber is
-created once and reused across its visits, so stimulus-side potentiation
+differ only in ORDER: a visit to item i is one EPISODE, `inhibit_areas([A])`
+then `project({s_i: [A]}, {A: [A]})` for `r` rounds, which is the capacity
+protocol's write spent in a shorter episode. An item's stimulus fiber is
+created once and reused across its episodes, so stimulus-side potentiation
 accumulates across a schedule instead of restarting; this differs from
 `AssemblyMemory.store`, which builds a fresh stimulus fiber per call and is
 therefore not re-entrant for the same item. That difference is a declared
 protocol decision, not a defect of either: the capacity protocol writes each
 item once and has no need to revisit.
 
-**The arms.** T = 16 visits per item, the rounds window where the control is
-recorded as collapsing.
+**Total rounds per item are held fixed at 16**, the published collapse point,
+in every arm. Only their arrangement varies: `E = 4` episodes of `r = 4`
+rounds. The capacity protocol's own cell spends the same 16 rounds as one
+episode. A difference between arms therefore cannot be a difference in how
+much training an item received.
 
-- `massed-control`: items in order, each visited T times consecutively
+> **Correction (2026-09-13, before any study run).** This registration first
+> specified a visit as a single round. The VOID smoke
+> (`ps-smoke-20260913`) showed that wrong: the protocol's recurrence only
+> engages from the second round of an episode, so a one-round visit inhibits
+> the area, reads the stimulus alone, stores nothing, and recalls at chance
+> (rank-1 0.042 at M = 8 on the control, below the 0.125 a uniform guess
+> gives). The primitive is now an episode of `r >= 2` rounds, the plan
+> refuses `r < 2`, and a test pins both. No study has been run under either
+> version and no bar below has changed.
+
+**The arms.** E = 4 episodes of r = 4 rounds per item, 16 rounds in total,
+the window where the control is recorded as collapsing.
+
+- `massed-control`: items in order, each given its E episodes consecutively
   (`AAAA...BBBB...`), refraction strength 0.
-- `interleaved-control`: T passes over all M items, each pass visiting every
-  item once (`ABC...ABC...`), refraction strength 0.
+- `interleaved-control`: E passes over all M items, each pass giving every
+  item one episode (`ABC...ABC...`), refraction strength 0.
 - `massed-refracted`: massed, strength 0.5 beta, masked readout.
 - `interleaved-refracted`: interleaved, strength 0.5 beta, masked readout.
 
-Every arm presents exactly `M x T` times and every item exactly T times. M
+Every arm runs exactly `M x E` episodes, every item exactly E of them, and
+every item exactly `E x r = 16` rounds. M
 checkpoints: 8, 16, 32, 64, 128, 256.
 
 **What is retained, per brain, arm and checkpoint.** Rank-1 half-cue recall
 per item (so the per-item curve against write order is kept, not only its
 mean); mean pairwise overlap between stored assemblies divided by the chance
 level k/n, which is the hub statistic; area fill; and the stored assembly of
-every item, defined for both schedules as its winners after its LAST visit.
+every item, defined for both schedules as its winners after its LAST episode.
 
-Smoke (`--smoke --seeds 1 2 3`) runs M up to 8 at T = 4 and is VOID.
+Smoke (`--smoke --seeds 1 2 3`) runs M up to 8 at E = 2 and is VOID.
 
 ## Bars
 
@@ -117,8 +135,8 @@ chance; the refracted arm at the same T holds `M* = 203`
   substrate has no time, so a gap containing nothing must change nothing, and
   a difference here voids the run rather than being reported as a spacing
   effect.
-- **SR-5, instrument.** Every arm records exactly `M x T` presentations and
-  exactly T per item, and the control arms' fill and recall at M = 8 reproduce
+- **SR-5, instrument.** Every arm records exactly `M x E` episodes, exactly E
+  per item and exactly 16 rounds per item, and the control arms' fill and recall at M = 8 reproduce
   the massed capacity protocol's published cell at T = 16 within 10%.
   PREDICTION: passes. Failure means the visit primitive is not the protocol's
   write and voids every other bar.

@@ -10,7 +10,8 @@ import unittest
 from typing import Any
 
 from research.experiments.presentation_schedule import (
-    ARMS, RULES, SCHEDULES, SchedulePlan, elapse, visit_order,
+    ARMS, EPISODE_ROUNDS, EPISODES, RULES, SCHEDULES, TOTAL_ROUNDS,
+    SchedulePlan, elapse, visit_order,
 )
 
 
@@ -56,6 +57,16 @@ class TimeHasNoHook(unittest.TestCase):
 
 
 class Plans(unittest.TestCase):
+    def test_total_rounds_per_item_are_held_at_the_published_collapse_point(self):
+        # every arm spends the same rounds per item; only their arrangement
+        # differs, so a difference between arms cannot be a difference in
+        # how much training each item received
+        self.assertEqual(EPISODES * EPISODE_ROUNDS, TOTAL_ROUNDS)
+        plan = SchedulePlan(schedule="massed", rule="control", strength=0.0,
+                            checkpoints=(8,), visits=EPISODES,
+                            episode_rounds=EPISODE_ROUNDS)
+        self.assertEqual(plan.rounds_per_item, TOTAL_ROUNDS)
+
     def test_the_arms_are_the_two_by_two(self):
         self.assertEqual(len(ARMS), len(SCHEDULES) * len(RULES))
         for schedule in SCHEDULES:
@@ -68,9 +79,10 @@ class Plans(unittest.TestCase):
 
     def test_a_plan_refuses_what_it_cannot_run(self):
         def plan(*, schedule="massed", rule="control", strength=0.0,
-                 checkpoints=(8, 16), visits=4):
+                 checkpoints=(8, 16), visits=4, episode_rounds=4):
             return SchedulePlan(schedule=schedule, rule=rule, strength=strength,
-                                checkpoints=checkpoints, visits=visits)
+                                checkpoints=checkpoints, visits=visits,
+                                episode_rounds=episode_rounds)
         plan()                                        # the good one
         cases: tuple[tuple[str, dict[str, Any]], ...] = (
             ("unknown schedule", {"schedule": "spaced"}),
@@ -79,6 +91,10 @@ class Plans(unittest.TestCase):
             ("no checkpoints", {"checkpoints": ()}),
             ("checkpoints out of order", {"checkpoints": (16, 8)}),
             ("repeated checkpoint", {"checkpoints": (8, 8)}),
+            # an episode of one round inhibits, reads the stimulus alone and
+            # stores nothing: a smoke run recalled at chance before this bar
+            ("one-round episode", {"episode_rounds": 1}),
+            ("zero-round episode", {"episode_rounds": 0}),
         )
         for label, kwargs in cases:
             with self.assertRaises(ValueError, msg=label):
