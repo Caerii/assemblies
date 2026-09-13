@@ -41,6 +41,9 @@ MAINTAINED_FILES = (
     "research/source_archive.py",
     "research/compare_migration.py",
     "research/experiments/_historical.py",
+    # Registered sequence entry point: kept in the gate after its dynamic
+    # torch boundary was migrated to the typed torch_ops namespace.
+    "research/experiments/seq_a1_horizon_hashed.py",
 )
 
 

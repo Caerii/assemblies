@@ -25,6 +25,7 @@ def test_maintained_sources_are_unique_and_include_contract_surfaces():
     normalized = {source.replace("\\", "/") for source in sources}
     assert "neural_assemblies/assembly_calculus/assembly.py" in normalized
     assert "research/runner.py" in normalized
+    assert "research/experiments/seq_a1_horizon_hashed.py" in normalized
 
 
 def test_missing_maintained_scope_fails_before_static_analysis(tmp_path):
