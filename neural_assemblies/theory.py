@@ -1058,8 +1058,20 @@ _RESULTS: List[Result] = [
         id="CAP-RATIO",
         engine="hashed AssemblyMemory / exact count-then-apply path",
         status=Status.MEASURED,
-        sensitivity_gap="The immutable replay covers one registered capacity "
-                        "cell and does not retain a mechanism-disabled null.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/1/checkpoints/128/rank1",
+            control_path="observations/cells/0/checkpoints/128/rank1",
+            relation="all-greater", minimum_effect=0.9,
+            mechanism="the same n = 4000 at k = 30 against k = 60 (ratio 133 against 67), unrefracted, at M = 128: every k-30 brain still recalls (at least 0.938) where every k-60 brain has collapsed (at most 0.031); the ceilings are 267.0 and 74.7, ratio 3.58 against the law's 4",
+        ),),
+        sensitivity_gap="The retained check is the ratio contrast at one n; "
+                        "the equal-ratio cell at n = 8000 in the same run "
+                        "reproduces the n = 4000 ceiling within 3.8% but is a "
+                        "cliff interpolation (no grid point inside its "
+                        "transition band), and the n = 16000 cell of CS1 has "
+                        "no run record.",
         claim="The assembly-capacity ceiling M* is a function of n/k ALONE, "
               "not of n and k separately.",
         source="Held-out test registered in "
@@ -1082,6 +1094,7 @@ _RESULTS: List[Result] = [
         evidence=("research/experiments/seq_capacity_scaling.py",),
         evidence_refs=(
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json", "artifact"),
             EvidenceRef("research/notes/memory/PREREG_capacity_nk_law.md", "registration"),
             EvidenceRef("research/experiments/seq_capacity_scaling.py", "producer"),
         ),

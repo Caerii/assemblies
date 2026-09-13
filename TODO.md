@@ -63,11 +63,12 @@ source-linked contract, negative control, and relevant gate are all present.
     arc-reference study with all four registered bars passing,
     ARC-CONJUNCT-EXPOSURE and REFRACTION-PROPORTIONAL, and, from the
     registered tie census, KWTA-TIE-FRAGILE, and from the paired-anchor
-    replay, CAP-ANCHOR-RATIO: 13 of 15). The last two are registered and
-    wait for the device: REFRACTION-CANCELS-CONVERGENCE
+    replay, CAP-ANCHOR-RATIO: 13 of 15; and on 2026-09-13 from the nk
+    sensitivity replay, CAP-RATIO, whose three registered bars pass with the
+    (8000, 120) ceiling noted as a cliff interpolation: 14 of 15). The last,
+    REFRACTION-CANCELS-CONVERGENCE, is registered
     (`PREREG_refraction_convergence.md`, runner `refraction-convergence`)
-    and CAP-RATIO (`PREREG_capacity_nk_law.md`, sensitivity replay of three
-    cells in one run).
+    and its twenty-seed study is on the device.
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,

@@ -342,3 +342,32 @@ Bars:
   M*(4000, 60), as CS1 found.
 
 A bar that fails is recorded with its numbers.
+
+### Sensitivity replay result (2026-09-13): all three bars pass; one ceiling is a cliff interpolation
+
+Artifact `research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json`
+(engine `hashed_assembly_memory`, protocol `memory.capacity-scaling` version 2,
+seeds 42 to 61, run from the pinned worktree at 6efd3654).
+
+    cell          M* (interp.)   bracket      interior   fill at M*   rank-1 at M = 128 (mean, min, max)
+    (4000, 60)    74.7           [64, 96)     1          0.778        0.022  0.000  0.031
+    (4000, 30)    267.0          [256, 384)   1          0.949        0.989  0.938  1.000
+    (8000, 120)   77.5           [64, 96)     0          0.760        0.011  0.000  0.031
+
+* **NK-S1 PASS.** At M = 128 the (4000, 30) brain exceeds its paired
+  (4000, 60) brain by 0.906 to 1.000 (minimum 0.906, bar 0.9). This is now
+  the register's retained check for `CAP-RATIO`.
+* **NK-S2 PASS.** M*(4000, 30) / M*(4000, 60) = 3.58 (bar 3; the law's
+  factor is 4). Both ceilings are interior to the grid with one interior
+  point each. The (4000, 30) ceiling sits at fill 0.949, one thousandth
+  under the standing 0.95 censor rule: it is quotable by the rule and no
+  more than that.
+* **NK-S3 PASS, qualified.** M*(8000, 120) is within 3.8% of M*(4000, 60)
+  (bar 25%), reproducing CS1. The (8000, 120) estimate, however, has no
+  grid point inside its transition band (rank-1 0.948 at M = 64, 0.008 at
+  M = 96): the substrate harness marks it `supported: false`, a cliff
+  interpolation. The bar as registered compares interpolated ceilings and
+  passes; a finer grid between 64 and 96 would be needed before the
+  (8000, 120) number itself is quoted.
+
+The bars were fixed before the run; nothing in them was changed after.

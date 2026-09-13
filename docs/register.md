@@ -554,10 +554,14 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence files.**
 - [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact)
+- [research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json](../research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json) (artifact)
 - [research/notes/memory/PREREG_capacity_nk_law.md](../research/notes/memory/PREREG_capacity_nk_law.md) (registration)
 - [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
 
-**Sensitivity gap.** The immutable replay covers one registered capacity cell and does not retain a mechanism-disabled null.
+**Mechanism sensitivity.**
+- the same n = 4000 at k = 30 against k = 60 (ratio 133 against 67), unrefracted, at M = 128: every k-30 brain still recalls (at least 0.938) where every k-60 brain has collapsed (at most 0.031); the ceilings are 267.0 and 74.7, ratio 3.58 against the law's 4: `observations/cells/1/checkpoints/128/rank1` all-greater `observations/cells/0/checkpoints/128/rank1` by at least 0.9, retained in [research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json](../research/results/runs/memory.capacity-scaling/nk-replay-20260913/results.json) and paired by `run/seeds`.
+
+**Sensitivity gap.** The retained check is the ratio contrast at one n; the equal-ratio cell at n = 8000 in the same run reproduces the n = 4000 ceiling within 3.8% but is a cliff interpolation (no grid point inside its transition band), and the n = 16000 cell of CS1 has no run record.
 
 **Caveat.** This result survived a WRONG RETRACTION: an intermediate CSR deviation store applied the potentiation table per count FRAGMENT, and (tab[c0]-1)+(tab[c1]-1) != tab[c0+c1]-1, inflating ceilings ~25% (88.3/92.1/83.2); those numbers were briefly recorded here as the verified ones. Multi-episode ENGINE parity exposed it (rel 2e-3) and the exact path lands back on the first run's values. The EXPONENT remains unestablished: b = 2.19 +/- 0.05, above 2, NO mechanism -- reported, never quoted. A synapse bound M ~ n^2 p / (k ln(n/k)) is REFUTED by CS1: it is not a function of n/k alone -- and so is plain second-order CROSSTALK, refuted by registered test: the crosstalk ratio cancels p and beta, but M* ~ p^-0.6 and ~ beta^-1.3 at fixed n/k. No mechanism is adopted. Operational rule from the wrong retraction: when two implementations disagree, a test they BOTH pass verifies neither -- arbitrate with engine parity on the DRIVE.
 
