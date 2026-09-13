@@ -268,6 +268,33 @@ source-linked contract, negative control, and relevant gate are all present.
   approximately `0.40 (n/k)^2` ceiling and drifting exponents to Willshaw and
   sparse-Hopfield assumptions; state which assumptions hold and which constant
   is empirical.
+- [ ] **Reproduce the sequences paper's ordered recall, which currently does
+  NOT work here.** Registered and pinned 2026-09-13 in
+  `research/notes/sequence/PREREG_ordered_recall_reproduction.md`. Measured
+  ZERO steps after the cue across 64 knob combinations at length 8, and across
+  lengths 3/8/16 x repetitions 3/10 x sampled/materialized. The maintained
+  parity test appeared to show it working because `ordered_recall` snapshots
+  after firing the cue, so its two assertions both describe the CUE and hold
+  with zero advancement; and it runs on the sampled connectome, where cue
+  retrieval reads 0.92 against 0.30 materialized. Six bars registered (OR-1 to
+  OR-6) including the mechanism-disabled null the claim demands. Order of
+  work: compare against the reference implementation first to separate a bad
+  port from a different regime, then fix, then the sequence-length-limit
+  study. That study is the prize: the paper reports a 20-40 assembly limit
+  that "varies with the parameters", and `c* = ln(w_max max(1,kp)/base) /
+  ln(1+beta)` gives 26.5 / 33.8 / 41.0 at w_max 5 / 10 / 20, so the limit may
+  be the weight clip we already have in closed form. It needs recall that
+  advances, so it waits.
+- [ ] **Wake the inhibition primitives the papers depend on.** All three roles
+  the two papers use are implemented here and unexercised: inter-area mutual
+  inhibition is provably dormant (a strict xfail records 1361 training
+  projections and 12 parse projections reaching it with never two members
+  active, role exclusivity being carried by a Python set instead); transient
+  inhibit-and-release, which is `mitropolsky2025simulated`'s generation
+  trigger, exists as area gating with unit tests but no experiment, no
+  registration and no register entry; and long range inhibition exists only on
+  the Brain path, not on the hashed substrate that carries the fast sequence
+  work. No preregistration in this repository has inhibition as its subject.
 - [ ] **Add sequence baselines.** Run trigram and a small recurrent network at
   matched step counts on the chain corpus, paired with bigram and oracle, and
   report gaps 4--6 under the same instrument and seeds.
