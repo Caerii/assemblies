@@ -1,0 +1,222 @@
+{
+  "engine": "hashed_transducer",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "blind_g1": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-emission",
+        "organ": "sequence-transducer",
+        "prediction_gain": 1.0,
+        "state_code": "previous-arc-copy",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "deterministic-hash-jitter",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 1e-06,
+        "training_schedule": "grounded-teacher-forced-transduction"
+      },
+      "g0": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-emission",
+        "organ": "sequence-transducer",
+        "prediction_gain": 0.0,
+        "state_code": "previous-arc-copy",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "deterministic-hash-jitter",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 1e-06,
+        "training_schedule": "grounded-teacher-forced-transduction"
+      },
+      "g1": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-emission",
+        "organ": "sequence-transducer",
+        "prediction_gain": 1.0,
+        "state_code": "previous-arc-copy",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "deterministic-hash-jitter",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 1e-06,
+        "training_schedule": "grounded-teacher-forced-transduction"
+      }
+    }
+  },
+  "git_commit": "6efd36545a56a7d514084accc08315e5b2042fcb",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "agreeing_positions": [
+      0,
+      5,
+      10
+    ],
+    "arms": {
+      "blind_g1": {
+        "predict_gain": 1.0,
+        "state_blind": true
+      },
+      "g0": {
+        "predict_gain": 0.0,
+        "state_blind": false
+      },
+      "g1": {
+        "predict_gain": 1.0,
+        "state_blind": false
+      }
+    },
+    "bars": {
+      "amplification": 0.05,
+      "blind_upper": 0.02,
+      "carry_starts": 0.05,
+      "persists": 0.02,
+      "plain_carry": 0.02,
+      "state_dependence": 0.05
+    },
+    "batch_size": 5,
+    "beta": 0.1,
+    "distractor_positions": [
+      1,
+      2,
+      3,
+      4,
+      6,
+      7,
+      8,
+      9,
+      11,
+      12,
+      13,
+      14
+    ],
+    "first_positions": [
+      1,
+      6,
+      11
+    ],
+    "gap": 4,
+    "ground_rounds": 5,
+    "k": 200,
+    "max_potentiations": 64,
+    "n": 10000,
+    "n_arc": 10000,
+    "norm_init": true,
+    "offset_positions": {
+      "1": [
+        1,
+        6,
+        11
+      ],
+      "2": [
+        2,
+        7,
+        12
+      ],
+      "3": [
+        3,
+        8,
+        13
+      ],
+      "4": [
+        4,
+        9,
+        14
+      ]
+    },
+    "organ_p": 0.2,
+    "p": 0.05,
+    "processed_positions": 15,
+    "refracted_strength": 0.1,
+    "second_positions": [
+      2,
+      7,
+      12
+    ],
+    "state_mode": "copy",
+    "test_sentences": 25,
+    "train_rounds": 3,
+    "train_sentences": 200,
+    "w_max": 20.0
+  },
+  "protocol": "sequence.temporal-positions",
+  "protocol_version": "2",
+  "registration": "research/notes/sequence/PREREG_temporal_positions.md",
+  "registration_sha256": "6f7d61ce778dcba81646361a54760122ddfb2e542b7294adc1098a370136d671",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_temporal_positions.py",
+  "script_sha256": "8ef3c318d0aac4e68f0ee304161ca133b1564f70df294628d4daeb796390c15e",
+  "seeds": [
+    82,
+    83,
+    84,
+    85,
+    86,
+    87,
+    88,
+    89,
+    90,
+    91,
+    92,
+    93,
+    94,
+    95,
+    96,
+    97,
+    98,
+    99,
+    100,
+    101
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "043abce5df77bd8eff6df1fabbe1e6a46bac10fd85e68c8f90a02f09f3cbaf83"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "ce24bb46c6f354859dc510285701c38fa208382ca9ab1746f3544f308b316cfa",
+  "started_utc": "2026-09-13T04:27:14.780165+00:00",
+  "tag": "temporal-positions-gap4-20260913"
+}

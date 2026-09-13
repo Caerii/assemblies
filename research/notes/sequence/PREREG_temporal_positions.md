@@ -242,3 +242,139 @@ flag as informational exactly when its chain table is saturated within the
 count range (`VERIFICATION.md#contract-organ-count-saturation`; an
 unclipped table still raises). Gaps 3 to 6 run under that contract; the
 protocol is unchanged.
+
+## Amendment 1, results (2026-09-13): one decay constant, a falling amplitude, and a horizon at five distractors
+
+Artifacts, all twenty brains on seeds 82 to 101, run from the pinned worktree
+(gaps 3 to 6 at 6efd3654, gap 2 at 24f7767e):
+
+- `research/results/runs/sequence.temporal-positions/temporal-positions-gap3-20260913/results.json`
+- `research/results/runs/sequence.temporal-positions/temporal-positions-gap4-20260913/results.json`
+- `research/results/runs/sequence.temporal-positions/temporal-positions-gap5-20260913/results.json`
+- `research/results/runs/sequence.temporal-positions/temporal-positions-gap6-20260913/results.json`
+
+### Bars
+
+    gap   DL-1  DL-2  DL-3  DL-4  DL-5   TP-1  TP-2  TP-3  TP-4   verdict
+    2     PASS  PASS  PASS  PASS  PASS   PASS  PASS  PASS  PASS   PASS
+    3     PASS  PASS  PASS  PASS  PASS   PASS  PASS  FAIL  PASS   FAIL
+    4     PASS  PASS  PASS  PASS  PASS   PASS  PASS  FAIL  PASS   FAIL
+    5     PASS  PASS  PASS  PASS  PASS   PASS  PASS  FAIL  PASS   FAIL
+    6     PASS  PASS  FAIL  PASS  PASS   PASS  PASS  FAIL  PASS   FAIL
+
+DL-4 (the state-blind instrument bar) passes at every gap, so no gap is
+voided: blind `D` upper bounds are 0.0042, 0.0013, 0.0026 and 0.0015 at
+gaps 3 to 6.
+
+### The carry by position
+
+Mean subject-number contrast `D_j` on the g = 1 arm, twenty brains:
+
+    gap   j=1     j=2     j=3     j=4     j=5     j=6
+    2     0.2032  0.1666
+    3     0.2073  0.1602  0.1272
+    4     0.2148  0.1514  0.1173  0.0866
+    5     0.1679  0.0984  0.0758  0.0580  0.0418
+    6     0.1282  0.0828  0.0654  0.0521  0.0368  0.0243
+
+### The decay model, as registered
+
+Least squares of `D_j = A r^(j-1)` on the offset means pooled over the four
+new gaps (18 points), with r bootstrapped over the twenty brains (2000
+resamples, brains resampled jointly across gaps because the seeds are
+paired):
+
+    pooled r = 0.7093, 95% [0.6889, 0.7286];  A = 0.1792;  rms residual 0.0269
+
+The registered criterion was "a pooled r in (0, 1) with the fit's residual
+below the between-gap spread of `D_1`". Both hold: r is inside (0, 1) with
+an interval far from either end, and the rms residual 0.0269 is below the
+`D_1` standard deviation across gaps, 0.0346. **The decay model is
+supported.**
+
+Per-gap fits say where the pooled residual comes from:
+
+    gap   r                       A       rms
+    3     0.7815 [0.7329, 0.8208] 0.2067  0.0010
+    4     0.7370 [0.7007, 0.7659] 0.2126  0.0031
+    5     0.6896 [0.6652, 0.7150] 0.1614  0.0073
+    6     0.7275 [0.6778, 0.7687] 0.1244  0.0040
+
+Every per-gap `r` interval contains the pooled 0.71, and every per-gap rms
+residual is between three and thirty times smaller than the pooled one: the
+geometric SHAPE is one constant across gaps, and the pooled residual is
+almost entirely the AMPLITUDE, which falls as the chain lengthens (A 0.207,
+0.213, 0.161, 0.124 at gaps 3, 4, 5, 6). The pooled residuals are
+systematically positive at gaps 3 and 4 (+0.023 to +0.037) and systematically
+negative at gaps 5 and 6 (-0.004 to -0.051), which is that amplitude
+difference and not scatter.
+
+This is a refinement of the registered model, not a bar: the amendment fixed
+one pooled `A` and one `r`, and the data support the one `r` while rejecting
+the one `A`. The chain at gap G is `AUX N^G VERB N^G PRON N^G TAG`, so a
+larger gap both lengthens the sentence and repeats the same noun-to-noun
+transitions more often (the repetition that saturated the organ's int8
+counts from gap 3 on). Nothing here separates sentence length from arc load;
+that separation is not measured and is not claimed.
+
+On the g = 0 arm the same fit gives r = 0.0080, 95% [0.0080, 0.0232], with
+A = 0.0334: the plain conjunction's carry is gone after the first offset,
+which is DL-5 stated as a decay constant.
+
+### The horizon (DL-3)
+
+Lower 95% bound of the carry at the LAST distractor, against the 0.02 bar:
+
+    gap   D_G     95% interval        DL-3
+    2     0.1666  [0.1455, 0.1877]    PASS
+    3     0.1272  [0.0976, 0.1567]    PASS
+    4     0.0866  [0.0662, 0.1070]    PASS
+    5     0.0418  [0.0344, 0.0491]    PASS
+    6     0.0243  [0.0163, 0.0324]    FAIL
+
+**The measured horizon of the predicted-win carry is five distractors**: the
+carry clears the registered bar through gap 5 and does not at gap 6. As the
+amendment requires, this is reported as the gap at which DL-3 first fails,
+not as a fitted extrapolation.
+
+The failure is a bar, not an absence. At gap 6 the carry at the sixth
+distractor is positive on 20 of 20 brains (0.0038 to 0.0586, interval
+[0.0163, 0.0324] excluding zero) and above 0.02 on 10 of them. What fails is
+the registered threshold, which was set at gap 2 where the contrast was an
+order of magnitude larger.
+
+### TP-3 fails from gap 3 on, and the reason is its estimand
+
+TP-3 asks for the lower bound of `D(g = 0) > 0.02`, where `D` is the mean
+contrast over ALL distractor positions. The plain conjunction carries at the
+first position only, so pooling over more positions divides that one number
+by more zeros:
+
+    gap   g = 0 offsets                                        mean D   low      D_1 alone
+    2     0.0479  0.0037                                       0.0258   0.0226   0.0479 [0.0427, 0.0531]
+    3     0.0683  0.0019  -0.0009                              0.0231   0.0193   0.0683 [0.0590, 0.0775]
+    4     0.0323 -0.0028  -0.0011 -0.0019                      0.0066   0.0037   0.0323 [0.0253, 0.0392]
+    5     0.0183 -0.0029   0.0001  0.0050 -0.0011              0.0039   0.0017   0.0183 [0.0121, 0.0245]
+    6     0.0150 -0.0035  -0.0006  0.0012 -0.0010  0.0032      0.0024   0.0011   0.0150 [0.0065, 0.0235]
+
+At gap 3 TP-3 misses by 0.0007 with its first-position contrast at its
+LARGEST value of any gap (0.0683). The bar is kept and recorded as failed;
+it is not amended. The position-specific statement that survives is DL-5,
+which passes at every gap: the plain conjunction's contrast is present after
+the first distractor and absent after the second. Any future pooled-`D`
+comparison across gaps is measuring the number of positions pooled as much
+as the mechanism.
+
+### What is retained for the register, and what is not
+
+The paired decay contrast is a per-brain fact at every gap: `D_1 - D_G` is
+positive on 20 of 20 brains at gap 6, minimum 0.0687 (interval on the mean
+0.1039 [0.0929, 0.1148]). That contrast is the register's retained check for
+the decay.
+
+The tail carry is NOT a per-brain fact. At gaps 5 and 6 the last offset's
+contrast does not exceed the state-blind control on every brain (minimum
+paired difference -0.0022 and -0.0037): at the tail the between-brain noise
+is the size of the effect, and the carry there is an ensemble statement with
+an interval, not a per-brain one. No per-brain claim is made about the last
+offset at gaps 5 and 6.

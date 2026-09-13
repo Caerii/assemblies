@@ -168,11 +168,22 @@ source-linked contract, negative control, and relevant gate are all present.
   chain-corpus instrument through gaps 3--6 with at least twenty hashed seeds;
   fit and report a preregistered decay model. Keep the corrected position
   instrument distinct from the void pooled 0.11/0.22 numbers.
-  - Progress 2026-09-13: registered as Amendment 1 of
+  - DONE 2026-09-13: registered as Amendment 1 of
     `PREREG_temporal_positions.md` (geometric model on the per-offset carry,
     five bars per gap, the gap-2 replay as the instrument comparison); the
-    runner takes `--gap 2..6`; the five twenty-seed runs are in progress on
-    the device from the pinned worktree. The pooled numbers stay void.
+    runner takes `--gap 2..6`; all five twenty-seed runs are recorded
+    (`temporal-positions-gap{2..6}-2026091{2,3}`). Result: the carry decays
+    geometrically at a POOLED r = 0.709 [0.689, 0.729] whose four per-gap
+    fits all contain it, while the amplitude falls with the chain's length
+    (A 0.207 to 0.124) -- one shape, not one amplitude, and that is the
+    whole pooled residual. The measured horizon is FIVE distractors: DL-3
+    clears the 0.02 bar through gap 5 and fails at gap 6, where the carry is
+    still positive on 20 of 20 brains. TP-3 fails from gap 3 on because its
+    estimand is a mean over all positions; the position-specific DL-5 passes
+    at every gap. Both failures are recorded, neither amended. The pooled
+    numbers of the old harness stay void. Register: SEQ-TEMPORAL-CARRY
+    carries the law, the horizon and a second retained check (the decay is
+    per-brain at gap 6; the tail against blind is not).
 - [ ] **Clip-window retention.** Test weight rules that preserve exact
   transition-organ behavior from 20 through 200 presentations, with both
   retention and new-learning bars. Preserve failed homeostasis attempts and
