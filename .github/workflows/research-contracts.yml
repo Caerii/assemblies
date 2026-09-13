@@ -107,6 +107,7 @@ jobs:
           neural_assemblies/tests/test_refraction_convergence_instrument.py
           neural_assemblies/tests/test_presentation_schedule.py
           neural_assemblies/tests/test_presentation_schedule_parity.py
+          neural_assemblies/tests/test_refraction_period_law.py
           neural_assemblies/tests/test_organ_count_saturation.py
 
   lean-contracts:

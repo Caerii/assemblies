@@ -558,7 +558,8 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'kwta-tie-fragility': 'research.experiments.kwta_tie_fragility',
                'a3-transducer': 'research.experiments.seq_a3_transducer',
                'refraction-convergence': 'research.experiments.refraction_convergence',
-               'presentation-schedule': 'research.experiments.presentation_schedule'}
+               'presentation-schedule': 'research.experiments.presentation_schedule',
+               'refraction-period-law': 'research.experiments.refraction_period_law'}
 
 
 def main(argv=None):
