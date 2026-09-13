@@ -11,7 +11,8 @@ from typing import Any
 
 from research.experiments.presentation_schedule import (
     ARM_SPECS, ARMS, COMPARE_AT, EPISODE_ROUNDS, EPISODES, RULES, SCHEDULES,
-    TOTAL_ROUNDS, SchedulePlan, elapse, visit_order,
+    RECALL_ROUNDS, TOTAL_ROUNDS, SchedulePlan, elapse, first_beats_last,
+    visit_order,
 )
 
 
@@ -54,6 +55,25 @@ class TimeHasNoHook(unittest.TestCase):
         # has become a treatment and the registration's reasoning changes.
         for gap in (0, 1, 1000, 10**9):
             self.assertEqual(elapse(gap), 0)
+
+
+class WriteOrderSignature(unittest.TestCase):
+    def test_it_counts_brains_whose_first_items_outlast_their_late_ones(self):
+        cell = {"rank1_by_item": {"0": [1.0, 1.0, 0.0], "1": [0.0, 0.0, 0.0],
+                                  "6": [0.0, 0.0, 0.0], "7": [0.0, 0.0, 1.0]}}
+        # brains 0 and 1 have first > last; brain 2 has last > first
+        self.assertTrue(first_beats_last(cell, 8, 2))
+        self.assertFalse(first_beats_last(cell, 8, 3))
+
+    def test_a_cell_missing_an_end_is_refused_rather_than_scored(self):
+        # true negative: with only early items present the comparison is
+        # undefined, and returning True there would invent a signature
+        self.assertFalse(first_beats_last({"rank1_by_item": {"0": [1.0]}}, 8, 1))
+
+    def test_the_read_is_as_long_as_the_write(self):
+        # Amendment 2: a half cue is completed for as many frozen rounds as
+        # the arm wrote with, which is what AssemblyMemory.recall does
+        self.assertEqual(RECALL_ROUNDS, TOTAL_ROUNDS)
 
 
 class RecordIsSerializable(unittest.TestCase):

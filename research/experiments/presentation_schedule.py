@@ -46,7 +46,7 @@ from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "memory.presentation-schedule"
-VERSION = "2"          # v1 had four arms and a data-dependent checkpoint rule
+VERSION = "3"          # v1: four arms, data-dependent checkpoint; v2: an 8-round read
 REGISTRATION = "research/notes/memory/PREREG_presentation_schedule.md"
 #: Amendment 1 tests its corrected bars on the fresh block.
 SEED_BLOCKS = (tuple(range(42, 62)), tuple(range(62, 82)))
@@ -56,7 +56,10 @@ N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
 TOTAL_ROUNDS = 16                  # rounds per item in EVERY arm: the published collapse point
 EPISODE_ROUNDS = 4                 # rounds inside one episode; recurrence engages from round 2
 EPISODES = TOTAL_ROUNDS // EPISODE_ROUNDS
-RECALL_ROUNDS = 8                  # frozen rounds of the half-cue read, the protocol's value
+#: Frozen rounds of the half-cue read. Amendment 2: the protocol reads with
+#: as many rounds as it writes (`AssemblyMemory.recall` uses `self.rounds`),
+#: and version 2's fixed 8 was the leading candidate cause of PS-7's failure.
+RECALL_ROUNDS = TOTAL_ROUNDS
 CHECKPOINTS = (8, 16, 32, 64, 128, 256)
 SMOKE_CHECKPOINTS = (4, 8)
 RECALL_SAMPLE, PAIR_SAMPLE = 64, 512
@@ -231,6 +234,18 @@ def order_halves(cell, items, fraction=8):
     return np.mean(first, axis=0), np.mean(last, axis=0)
 
 
+def first_beats_last(cell, items, minimum):
+    """Brains whose FIRST eighth of items out-recalls their LAST eighth.
+
+    Hub formation predicts this is most brains; staleness predicts the
+    reverse. Returns False when the cell is too small to have both ends.
+    """
+    first, last = order_halves(cell, items)
+    if first is None or last is None:
+        return False
+    return int((first > last).sum()) >= minimum
+
+
 def _set_hash(Ks):
     from neural_assemblies.core._torch_ops import torch_ops
     M, B, k = Ks.shape
@@ -387,8 +402,8 @@ def experiment(record):
             f"PS-2 and it builds no hubs: interleaved pairwise/chance < 2 and massed > 10 on every brain at M={low}":
                 all(v < 2.0 for v in ctl_i["pairwise_x"]) and all(v > 10.0 for v in ctl_m["pairwise_x"]),
             f"PS-3 write-order signature at M={low}: massed first eighth beats its last on >= 18/20; interleaved within 0.10 on >= 18/20":
-                first_m is not None and first_i is not None
-                and int((first_m > last_m).sum()) >= 18 * n // 20
+                first_beats_last(ctl_m, low, 18 * n // 20)
+                and first_i is not None and last_i is not None
                 and int((np.abs(first_i - last_i) <= 0.10).sum()) >= 18 * n // 20,
             f"PS-4 refraction does not absorb the schedule: paired lower bound > 0 at M={high}":
                 comparisons["ps4"]["low"] > 0.0,
@@ -401,6 +416,15 @@ def experiment(record):
                 np.mean(cell("single-control", 8)["rank1"]) >= 0.5
                 and sum(x > y for x, y in zip(cell("single-control", 8)["rank1"],
                                               cell("massed-control", 8)["rank1"])) >= 18 * n // 20,
+            # Amendment 2 bars.
+            "PS-9 the instrument reproduces the protocol: single-control rank1 >= 0.5 and hub < 20 at M=8":
+                np.mean(cell("single-control", 8)["rank1"]) >= 0.5
+                and np.mean(cell("single-control", 8)["pairwise_x"]) < 20.0,
+            "PS-10 the dissociation survives the read: refracted split lower bound > 0.3 at M=256, control order lower bound > 0.5 at M=64":
+                paired("massed-refracted", "single-refracted", max(checkpoints)).low > 0.3
+                and paired("interleaved-control", "massed-control", 64).low > 0.5,
+            "PS-11 the write-order signature where it can be seen: massed control first eighth beats its last on >= 16/20 at M=8":
+                first_beats_last(cell("massed-control", 8), 8, 16 * n // 20),
             "PS-8 instrument: every arm runs its episodes and the registered rounds per item":
                 all(c["rounds_per_item"] == TOTAL_ROUNDS
                     for arm, plan in plans.items() for key, c in arms[arm].items()
@@ -410,6 +434,12 @@ def experiment(record):
         below = [M for M in checkpoints if np.mean(cell("massed-control", M)["rank1"]) < 0.5]
         at = max(below) if below else None
         superseded = {
+            "PS-3 (v2) write-order signature at M=32, per brain":
+                first_beats_last(cell("massed-control", low), low, 18 * n // 20),
+            "PS-7 (v2) single-episode arm reproduces the published cell under an 8-round read":
+                np.mean(cell("single-control", 8)["rank1"]) >= 0.5
+                and sum(x > y for x, y in zip(cell("single-control", 8)["rank1"],
+                                              cell("massed-control", 8)["rank1"])) >= 18 * n // 20,
             "SR-1 (v1 rule: the LARGEST checkpoint with massed control below 0.5)":
                 at is not None
                 and sum(x > y for x, y in zip(cell("interleaved-control", at)["rank1"],
@@ -424,6 +454,15 @@ def experiment(record):
                                               cell("massed-control", at)["pairwise_x"])) >= 18 * n // 20,
         }
         comparisons["v1_checkpoint"] = at
+        for label, a, b, M in (("ps10_split", "massed-refracted", "single-refracted", max(checkpoints)),
+                               ("ps10_order", "interleaved-control", "massed-control", 64)):
+            dd = paired(a, b, M)
+            comparisons[label] = {**asdict(dd), "low": dd.low, "high": dd.high}
+        fm8, lm8 = order_halves(cell("massed-control", 8), 8)
+        comparisons["write_order_at_8"] = {
+            "massed_first": None if fm8 is None else fm8.tolist(),
+            "massed_last": None if lm8 is None else lm8.tolist(),
+        }
         # numpy comparisons leak np.bool_, which json refuses; the record must
         # hold plain bools or the whole run is lost after the measurement
         bars = {name: bool(ok) for name, ok in bars.items()}
@@ -455,8 +494,8 @@ def main(argv=None):
                   "checkpoints": list(checkpoints),
                   "episode_rounds": EPISODE_ROUNDS,
                   "rounds_per_item": TOTAL_ROUNDS, "compare_at": list(COMPARE_AT),
-                  "arm_specs": {k: list(v) for k, v in ARM_SPECS.items()},
                   "recall_rounds": RECALL_ROUNDS,
+                  "arm_specs": {k: list(v) for k, v in ARM_SPECS.items()},
                   "arms": list(ARMS), "strength": STRENGTH, "idle_gap": 8,
                   "recall_sample": RECALL_SAMPLE, "pair_sample": PAIR_SAMPLE,
                   "device": args.device}
