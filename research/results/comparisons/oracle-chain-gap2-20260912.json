@@ -1,0 +1,21 @@
+{
+  "candidate": "research/results/runs/sequence.a3-oracle-ceiling/oracle-chain-gap2-20260912/results.json",
+  "candidate_sha256": "d2d6a586d73223b60a31f790d2c9d0114b230290763c7d01ebfaeb88a289a42d",
+  "comparator_sha256": "e0598ffa830084037b85cc256265369c31a35f2f95b3e726a62e1100fa65d1cd",
+  "comparator_source": {
+    "git_commit": "2ca402608511a91bfc355b7a95f289e522d43cf7",
+    "inventory": "source-inputs-v3",
+    "source_sha256": "d13a87e7ee8e6fcc5283d0bb1359855dbae7e5c8dc411d3274126f598f73102f"
+  },
+  "comparison_version": 4,
+  "comparisons": 40,
+  "errors": [],
+  "kind": "baseline",
+  "numerical_match": true,
+  "reference": "research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2.json",
+  "reference_seeds": null,
+  "reference_sha256": "64b035817a0a5119ae41449181d94f5151e072515e19fde394ce29cf1fb81cca",
+  "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict",
+  "treatment_reference": null,
+  "treatment_reference_sha256": null
+}
