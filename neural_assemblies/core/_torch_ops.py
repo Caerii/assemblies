@@ -68,6 +68,7 @@ class TorchOps(Protocol):
     unique: TensorCall
     clamp: TensorCall
     repeat_interleave: TensorCall
+    searchsorted: TensorCall
     sparse_coo_tensor: TensorCall
     sparse_csr_tensor: TensorCall
     stack: TensorCall

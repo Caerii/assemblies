@@ -122,7 +122,7 @@ def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
     (`brain.inhibit_areas([AREA])`, then `project({s: [AREA]}, {AREA:
     [AREA]})` x T); the class is the harness's numbers, bit-identical to
     the wrapper sequence this ran on before it (tested)."""
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
 
     sd = seeds_for(seeds)
@@ -138,14 +138,17 @@ def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
         ss = [to_i32(_seeding.fnv1a_pair_seed(seed, f"s{a}", "A")) for seed in seeds]
         stored.append(mem.store(ss, stim_size=(protocol.stim_size or k)))
         if protocol.converge:
-            used.append(mem.rounds_used.clone())
+            rounds_used = mem.rounds_used
+            if rounds_used is None:
+                raise RuntimeError("convergent memory did not expose rounds_used")
+            used.append(rounds_used.clone())
         M = a + 1
         if M in protocol.checkpoints:
             out[M] = measure(n, mem, stored, len(seeds), rng, protocol)
             if protocol.converge:
                 # Amendment 5, G3: rounds spent per item since the last
                 # checkpoint, and the fraction that converged before T_max
-                u = torch.stack(used).float()                    # [items, B]
+                u = torch_ops.stack(used).float()                    # [items, B]
                 out[M]["rounds_used"] = u.mean(0).tolist()
                 out[M]["converged"] = (u < protocol.rounds).float().mean(0).tolist()
                 used.clear()
@@ -154,10 +157,10 @@ def run_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
 
 def _set_hash(X):
     """One int64 per winner set, order-canonical. `X` is [M, B, K] SORTED."""
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
 
-    pos = torch.arange(X.shape[2], device=X.device,
-                       dtype=torch.int64).view(1, 1, -1)
+    pos = torch_ops.arange(X.shape[2], device=X.device,
+                       dtype=torch_ops.int64).view(1, 1, -1)
     z = (X * 0x9E3779B97F4A7C15) ^ (pos * 0xBF58476D1CE4E5B9)
     z = z ^ (z >> 31)
     z = z * 0x94D049BB133111EB
@@ -172,12 +175,12 @@ def _overlaps(Ks, ia, ib):
     one set in the other and a gather confirms equality. Winners are distinct
     within a set, so no de-duplication is needed.
     """
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
 
     A, Bv = Ks[ia], Ks[ib]                          # [P, B, K]
     K = Ks.shape[2]
-    idx = torch.searchsorted(A.contiguous(), Bv.contiguous()).clamp_(max=K - 1)
-    hit = torch.gather(A, 2, idx) == Bv
+    idx = torch_ops.searchsorted(A.contiguous(), Bv.contiguous()).clamp_(max=K - 1)
+    hit = torch_ops.gather(A, 2, idx) == Bv
     return hit.sum(2).float() / K                   # [P, B]
 
 
@@ -190,19 +193,19 @@ def measure(n, mem, stored, nbrain, rng, protocol):
     GPU-bound: the kernels cost ~0.09 ms per brain-round and the study was
     paying ~0.65.
     """
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
 
     M = len(stored)
-    St = torch.stack(stored).long()                 # [M, B, K]
+    St = torch_ops.stack(stored).long()                 # [M, B, K]
     K = St.shape[2]
     device = St.device
-    Ks = torch.sort(St, dim=2).values                # canonical order
+    Ks = torch_ops.sort(St, dim=2).values                # canonical order
 
     # -- distinctness by a 64-bit set hash (possible collisions).
     # Hash each set to an int64, sort along M, count consecutive differences.
     h = _set_hash(Ks)                                # [M, B]
-    sh, _ = torch.sort(h, dim=0)
-    fresh = torch.ones_like(sh, dtype=torch.bool)
+    sh, _ = torch_ops.sort(h, dim=0)
+    fresh = torch_ops.ones_like(sh, dtype=torch_ops.bool)
     fresh[1:] = sh[1:] != sh[:-1]
     dist = (fresh.sum(0).double() / M).cpu().numpy()
 
@@ -214,21 +217,21 @@ def measure(n, mem, stored, nbrain, rng, protocol):
         ib = rng.integers(0, M, npair)
         keep = ia != ib
         if keep.any():
-            ia = torch.from_numpy(ia[keep]).to(device)
-            ib = torch.from_numpy(ib[keep]).to(device)
+            ia = torch_ops.from_numpy(ia[keep]).to(device)
+            ib = torch_ops.from_numpy(ib[keep]).to(device)
             pw = _overlaps(Ks, ia, ib).mean(0).double().cpu().numpy()
     pw_x = pw / (K / n)
 
     # -- half-cue rank-1, frozen (the probe equivalent)
     samp = rng.choice(M, min(protocol.recall_sample, M), replace=False)
-    off = (torch.arange(nbrain, device=device, dtype=torch.int64)
+    off = (torch_ops.arange(nbrain, device=device, dtype=torch_ops.int64)
            * n).view(1, nbrain, 1)
     flat = (St + off).reshape(-1)                    # [M*B*K], built once
-    hits = torch.zeros(nbrain, dtype=torch.int64, device=device)
+    hits = torch_ops.zeros(nbrain, dtype=torch_ops.int64, device=device)
     for a in samp:
         rec = mem.recall(St[a][:, : K // 2],
                          masked=(protocol.refracted and protocol.readout == "masked"))
-        mask = torch.zeros(nbrain * n, dtype=torch.bool, device=device)
+        mask = torch_ops.zeros(nbrain * n, dtype=torch_ops.bool, device=device)
         mask[(rec + off[0]).reshape(-1)] = True
         # ONE gather for all M stored assemblies, instead of M gathers.
         ov = mask[flat].view(M, nbrain, K).sum(2)    # [M, B]
@@ -377,7 +380,7 @@ def experiment(record):
 
 
 def main(argv=None):
-    ap = experiment_parser(__doc__, engines=("hashed_assembly_memory",),
+    ap = experiment_parser(__doc__ or "Assembly capacity scaling", engines=("hashed_assembly_memory",),
                            default_seeds=tuple(range(42, 62)))
     ap.add_argument("--registration", required=True,
                     help="repository path to the registration/amendment for this exact protocol")
