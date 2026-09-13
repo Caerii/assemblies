@@ -56,6 +56,11 @@ MAINTAINED_FILES = (
     "research/experiments/word_capacity_run.py",
     "research/experiments/seq_a1_fsm_parity.py",
     "research/experiments/seq_a1_exactness_sweep.py",
+    # A3 transducer study and its explicitly packaged corpus helpers.
+    "research/experiments/seq_a3_transducer.py",
+    "research/experiments/study4/ntp.py",
+    "research/experiments/study4/ntp_ctx.py",
+    "research/experiments/study4/ntp_agree.py",
 )
 
 

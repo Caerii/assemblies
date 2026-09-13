@@ -10,7 +10,7 @@ from __future__ import annotations
 
 import random
 from collections import Counter
-from typing import Dict, List
+from typing import Any, Dict, List, cast
 
 import numpy as np
 
@@ -72,7 +72,7 @@ def _ov(a, b) -> float:
 def build(seed: int, words: List[str], beta: float, grounded: bool,
           engine: str = "numpy_sparse"):
     """`grounded=False` is the H3 ablation: PRED signatures come from LEX->PRED."""
-    np.random.seed(seed)
+    cast(Any, np.random).seed(seed)
     random.seed(seed)
     b = Brain(p=P, seed=seed, engine=engine)
     for w in words:

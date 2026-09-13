@@ -37,6 +37,10 @@ def test_maintained_sources_are_unique_and_include_contract_surfaces():
     assert "research/experiments/word_capacity_run.py" in normalized
     assert "research/experiments/seq_a1_fsm_parity.py" in normalized
     assert "research/experiments/seq_a1_exactness_sweep.py" in normalized
+    assert "research/experiments/seq_a3_transducer.py" in normalized
+    assert "research/experiments/study4/ntp.py" in normalized
+    assert "research/experiments/study4/ntp_ctx.py" in normalized
+    assert "research/experiments/study4/ntp_agree.py" in normalized
 
 
 def test_missing_maintained_scope_fails_before_static_analysis(tmp_path):

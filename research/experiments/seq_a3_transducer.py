@@ -26,27 +26,24 @@ prereg commits to -- it commits to running it only at or above 0.2338.
 from __future__ import annotations
 
 import json
-import os
 import random
 import sys
 import time
+from typing import Any, cast
 
 import numpy as np
 
 from neural_assemblies.assembly_calculus.assembly import overlap
 from neural_assemblies.assembly_calculus.ops import _snap
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.core._torch_ops import torch_ops
 from neural_assemblies.diagnostics import (
     ensemble_from_values, format_report, paired_delta, regime_audit,
 )
 from neural_assemblies.programs.sequence_transducer import SequenceTransducer
 
-_HERE = os.path.dirname(os.path.abspath(__file__))
-sys.path.insert(0, os.path.join(_HERE, "study4"))
-sys.path.insert(0, _HERE)
-import ntp  # noqa: E402
-import ntp_ctx  # noqa: E402
-from _parallel import run_cells  # noqa: E402
+from research.experiments.study4 import ntp, ntp_ctx  # noqa: E402
+from research.experiments._parallel import run_cells  # noqa: E402
 
 N, K, P, BETA = ntp.N, ntp.K, ntp.P, ntp.BETA
 TRAIN_ROUNDS, GROUND_ROUNDS = ntp.TRAIN_ROUNDS, ntp.GROUND_ROUNDS
@@ -70,7 +67,7 @@ REGISTER_BLIND = False
 
 def _gen():
     if CORPUS == "chain":
-        import ntp_agree
+        from research.experiments.study4 import ntp_agree
         ntp_agree.use_chain(True, gap=CHAIN_GAP)
         return ntp_agree
     return ntp
@@ -95,7 +92,7 @@ def _corpora_study4(seed):
 
 def build(seed, *, n_arc, beta, organ_p=ORGAN_P):
     random.seed(seed)
-    np.random.seed(seed)
+    cast(Any, np.random).seed(seed)
     words, tr, te = corpora(seed)
     brain = Brain(p=P, seed=seed, engine="numpy_sparse")
     t = SequenceTransducer(brain, words, n=N, n_arc=n_arc, k=K, beta=beta,
@@ -187,7 +184,7 @@ def a3_mechanism(seed, *, n_arc):
 def context_arm(seed):
     """#14's CONTEXT arm, re-run so H1 is paired rather than quoted."""
     random.seed(seed)
-    np.random.seed(seed)
+    cast(Any, np.random).seed(seed)
     return ntp_ctx.run(seed, BETA, vocab_size=VOCAB_SIZE, n_train=N_TRAIN,
                        n_test=N_TEST, engine="numpy_sparse")
 
@@ -360,13 +357,12 @@ def _schedules(per_brain, wi):
                 W.append(wi[a]); T.append(wi[nxt]); St.append(j == 0)
         rows.append((W, T, St))
     S = max(len(r[0]) for r in rows)
-    import torch
-    W = torch.full((len(rows), S), -1, dtype=torch.int64)
-    T = torch.full((len(rows), S), -1, dtype=torch.int64)
-    St = torch.zeros(len(rows), S, dtype=torch.bool)
+    W = torch_ops.full((len(rows), S), -1, dtype=torch_ops.int64)
+    T = torch_ops.full((len(rows), S), -1, dtype=torch_ops.int64)
+    St = torch_ops.zeros(len(rows), S, dtype=torch_ops.bool)
     for b, (w, t, st) in enumerate(rows):
-        W[b, :len(w)] = torch.tensor(w); T[b, :len(t)] = torch.tensor(t)
-        St[b, :len(st)] = torch.tensor(st)
+        W[b, :len(w)] = torch_ops.tensor(w); T[b, :len(t)] = torch_ops.tensor(t)
+        St[b, :len(st)] = torch_ops.tensor(st)
     return W, T, St
 
 
@@ -384,7 +380,6 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
     if collect_arcs:
         raise ValueError("TM-9 mechanism collection is invalid: pooled positions include agreement words; "
                          "see research/notes/sequence/AUDIT_temporal_position_pooling.md")
-    import torch
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
     words = _gen().vocabulary(VOCAB_SIZE)
     wi = {w: i for i, w in enumerate(words)}
@@ -429,19 +424,18 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
             if collect_margin:
                 # the arc's MEMBER MARGIN: min net drive of a winner minus max
                 # net drive of a non-winner, over the best outsider's drive
-                raw = torch.zeros(len(group), t.n_arc, device="cuda")
+                raw = torch_ops.zeros(len(group), t.n_arc, device="cuda")
                 t.lex_arc.contribute(raw, t.lex.winners)
                 t.state_arc.contribute(raw, t.state.winners)
                 net = t.arc.apply_bias(raw)
                 w = t.arc.winners.clamp_min(0)
                 wmin = net.gather(1, w).min(1).values
-                mask = torch.zeros_like(net, dtype=torch.bool).scatter_(1, w, True)
+                mask = torch_ops.zeros_like(net, dtype=torch_ops.bool).scatter_(1, w, True)
                 omax = net.masked_fill(mask, -1e9).max(1).values
                 for b in range(len(group)):
                     if bool(live[b]):
                         margins[b].append(float((wmin[b] - omax[b]) / omax[b].clamp_min(1e-6)))
-            if collect_state:
-                sw = t.state.winners.cpu()
+            sw = t.state.winners.cpu() if collect_state else None
             emitted = t.emit()
             ranked = t.rank(emitted, rng)
             for b in range(len(group)):
@@ -451,7 +445,7 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
                     pos[b] = 0
                 truth = words[int(Tt[b, step])]
                 rr[b] += 1.0 / (ranked[b].index(truth) + 1); cnt[b] += 1
-                if collect_state:
+                if sw is not None:
                     states[b].setdefault(pos[b], []).append(set(sw[b].tolist()))
                 if collect_arcs:
                     w = words[int(Wt[b, step])]
@@ -477,7 +471,7 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
               f"({len(group)} brains, {W.shape[1]} train steps)  "
               f"[{time.perf_counter() - t0:.0f}s]", flush=True)
         del t
-        torch.cuda.empty_cache()
+        torch_ops.cuda.empty_cache()
     return mrr, ovl
 
 
@@ -509,6 +503,7 @@ def main_hashed(seeds, cells=N_ARC_SWEEP, with_context=True):
     best_n = max(cells_e, key=lambda na: cells_e[na].mean)
     best = cells_e[best_n]
     print(f"\n    best cell by mean: n_arc={best_n}")
+    delta = None
     if with_context:
         print("\n  [CONTEXT] #14's accumulator (numpy), the same seeds, in a pool")
         r = run_cells(worker, [("context", s, 0, BETA) for s in seeds])
@@ -537,7 +532,7 @@ def main_hashed(seeds, cells=N_ARC_SWEEP, with_context=True):
         "H3 beats bigram optimum": best.beats(BIGRAM),
         "H4 state does not collapse": h4.high < 0.5,
     }
-    if with_context:
+    if with_context and delta is not None:
         verdicts["H1 beats #14 CONTEXT (paired)"] = delta.low > 0.0
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
@@ -592,7 +587,7 @@ def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000, gap=1, gain=1.0):
     bigram and oracle (ntp_agree.oracle_gap)."""
     global CORPUS, CHAIN_GAP, SUCCESSOR_GAIN
     CORPUS, CHAIN_GAP, SUCCESSOR_GAIN = "chain", int(gap), float(gain)
-    import ntp_agree
+    from research.experiments.study4 import ntp_agree
     ntp_agree.use_chain(True, gap=CHAIN_GAP)
     print(f"    gap {CHAIN_GAP}, successor gain {SUCCESSOR_GAIN}")
     print("=== successor state on the chain corpus (PREREG_successor_state.md) ===")
@@ -645,7 +640,7 @@ def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2, mechanism=Fa
     neurons win at gain g, on the chain corpus; state-blind audit per g."""
     global CORPUS, CHAIN_GAP, STATE_MODE, PREDICT_GAIN
     CORPUS, CHAIN_GAP, STATE_MODE = "chain", int(gap), "copy"
-    import ntp_agree
+    from research.experiments.study4 import ntp_agree
     ntp_agree.use_chain(True, gap=CHAIN_GAP)
     print(f"=== temporal memory on the chain corpus, gap {CHAIN_GAP} (PREREG_temporal_memory.md) ===")
     base = {s: ntp_agree.oracle_gap(s) for s in seeds}
@@ -696,7 +691,7 @@ def _number_of(word):
     """The chain corpus's number of a word's sentence: every word carries
     the subject's number except the distractor nouns, whose number is their
     own; the SUBJECT number of a sentence is read from its first word."""
-    import ntp_agree
+    from research.experiments.study4 import ntp_agree
     return ntp_agree.CLASS[word].split("_")[1]
 
 
@@ -730,7 +725,7 @@ def _historical_pooled_arc_overlaps(arcs_by_pos):
 def _feature_tables(words):
     """(gated, ungated) feature_of tables on the chain corpus: gated writes
     only from the agreeing classes; ungated from every number-marked word."""
-    import ntp_agree
+    from research.experiments.study4 import ntp_agree
     gated, ungated = {}, {}
     for w in words:
         c = ntp_agree.CLASS[w]
@@ -746,7 +741,7 @@ def main_register(seeds, n_arc=10000, gap=2):
     register, register-blind, and the ungated register."""
     global CORPUS, CHAIN_GAP, REGISTER, REGISTER_BLIND
     CORPUS, CHAIN_GAP = "chain", int(gap)
-    import ntp_agree
+    from research.experiments.study4 import ntp_agree
     ntp_agree.use_chain(True, gap=CHAIN_GAP)
     words = ntp_agree.vocabulary(VOCAB_SIZE)
     gated, ungated = _feature_tables(words)

@@ -9,15 +9,16 @@ CONTEXT resets between SENTENCES, not between words.
 """
 from __future__ import annotations
 import random
-from typing import Dict, List
+from typing import Any, cast
+from typing import Dict
 import numpy as np
 from neural_assemblies.core.brain import Brain
-from ntp import (N, K, P, TRAIN_ROUNDS, GROUND_ROUNDS, SETTLE_ROUNDS,
+from .ntp import (N, K, P, TRAIN_ROUNDS, GROUND_ROUNDS, SETTLE_ROUNDS,
                  vocabulary, generate, _snap, _ov)
 
 
 def build(seed, words, beta, rec_beta=None, engine="numpy_sparse"):
-    np.random.seed(seed); random.seed(seed)
+    cast(Any, np.random).seed(seed); random.seed(seed)
     b = Brain(p=P, seed=seed, engine=engine)
     for w in words:
         b.add_stimulus(f"s_{w}", K); b.add_stimulus(f"g_{w}", K)
@@ -99,6 +100,7 @@ def run(seed, beta, vocab_size=50, n_train=200, n_test=25, ctx_probe=False,
                 ctx_recurrent_read=rec_read)
     if not ctx_probe:
         return mrr
+    assert ctx is not None
     ovs = []
     for pos, arrs in ctx.items():
         for i in range(min(len(arrs), 12)):
