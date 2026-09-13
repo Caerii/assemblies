@@ -560,7 +560,8 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'refraction-convergence': 'research.experiments.refraction_convergence',
                'presentation-schedule': 'research.experiments.presentation_schedule',
                'refraction-period-law': 'research.experiments.refraction_period_law',
-               'episode-tenure': 'research.experiments.episode_tenure'}
+               'episode-tenure': 'research.experiments.episode_tenure',
+               'autonomous-chain': 'research.experiments.autonomous_chain'}
 
 
 def main(argv=None):
