@@ -141,6 +141,17 @@ _RESULTS: List[Result] = [
     # ---------------------------------------------------------------- sequences
     Result(
         id="SEQ-TIME-IN-WEIGHTS",
+        evidence=("demonstrated locally by the autonomous chain "
+                  "(PREREG_autonomous_chain.md, autonomous-chain-20260913): a "
+                  "chain driven by ONE CONSTANT symbol is recalled exactly to "
+                  "128 assemblies on 20 of 20 brains. The symbol carries no "
+                  "information, so every advance is carried by the directed "
+                  "weights alone; there is no accumulator and no decaying "
+                  "trace anywhere in the construction",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json", "artifact"),
+            EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
+        ),
         status=Status.PROVED,
         claim="Sequence/temporal structure is carried by DIRECTED inter-assembly "
               "weights, not by an accumulator or a decaying trace.",
@@ -183,6 +194,11 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="SEQ-BETA-WINDOW",
+        provenance_gap="Nothing in this repository measures the window. The "
+                       "entry is the paper's analysis; the non-monotone recall "
+                       "it explains is an observation in a note rather than a "
+                       "registered measurement, and no bar has been set on "
+                       "where either edge of the window lies.",
         status=Status.PROVED,
         claim="Sequence learning needs beta in a WINDOW: large enough to write a "
               "transition in finite presentations, small enough that the "
@@ -215,8 +231,22 @@ _RESULTS: List[Result] = [
               "with the state update during training -- a transducer.",
         source="Dabagia et al. (arXiv:2306.03812), Remark 5.",
         preconditions=("[[SEQ-FSM]]",),
-        caveat="NOT YET BUILT HERE. Our stateless next-token model scoring "
-               "exactly the bigram optimum is the degenerate one-state case.",
+        evidence=("neural_assemblies/programs/sequence_transducer.py: "
+                  "LEX + SEQ_STATE -> SEQ_ARC -> SEQ_STATE with SEQ_ARC -> OUT, "
+                  "the FSM plus one output area fired with the state update, "
+                  "state INDUCED rather than assigned; tested by "
+                  "test_sequence_transducer.py and ported to the hashed "
+                  "substrate with its own parity test",
+                  "measured through [[SEQ-TEMPORAL-CARRY]], whose adopted "
+                  "numbers come from this construction"),
+        implemented_by=("neural_assemblies/programs/sequence_transducer.py",
+                        "neural_assemblies/core/torch_engine/_hashed_transducer.py"),
+        caveat="Caveat corrected 2026-09-13 by a provenance pass: it read "
+               "'NOT YET BUILT HERE', which was stale. The transducer IS built, "
+               "tested and ported, and [[SEQ-TEMPORAL-CARRY]] is measured on "
+               "it. What remains true is that our STATELESS next-token model, "
+               "which scores exactly the bigram optimum, is the degenerate "
+               "one-state case.",
     ),
     Result(
         id="SEQ-TM",
@@ -225,7 +255,16 @@ _RESULTS: List[Result] = [
               "cycles, about ten areas in total.",
         source="Dabagia et al. (arXiv:2306.03812), Thm 7.",
         preconditions=("[[SEQ-FSM]]", "unbounded tape areas"),
-        caveat="NOT BUILT HERE. [[SEQ-EXACT-RECOVERY]] gives unbounded TIME with "
+        evidence=("neural_assemblies/programs/tm_demo.py: a MINIMAL unary "
+                  "increment machine over FSMNetwork plus FiberCircuit tape "
+                  "areas, exercised by test_literature_parity.py -- the shape "
+                  "of the construction at its smallest nontrivial size, not "
+                  "the general theorem",),
+        implemented_by=("neural_assemblies/programs/tm_demo.py",),
+        caveat="Caveat corrected 2026-09-13 by a provenance pass: it read "
+               "'NOT BUILT HERE'. A minimal unary-increment demo IS built and "
+               "tested; the general roughly-ten-area construction is not. "
+               "[[SEQ-EXACT-RECOVERY]] gives unbounded TIME with "
                "fixed memory, which is the control half only -- it does not by "
                "itself confer more than finite-automaton power.",
     ),
