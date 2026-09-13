@@ -605,3 +605,62 @@ It does NOT settle:
    projection-formed; these are not.
 3. **Higher load.** The sweep stops at 4.03 states per neuron. Nothing here
    says where it would break, only that 4.03 is not enough.
+
+## Amendment 4 (2026-09-13, registered before running): collision where there is NO margin
+
+Amendment 2's null was measured at a cell that is 20 of 20 exact with room to
+spare. A treatment that costs nothing where there is slack can still be
+decisive where there is none, and the registration listed that as the first
+thing its result does not settle. This runs the same sweep at a MARGINAL cell.
+
+**The cell.** `n_arc = 2000, L = 256`, which gave exactly 14 of 20 exact on
+both independent seed blocks of the limit grid -- high enough that a cost shows
+as a drop, low enough that it is not at ceiling and can move in either
+direction. It is the most stable marginal point in the grid.
+
+Same six arms: the disjoint block code, plus random `k`-subsets in areas
+64000 down to 4000. A chain of length 256 has 257 states, so a disjoint code
+needs 25700 neurons: **64000 and 32000 are roomy, 16000, 8000 and 4000 force
+overlap.** Load `(L + 1) k / n_state` runs 0.40, 0.80, 1.61, 3.21 and 6.42 --
+reaching HALF AGAIN the crowding Amendment 2's tightest arm achieved, because
+the same areas now hold a longer chain.
+
+SC-1 to SC-7 are stated for a cell at ceiling and their thresholds are wrong
+here by construction -- SC-1 demands 20 of 20 from an arm that is 14 of 20 by
+design, so it would fail on the cell rather than on the science. Amendment 4
+gets its own bars, and SC-1 to SC-7 are not evaluated in this mode.
+
+- **MC-1, the cell is the marginal one it was chosen for.** The disjoint-block
+  arm is between 8 and 18 of 20 exact. The grid measured 14 twice, at a state
+  area of 51300; this runs at 64000, so the band is generous rather than tight.
+  If MC-1 fails the cell is not the one these bars are about and MC-2 to MC-5
+  are not interpretable.
+- **MC-2, collision at the margin is COSTLY.** The tightest area loses at least
+  5 brains against the disjoint arm. This is the directional prediction
+  Amendment 2 could not test.
+- **MC-3, the cost orders by crowding.** Every crowded arm is at most every
+  roomy arm in exact brains. Stated as an ordering between groups rather than
+  strict monotonicity among neighbours, because five counts of 20 carry
+  binomial noise of about 2 and a strict chain would fail on that alone.
+- **MC-4, it is the states and not the arc.** Arc overlap moves by less than
+  0.05 between the roomiest and tightest random arms.
+- **MC-5, a roomy random code is still as good as blocks**, within 4 brains.
+  Randomness per se must not be the thing that costs.
+
+### What each outcome means, stated in advance
+
+**MC-2 passes:** state collision is real and Amendment 2's null was a ceiling
+effect. The chain tolerates collision only while it has margin, and this
+repository's sequence results DO depend on the teacher-forced code once the
+chain is worked near its limit. That would reinstate state formation as a
+candidate for the papers' 20-to-40 limit.
+
+**MC-2 fails:** the stronger and more surprising result. Collision is costless
+even with no margin and at load 6.42, which would say the disjoint code is not
+doing the work anywhere we have looked, and that the sequence line transfers to
+the papers' setting without qualification on this axis. Amendment 2's null
+would then generalise rather than being a ceiling artifact.
+
+Either way the third limit stands and is NOT addressed here: random `k`-subsets
+are uncorrelated, and projection forms assemblies whose overlap tracks input
+similarity. Correlated collision remains unmeasured.

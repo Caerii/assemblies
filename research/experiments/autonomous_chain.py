@@ -108,6 +108,18 @@ STATE_ARM_SPECS = {name: (STATE_L, PRESENTATIONS, 1.0, LIMIT_P, STATE_ARC)
 STATE_ROOMY = tuple(n for n in STATE_AREAS if n >= (STATE_L + 1) * K)
 STATE_CROWDED = tuple(n for n in STATE_AREAS if n < (STATE_L + 1) * K)
 
+#: Amendment 4. Amendment 2 ran where the chain has MARGIN (20/20 exact with
+#: room), and a treatment that costs nothing where there is slack can still be
+#: decisive where there is none. This is the same sweep at the most stable
+#: MARGINAL cell in the limit grid: n_arc = 2000, L = 256, which gave exactly
+#: 14 of 20 exact on two independent seed blocks -- high enough that a cost
+#: would show as a drop, low enough that it is not at ceiling.
+MARGIN_L, MARGIN_ARC = 256, 2000
+MARGIN_ARM_SPECS = {name: (MARGIN_L, PRESENTATIONS, 1.0, LIMIT_P, MARGIN_ARC)
+                    for name in STATE_SPECS}
+MARGIN_ROOMY = tuple(n for n in STATE_AREAS if n >= (MARGIN_L + 1) * K)
+MARGIN_CROWDED = tuple(n for n in STATE_AREAS if n < (MARGIN_L + 1) * K)
+
 
 def state_code(seeds, n_state, kind, n_states, k, device):
     """[n_states, k] compact indices: disjoint blocks, or random k-subsets.
@@ -326,9 +338,12 @@ def experiment(record):
         raise ValueError(f"study seeds must be one registered block of {SEED_BLOCKS}, not {seeds}")
     arms = {}
     limit_mode = bool(p.get("limit_mode"))
-    states_mode = bool(p.get("states_mode"))
-    specs = (STATE_ARM_SPECS if states_mode
-             else (LIMIT_SPECS if limit_mode else ARM_SPECS))
+    margin_mode = bool(p.get("margin_mode"))
+    states_mode = bool(p.get("states_mode")) or margin_mode
+    cell_L = MARGIN_L if margin_mode else STATE_L
+    specs = (MARGIN_ARM_SPECS if margin_mode
+             else (STATE_ARM_SPECS if states_mode
+                   else (LIMIT_SPECS if limit_mode else ARM_SPECS)))
     for name in p["arms"]:
         spec = specs[name]
         length, presentations, ratio, density = spec[:4]
@@ -400,14 +415,15 @@ def experiment(record):
             "arc_overlap_by_arm": {k: v["arc_overlap"]["mean"] for k, v in arms.items()},
             "kinds_by_arm": {k: v["kinds"] for k, v in arms.items()},
             "arc_overlap_gap": arc_gap, "state_overlap_gap": state_gap,
-            "disjoint_needs": (STATE_L + 1) * K,
-            "roomy": list(STATE_ROOMY), "crowded": list(STATE_CROWDED),
+            "disjoint_needs": (cell_L + 1) * K,
+            "roomy": [n for n in STATE_AREAS if n >= (cell_L + 1) * K],
+            "crowded": [n for n in STATE_AREAS if n < (cell_L + 1) * K],
             # the crowding VARIABLE. Two random k-subsets of n overlap at k/n
             # as a fraction of k, which is 0.0016 to 0.025 across this sweep --
             # a 16-fold change that is nowhere near SC-4's 0.05 threshold. Load
             # is how many states share the average neuron, and it moves 0.25 to
             # 4.03 over the same arms.
-            "state_load_by_arm": {name: (STATE_L + 1) * K / STATE_SPECS[name][0]
+            "state_load_by_arm": {name: (cell_L + 1) * K / STATE_SPECS[name][0]
                                   for name in arms},
         }
         bars = {
@@ -437,6 +453,28 @@ def experiment(record):
                 arc_gap < 0.05
                 and exact_of(tightest) < exact_of(roomiest),
         }
+        if margin_mode:
+            # Amendment 4. SC-1..SC-7 are stated for a cell at CEILING and
+            # their thresholds are wrong here by construction: the blocks arm
+            # is 14/20 by design, so SC-1's "20/20" would fail on the cell
+            # rather than on the science. These ask the same questions where
+            # the chain has no margin to spend.
+            blocks = f"blocks-n{STATE_AREAS[0]}"
+            roomy_arms = [f"random-n{n}" for n in MARGIN_ROOMY]
+            crowded_arms = [f"random-n{n}" for n in MARGIN_CROWDED]
+            bars = {
+                "MC-1 the cell is the marginal one it was chosen for: blocks arm between 8 and 18 of 20 exact":
+                    8 <= exact_of(blocks) <= 18,
+                "MC-2 collision at the margin is COSTLY: the tightest area loses at least 5 brains against blocks":
+                    exact_of(blocks) - exact_of(tightest) >= 5,
+                "MC-3 the cost orders by crowding: every crowded arm at most every roomy arm":
+                    all(exact_of(c) <= exact_of(r)
+                        for c in crowded_arms for r in roomy_arms),
+                "MC-4 it is the states and not the arc: arc overlap moves < 0.05 across the random arms":
+                    arc_gap < 0.05,
+                "MC-5 a roomy random code is still as good as blocks: within 4 brains":
+                    abs(exact_of(roomiest) - exact_of(blocks)) <= 4,
+            }
         bars = {name: bool(ok) for name, ok in bars.items()}
         for name, ok in bars.items():
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
@@ -595,15 +633,18 @@ def main(argv=None):
                         help="run Amendment 1's fixed-grid chain-length cells")
     parser.add_argument("--states", action="store_true",
                         help="run Amendment 2's collidable-state cells")
+    parser.add_argument("--margin", action="store_true",
+                        help="run Amendment 4's collidable states at the MARGINAL cell")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    if args.limit and args.states:
-        parser.error("--limit and --states are different amendments; run one")
-    specs = (STATE_ARM_SPECS if args.states
-             else (LIMIT_SPECS if args.limit else ARM_SPECS))
+    if sum(map(bool, (args.limit, args.states, args.margin))) > 1:
+        parser.error("--limit, --states and --margin are different amendments; run one")
+    specs = (MARGIN_ARM_SPECS if args.margin
+             else (STATE_ARM_SPECS if args.states
+                   else (LIMIT_SPECS if args.limit else ARM_SPECS)))
     names = list(SMOKE_ARMS if args.smoke else specs)
     parameters = {"n_arc": N_ARC, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "strength_ratio": 1.0, "max_potentiations": MAX_POTENTIATIONS,
@@ -611,8 +652,9 @@ def main(argv=None):
                   "arm_specs": {k: list(v) for k, v in specs.items() if k in names},
                   "limit_mode": bool(args.limit),
                   "states_mode": bool(args.states),
+                  "margin_mode": bool(args.margin),
                   "state_specs": ({k: list(v) for k, v in STATE_SPECS.items()}
-                                  if args.states else None),
+                                  if (args.states or args.margin) else None),
                   "n_state_fixed": (N_STATE_FIXED if args.limit else None),
                   "device": args.device}
     profiles = {name: profile_for(specs[name][2]) for name in names}
