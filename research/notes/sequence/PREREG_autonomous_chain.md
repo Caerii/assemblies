@@ -945,3 +945,35 @@ the state area is not where the sequence limit lives at all.
 
 **AB-2 fails:** the arc is not sufficient, "margin" is something else, and the
 next variable to isolate is chain length at fixed arc size.
+
+## Instrument note (2026-09-13): Amendment 6's first launch measured everything and then crashed
+
+`chain-arcb-20260913` produced `failure.json`, not `results.json`, so it is VOID
+as a recorded result and the amendment is re-run. The failure is worth writing
+down because it is the same defect class I had just refactored away, firing from
+a site the refactor did not reach.
+
+    KeyError: 'blocks-n64000'
+      at  exact_of(f"blocks-n{STATE_AREAS[0]}")   # SC-1
+
+The state CODE lookup by arm name was removed and replaced by specs that carry
+their own `(n_state, kind)`. But the BARS still named arms by hand, and the SC
+dict was built **eagerly** before the mode branches overrode it -- so entering
+any other mode still evaluated SC-1, which names an arm only the plain states
+mode has. All six arms measured; the run died at the bar evaluation.
+
+The design test added alongside the refactor asserted that every arm SPEC
+carries its code. It passed, and it could not have caught this: the specs were
+fine, the bars were not.
+
+**Fixed structurally rather than patched**: the SC dict is now the `else` of the
+mode chain, so no mode can evaluate another's bars. **And pinned by the test
+that would actually have caught it** -- `experiment()` is called for all four
+modes with `run_arm` stubbed out, in both an all-passing and an all-failing
+variant, since the failing path reaches different code (edge cells, medians,
+failure kinds). A bar block that names an absent arm now fails in under a
+second at desk rather than after a GPU run.
+
+**The measurements from the voided launch are reported nowhere as a result.**
+They will be reproduced by the re-run under the same registration and the same
+seeds, and only that artifact is cited.

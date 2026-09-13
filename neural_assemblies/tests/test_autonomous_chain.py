@@ -9,6 +9,8 @@ from __future__ import annotations
 
 import unittest
 
+import pytest
+
 from research.experiments.autonomous_chain import (
     ARM_SPECS, ARMS, BETA, K, N_ARC, P, PRESENTATIONS, TICK,
     chain_table, consecutive_correct,
@@ -204,3 +206,76 @@ def test_the_load_sweep_brackets_the_load_that_killed_the_marginal_cell():
     matched = need / LOAD_ARM_SPECS[LOAD_MATCHED][5]
     assert abs(matched - 6.42) < 0.05, (
         f"{LOAD_MATCHED} is load {matched:.2f}, not the marginal cell's 6.42")
+
+
+# --- every mode must evaluate its bars without touching an absent arm --------
+
+def _fake_record(mode_key, specs, seeds=tuple(range(62, 82))):
+    """A runner record for one amendment, with no device in sight."""
+    from research.experiments.autonomous_chain import profile_for
+    names = list(specs)
+    return {
+        "mode": "study",
+        "seeds": list(seeds),
+        "parameters": {"arms": names, "device": "cpu", mode_key: True},
+        "execution_semantics": {"profiles": {n: profile_for(specs[n][2])
+                                             for n in names}},
+    }
+
+
+def _stub_run_arm(monkeypatch, correct):
+    """Replace the device call with rows that carry every field the bars read."""
+    import research.experiments.autonomous_chain as ac
+
+    def fake(seeds, length, presentations, ratio, density, *, device,
+             organ_semantics, n_arc=None, n_state=None, code=None):
+        rows = [{"seed": int(s), "correct": correct(length), "total_correct": correct(length),
+                 "first_error": None if correct(length) >= length else correct(length),
+                 "first_error_fraction": (None if correct(length) >= length
+                                          else correct(length) / length),
+                 "landed_on": None if correct(length) >= length else 1,
+                 "follow_after": None, "kind": "exact" if correct(length) >= length else "stall",
+                 "arc_overlap": 0.05, "visited": list(range(1, length + 1))}
+                for s in seeds]
+        return rows, int(n_state or 64000), 0.01
+    monkeypatch.setattr(ac, "run_arm", fake)
+
+
+@pytest.mark.parametrize("mode_key,specs_name", [
+    ("states_mode", "STATE_ARM_SPECS"),
+    ("margin_mode", "MARGIN_ARM_SPECS"),
+    ("load_mode", "LOAD_ARM_SPECS"),
+    ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
+])
+def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
+        monkeypatch, mode_key, specs_name):
+    """The defect this pins cost a full GPU run.
+
+    Amendment 6 measured all six arms and then died with KeyError
+    'blocks-n64000' because the SC bar dict was built EAGERLY before the mode
+    branches overrode it, and SC-1 names an arm only the plain states mode has.
+    The arm-spec test did not catch it: the specs were fine, the BARS were not.
+    This calls experiment() for every mode with the device stubbed out, which
+    is the only thing that would have.
+    """
+    import research.experiments.autonomous_chain as ac
+    specs = getattr(ac, specs_name)
+    _stub_run_arm(monkeypatch, correct=lambda L: L)
+    out = ac.experiment(_fake_record(mode_key, specs))
+    assert out["bars"], f"{specs_name} produced no bars"
+    assert all(isinstance(v, bool) for v in out["bars"].values())
+    assert set(out["arms"]) == set(specs)
+
+
+@pytest.mark.parametrize("mode_key,specs_name", [
+    ("margin_mode", "MARGIN_ARM_SPECS"),
+    ("load_mode", "LOAD_ARM_SPECS"),
+    ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
+])
+def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
+    """The failing path reaches different code: edge cells, medians, kinds."""
+    import research.experiments.autonomous_chain as ac
+    specs = getattr(ac, specs_name)
+    _stub_run_arm(monkeypatch, correct=lambda L: L // 2)
+    out = ac.experiment(_fake_record(mode_key, specs))
+    assert out["bars"]

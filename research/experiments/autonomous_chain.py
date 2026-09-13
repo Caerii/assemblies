@@ -481,33 +481,6 @@ def experiment(record):
             "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
                                   for n, a in arms.items()},
         }
-        bars = {
-            "SC-1 the decoder is not the treatment: 20/20 exact with disjoint blocks through the overlap decoder":
-                exact_of(f"blocks-n{STATE_AREAS[0]}") == len(seeds),
-            "SC-2 a roomy random code is as good as a disjoint one: 20/20 exact at the largest area":
-                exact_of(roomiest) == len(seeds),
-            "SC-3 crowding the states breaks the chain: fewer than 5/20 exact at the smallest area":
-                exact_of(tightest) < 5,
-            "SC-4 it is the states and not the arc: arc overlap moves < 0.05, state overlap moves > 0.05":
-                arc_gap < 0.05 and state_gap > 0.05,
-            # AS REGISTERED. This is AL-1's statistic and inherits its defect:
-            # it is position-locked, so it cannot tell a wrap from a death and
-            # it fires on a single coincidence. Kept so the registration is
-            # answered; SC-6 is the question it was reaching for.
-            "SC-5 the break is a chain death (AS REGISTERED, position-locked)":
-                all(r["total_correct"] == r["correct"]
-                    for a in broken for r in a["rows"] if r["correct"] < a["length"]),
-            "SC-6 the break is a chain death (CLASSIFIED): no broken arm is mostly wraps":
-                all(a["kinds"].get("wrap", 0) <= (len(seeds) - a["exact_brains"]) / 2
-                    for a in broken),
-            # SC-4 asks its question with a statistic its own treatment cannot
-            # move far enough; this asks it with the one that can. The arc is
-            # held identical by construction, so if exactness tracks LOAD while
-            # arc overlap does not move, the effect is in the states.
-            "SC-7 it is the states and not the arc, measured on LOAD: arc overlap moves < 0.05 while exactness falls with load":
-                arc_gap < 0.05
-                and exact_of(tightest) < exact_of(roomiest),
-        }
         if arcb_mode:
             # Amendment 6. Graded measure throughout, as Amendment 5.
             def frac(name):
@@ -581,6 +554,37 @@ def experiment(record):
                     arc_gap < 0.05,
                 "MC-5 a roomy random code is still as good as blocks: within 4 brains":
                     abs(exact_of(roomiest) - exact_of(blocks)) <= 4,
+            }
+        else:
+            # the plain states mode. These name blocks-n64000 and the
+            # module's area tuple, which exist only in THIS mode -- the
+            # reason the dict has to be a branch and not a default.
+            bars = {
+                "SC-1 the decoder is not the treatment: 20/20 exact with disjoint blocks through the overlap decoder":
+                    exact_of(f"blocks-n{STATE_AREAS[0]}") == len(seeds),
+                "SC-2 a roomy random code is as good as a disjoint one: 20/20 exact at the largest area":
+                    exact_of(roomiest) == len(seeds),
+                "SC-3 crowding the states breaks the chain: fewer than 5/20 exact at the smallest area":
+                    exact_of(tightest) < 5,
+                "SC-4 it is the states and not the arc: arc overlap moves < 0.05, state overlap moves > 0.05":
+                    arc_gap < 0.05 and state_gap > 0.05,
+                # AS REGISTERED. This is AL-1's statistic and inherits its defect:
+                # it is position-locked, so it cannot tell a wrap from a death and
+                # it fires on a single coincidence. Kept so the registration is
+                # answered; SC-6 is the question it was reaching for.
+                "SC-5 the break is a chain death (AS REGISTERED, position-locked)":
+                    all(r["total_correct"] == r["correct"]
+                        for a in broken for r in a["rows"] if r["correct"] < a["length"]),
+                "SC-6 the break is a chain death (CLASSIFIED): no broken arm is mostly wraps":
+                    all(a["kinds"].get("wrap", 0) <= (len(seeds) - a["exact_brains"]) / 2
+                        for a in broken),
+                # SC-4 asks its question with a statistic its own treatment cannot
+                # move far enough; this asks it with the one that can. The arc is
+                # held identical by construction, so if exactness tracks LOAD while
+                # arc overlap does not move, the effect is in the states.
+                "SC-7 it is the states and not the arc, measured on LOAD: arc overlap moves < 0.05 while exactness falls with load":
+                    arc_gap < 0.05
+                    and exact_of(tightest) < exact_of(roomiest),
             }
         bars = {name: bool(ok) for name, ok in bars.items()}
         for name, ok in bars.items():
