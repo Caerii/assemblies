@@ -28,25 +28,25 @@ def fixed_assembly_recip_proj(n=100000, k=317, p=0.01, beta=0.05):
     # Will project fixes A into B
     b.add_area("B", n, k, beta)
     b.project({"stimA": ["A"]}, {})
-    print("A.w=" + str(b.areas["A"].w))
+    print("A.w=" + str(b.areas["A"].recruited_count))
     for _i in range(20):
         b.project({"stimA": ["A"]}, {"A": ["A"]})
-        print("A.w=" + str(b.areas["A"].w))
+        print("A.w=" + str(b.areas["A"].recruited_count))
     # Freeze assembly in A and start projecting A <-> B
     b.areas["A"].fix_assembly()
     b.project({}, {"A": ["B"]})
     for _i in range(20):
         b.project({}, {"A": ["B"], "B": ["A", "B"]})
-        print("B.w=" + str(b.areas["B"].w))
+        print("B.w=" + str(b.areas["B"].recruited_count))
     # If B has stabilized, this implies that the A->B direction is stable.
     # Therefore to test that this "worked" we should check that B->A restores A
-    print("Before B->A, A.w=" + str(b.areas["A"].w))
+    print("Before B->A, A.w=" + str(b.areas["A"].recruited_count))
     b.areas["A"].unfix_assembly()
     b.project({}, {"B": ["A"]})
-    print("After B->A, A.w=" + str(b.areas["A"].w))
+    print("After B->A, A.w=" + str(b.areas["A"].recruited_count))
     for _i in range(20):
         b.project({}, {"B": ["A"], "A": ["A"]})
-        print("A.w=" + str(b.areas["A"].w))
+        print("A.w=" + str(b.areas["A"].recruited_count))
     overlaps = bu.get_overlaps(b.areas["A"].saved_winners[-22:], 0, percentage=True)
     print(overlaps)
 
@@ -104,9 +104,9 @@ def separate(n=10000, k=100, p=0.01, beta=0.05, rounds=10, overlap=0):
     print(prev_w)
     for _i in range(rounds):
         b.project({}, {"EXP": ["A"], "A": ["A"]})
-        new_w = b.areas["A"].w - prev_w
+        new_w = b.areas["A"].recruited_count - prev_w
         print(new_w)
-        prev_w = b.areas["A"].w
+        prev_w = b.areas["A"].recruited_count
     stim1_assembly = b.areas["A"].winners
 
     print("PROJECTION STIM_2 INTO A....")
@@ -115,15 +115,15 @@ def separate(n=10000, k=100, p=0.01, beta=0.05, rounds=10, overlap=0):
     b.areas["EXP"].fix_assembly()
 
     b.project({}, {"EXP": ["A"]})
-    new_w = b.areas["A"].w - prev_w
+    new_w = b.areas["A"].recruited_count - prev_w
     print(new_w)
-    prev_w = b.areas["A"].w
+    prev_w = b.areas["A"].recruited_count
 
     for _i in range(rounds):
         b.project({}, {"EXP": ["A"], "A": ["A"]})
-        new_w = b.areas["A"].w - prev_w
+        new_w = b.areas["A"].recruited_count - prev_w
         print(new_w)
-        prev_w = b.areas["A"].w
+        prev_w = b.areas["A"].recruited_count
     stim2_assembly = b.areas["A"].winners
     o = bu.overlap(stim1_assembly, stim2_assembly)
     print("Got overlap of " + str(o) + " / " + str(k))

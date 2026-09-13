@@ -39,7 +39,7 @@ def larger_k(n=10000, k=100, p=0.01, beta=0.05, bigger_factor=10):
     t = 1
     while True:
         b.project({"stim": ["A"]}, {"A": ["A"]})
-        print("A total w is " + str(b.area_by_name["A"].w))
+        print("A total w is " + str(b.area_by_name["A"].recruited_count))
         if (b.area_by_name["B"].num_first_winners <= 1) and (b.area_by_name["A"].num_first_winners <= 1):
             print("proj(stim, A) stabilized after " + str(t) + " rounds")
             break
@@ -58,8 +58,8 @@ def larger_k(n=10000, k=100, p=0.01, beta=0.05, bigger_factor=10):
             break
         t += 1
     print("Final statistics")
-    print("A.w = " + str(b.area_by_name["A"].w))
-    print("B.w = " + str(b.area_by_name["B"].w))
+    print("A.w = " + str(b.area_by_name["A"].recruited_count))
+    print("B.w = " + str(b.area_by_name["B"].recruited_count))
     A_after_B = b.area_by_name["A"].saved_winners[-1]
     o = bu.overlap(A_after_proj, A_after_B)
     print("Overlap is " + str(o))

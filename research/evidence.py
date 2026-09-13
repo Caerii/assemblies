@@ -170,7 +170,8 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append('baseline and reference executions require run schema 9')
             if normalized.kind is ExecutionKind.REFERENCE:
                 declared = REFERENCE_ENGINE_PROFILES[record['engine']]()
-                if normalized.profiles['default'].mismatch(declared):
+                # The envelope normalized every profile to a record already.
+                if declared.mismatch(normalized.profiles['default']):
                     errors.append('reference profile disagrees with the declared describer')
             if normalized.kind is ExecutionKind.ORGAN:
                 expected_organ = ORGAN_ENGINE_KINDS.get(record['engine'])
@@ -284,19 +285,35 @@ def audit_history(root: Path = ROOT) -> dict:
         r"not\s+yet\s+run",
         re.IGNORECASE,
     )
+    # A closed note reports its outcome under a Result/Results/Closed heading
+    # (or an amendment that carries results). Such a note is not pending:
+    # its evidence is inline, and the audit says so as its own category, so
+    # a reader can tell "never ran" from "ran, numbers in the note only".
+    inline_markers = re.compile(
+        r"^##+\s*(?:Results?\b|Closed\b|Outcome\b|Verdict\b|Amendment\s+\d+[^\n]*\bresults?\b)",
+        re.IGNORECASE | re.MULTILINE,
+    )
+    inline_only = [
+        name for name in preregs
+        if name not in reports_results
+        and inline_markers.search(source_text.get(name, ''))
+    ]
     pending = [
         name for name in preregs
         if name not in reports_results
+        and name not in inline_only
         and pending_markers.search(source_text.get(name, ''))
     ]
     missing = [
         name for name in preregs
         if name not in reports_results and name not in pending
+        and name not in inline_only
     ]
     return {'scope': 'literal-reference inventory, not semantic validity or exhaustive dynamic reachability',
             'tracked_files': len(files), 'resolved_edges': edges, 'unresolved_references': unresolved,
             'candidate_orphan_results': [name for name in results if name not in incoming],
             'preregistrations_without_resolved_result_links': missing,
+            'preregistrations_with_inline_results_only': inline_only,
             'preregistrations_pending_results': pending}
 
 

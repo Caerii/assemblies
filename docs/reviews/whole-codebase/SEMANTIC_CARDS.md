@@ -1792,3 +1792,50 @@ trained. The corresponding control is
 ## Binding-strength readout
 
 `binding.binding_strength` replays an active source through the read-only binding recall path and computes overlap with a stored target snapshot. Both operands are stable neuron-ID Assemblies in the target area; the result is a bounded competition score. Inactive sources and snapshots from another area are invalid measurement domains, rather than numeric zeroes.
+
+## Card resolutions (2026-09-12)
+
+Each open discrepancy below now has either a regression test or a corrected
+claim; the test names are the record.
+
+- **R2 (reciprocal projection is not a bidirectional learning claim).**
+  `test_operation_semantic_cards.py::test_r2_reverse_recovery_distinguishes_a_dead_return_edge`:
+  with the T->A fiber's learning disabled and forward training and recall
+  left live, reverse recovery of A from T alone falls to chance (0.06 to
+  0.08 against 0.48 to 0.70 learned, k/n = 0.05, three seeds, numpy_exact).
+  The operation's return edge is therefore a learned edge only when its
+  fiber learns; the test is the control the card asked for.
+- **C3 (a clamped cue is a different protocol).** `CompletionPlan.prepare`
+  now refuses a target whose assembly is fixed, before the cue is drawn;
+  `test_c3_completion_refuses_a_fixed_target_before_any_projection` is the
+  regression, and the same call succeeds once the area is unfixed. The
+  conformance tests' clamped-cue floor cannot be reported by this
+  operation.
+- **D1 (separation measures order-dependent carryover only).** Claim scope:
+  `ops.separate`'s docstring already states the destructive recurrent reset
+  as a measurement device and makes no capacity, retention or noise claim;
+  `SEPARATION_CONTRACT.regime` names "destructive recurrent-reset
+  measurement". No test added: there is no claim to falsify, and the
+  contract test `test_every_operation_contract_names_a_true_negative_control`
+  covers the constructed negatives.
+- **F1 (label readout is not exact recovery).**
+  `test_hashed_fsm_cards.py::test_f1_label_readout_tolerates_the_intruder_that_exactness_rejects`
+  (gpu): a STATE with one member replaced by another block's neuron still
+  labels as its majority block while the all-k equality fails. The A1
+  runner records `exact_fraction` separately from label accuracy, and the
+  register's SEQ-EXACT-RECOVERY checks read the former.
+- **F2 (`run()` masks idle outputs, does not skip steps).**
+  `test_hashed_fsm_cards.py::test_f2_idle_symbols_are_masked_in_the_output_not_skipped`
+  (gpu): a -1 symbol still calls `step` and advances the machine; only the
+  output column is masked.
+- **T1/T2 (transducer protocol inputs).**
+  `test_operation_semantic_cards.py::test_t2_temporal_positions_records_every_protocol_input_per_arm`:
+  the registered temporal-positions study records `state_mode` and each
+  arm's `predict_gain` and `state_blind` in its parameters, and the
+  per-arm organ profile the runner freezes carries `state_code`
+  (previous-arc-copy), `prediction_gain`, `horizon` (0) and
+  `feature_register` (false). The rank RNG seed belongs to the A3
+  transducer study, which is not yet migrated; it is listed under the
+  remaining migration in TODO.md.
+- **P1, P2, P3, R1, M2, A1, A2, M1, C1, C2, C4** were resolved earlier in
+  this document (see "First resolutions" and the plan resolutions above).

@@ -1118,6 +1118,16 @@ class CompletionPlan:
     def prepare(self, brain) -> PreparedCompletion:
         if self.area not in brain.areas:
             raise IndexError(f"Not in brain.areas: {self.area}")
+        # Card C3: a clamped (fixed) target cannot masquerade as free recall.
+        # With winners pinned the schedule below cannot change them, so any
+        # overlap it reports is the clamp, not recovery. Refuse before the
+        # cue is even drawn.
+        area = brain.areas[self.area]
+        if getattr(area, "fixed_assembly", False) or brain._engine_for(area).is_fixed(self.area):
+            raise ValueError(
+                f"area {self.area!r} has a fixed assembly; completion measures free "
+                "recall and a clamped target cannot report it (unfix the area first)"
+            )
         reference = Assembly.from_area(brain, self.area)
         compact = tuple(int(value) for value in brain.areas[self.area].winners)
         if not compact:

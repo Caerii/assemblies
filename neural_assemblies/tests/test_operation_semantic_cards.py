@@ -71,3 +71,84 @@ def test_p3_operation_owns_recurrence_schedule(monkeypatch, recurrent,
                      ("T", ("s",), tail_sources)]
     # A source-edge trace must correspond to learned state, not a dead probe.
     assert bool(b._engine._area_pot.get(("T", "T"))) is recurrent
+
+
+# --- R2: the operation's name is not a bidirectional learning claim -------
+
+def _reverse_recovery(seed, reverse_beta):
+    """Recover A from T alone after reciprocal projection, learning off.
+
+    The card's control: disable the reverse fiber's learning while leaving
+    forward training and forward recall live. Reverse recovery must then
+    distinguish the intervention; if it did not, "reciprocal" would be a
+    schedule name and not a learned return edge.
+    """
+    b = Brain(engine="numpy_exact", norm_init=False, seed=seed, p=0.1)
+    b.add_area("A", 1000, 50, beta=0.1)
+    b.add_area("T", 1000, 50, beta=0.1)
+    b.add_stimulus("s", 50)
+    ops.project(b, "s", "A", rounds=10, recurrent=True)
+    reference = ops.Assembly.from_area(b, "A")
+    b.update_plasticity("T", "A", reverse_beta)
+    ops.reciprocal_project(b, "A", "T", rounds=10)
+    with b.frozen():
+        b.inhibit_areas(["A"])
+        for _ in range(5):
+            b.project({}, {"T": ["A"]})
+    return float(ops.Assembly.from_area(b, "A").overlap(reference))
+
+
+@pytest.mark.parametrize("seed", [0, 1, 2])
+def test_r2_reverse_recovery_distinguishes_a_dead_return_edge(seed):
+    learned = _reverse_recovery(seed, reverse_beta=0.1)
+    dead = _reverse_recovery(seed, reverse_beta=0.0)
+    # Chance overlap is k/n = 0.05; the probe on five seeds gave 0.48-0.70
+    # learned against 0.06-0.08 dead. A margin of 0.2 leaves room for the
+    # seed-to-seed spread without letting a dead edge pass.
+    assert dead < 0.2, dead
+    assert learned - dead > 0.2, (learned, dead)
+
+
+# --- C3: a clamped target cannot masquerade as free recall ----------------
+
+def test_c3_completion_refuses_a_fixed_target_before_any_projection(brain, monkeypatch):
+    calls = []
+    monkeypatch.setattr(brain, "project", lambda *args, **kwargs: calls.append(1))
+    brain.areas["T"].fix_assembly()
+    brain._engine.fix_assembly("T")
+    with pytest.raises(ValueError, match="fixed assembly"):
+        ops.pattern_complete(brain, "T", fraction=0.5, rounds=2, seed=1,
+                             observation_mode="frozen")
+    assert not calls
+    brain.areas["T"].unfix_assembly()
+    brain._engine.unfix_assembly("T")
+    assert ops.pattern_complete(brain, "T", fraction=0.5, rounds=2, seed=1,
+                                observation_mode="frozen") is not None
+
+
+# --- T1/T2: transducer protocol inputs are recorded, not flags ------------
+
+def test_t2_temporal_positions_records_every_protocol_input_per_arm():
+    """state_mode, prediction gain, horizon and register visibility are
+    protocol/model inputs; the registered study records each in both the run
+    parameters and the per-arm organ profile the runner freezes."""
+    from neural_assemblies import StateCode, describe_hashed_transducer
+    from research.experiments.seq_temporal_positions import ARMS, REGISTERED
+
+    assert REGISTERED["state_mode"] == "copy"
+    assert set(ARMS) == {"g0", "g1", "blind_g1"}
+    for name, arm in ARMS.items():
+        assert set(arm) == {"predict_gain", "state_blind"}, name
+        profile = describe_hashed_transducer(
+            w_max=REGISTERED["w_max"], norm_init=REGISTERED["norm_init"],
+            refracted_strength=REGISTERED["refracted_strength"],
+            state_mode=REGISTERED["state_mode"], predict_gain=arm["predict_gain"],
+        )
+        assert profile.state_code is StateCode.PREVIOUS_ARC_COPY
+        assert profile.prediction_gain == arm["predict_gain"]
+        assert profile.horizon == 0
+        assert profile.feature_register is False
+    # The state-blind arm is a frozen-evaluation intervention on the same
+    # trained organ, so it must share g1's profile exactly (T1: the claim is
+    # about the registered copy/prediction/readout configuration).
+    assert ARMS["blind_g1"]["predict_gain"] == ARMS["g1"]["predict_gain"]

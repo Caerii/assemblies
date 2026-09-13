@@ -35,7 +35,7 @@ def density(n=100000, k=317, p=0.01, beta=0.05, rounds=20):
     saved_w = []
     for _ in range(rounds):
         b.project({"stim": ["A"]}, {"A": ["A"]})
-        saved_w.append(b.areas["A"].w)
+        saved_w.append(b.areas["A"].recruited_count)
     conn = b.connectomes["A"]["A"]
     final_winners = b.areas["A"].winners
     edges = 0

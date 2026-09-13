@@ -217,7 +217,9 @@ W_BASELINE = {
     #: research/notes/language/erp_scale_is_an_implementation_detail.md.
     "research/experiments/erp_denominator_invariance.py": 1,
     "legacy/root_modules/simulations.py": 13,
-    "neural_assemblies/simulation/advanced_simulations.py": 12,
+    # migrated 2026-09-12 to `recruited_count` (the engine syncs `w` to
+    # num_ever_fired after a projection, which is what these prints meant)
+    "neural_assemblies/simulation/advanced_simulations.py": 0,
     "legacy/root_modules/image_learner.py": 8,
     "neural_assemblies/assembly_calculus/emergent/parser_mixins/incremental.py": 1,
     "research/experiments/capacity/lexicon_capacity.py": 6,
@@ -226,7 +228,7 @@ W_BASELINE = {
     # the original repository's Python 2 test script, archived 2026-09-09
     "legacy/scripts/simulations/test_brain_core.py": 4,
     "legacy/scripts/simulations/turing_sim.py": 3,
-    "neural_assemblies/simulation/turing_simulations.py": 3,
+    "neural_assemblies/simulation/turing_simulations.py": 0,
     "research/experiments/_substrate.py": 3,
     "research/experiments/p600_metric_comparison.py": 3,
     "research/experiments/primitives/diagnose_erp_dynamics.py": 3,
@@ -236,7 +238,7 @@ W_BASELINE = {
     "legacy/root_modules/parser.py": 1,
     "legacy/root_modules/recursive_parser.py": 1,
     "neural_assemblies/language/debugger.py": 1,
-    "neural_assemblies/simulation/density_simulator.py": 1,
+    "neural_assemblies/simulation/density_simulator.py": 0,
     "research/experiments/erp_p600_probe_contamination.py": 1,
     "research/experiments/metrics/instability.py": 1,
     "research/experiments/metrics/settling.py": 1,

@@ -346,6 +346,30 @@ def test_history_classifies_explicitly_unrun_preregistration(tmp_path, monkeypat
     assert audit['preregistrations_pending_results'] == [
         'research/notes/PREREG_future.md'
     ]
+    assert audit['preregistrations_with_inline_results_only'] == []
+
+
+def test_history_reports_inline_results_as_their_own_category(tmp_path, monkeypatch):
+    """A closed note whose Result section carries the numbers inline is not
+    pending and is not a dangling link; it is its own category, so a reader
+    can tell "never ran" from "ran, no artifact retained"."""
+    from research import evidence
+
+    (tmp_path / 'research' / 'notes').mkdir(parents=True)
+    (tmp_path / 'research' / 'notes' / 'PREREG_closed.md').write_text(
+        '# PREREG closed\n\nBars, stated now, before running.\n\n'
+        '## Result (2026-01-01)\n\nX1 FAILS: 0.12 against a bar of 0.30.\n',
+        encoding='utf-8')
+    monkeypatch.setattr(
+        evidence.subprocess, 'check_output',
+        lambda *a, **kw: b'research/notes/PREREG_closed.md\0',
+    )
+    audit = evidence.audit_history(tmp_path)
+    assert audit['preregistrations_with_inline_results_only'] == [
+        'research/notes/PREREG_closed.md'
+    ]
+    assert audit['preregistrations_pending_results'] == []
+    assert audit['preregistrations_without_resolved_result_links'] == []
 
 
 @pytest.mark.parametrize('field,value', [('mode', []), ('parameters', []),
