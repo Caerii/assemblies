@@ -105,7 +105,7 @@ def score_arms(arms, seeds, parameters):
 
 
 def _training_schedule(corpora, word_index):
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
 
     rows = []
     for sentences in corpora:
@@ -116,18 +116,18 @@ def _training_schedule(corpora, word_index):
                 starts.append(position == 0)
         rows.append((words, targets, starts))
     length = max(len(row[0]) for row in rows)
-    W = torch.full((len(rows), length), -1, dtype=torch.int64)
-    T = torch.full((len(rows), length), -1, dtype=torch.int64)
-    St = torch.zeros(len(rows), length, dtype=torch.bool)
+    W = torch_ops.full((len(rows), length), -1, dtype=torch_ops.int64)
+    T = torch_ops.full((len(rows), length), -1, dtype=torch_ops.int64)
+    St = torch_ops.zeros(len(rows), length, dtype=torch_ops.bool)
     for brain, (words, targets, starts) in enumerate(rows):
-        W[brain, :len(words)] = torch.tensor(words)
-        T[brain, :len(targets)] = torch.tensor(targets)
-        St[brain, :len(starts)] = torch.tensor(starts)
+        W[brain, :len(words)] = torch_ops.tensor(words)
+        T[brain, :len(targets)] = torch_ops.tensor(targets)
+        St[brain, :len(starts)] = torch_ops.tensor(starts)
     return W, T, St
 
 
 def run_arm(seeds, parameters, arm_name, organ_semantics):
-    import torch
+    from neural_assemblies.core._torch_ops import torch_ops
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
 
     arm = parameters["arms"][arm_name]
@@ -162,7 +162,7 @@ def run_arm(seeds, parameters, arm_name, organ_semantics):
             report["arm"] = arm_name
             reports.append(report)
         del transducer, W, T, St
-        torch.cuda.empty_cache()
+        torch_ops.cuda.empty_cache()
     return reports
 
 
@@ -214,7 +214,8 @@ def experiment(record):
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=("hashed_transducer",),
+    parser = experiment_parser(__doc__ or "Temporal position study",
+                               engines=("hashed_transducer",),
                                default_seeds=tuple(range(82, 102)))
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, tuple(range(82, 102)))

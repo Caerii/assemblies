@@ -46,6 +46,7 @@ MAINTAINED_FILES = (
     "research/experiments/seq_a1_horizon_hashed.py",
     "research/experiments/context_noise.py",
     "research/experiments/per_fiber_plasticity.py",
+    "research/experiments/seq_temporal_positions.py",
 )
 
 
