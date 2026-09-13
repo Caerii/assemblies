@@ -1,4 +1,5 @@
 """Old unsafe invocations must stop before compute or evidence replacement."""
+import argparse
 import json
 from pathlib import Path
 
@@ -17,6 +18,24 @@ FIXTURE_MODEL = describe_brain_model(
 ).to_dict()
 FIXTURE_ORGAN = describe_hashed_arc_fsm().to_dict()
 FIXTURE_ALIGNER = describe_hashed_aligner().to_dict()
+
+
+def test_registered_seed_policy_is_shared_and_strict():
+    parser = argparse.ArgumentParser()
+    runner.validate_registered_seeds(
+        parser, argparse.Namespace(seeds=[10, 11, 12], smoke=False),
+        (10, 11, 12),
+    )
+    with pytest.raises(SystemExit):
+        runner.validate_registered_seeds(
+            parser, argparse.Namespace(seeds=[10, 12, 11], smoke=False),
+            (10, 11, 12),
+        )
+    with pytest.raises(SystemExit):
+        runner.validate_registered_seeds(
+            parser, argparse.Namespace(seeds=[10, 11], smoke=True),
+            (10, 11, 12),
+        )
 
 
 @pytest.fixture

@@ -9,7 +9,10 @@ import numpy as np
 
 from neural_assemblies import Brain, describe_brain_model
 from neural_assemblies.diagnostics import ensemble_from_values
-from research.runner import ExperimentOutput, experiment_parser, run_experiment
+from research.runner import (
+    ExperimentOutput, experiment_parser, run_experiment,
+    validate_registered_seeds,
+)
 
 REGISTRATION = "research/notes/memory/PREREG_per_fiber_plasticity.md"
 SEEDS = list(range(201, 221))
@@ -197,10 +200,7 @@ def main(argv=None):
     parser = experiment_parser(__doc__, engines=("numpy_explicit",),
                                default_seeds=tuple(SEEDS))
     args = parser.parse_args(argv)
-    if not args.smoke and args.seeds != SEEDS:
-        parser.error("study requires brain seeds 201..220 in order")
-    if args.smoke and len(args.seeds) != 3:
-        parser.error("smoke requires exactly three explicit seeds")
+    validate_registered_seeds(parser, args, tuple(SEEDS))
     print(run_experiment(
         script=Path(__file__), protocol="mechanism.per-fiber-plasticity",
         protocol_version="1", registration=REGISTRATION, engine=args.engine,

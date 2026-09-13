@@ -106,6 +106,35 @@ def experiment_parser(description: str, *, engines: tuple[str, ...],
     return parser
 
 
+def validate_registered_seeds(
+    parser: argparse.ArgumentParser,
+    args: argparse.Namespace,
+    registered: tuple[int, ...] | list[int],
+    *,
+    smoke_count: int = 3,
+) -> None:
+    """Enforce a study's preregistered seed identities at its CLI boundary.
+
+    The runner validates minimum cardinality before execution. Registered
+    studies also need an exact identity/order check so a convenient custom
+    seed list cannot silently become a different experiment. Keeping this
+    policy here makes migrated entry points agree while preserving each
+    protocol's explicit seed plan.
+    """
+    expected = list(registered)
+    supplied = list(args.seeds)
+    if not expected or any(type(seed) is not int for seed in expected):
+        raise ValueError('registered seeds must be a nonempty integer sequence')
+    if type(smoke_count) is not int or smoke_count < 1:
+        raise ValueError('smoke_count must be a positive integer')
+    if args.smoke:
+        if len(supplied) != smoke_count:
+            parser.error(f"smoke requires exactly {smoke_count} explicit seeds")
+        return
+    if supplied != expected:
+        parser.error(f"study requires registered seeds {expected[0]}..{expected[-1]} in order")
+
+
 def _repo_file(path: str | Path) -> Path:
     resolved = (ROOT / path).resolve()
     if not resolved.is_relative_to(ROOT) or not resolved.is_file():

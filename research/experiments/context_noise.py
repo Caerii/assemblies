@@ -5,7 +5,7 @@ from pathlib import Path
 from neural_assemblies import Brain, describe_brain_model
 from neural_assemblies.assembly_calculus import AttractorConfig, ContextAttractorChoice, ContextChoiceProtocol
 from neural_assemblies.diagnostics import ensemble_from_values
-from research.runner import experiment_parser, run_experiment
+from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 REGISTRATION = "research/notes/memory/PREREG_context_noise.md"
 SEEDS = list(range(101, 121))
@@ -92,10 +92,7 @@ def experiment(record):
 def main(argv=None):
     parser = experiment_parser(__doc__, engines=('torch_sparse', 'numpy_sparse'), default_seeds=tuple(SEEDS))
     args = parser.parse_args(argv)
-    if not args.smoke and args.seeds != SEEDS:
-        parser.error('study requires brain seeds 101..120 in order')
-    if args.smoke and len(args.seeds) != 3:
-        parser.error('smoke requires exactly three explicit seeds')
+    validate_registered_seeds(parser, args, tuple(SEEDS))
     print(run_experiment(script=Path(__file__), protocol='memory.context-noise', protocol_version='1',
                          registration=REGISTRATION, engine=args.engine, seeds=args.seeds, tag=args.tag,
                          smoke=args.smoke, minimum_study_seeds=20,
