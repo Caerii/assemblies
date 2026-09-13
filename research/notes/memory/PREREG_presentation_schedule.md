@@ -77,7 +77,8 @@ much training an item received.
 
 > **Correction (2026-09-13, before any study run).** This registration first
 > specified a visit as a single round. The VOID smoke
-> (`ps-smoke-20260913`) showed that wrong: the protocol's recurrence only
+> (`research/results/runs/memory.presentation-schedule/ps-smoke-20260913/results.json`,
+> retained) showed that wrong: the protocol's recurrence only
 > engages from the second round of an episode, so a one-round visit inhibits
 > the area, reads the stimulus alone, stores nothing, and recalls at chance
 > (rank-1 0.042 at M = 8 on the control, below the 0.125 a uniform guess
@@ -170,7 +171,8 @@ change to the substrate and needs its own registration.
 Artifact
 `research/results/runs/memory.presentation-schedule/presentation-schedule-20260913/results.json`
 (protocol version 1, seeds 42 to 61, pinned worktree at 47276039; smoke
-`ps-smoke-episodes-20260913`, VOID). Verdict FAIL.
+`research/results/runs/memory.presentation-schedule/ps-smoke-episodes-20260913/results.json`,
+VOID). Verdict FAIL.
 
     bar                                              verdict
     SR-1 interleaving rescues the massed control     FAIL
