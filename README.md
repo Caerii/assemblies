@@ -242,6 +242,7 @@ uv run pytest neural_assemblies/tests -q
 uv run pytest neural_assemblies/tests -q -m "not slow" -n 12 --dist load
 uv run pytest neural_assemblies/tests -q -m slow -n 12 --dist load
 uv run python scripts/verify_maintained.py --skip-tests
+uv run python scripts/verify_maintained.py --skip-tests --proofs
 uv run python -m research.evidence check
 ```
 
@@ -249,6 +250,8 @@ uv run python -m research.evidence check
 maintained runtime packages plus the research runner, evidence, and provenance
 infrastructure with Pyright while excluding archived and historical study tests;
 omit `--skip-tests` to run the non-slow package tests afterward.
+Add `--proofs` to build the Lean AssemblyIR, replay its shared wire corpus, and
+run the Rust AssemblyIR crate tests in the same report.
 
 The default parallel developer gate uses twelve workers on machines with at
 least twelve logical CPUs and `--dist load`; the current measured run is
