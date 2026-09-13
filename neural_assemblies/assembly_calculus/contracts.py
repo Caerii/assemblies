@@ -2014,8 +2014,20 @@ class ContractedOperation(Protocol[_P, _R_co]):
 def implements(
     contract: OperationContract,
 ) -> Callable[[Callable[_P, _R_co]], ContractedOperation[_P, _R_co]]:
-    """Attach the exact contract object to its public implementation."""
+    """Attach and validate the exact contract at the implementation boundary.
+
+    A contract link is part of an operation's source-level meaning.  Checking
+    it while decorating the function makes a missing link an import-time
+    failure instead of allowing a semantically undocumented operation to run
+    until a later repository-wide audit.
+    """
     def decorate(operation: Callable[_P, _R_co]) -> ContractedOperation[_P, _R_co]:
+        specification = contract.specification
+        if specification not in (operation.__doc__ or ""):
+            raise TypeError(
+                f"{operation.__module__}.{operation.__qualname__} must link "
+                f"its specification {specification!r} in its docstring"
+            )
         contracted = cast(ContractedOperation[_P, _R_co], operation)
         contracted.operation_contract = contract
         return contracted

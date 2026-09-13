@@ -18,6 +18,7 @@ from neural_assemblies.assembly_calculus.contracts import (
     PreparedCompletion, SEQUENCE_MEMORIZE_CONTRACT, SEPARATION_CONTRACT,
     SequenceMemorizePlan, SeparationPlan,
     ProjectionPlan, ProjectionStep, ReciprocalProjectionPlan,
+    OperationContract, implements,
 )
 from neural_assemblies.assembly_calculus.ops import (
     associate, merge, ordered_recall, pattern_complete, project,
@@ -471,6 +472,36 @@ def test_registry_and_public_callable_cannot_drift():
         assert contract.specification in (operation.__doc__ or ""), (
             f"{name} must link its registered specification at the source"
         )
+
+
+def test_implements_rejects_an_unlinked_specification_at_definition_time():
+    """A contract cannot be attached to an operation whose source omits it."""
+    from dataclasses import dataclass
+
+    @dataclass(frozen=True)
+    class Plan:
+        value: int = 1
+
+    contract = OperationContract(
+        operation_id="fixture-v1",
+        specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-fixture",
+        plan_type=Plan,
+        inputs=("value",),
+        reads=("nothing",),
+        mutates=("nothing",),
+        regime=("value is finite",),
+        observed_outcome=("value",),
+        failure_conditions=("invalid value",),
+        constructed_controls=("neural_assemblies/tests/test_operation_contract_objects.py::"
+                              "test_implements_rejects_an_unlinked_specification_at_definition_time",),
+        true_negative_controls=("neural_assemblies/tests/test_operation_contract_objects.py::"
+                                "test_implements_rejects_an_unlinked_specification_at_definition_time",),
+    )
+
+    with pytest.raises(TypeError, match="must link its specification"):
+        @implements(contract)
+        def undocumented(value: int) -> int:
+            return value
 
 
 @pytest.mark.parametrize(
