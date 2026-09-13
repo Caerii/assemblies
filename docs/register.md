@@ -241,12 +241,16 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - arc-ref-study-20260912 (20 seeds, PREREG_arc_refraction_reference.md AR-2): refraction off, across-symbol overlap 0.977-0.997 on every seed (mean 0.988) against 0.000 with the proportional rule; across-state 0.098; decided 0/20 against 18/20
 
 **Evidence files.**
+- [research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json](../research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json) (artifact)
+- [research/notes/sequence/PREREG_autonomous_chain.md](../research/notes/sequence/PREREG_autonomous_chain.md) (registration)
+- [research/experiments/autonomous_chain.py](../research/experiments/autonomous_chain.py) (producer)
 - [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log) â€” three seeds, no run record
 - [research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json](../research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json) (artifact)
 - [research/notes/sequence/PREREG_arc_refraction_reference.md](../research/notes/sequence/PREREG_arc_refraction_reference.md) (registration)
 - [research/experiments/seq_arc_refraction_reference.py](../research/experiments/seq_arc_refraction_reference.py) (producer)
 
 **Mechanism sensitivity.**
+- the collapse itself, at the extreme: a 32-transition chain over ONE constant symbol, so the symbol is 32 times more exposed than any state. With refraction off every state drives the IDENTICAL arc (overlap 1.0000 on every brain) and the chain takes zero correct steps; with refraction at beta the arcs are disjoint (0.0000) and all 32 steps are exact: `observations/arms/L32-no-refraction/rows/*/arc_overlap` all-greater `observations/arms/L32/rows/*/arc_overlap` by at least 0.9, retained in [research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json](../research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json) and paired by `run/seeds`.
 - refraction ablated (the arc's bias never accumulates): across-symbol arc overlap at 15 presentations, every seed against the drive-proportional reference: `observations/arms/off-p15/rows/*/across_symbol` all-greater `observations/arms/proportional-p15/rows/*/across_symbol` by at least 0.5, retained in [research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json](../research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json) and paired by `observations/arms/off-p15/rows/*/seed`.
 
 **Caveat.** Task #92 measured one direction, read 0.90-0.99, and concluded a conjunctive arc has no operating point. It has one.

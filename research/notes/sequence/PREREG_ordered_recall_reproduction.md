@@ -8,6 +8,9 @@
 > working. So the failure below is a failure of OUR OWN construction, not a
 > failure to reproduce the paper. Bars OR-1 to OR-6 are suspended pending a
 > decision on whether the construction should exist at all; see Amendment 1.
+> OR-1 to OR-6 are **not yet run** and this registration holds no result
+> artifact: its evidence is the diagnostic below plus the pinned tests,
+> and the runs those bars would need do not exist yet.
 
 ## Why this exists
 

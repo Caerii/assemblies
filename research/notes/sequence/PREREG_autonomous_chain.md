@@ -1,6 +1,6 @@
 # Registration: autonomous chain recall on the refracted arc, and where the sequence-length limit actually lives
 
-> **Status (2026-09-13): registered, not yet run as a study.** Bars below were
+> **Status (2026-09-13): run; ALL FIVE BARS PASS on twenty fresh brains.** Bars below were
 > informed by a four-seed exploratory probe on seeds 42 to 45 and are therefore
 > tested on the FRESH block, seeds 62 to 81, which no probe has touched.
 
@@ -93,3 +93,58 @@ One operating point, one chain topology (a simple path, no branching or
 revisiting), teacher-forced states, and a single symbol. Chains that revisit a
 state, or branch, are a different problem: the arc's refraction is per-neuron
 and cumulative, so a revisited state's arc has already paid bias.
+
+## Result (2026-09-13): autonomous recall is exact to 128, four times the reported band, and refraction is the whole of it
+
+Artifact
+`research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json`
+(seeds 62 to 81, pinned worktree at 9b0be3bb; smoke
+`research/results/runs/sequence.autonomous-chain/ac-smoke-20260913/results.json`,
+VOID). Verdict PASS on CL-1 to CL-5.
+
+    arm                  L     exact brains   consecutive correct   arc overlap
+    L32                  32    20 / 20        32 on every brain     0.0000
+    L128                 128   20 / 20        128 on every brain    0.0108
+    L32-no-refraction    32     0 / 20        0 on every brain      1.0000
+    L32-pres5            32     0 / 20        1 on every brain      0.0000
+    L32-pres10           32     0 / 20        2 to 4                0.0000
+    L32-p0.05            32     0 / 20        2 to 3                0.0000
+    L32-p0.02            32     0 / 20        1 to 2                0.0001
+
+Chance arc overlap is `k / n_arc = 0.01`.
+
+**CL-1 PASS.** A chain driven only by a constant tick is recalled exactly, on
+every brain, at length 32 and at length 128. The paper reports that sequences
+of assemblies are difficult to maintain beyond 20 to 40.
+
+**CL-2 PASS, and it is total.** With refraction off, not one brain takes a
+single correct step. Not a degradation: zero.
+
+**CL-5 PASS, and it says why, at the extreme.** The arc assemblies of distinct
+states are **identical** without refraction, overlap 1.0000 on every brain, and
+**disjoint** with it, 0.0000 at L = 32 and 0.0108 at L = 128 against a chance
+level of 0.0100. Every state drives the same arc when refraction is off,
+because the tick appears in all 32 transitions while each state appears in one,
+so the conjunction collapses onto the more exposed conjunct exactly as
+[[ARC-CONJUNCT-EXPOSURE]] says. This construction is the extreme case of that
+entry, and it is the mechanism measured rather than inferred from the outcome.
+
+**CL-3 and CL-4 PASS: the perfect score moves four ways.** Undertraining at 5
+and at 10 presentations, and thinning the arc to p = 0.05 and p = 0.02, each
+collapse it to a handful of steps while leaving the arcs disjoint. So the
+failure modes are distinguishable: refraction off collapses the ARCS, while
+undertraining and sparsity leave them separate and break the chain some other
+way.
+
+### What this settles, and what it does not
+
+The reported limit is **not in the arc and not in the sequence mechanism**. In
+the reference's own construction, with states teacher-forced onto disjoint
+blocks, autonomous recall is exact at four times the top of the reported band
+with no sign of degradation.
+
+It does not say where the limit is. Our states are disjoint by construction and
+the paper's are formed by projection, where they can overlap and interfere.
+That difference is now the whole of the remaining question, and it is the next
+study. Nothing here refutes or explains the 20-to-40 limit, and no such claim
+is made.

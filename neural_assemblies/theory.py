@@ -517,6 +517,13 @@ _RESULTS: List[Result] = [
         engine="reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log)",
         status=Status.MEASURED,
         sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/arms/L32-no-refraction/rows/*/arc_overlap",
+            control_path="observations/arms/L32/rows/*/arc_overlap",
+            relation="all-greater", minimum_effect=0.9,
+            mechanism="the collapse itself, at the extreme: a 32-transition chain over ONE constant symbol, so the symbol is 32 times more exposed than any state. With refraction off every state drives the IDENTICAL arc (overlap 1.0000 on every brain) and the chain takes zero correct steps; with refraction at beta the arcs are disjoint (0.0000) and all 32 steps are exact",
+        ), SensitivityCheck(
             artifact="research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json",
             sample_path="observations/arms/off-p15/rows/*/seed",
             treatment_path="observations/arms/off-p15/rows/*/across_symbol",
@@ -536,6 +543,10 @@ _RESULTS: List[Result] = [
                   "seed (mean 0.988) against 0.000 with the proportional rule; "
                   "across-state 0.098; decided 0/20 against 18/20"),
         evidence_refs=(
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/autonomous-chain-20260913/results.json", "artifact"),
+            EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
+            EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
+
             EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log",
                         "three seeds, no run record"),
             EvidenceRef("research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json", "artifact"),
