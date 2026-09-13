@@ -1,0 +1,144 @@
+# Registration: does the presentation SCHEDULE change what a memory retains? Massed against interleaved, twenty brains
+
+> **Status (2026-09-13): registered, not yet run.** Bars fixed before the
+> instrument exists. This registration asks the spaced-repetition question in
+> the only form this substrate can answer it, and states in advance why the
+> naive form is empty.
+
+## Why the naive question is empty here, and what is left of it
+
+Spaced repetition in humans is a claim about TIME: the same number of
+repetitions retains better when spread out. This substrate has no time. Every
+deadline it has is a COUNT:
+
+- potentiation multiplies a synapse by `1 + beta` once per WIN, not per second;
+- the refraction bias charges `s x raw` once per WIN;
+- the weight clip arrives after `c* = ln(w_max max(1, kp) / base) / ln(1 + beta)`
+  PRESENTATIONS ([[SEQ-EXACT-RECOVERY]], `PREREG_s5_cliff_anatomy.md` Addendum 5);
+- a refracted assembly relocates on a period of
+  `ln(w_max) / ln(1 + beta) + (1 - 1 / w_max) / beta` ROUNDS
+  ([[REFRACTION-CANCELS-CONVERGENCE]], `PREREG_refraction_convergence.md`
+  Amendment 2, confirmed to 1.4% on a fresh seed block).
+
+There is no decay term anywhere in the model. An interval in which nothing is
+presented therefore leaves every weight, every bias and every winner set
+exactly as it found them. **Idle spacing is a no-op by construction, and this
+registration asserts it rather than measuring it** (bar SR-4). Any claim that
+"spacing helps" in this substrate that is not mediated by something happening
+in the gap would be an instrument fault.
+
+What is left is the real mechanism: what happens BETWEEN repetitions is other
+items, and other items are interference. So the spacing question becomes a
+scheduling question about ORDER at matched presentation count, and this
+substrate already has a known order-dependent failure mode to aim at.
+
+`PREREG_refraction_memory.md` records it: the Hebbian control at T = 16
+collapses to `M* = 8` with pairwise overlap 15x chance, which it attributes to
+hub formation, rich-get-richer, the items written FIRST becoming attractors
+that later items fall into. Refraction at half beta stops exactly that and is
+the whole 25x of [[REFRACTION-ANTI-MERGING]]: it prevents repeat winners from
+becoming hubs, so items overlap at chance.
+
+If that mechanism is right, then a SCHEDULE that also denies any single item a
+long consecutive run of reinforcement should do some of refraction's job for
+it. That is a prediction about an interaction, and an interaction is a sharper
+test of a mechanism than either main effect.
+
+## What runs
+
+`python -m research.runner presentation-schedule --tag UNIQUE`
+
+Engine `hashed_assembly_memory`, the adopted memory protocol's operating
+point: n = 4000, k = 100, p = 0.5, beta = 0.10, w_max = 20, normalized
+initialization, no synaptic scaling, stimulus size k, half-cue rank-1 recall,
+the refracted arm read with the bias MASKED and the control read plain. Seeds
+42 to 61, twenty brains, paired across all four arms.
+
+**The visit primitive.** Every arm is built from one primitive so the arms
+differ only in ORDER: a visit to item i is `inhibit_areas([A])` then
+`project({s_i: [A]}, {A: [A]})` for `r = 1` round. An item's stimulus fiber is
+created once and reused across its visits, so stimulus-side potentiation
+accumulates across a schedule instead of restarting; this differs from
+`AssemblyMemory.store`, which builds a fresh stimulus fiber per call and is
+therefore not re-entrant for the same item. That difference is a declared
+protocol decision, not a defect of either: the capacity protocol writes each
+item once and has no need to revisit.
+
+**The arms.** T = 16 visits per item, the rounds window where the control is
+recorded as collapsing.
+
+- `massed-control`: items in order, each visited T times consecutively
+  (`AAAA...BBBB...`), refraction strength 0.
+- `interleaved-control`: T passes over all M items, each pass visiting every
+  item once (`ABC...ABC...`), refraction strength 0.
+- `massed-refracted`: massed, strength 0.5 beta, masked readout.
+- `interleaved-refracted`: interleaved, strength 0.5 beta, masked readout.
+
+Every arm presents exactly `M x T` times and every item exactly T times. M
+checkpoints: 8, 16, 32, 64, 128, 256.
+
+**What is retained, per brain, arm and checkpoint.** Rank-1 half-cue recall
+per item (so the per-item curve against write order is kept, not only its
+mean); mean pairwise overlap between stored assemblies divided by the chance
+level k/n, which is the hub statistic; area fill; and the stored assembly of
+every item, defined for both schedules as its winners after its LAST visit.
+
+Smoke (`--smoke --seeds 1 2 3`) runs M up to 8 at T = 4 and is VOID.
+
+## Bars
+
+Priors: the control collapses at T = 16 to `M* = 8` with pairwise overlap 15x
+chance; the refracted arm at the same T holds `M* = 203`
+(`PREREG_refraction_memory.md`, arms CTL T16 and T16).
+
+- **SR-1, the interaction, primary.** At the largest checkpoint where the
+  massed control's mean rank-1 recall is below 0.5, the interleaved control's
+  paired per-brain rank-1 recall is higher on at least 18 of 20 brains, with a
+  paired mean difference whose lower 95% bound exceeds 0.05.
+  PREDICTION: passes. Denying early items a consecutive run should cost them
+  their hub status. This is the bar the mechanism claim lives on.
+- **SR-2, the schedule does nothing once refraction is on.** On the refracted
+  arms the paired difference in rank-1 recall between interleaved and massed
+  has a 95% interval containing zero at every checkpoint at or below 128.
+  PREDICTION: uncertain, and the point of the arm. Refraction is claimed to
+  already prevent hubs; if the schedule still moves the refracted arm, then
+  either it is doing something other than hub prevention, or refraction is not
+  doing all of what the register credits it with.
+- **SR-3, the mechanism, not just the outcome.** At the SR-1 checkpoint the
+  interleaved control's hub statistic (pairwise overlap over chance) is lower
+  than the massed control's on at least 18 of 20 paired brains.
+  PREDICTION: passes if SR-1 passes and the mechanism is hub prevention. SR-1
+  passing while SR-3 fails would mean the schedule helps for some other
+  reason, and the entry would say so.
+- **SR-4, idle spacing is a no-op, asserted.** A fifth arm, `idle-massed`,
+  runs the massed control schedule with an elapsed but empty gap between
+  visits and must return stored assemblies BIT-IDENTICAL to `massed-control`
+  on every brain and every item. This is the constructed true negative: the
+  substrate has no time, so a gap containing nothing must change nothing, and
+  a difference here voids the run rather than being reported as a spacing
+  effect.
+- **SR-5, instrument.** Every arm records exactly `M x T` presentations and
+  exactly T per item, and the control arms' fill and recall at M = 8 reproduce
+  the massed capacity protocol's published cell at T = 16 within 10%.
+  PREDICTION: passes. Failure means the visit primitive is not the protocol's
+  write and voids every other bar.
+
+A bar that fails is recorded with its numbers and the entry is amended to what
+twenty brains support. If SR-1 fails, the finding is that presentation order
+does not matter in this substrate at matched count, which would put the whole
+of the control's collapse on the number of repetitions rather than on their
+arrangement, and would be reported as such.
+
+## Scope stated in advance
+
+One operating point, one T, one corpus of unrelated random stimuli. Nothing
+here is a model of human spaced repetition: there is no forgetting curve to
+fit because there is no forgetting between presentations. The result, either
+way, is about interference scheduling in a k-WTA associative memory, and the
+honest headline if SR-1 passes is that what looks like a spacing effect in
+this substrate is an interference effect wearing a schedule's clothes.
+
+If SR-1 passes and SR-2 shows the refracted arm unmoved, the natural follow-up
+is the one this registration does NOT run: add an explicit weight-decay term
+and ask whether a genuine time-mediated spacing effect appears. That is a
+change to the substrate and needs its own registration.

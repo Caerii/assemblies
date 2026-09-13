@@ -62,6 +62,7 @@ MAINTAINED_FILES = (
     "research/experiments/seq_arc_refraction_reference.py",
     "research/experiments/kwta_tie_fragility.py",
     "research/experiments/refraction_convergence.py",
+    "research/experiments/presentation_schedule.py",
     "research/experiments/seq_a1_local_regime.py",
     "research/experiments/seq_a2_refraction_load.py",
     "research/experiments/study4/ntp.py",
