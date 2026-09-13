@@ -117,12 +117,12 @@ def measure(b, eng, stored, rng, masked):
                 pairwise_x=pw_x, distinct=distinct, fill=fill)
 
 
-def run_brain(seed, refracted, masked):
+def run_brain(seed, refracted, masked, *, checkpoints: tuple[int, ...] = MS):
     b, eng = build(seed, refracted)
     rng = np.random.default_rng(seed)
     stored, out = [], {}
     t0 = time.perf_counter()
-    for a in range(max(MS)):
+    for a in range(max(checkpoints)):
         parts = [f"s{a}_{j}" for j in range(STIM_PARTS)]
         for nm in parts:
             b.add_stimulus(nm, K // STIM_PARTS)
@@ -131,7 +131,7 @@ def run_brain(seed, refracted, masked):
             eng.project_into(AREA, parts, [AREA], plasticity_enabled=True)
         stored.append(np.asarray(eng.get_winners(AREA), dtype=np.int64).copy())
         M = a + 1
-        if M in MS:
+        if M in checkpoints:
             _SETS.clear()
             out[M] = measure(b, eng, stored, rng, masked)
             print(f"      seed {seed} {'REF' if refracted else 'CTL'} M={M:4d} "
@@ -150,9 +150,8 @@ def main(argv=None):
     ap.add_argument("--arm", choices=("ref", "ctl", "both"), default="both")
     args = ap.parse_args(argv)
     validate_registered_seeds(ap, args, (42, 43, 44, 45, 46))
-    global MS
+    checkpoints = (4, 8) if args.smoke else MS
     if args.smoke:
-        MS = (4, 8)
         print("SMOKE: API only; numbers VOID")
     def measure(record):
         results = {}
@@ -160,10 +159,11 @@ def main(argv=None):
             seeds = record["seeds"]
             print(f"=== numpy {arm.upper()}  n={N} k={K} p={P} stimulus {STIM_PARTS}x{K // STIM_PARTS} T={T} beta={BETA} "
                   f"{'strength ' + str(STRENGTH) + ' masked' if arm == 'ref' else ''}")
-            per = {s: run_brain(s, arm == "ref", masked=True) for s in seeds}
+            per = {s: run_brain(s, arm == "ref", masked=True,
+                                 checkpoints=checkpoints) for s in seeds}
             ceilings = []
             for s in seeds:
-                curve = {M: per[s][M]["rank1"] for M in MS}
+                curve = {M: per[s][M]["rank1"] for M in checkpoints}
                 ceilings.append(str(ceiling_from_curve(list(curve.items()), THRESHOLD)))
             results[arm] = {
                 "per_seed": {str(s): {str(M): v for M, v in per[s].items()} for s in seeds},
