@@ -733,3 +733,55 @@ The clean test is cheap and is NOT yet run: sweep the ROOMY cell
 (`L = 160, n_arc = 3000`) down to state areas that reach load 6.42 and beyond
 -- `n_state` of 2500 and 2000 give 6.44 and 8.05. If the roomy cell absorbs
 load 8 without cost, margin is the variable; if it breaks near 6.4, load is.
+
+## Amendment 5 (2026-09-13, registered before running): is it the margin or the load?
+
+Amendments 2 and 4 disagree, and they differ in TWO ways at once. The roomy
+cell (`L = 160, n_arc = 3000`, 20/20 exact with room) absorbed the collidable
+code at every load it was given, topping out at 4.03. The marginal cell
+(`L = 256, n_arc = 2000`, 14/20) collapsed to 0.43 of its chain length, but it
+was also driven to load 6.42. Neither run says whether the variable is the
+cell's MARGIN or the LOAD reached.
+
+**This drives the roomy cell past the load that killed the marginal one.**
+Same cell, same seeds, state areas 4000, 2500, 2000, 1600 and 1200, giving
+load 4.03, 6.44, 8.05, 10.06 and 13.42. `random-n2500` at 6.44 is the
+load-matched arm: within 0.02 of the marginal cell's tightest.
+
+**Every bar here reads MEAN CORRECT as a fraction of the chain length, not
+`exact/20`.** Amendment 4 is the reason: three of its five bars used `exact/20`,
+which saturates at 0 the moment a random code is used at all, and two of them
+passed without evidence because of it. This is the third time `exact@L`
+tie-fragility has cost this registration a bar.
+
+- **LM-1, the reference still recalls exactly.** The disjoint-block arm sits at
+  1.00 of L. If it does not, the cell is not the one Amendment 2 measured.
+- **LM-2, DECISIVE.** At the load-matched arm (6.44), the roomy cell holds
+  above 0.90 of L. The marginal cell at the same load was at 0.43.
+- **LM-3, the dose-response is monotone in load**, mean correct non-increasing
+  as the area shrinks.
+- **LM-4, the sweep has RANGE.** The tightest arm (load 13.42) falls below 0.90
+  of L. Without this, LM-2 could pass because the sweep never bit at all, and a
+  pass of LM-2 alongside a fail of LM-4 means exactly that and nothing more.
+- **LM-5, the arc moves too.** Arc overlap falls monotonically as the area
+  shrinks. This turns an effect seen unexplained in both previous runs into a
+  stated prediction rather than an observation noticed after the fact.
+
+### What each outcome means, stated in advance
+
+**LM-2 passes and LM-4 passes:** MARGIN is the variable. The same load that
+destroys a marginal chain is nearly free for one with room, so state collision
+is not a fixed cost but something a chain pays out of slack it may or may not
+have. The papers' 20-to-40 limit would then be about where that slack runs out,
+not about collision as such.
+
+**LM-2 fails:** LOAD is the variable and Amendment 2's null was simply never
+driven hard enough. Collision has a threshold near 6, the roomy cell was tested
+below it, and the margin story is unnecessary.
+
+**LM-2 passes and LM-4 fails:** the sweep never bit and the run is
+uninformative about both. It would need areas smaller than 1200.
+
+Note that LM-2 and LM-4 are the same statistic at two loads, so they cannot
+both be gamed by a threshold choice: the bar that makes LM-2 easy makes LM-4
+hard.

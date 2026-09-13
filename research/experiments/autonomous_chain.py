@@ -93,9 +93,15 @@ STATE_AREAS = (64000, 32000, 16000, 8000, 4000)
 
 
 def state_arms():
-    """name -> (n_state, code) where code is 'blocks' or 'random'."""
+    """name -> (n_state, code) where code is 'blocks' or 'random'.
+
+    Covers every area any amendment sweeps, since the arm name is what the
+    experiment looks the code up by.
+    """
     out = {f"blocks-n{STATE_AREAS[0]}": (STATE_AREAS[0], "blocks")}
-    out.update({f"random-n{n}": (n, "random") for n in STATE_AREAS})
+    out.update({f"random-n{n}": (n, "random")
+                for n in sorted(set(STATE_AREAS) | {4000, 2500, 2000, 1600, 1200},
+                                reverse=True)})
     return out
 
 
@@ -119,6 +125,21 @@ MARGIN_ARM_SPECS = {name: (MARGIN_L, PRESENTATIONS, 1.0, LIMIT_P, MARGIN_ARC)
                     for name in STATE_SPECS}
 MARGIN_ROOMY = tuple(n for n in STATE_AREAS if n >= (MARGIN_L + 1) * K)
 MARGIN_CROWDED = tuple(n for n in STATE_AREAS if n < (MARGIN_L + 1) * K)
+
+#: Amendment 5. Amendments 2 and 4 differ in TWO ways at once -- the cell's
+#: margin and the load reached (4.03 against 6.42) -- so neither says which is
+#: the variable. This drives the ROOMY cell (the one that absorbed everything)
+#: past the load the marginal cell died at. n_state 2500 gives load 6.44, which
+#: matches the marginal cell's tightest arm; the rest go further.
+LOAD_AREAS = (4000, 2500, 2000, 1600, 1200)
+LOAD_ARM_SPECS = {f"blocks-n{STATE_AREAS[0]}": (STATE_L, PRESENTATIONS, 1.0,
+                                                LIMIT_P, STATE_ARC)}
+LOAD_ARM_SPECS.update({f"random-n{n}": (STATE_L, PRESENTATIONS, 1.0, LIMIT_P,
+                                        STATE_ARC) for n in LOAD_AREAS})
+#: the arm whose load matches Amendment 4's tightest cell, within 0.02
+LOAD_MATCHED = "random-n2500"
+#: what the marginal cell did at that load, as a fraction of its chain length
+MARGIN_COLLAPSE_FRACTION = 110.0 / 256
 
 
 def state_code(seeds, n_state, kind, n_states, k, device):
@@ -339,11 +360,13 @@ def experiment(record):
     arms = {}
     limit_mode = bool(p.get("limit_mode"))
     margin_mode = bool(p.get("margin_mode"))
-    states_mode = bool(p.get("states_mode")) or margin_mode
+    load_mode = bool(p.get("load_mode"))
+    states_mode = bool(p.get("states_mode")) or margin_mode or load_mode
     cell_L = MARGIN_L if margin_mode else STATE_L
-    specs = (MARGIN_ARM_SPECS if margin_mode
-             else (STATE_ARM_SPECS if states_mode
-                   else (LIMIT_SPECS if limit_mode else ARM_SPECS)))
+    specs = (LOAD_ARM_SPECS if load_mode
+             else (MARGIN_ARM_SPECS if margin_mode
+                   else (STATE_ARM_SPECS if states_mode
+                         else (LIMIT_SPECS if limit_mode else ARM_SPECS))))
     for name in p["arms"]:
         spec = specs[name]
         length, presentations, ratio, density = spec[:4]
@@ -404,7 +427,14 @@ def experiment(record):
 
         def exact_of(name):
             return arm(name)["exact_brains"]
-        roomiest, tightest = f"random-n{STATE_AREAS[0]}", f"random-n{STATE_AREAS[-1]}"
+        # derived from the arms PRESENT, not from a module tuple: each
+        # amendment sweeps a different set of areas, and naming an absent arm
+        # would be a KeyError at the end of a GPU run rather than at its start
+        random_arms = sorted((n for n in arms if n.startswith("random-")),
+                             key=lambda n: arms[n]["n_state"], reverse=True)
+        if not random_arms:
+            raise ValueError("a state-code amendment needs at least one random arm")
+        roomiest, tightest = random_arms[0], random_arms[-1]
         arc_gap = abs(arm(roomiest)["arc_overlap"]["mean"]
                       - arm(tightest)["arc_overlap"]["mean"])
         state_gap = abs(arm(roomiest)["state_overlap"] - arm(tightest)["state_overlap"])
@@ -453,7 +483,35 @@ def experiment(record):
                 arc_gap < 0.05
                 and exact_of(tightest) < exact_of(roomiest),
         }
-        if margin_mode:
+        if load_mode:
+            # Amendment 5. Every bar here reads MEAN CORRECT, not exact/20.
+            # Amendment 4 is the reason: three of its five bars used exact/20,
+            # which saturates at 0 the moment a random code is used at all, and
+            # two of them passed without evidence because of it.
+            def frac(name):
+                """Mean consecutive-correct as a fraction of the chain length."""
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            blocks = f"blocks-n{STATE_AREAS[0]}"
+            randoms = [f"random-n{n}" for n in LOAD_AREAS]
+            bars = {
+                "LM-1 the reference cell still recalls exactly: blocks arm at 1.00 of L":
+                    frac(blocks) >= 0.999,
+                "LM-2 DECISIVE -- at the load that collapsed the marginal cell (6.44), the roomy cell holds above 0.90 of L":
+                    frac(LOAD_MATCHED) >= 0.90,
+                "LM-3 the dose-response is monotone in load: mean correct non-increasing as the area shrinks":
+                    all(frac(a) >= frac(b) for a, b in zip(randoms, randoms[1:])),
+                "LM-4 the sweep HAS range: the tightest area falls below 0.90 of L":
+                    frac(randoms[-1]) < 0.90,
+                "LM-5 the arc moves too, as it did twice before: arc overlap falls monotonically as the area shrinks":
+                    all(arm(a)["arc_overlap"]["mean"] >= arm(b)["arc_overlap"]["mean"]
+                        for a, b in zip(randoms, randoms[1:])),
+            }
+            comparisons["mean_correct_fraction_by_arm"] = {
+                n: frac(n) for n in ([blocks] + randoms)}
+            comparisons["margin_cell_collapse_fraction"] = MARGIN_COLLAPSE_FRACTION
+            comparisons["load_matched_arm"] = LOAD_MATCHED
+        elif margin_mode:
             # Amendment 4. SC-1..SC-7 are stated for a cell at CEILING and
             # their thresholds are wrong here by construction: the blocks arm
             # is 14/20 by design, so SC-1's "20/20" would fail on the cell
@@ -635,16 +693,20 @@ def main(argv=None):
                         help="run Amendment 2's collidable-state cells")
     parser.add_argument("--margin", action="store_true",
                         help="run Amendment 4's collidable states at the MARGINAL cell")
+    parser.add_argument("--load", action="store_true",
+                        help="run Amendment 5: the ROOMY cell driven past the load that killed the marginal one")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    if sum(map(bool, (args.limit, args.states, args.margin))) > 1:
-        parser.error("--limit, --states and --margin are different amendments; run one")
-    specs = (MARGIN_ARM_SPECS if args.margin
-             else (STATE_ARM_SPECS if args.states
-                   else (LIMIT_SPECS if args.limit else ARM_SPECS)))
+    if sum(map(bool, (args.limit, args.states, args.margin, args.load))) > 1:
+        parser.error("--limit, --states, --margin and --load are different "
+                     "amendments; run one")
+    specs = (LOAD_ARM_SPECS if args.load
+             else (MARGIN_ARM_SPECS if args.margin
+                   else (STATE_ARM_SPECS if args.states
+                         else (LIMIT_SPECS if args.limit else ARM_SPECS))))
     names = list(SMOKE_ARMS if args.smoke else specs)
     parameters = {"n_arc": N_ARC, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "strength_ratio": 1.0, "max_potentiations": MAX_POTENTIATIONS,
@@ -653,8 +715,10 @@ def main(argv=None):
                   "limit_mode": bool(args.limit),
                   "states_mode": bool(args.states),
                   "margin_mode": bool(args.margin),
+                  "load_mode": bool(args.load),
                   "state_specs": ({k: list(v) for k, v in STATE_SPECS.items()}
-                                  if (args.states or args.margin) else None),
+                                  if (args.states or args.margin or args.load)
+                                  else None),
                   "n_state_fixed": (N_STATE_FIXED if args.limit else None),
                   "device": args.device}
     profiles = {name: profile_for(specs[name][2]) for name in names}

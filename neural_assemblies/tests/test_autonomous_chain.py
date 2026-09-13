@@ -171,3 +171,32 @@ def test_al1_fires_on_a_single_coincidence():
     first = consecutive_correct(thrash, len(thrash))
     total = sum(1 for t, v in enumerate(thrash) if v == t + 1)
     assert first == 20 and total == 21, "one coincidence flips AL-1's premise"
+
+
+def test_every_amendment_arm_resolves_to_a_state_code():
+    """An arm whose code cannot be looked up is a KeyError at the END of a run.
+
+    Each amendment sweeps a different set of state areas and the experiment
+    looks the code up by ARM NAME, so a spec added without its STATE_SPECS
+    entry would train for minutes on the device and then fail at the readout.
+    """
+    from research.experiments.autonomous_chain import (LOAD_ARM_SPECS,
+                                                       MARGIN_ARM_SPECS,
+                                                       STATE_ARM_SPECS,
+                                                       STATE_SPECS)
+    for specs in (STATE_ARM_SPECS, MARGIN_ARM_SPECS, LOAD_ARM_SPECS):
+        missing = [name for name in specs if name not in STATE_SPECS]
+        assert not missing, f"arms with no state code: {missing}"
+
+
+def test_the_load_sweep_brackets_the_load_that_killed_the_marginal_cell():
+    """Amendment 5 is only decisive if it reaches the marginal cell's load."""
+    from research.experiments.autonomous_chain import (K, LOAD_AREAS,
+                                                       LOAD_MATCHED, STATE_L,
+                                                       STATE_SPECS)
+    need = (STATE_L + 1) * K
+    loads = [need / n for n in LOAD_AREAS]
+    assert min(loads) < 6.42 < max(loads), "the sweep must bracket load 6.42"
+    matched = need / STATE_SPECS[LOAD_MATCHED][0]
+    assert abs(matched - 6.42) < 0.05, (
+        f"{LOAD_MATCHED} is load {matched:.2f}, not the marginal cell's 6.42")
