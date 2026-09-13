@@ -1,0 +1,667 @@
+{
+  "attachments": {},
+  "observations": {
+    "arms": {
+      "interleaved-control": {
+        "4": {
+          "fill": [
+            0.12950000166893005,
+            0.12825000286102295,
+            0.12675000727176666
+          ],
+          "pairwise_x": [
+            1.3,
+            1.5999999999999999,
+            1.0999999999999999
+          ],
+          "presentations": 8,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "8": {
+          "fill": [
+            0.24000000953674316,
+            0.2422500103712082,
+            0.23650000989437103
+          ],
+          "pairwise_x": [
+            1.3043478260869563,
+            1.0434782608695652,
+            1.0608695652173912
+          ],
+          "presentations": 16,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "final_winners_digest": 307391716172382
+      },
+      "interleaved-refracted": {
+        "4": {
+          "fill": [
+            0.17675000429153442,
+            0.1837500035762787,
+            0.18200001120567322
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "presentations": 8,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "8": {
+          "fill": [
+            0.3537500202655792,
+            0.3517500162124634,
+            0.3527500033378601
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "presentations": 16,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "final_winners_digest": 310941667822205
+      },
+      "massed-control": {
+        "4": {
+          "fill": [
+            0.1290000081062317,
+            0.12725000083446503,
+            0.1262499988079071
+          ],
+          "pairwise_x": [
+            1.28,
+            1.5200000000000002,
+            2.4000000000000004
+          ],
+          "presentations": 8,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "8": {
+          "fill": [
+            0.2370000183582306,
+            0.24125000834465027,
+            0.234250009059906
+          ],
+          "pairwise_x": [
+            1.5555555555555556,
+            1.4666666666666666,
+            1.2592592592592589
+          ],
+          "presentations": 16,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "final_winners_digest": 308078820233688
+      },
+      "massed-refracted": {
+        "4": {
+          "fill": [
+            0.17675000429153442,
+            0.18450000882148743,
+            0.1807500123977661
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "presentations": 8,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "8": {
+          "fill": [
+            0.35475000739097595,
+            0.35350000858306885,
+            0.35450002551078796
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "presentations": 16,
+          "rank1": [
+            1.0,
+            1.0,
+            1.0
+          ],
+          "rank1_by_item": {
+            "0": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "1": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "4": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "5": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "6": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "7": [
+              1.0,
+              1.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "rounds_per_item": 8,
+          "visits_per_item": 2
+        },
+        "final_winners_digest": 312773151316639
+      }
+    },
+    "bars": {},
+    "comparisons": {},
+    "idle_identical": true,
+    "scope": "presentation order at matched count in a hashed assembly memory, one operating point; the substrate has no decay term",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "hashed_assembly_memory",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {
+        "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+        "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+      }
+    },
+    "execution_semantics": {
+      "kind": "organ",
+      "profiles": {
+        "interleaved-control": {
+          "arc_refraction_charge": 0.0,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "interleaved-refracted": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "massed-control": {
+          "arc_refraction_charge": 0.0,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "massed-refracted": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        }
+      }
+    },
+    "git_commit": "47276039adeb8b5366a8dc7fd216ec088282f3cc",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "observation_policy": null,
+    "parameters": {
+      "arms": [
+        "massed-control",
+        "interleaved-control",
+        "massed-refracted",
+        "interleaved-refracted"
+      ],
+      "beta": 0.1,
+      "checkpoints": [
+        4,
+        8
+      ],
+      "device": "cuda",
+      "episode_rounds": 4,
+      "idle_gap": 8,
+      "k": 100,
+      "n": 4000,
+      "p": 0.5,
+      "pair_sample": 512,
+      "recall_rounds": 8,
+      "recall_sample": 64,
+      "rounds_per_item": 8,
+      "strength": 0.5,
+      "visits": 2,
+      "w_max": 20.0
+    },
+    "protocol": "memory.presentation-schedule",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_presentation_schedule.md",
+    "registration_sha256": "52efb194d255792649d7011a4b780e3f3d8c75996b68bbe8b99ee0cc4f7370a7",
+    "schema_version": 10,
+    "scientific_status": "VOID",
+    "script": "research/experiments/presentation_schedule.py",
+    "script_sha256": "7404580847be3510ecb71daff86963ed070b03bcb2ff327ff28d721a14f4b896",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "d4d7ed47ad887515cc62c6c388db61aec19318e45c470753bea1d1f3ec83934f"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "26bcb86eb8db295b8a37ebeb5a4b286ee75d07fab0e93ef0194a287678a20530",
+    "started_utc": "2026-09-13T16:51:13.172489+00:00",
+    "tag": "ps-smoke-episodes-20260913"
+  },
+  "status": "complete"
+}

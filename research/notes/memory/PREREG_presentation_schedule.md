@@ -1,7 +1,11 @@
 # Registration: does the presentation SCHEDULE change what a memory retains? Massed against interleaved, twenty brains
 
-> **Status (2026-09-13): registered, not yet run.** Bars fixed before the
-> instrument exists. This registration asks the spaced-repetition question in
+> **Status (2026-09-13): run; SR-4 and SR-5 pass, SR-1, SR-2 and SR-3 FAIL
+> as registered (Result below). The quantities they aimed at moved hugely
+> in the predicted direction at five of six checkpoints; the bar's own
+> checkpoint-selection rule picked the sixth. Amendment 1 fixes the
+> checkpoints as numbers, adds the published one-episode arm, and runs on
+> fresh seeds.** Bars were fixed before the instrument existed. This registration asks the spaced-repetition question in
 > the only form this substrate can answer it, and states in advance why the
 > naive form is empty.
 
@@ -160,3 +164,162 @@ If SR-1 passes and SR-2 shows the refracted arm unmoved, the natural follow-up
 is the one this registration does NOT run: add an explicit weight-decay term
 and ask whether a genuine time-mediated spacing effect appears. That is a
 change to the substrate and needs its own registration.
+
+## Result (2026-09-13): three bars fail, and presentation ORDER is worth about an order of magnitude of capacity
+
+Artifact
+`research/results/runs/memory.presentation-schedule/presentation-schedule-20260913/results.json`
+(protocol version 1, seeds 42 to 61, pinned worktree at 47276039; smoke
+`ps-smoke-episodes-20260913`, VOID). Verdict FAIL.
+
+    bar                                              verdict
+    SR-1 interleaving rescues the massed control     FAIL
+    SR-2 the schedule does nothing once refracted    FAIL
+    SR-3 the rescue comes with the hub statistic     FAIL
+    SR-4 idle spacing is a no-op, bit-identical      PASS
+    SR-5 instrument, matched counts                  PASS
+
+### Mean rank-1 half-cue recall, twenty brains
+
+    arm                        M=8    M=16   M=32   M=64   M=128  M=256
+    massed-control             0.144  0.069  0.033  0.016  0.000  0.006
+    interleaved-control        1.000  1.000  1.000  1.000  0.696  0.000
+    massed-refracted           1.000  1.000  1.000  0.991  0.966  0.922
+    interleaved-refracted      1.000  1.000  1.000  1.000  1.000  1.000
+
+### Hub statistic, pairwise overlap over chance
+
+    arm                        M=8    M=16   M=32   M=64   M=128  M=256
+    massed-control            18.28  25.76  33.27  36.47  38.41  39.00
+    interleaved-control        1.18   1.11   1.14   1.15   1.27  40.00
+    massed-refracted           0.00   0.00   0.00   0.50   0.74   0.85
+    interleaved-refracted      0.00   0.00   0.00   0.49   0.71   0.84
+
+### Why SR-1 and SR-3 failed, and what that does not excuse
+
+Both bars are evaluated "at the largest checkpoint where the massed control's
+mean rank-1 is below 0.5". The massed control is below 0.5 at EVERY
+checkpoint, never rising above 0.144, so the rule selected M = 256, the single
+point where the interleaved arm has collapsed too. Paired
+interleaved-minus-massed on the control, with 95% intervals:
+
+    M=8     +0.8562  [+0.8276, +0.8849]   20/20 brains higher
+    M=16    +0.9313  [+0.9222, +0.9403]   20/20
+    M=32    +0.9672  [+0.9639, +0.9705]   20/20
+    M=64    +0.9836  [+0.9820, +0.9852]   20/20
+    M=128   +0.6961  [+0.5534, +0.8388]   20/20
+    M=256   -0.0063  [-0.0099, -0.0026]   0/20   <- the checkpoint the rule chose
+
+The bars are recorded FAILED and are not amended in place. The rule was
+written expecting the massed control to be healthy at small M and to collapse
+somewhere inside the grid, which is what the published cell does; this massed
+arm is not healthy anywhere, and the reason is in the next section.
+
+### An instrument defect: SR-5 was implemented smaller than it was registered
+
+SR-5 as registered has two clauses: matched counts, AND that the control arms'
+fill and recall at M = 8 reproduce the massed capacity protocol's published
+cell at T = 16 within 10%. Only the first was implemented, so SR-5 passed on
+counts alone. The second clause would have failed and would have caught the
+problem before the bars were read: the massed control recalls 0.144 at M = 8,
+where the published control's ceiling is M* = 8.
+
+The cause is the episode split itself. The published cell spends its 16 rounds
+as ONE episode; this study spends them as four episodes of four rounds, and
+each episode begins with an inhibit, so the assembly re-forms from scratch
+four times instead of converging once. For an unrefracted area that is
+harmful, because every re-formation re-enters an area whose hubs have grown.
+**The massed arm here is therefore not the published protocol**, and no claim
+of the form "interleaving rescues the published control" is supported. What is
+supported is a comparison at matched episode structure, which is what the
+study ran.
+
+### The mechanism is hub formation, and staleness is refuted
+
+A rival reading of the whole effect: in the massed schedule an item's stored
+assembly is recorded early and the remaining items are written on top of it,
+while under interleaving every item's last episode falls in the final pass, so
+every stored assembly is fresh. That reading predicts that recall in the
+massed control should RISE with write order. Mean rank-1 by write order, in
+eighths, earliest first:
+
+    M=32   massed-control        0.04  0.19  0.04  0.00  0.00  0.00  0.00  0.00
+           interleaved-control   1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00
+    M=64   massed-control        0.11  0.02  0.00  0.00  0.00  0.00  0.00  0.00
+           interleaved-control   1.00  1.00  1.00  1.00  1.00  1.00  1.00  1.00
+
+The sign is the opposite: in the massed control only the EARLIEST items retain
+anything and everything later is destroyed, which is hub formation, the first
+items becoming the attractors that later items fall into. The interleaved
+control is flat across write order. The hub statistic agrees, sitting at
+chance (1.11 to 1.27) under interleaving where massed reaches 18 to 39 times
+chance. Fill is close across arms at every checkpoint (0.22 against 0.24 at
+M = 8), so this is not a difference in how much of the area was used.
+
+### SR-2 failed in the informative direction: refraction does not absorb it
+
+    refracted, paired interleaved - massed
+    M=8, 16, 32   +0.0000  exactly zero, every brain
+    M=64          +0.0094  [+0.0050, +0.0137]   11/20 higher, 0/20 lower
+    M=128         +0.0336  [+0.0232, +0.0440]   17/20 higher, 0/20 lower
+    M=256         +0.0781                        19/20 higher, 0/20 lower
+
+Below M = 32 the refracted arm is saturated at 1.000 and the schedule cannot
+show anything. Above it the schedule still adds, with intervals excluding zero
+at M = 64 and M = 128, so SR-2 fails. Refraction is not doing the whole of
+what a good schedule does.
+
+### What the run supports, stated at the scope it was measured
+
+At matched rounds per item and matched episode structure, presentation ORDER
+moves an unrefracted Hebbian memory's usable load from below 8 items to
+between 64 and 128, by the same anti-hub mechanism the register credits
+refraction with. The protection is brittle where refraction's is graceful: the
+interleaved control holds 1.000 to M = 64, 0.696 at M = 128, and falls to
+0.000 with its hub statistic jumping from 1.27 to 40.00 at M = 256, while the
+refracted arms degrade smoothly to 0.922 and 1.000. Nothing here is adopted:
+three bars failed and the arms that produced these numbers were chosen after
+seeing them fail.
+
+## Amendment 1 (2026-09-13, registered before running): fixed checkpoints, the published arm restored, fresh seeds
+
+Three corrections, none of which may be read off the run above without a new
+test, so all of them are tested on the FRESH block **seeds 62 to 81**.
+
+1. **No data-dependent checkpoint selection.** The comparison checkpoints are
+   fixed here as M = 32 and M = 128 and are not chosen by any rule evaluated
+   on the data.
+2. **The published protocol is restored as an arm.** Protocol version 2 adds
+   `single-control` and `single-refracted`, one episode of 16 rounds, which is
+   the capacity protocol's own write. Three schedules crossed with two rules
+   gives six arms, all at 16 rounds per item. `single` against `massed`
+   isolates the cost of SPLITTING a round budget into episodes; `massed`
+   against `interleaved` isolates the effect of ORDER. Version 1's four arms
+   conflated them.
+3. **SR-5's second clause is implemented**, as PS-7.
+
+- **PS-1, order rescues the control.** At M = 32 the interleaved control
+  exceeds the massed control on 20 of 20 paired brains with a paired lower
+  bound above 0.5.
+- **PS-2, and it does so by not building hubs.** At M = 32 the interleaved
+  control's hub statistic is below 2.0 on every brain and the massed
+  control's is above 10 on every brain.
+- **PS-3, the write-order signature.** At M = 32 in the massed control, mean
+  rank-1 over the first eighth of items exceeds that over the last eighth on
+  at least 18 of 20 brains; in the interleaved control the two are within 0.10
+  on at least 18 of 20. This is the bar that separates hub formation from
+  staleness, and it is stated because the version-1 run could only report it.
+- **PS-4, refraction does not absorb the schedule.** At M = 128 the refracted
+  paired difference interleaved minus massed has a 95% lower bound above zero.
+- **PS-5, the cliff.** The interleaved control's mean rank-1 is at least 0.4
+  at M = 128 and at most 0.05 at M = 256.
+- **PS-6, idle spacing is still a no-op.** SR-4 carried over unchanged.
+- **PS-7, the splitting cost, and the published reproduction.** The
+  `single-control` arm's mean rank-1 at M = 8 is at least 0.5, and exceeds the
+  `massed-control` arm's at M = 8 on at least 18 of 20 brains.
+  PREDICTION: passes. If it fails, the episode primitive does not reproduce
+  the protocol's write at all and every comparison in this registration is
+  between two things neither of which is the protocol.
+
+The version-1 bars SR-1, SR-2, SR-3 stay failed and are reported on every run
+as superseded. A bar that fails is recorded with its numbers.

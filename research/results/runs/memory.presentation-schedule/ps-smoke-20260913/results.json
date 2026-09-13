@@ -1,0 +1,656 @@
+{
+  "attachments": {},
+  "observations": {
+    "arms": {
+      "interleaved-control": {
+        "4": {
+          "fill": [
+            0.09600000083446503,
+            0.0950000062584877,
+            0.09600000083446503
+          ],
+          "pairwise_x": [
+            1.2,
+            1.5000000000000002,
+            1.0999999999999999
+          ],
+          "presentations": 16,
+          "rank1": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "visits_per_item": 4
+        },
+        "8": {
+          "fill": [
+            0.18400001525878906,
+            0.18300001323223114,
+            0.18050001561641693
+          ],
+          "pairwise_x": [
+            1.026086956521739,
+            1.0434782608695652,
+            0.8695652173913043
+          ],
+          "presentations": 32,
+          "rank1": [
+            0.0,
+            0.0,
+            0.125
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "7": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "visits_per_item": 4
+        },
+        "final_winners_digest": 295368281102185
+      },
+      "interleaved-refracted": {
+        "4": {
+          "fill": [
+            0.0990000069141388,
+            0.09950000792741776,
+            0.09975000470876694
+          ],
+          "pairwise_x": [
+            0.3333333333333333,
+            0.06666666666666665,
+            0.06666666666666665
+          ],
+          "presentations": 16,
+          "rank1": [
+            0.5,
+            0.25,
+            0.25
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "2": [
+              1.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              0.0,
+              0.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "visits_per_item": 4
+        },
+        "8": {
+          "fill": [
+            0.19725000858306885,
+            0.19850000739097595,
+            0.1977500021457672
+          ],
+          "pairwise_x": [
+            0.10769230769230768,
+            0.1076923076923077,
+            0.046153846153846156
+          ],
+          "presentations": 32,
+          "rank1": [
+            0.25,
+            0.125,
+            0.25
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "2": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "3": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "7": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "visits_per_item": 4
+        },
+        "final_winners_digest": 309734477200644
+      },
+      "massed-control": {
+        "4": {
+          "fill": [
+            0.09600000083446503,
+            0.0950000062584877,
+            0.09600000083446503
+          ],
+          "pairwise_x": [
+            0.7199999999999999,
+            1.28,
+            1.28
+          ],
+          "presentations": 16,
+          "rank1": [
+            0.0,
+            0.0,
+            0.5
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": [
+              0.0,
+              0.0,
+              1.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "visits_per_item": 4
+        },
+        "8": {
+          "fill": [
+            0.18400001525878906,
+            0.18300001323223114,
+            0.18050001561641693
+          ],
+          "pairwise_x": [
+            0.9185185185185182,
+            1.2000000000000002,
+            1.111111111111111
+          ],
+          "presentations": 32,
+          "rank1": [
+            0.0,
+            0.0,
+            0.125
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "3": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "7": [
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "visits_per_item": 4
+        },
+        "final_winners_digest": 295368281102185
+      },
+      "massed-refracted": {
+        "4": {
+          "fill": [
+            0.10000000149011612,
+            0.10000000149011612,
+            0.10000000149011612
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "presentations": 16,
+          "rank1": [
+            0.25,
+            0.5,
+            0.75
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "2": [
+              0.0,
+              1.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              1.0,
+              0.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3
+          ],
+          "visits_per_item": 4
+        },
+        "8": {
+          "fill": [
+            0.20000000298023224,
+            0.20000000298023224,
+            0.20000000298023224
+          ],
+          "pairwise_x": [
+            0.0,
+            0.0,
+            0.0
+          ],
+          "presentations": 32,
+          "rank1": [
+            0.125,
+            0.125,
+            0.125
+          ],
+          "rank1_by_item": {
+            "0": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "1": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "2": [
+              0.0,
+              0.0,
+              1.0
+            ],
+            "3": [
+              1.0,
+              0.0,
+              0.0
+            ],
+            "4": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "5": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "6": [
+              0.0,
+              0.0,
+              0.0
+            ],
+            "7": [
+              0.0,
+              1.0,
+              0.0
+            ]
+          },
+          "recall_sample": [
+            0,
+            1,
+            2,
+            3,
+            4,
+            5,
+            6,
+            7
+          ],
+          "visits_per_item": 4
+        },
+        "final_winners_digest": 308112478334662
+      }
+    },
+    "bars": {},
+    "comparisons": {},
+    "idle_identical": true,
+    "scope": "presentation order at matched count in a hashed assembly memory, one operating point; the substrate has no decay term",
+    "verdict": "VOID"
+  },
+  "run": {
+    "engine": "hashed_assembly_memory",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {
+        "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+        "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+      }
+    },
+    "execution_semantics": {
+      "kind": "organ",
+      "profiles": {
+        "interleaved-control": {
+          "arc_refraction_charge": 0.0,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "interleaved-refracted": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "massed-control": {
+          "arc_refraction_charge": 0.0,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "massed-refracted": {
+          "arc_refraction_charge": 0.05,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        }
+      }
+    },
+    "git_commit": "a63d9564759e2a1552c5846681ea19325a1917f3",
+    "input_artifacts": {},
+    "mode": "smoke",
+    "observation_policy": null,
+    "parameters": {
+      "arms": [
+        "massed-control",
+        "interleaved-control",
+        "massed-refracted",
+        "interleaved-refracted"
+      ],
+      "beta": 0.1,
+      "checkpoints": [
+        4,
+        8
+      ],
+      "device": "cuda",
+      "idle_gap": 8,
+      "k": 100,
+      "n": 4000,
+      "p": 0.5,
+      "pair_sample": 512,
+      "recall_sample": 64,
+      "strength": 0.5,
+      "visits": 4,
+      "w_max": 20.0
+    },
+    "protocol": "memory.presentation-schedule",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_presentation_schedule.md",
+    "registration_sha256": "73bffe60e0bffb241b47b59009ed14bcd270670380e3c19871458b017d4fcc53",
+    "schema_version": 10,
+    "scientific_status": "VOID",
+    "script": "research/experiments/presentation_schedule.py",
+    "script_sha256": "586acf899e272be29153db04f978f5873d52f7a98c5fc7ef93aac25d9f97c7c9",
+    "seeds": [
+      1,
+      2,
+      3
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "0533bc3251ecc99201a9d0d89de084c7aed69b76540d5921187519e09d58d6ea"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "f2a072b5b81d446fc0f03fb1b48033a0f1324b083c1f8cda9f1d30130df1682b",
+    "started_utc": "2026-09-13T16:48:03.332354+00:00",
+    "tag": "ps-smoke-20260913"
+  },
+  "status": "complete"
+}

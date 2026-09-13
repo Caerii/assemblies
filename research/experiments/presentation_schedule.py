@@ -46,9 +46,11 @@ from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "memory.presentation-schedule"
-VERSION = "1"
+VERSION = "2"          # v1 had four arms and a data-dependent checkpoint rule
 REGISTRATION = "research/notes/memory/PREREG_presentation_schedule.md"
-REGISTERED_SEEDS = tuple(range(42, 62))
+#: Amendment 1 tests its corrected bars on the fresh block.
+SEED_BLOCKS = (tuple(range(42, 62)), tuple(range(62, 82)))
+REGISTERED_SEEDS = SEED_BLOCKS[0]
 
 N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
 TOTAL_ROUNDS = 16                  # rounds per item in EVERY arm: the published collapse point
@@ -57,13 +59,26 @@ EPISODES = TOTAL_ROUNDS // EPISODE_ROUNDS
 RECALL_ROUNDS = 8                  # frozen rounds of the half-cue read, the protocol's value
 CHECKPOINTS = (8, 16, 32, 64, 128, 256)
 SMOKE_CHECKPOINTS = (4, 8)
-SMOKE_EPISODES = 2
 RECALL_SAMPLE, PAIR_SAMPLE = 64, 512
 STRENGTH = 0.5                     # as a fraction of beta, the adopted refracted setting
 
 SCHEDULES = ("massed", "interleaved")
 RULES = {"control": 0.0, "refracted": STRENGTH}
-ARMS = tuple(f"{schedule}-{rule}" for rule in RULES for schedule in SCHEDULES)
+#: Every arm spends TOTAL_ROUNDS per item; they differ only in how those
+#: rounds are grouped and ordered. `single` is the capacity protocol's own
+#: write (one episode), so `single` against `massed` isolates the cost of
+#: SPLITTING and `massed` against `interleaved` isolates the effect of ORDER.
+ARM_SPECS = {
+    "single-control": ("massed", "control", 1, TOTAL_ROUNDS),
+    "massed-control": ("massed", "control", EPISODES, EPISODE_ROUNDS),
+    "interleaved-control": ("interleaved", "control", EPISODES, EPISODE_ROUNDS),
+    "single-refracted": ("massed", "refracted", 1, TOTAL_ROUNDS),
+    "massed-refracted": ("massed", "refracted", EPISODES, EPISODE_ROUNDS),
+    "interleaved-refracted": ("interleaved", "refracted", EPISODES, EPISODE_ROUNDS),
+}
+ARMS = tuple(ARM_SPECS)
+#: Fixed before the run by Amendment 1; never selected from the data.
+COMPARE_AT = (32, 128)
 
 
 def to_i32(value):
@@ -131,6 +146,8 @@ class SchedulePlan:
             raise ValueError("visits must be positive and checkpoints non-empty")
         if tuple(sorted(set(self.checkpoints))) != tuple(self.checkpoints):
             raise ValueError("checkpoints must be strictly increasing")
+        if self.visits * self.episode_rounds != TOTAL_ROUNDS:
+            raise ValueError("every arm must spend the registered rounds per item")
         if self.episode_rounds < 2:
             raise ValueError("an episode needs at least 2 rounds or recurrence "
                              "never engages and the write stores nothing")
@@ -197,6 +214,21 @@ class ScheduledMemory:
     @property
     def fill(self):
         return self.area.fill
+
+
+def order_halves(cell, items, fraction=8):
+    """Mean rank-1 over the FIRST and LAST eighth of items, per brain.
+
+    Hub formation predicts the first items retain and the last do not;
+    staleness predicts the opposite. Returns two [B] arrays.
+    """
+    have = {int(a): np.asarray(v) for a, v in cell["rank1_by_item"].items()}
+    width = max(items // fraction, 1)
+    first = [v for i, v in have.items() if i < width]
+    last = [v for i, v in have.items() if i >= items - width]
+    if not first or not last:
+        return None, None
+    return np.mean(first, axis=0), np.mean(last, axis=0)
 
 
 def _set_hash(Ks):
@@ -297,16 +329,17 @@ def experiment(record):
     seeds = list(record["seeds"])
     smoke = record["mode"] == "smoke"
     checkpoints = tuple(p["checkpoints"])
-    visits, episode_rounds = int(p["visits"]), int(p["episode_rounds"])
+    # each arm carries its own episode structure in ARM_SPECS; the record
+    # keeps the grouping the smoke and study ran under
     rng = np.random.default_rng(0)
 
-    arms = {}
+    arms, plans = {}, {}
     for name in p["arms"]:
-        schedule, rule = name.rsplit("-", 1)
-        plan = SchedulePlan(schedule=schedule, rule=rule, strength=RULES[rule],
-                            checkpoints=checkpoints, visits=visits,
-                            episode_rounds=episode_rounds)
-        arms[name] = run_arm(plan, seeds, rng, device=p["device"],
+        schedule, rule, episodes, rounds_each = ARM_SPECS[name]
+        plans[name] = SchedulePlan(schedule=schedule, rule=rule, strength=RULES[rule],
+                                   checkpoints=checkpoints, visits=episodes,
+                                   episode_rounds=rounds_each)
+        arms[name] = run_arm(plans[name], seeds, rng, device=p["device"],
                              organ_semantics=record["execution_semantics"]["profiles"][name])
         tail = arms[name][str(max(checkpoints))]
         print(f"  {name:<22s} M={max(checkpoints)} rank1 "
@@ -314,72 +347,90 @@ def experiment(record):
               f"{np.mean(tail['pairwise_x']):.2f}  fill {np.mean(tail['fill']):.3f}", flush=True)
 
     # SR-4: the idle arm must reproduce massed-control bit for bit.
-    idle = run_arm(SchedulePlan(schedule="massed", rule="control", strength=0.0,
-                                checkpoints=checkpoints, visits=visits,
-                                episode_rounds=episode_rounds),
-                   seeds, np.random.default_rng(0), device=p["device"],
+    idle = run_arm(plans["massed-control"], seeds, np.random.default_rng(0),
+                   device=p["device"],
                    organ_semantics=record["execution_semantics"]["profiles"]["massed-control"],
                    idle_gap=p["idle_gap"])
     identical = idle["final_winners_digest"] == arms["massed-control"]["final_winners_digest"]
     print(f"  idle-massed digest identical to massed-control: {identical}", flush=True)
 
-    bars, comparisons = {}, {}
+    bars, superseded, comparisons = {}, {}, {}
     if not smoke:
         def cell(arm, M):
             return arms[arm][str(M)]
 
-        def collapsed():
-            """Largest checkpoint whose massed control mean rank-1 is below 0.5."""
-            below = [M for M in checkpoints if np.mean(cell("massed-control", M)["rank1"]) < 0.5]
-            return max(below) if below else None
-
-        at = collapsed()
-        comparisons["collapse_checkpoint"] = at
-        if at is not None:
-            d = paired_delta(
-                ensemble_from_values(cell("interleaved-control", at)["rank1"], keys=seeds),
-                ensemble_from_values(cell("massed-control", at)["rank1"], keys=seeds),
-                label=f"interleaved - massed control @ M={at}")
-            comparisons["sr1"] = {**asdict(d), "low": d.low, "high": d.high}
-            wins = sum(a > b for a, b in zip(cell("interleaved-control", at)["rank1"],
-                                             cell("massed-control", at)["rank1"]))
-            hub_wins = sum(a < b for a, b in zip(cell("interleaved-control", at)["pairwise_x"],
-                                                 cell("massed-control", at)["pairwise_x"]))
-            comparisons["sr1_brains_higher"] = wins
-            comparisons["sr3_brains_lower_hub"] = hub_wins
+        def paired(a, b, M):
+            return paired_delta(
+                ensemble_from_values(cell(a, M)["rank1"], keys=seeds),
+                ensemble_from_values(cell(b, M)["rank1"], keys=seeds),
+                label=f"{a} - {b} @ M={M}")
         n = len(seeds)
-        sr2 = {}
-        for M in checkpoints:
-            if M > 128:
-                continue
-            d = paired_delta(
-                ensemble_from_values(cell("interleaved-refracted", M)["rank1"], keys=seeds),
-                ensemble_from_values(cell("massed-refracted", M)["rank1"], keys=seeds),
-                label=f"interleaved - massed refracted @ M={M}")
-            sr2[str(M)] = {**asdict(d), "low": d.low, "high": d.high}
-        comparisons["sr2"] = sr2
-        counts_ok = all(c["presentations"] == M * visits and c["visits_per_item"] == visits
-                        and c["rounds_per_item"] == visits * episode_rounds
-                        for arm in arms.values() for M, c in
-                        ((int(key), value) for key, value in arm.items() if key.isdigit()))
-        bars = {
-            "SR-1 interleaving rescues the massed control at its collapse: >= 18/20 brains higher, paired lower bound > 0.05":
-                at is not None and comparisons["sr1_brains_higher"] >= 18 * n // 20
-                and comparisons["sr1"]["low"] > 0.05,
-            "SR-2 the schedule does nothing once refraction is on: paired interval contains zero at every M <= 128":
-                all(v["low"] <= 0.0 <= v["high"] for v in sr2.values()),
-            "SR-3 the mechanism is hub prevention: interleaved control's pairwise/chance lower on >= 18/20 brains":
-                at is not None and comparisons["sr3_brains_lower_hub"] >= 18 * n // 20,
-            "SR-4 idle spacing is a no-op: the idle arm's stored assemblies are bit-identical":
-                identical,
-            "SR-5 instrument: every arm runs M x E episodes, E per item, and the registered rounds per item":
-                counts_ok,
+        low, high = COMPARE_AT
+        for label, a, b, M in (("ps1", "interleaved-control", "massed-control", low),
+                               ("ps4", "interleaved-refracted", "massed-refracted", high),
+                               ("split", "single-control", "massed-control", 8)):
+            d = paired(a, b, M)
+            comparisons[label] = {**asdict(d), "low": d.low, "high": d.high}
+        ctl_i, ctl_m = cell("interleaved-control", low), cell("massed-control", low)
+        first_m, last_m = order_halves(ctl_m, low)
+        first_i, last_i = order_halves(ctl_i, low)
+        comparisons["write_order"] = {
+            "massed_first": None if first_m is None else first_m.tolist(),
+            "massed_last": None if last_m is None else last_m.tolist(),
+            "interleaved_first": None if first_i is None else first_i.tolist(),
+            "interleaved_last": None if last_i is None else last_i.tolist(),
         }
+        bars = {
+            f"PS-1 order rescues the control at M={low}: 20/20 brains higher, paired lower bound > 0.5":
+                all(x > y for x, y in zip(ctl_i["rank1"], ctl_m["rank1"]))
+                and comparisons["ps1"]["low"] > 0.5,
+            f"PS-2 and it builds no hubs: interleaved pairwise/chance < 2 and massed > 10 on every brain at M={low}":
+                all(v < 2.0 for v in ctl_i["pairwise_x"]) and all(v > 10.0 for v in ctl_m["pairwise_x"]),
+            f"PS-3 write-order signature at M={low}: massed first eighth beats its last on >= 18/20; interleaved within 0.10 on >= 18/20":
+                first_m is not None and first_i is not None
+                and int((first_m > last_m).sum()) >= 18 * n // 20
+                and int((np.abs(first_i - last_i) <= 0.10).sum()) >= 18 * n // 20,
+            f"PS-4 refraction does not absorb the schedule: paired lower bound > 0 at M={high}":
+                comparisons["ps4"]["low"] > 0.0,
+            f"PS-5 the cliff: interleaved control >= 0.4 at M={high} and <= 0.05 at M={max(checkpoints)}":
+                np.mean(cell("interleaved-control", high)["rank1"]) >= 0.4
+                and np.mean(cell("interleaved-control", max(checkpoints))["rank1"]) <= 0.05,
+            "PS-6 idle spacing is a no-op: the idle arm's stored assemblies are bit-identical":
+                identical,
+            "PS-7 the single-episode arm is the protocol's write: rank1 >= 0.5 at M=8 and beats massed on >= 18/20":
+                np.mean(cell("single-control", 8)["rank1"]) >= 0.5
+                and sum(x > y for x, y in zip(cell("single-control", 8)["rank1"],
+                                              cell("massed-control", 8)["rank1"])) >= 18 * n // 20,
+            "PS-8 instrument: every arm runs its episodes and the registered rounds per item":
+                all(c["rounds_per_item"] == TOTAL_ROUNDS
+                    for arm, plan in plans.items() for key, c in arms[arm].items()
+                    if key.isdigit()),
+        }
+        # version-1 bars, failed, reported not judged
+        below = [M for M in checkpoints if np.mean(cell("massed-control", M)["rank1"]) < 0.5]
+        at = max(below) if below else None
+        superseded = {
+            "SR-1 (v1 rule: the LARGEST checkpoint with massed control below 0.5)":
+                at is not None
+                and sum(x > y for x, y in zip(cell("interleaved-control", at)["rank1"],
+                                              cell("massed-control", at)["rank1"])) >= 18 * n // 20,
+            "SR-2 the schedule does nothing once refraction is on":
+                all(paired("interleaved-refracted", "massed-refracted", M).low <= 0.0
+                    <= paired("interleaved-refracted", "massed-refracted", M).high
+                    for M in checkpoints if M <= 128),
+            "SR-3 hub statistic lower under interleaving at the v1 checkpoint":
+                at is not None
+                and sum(x < y for x, y in zip(cell("interleaved-control", at)["pairwise_x"],
+                                              cell("massed-control", at)["pairwise_x"])) >= 18 * n // 20,
+        }
+        comparisons["v1_checkpoint"] = at
         for name, ok in bars.items():
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+        for name, ok in superseded.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  (superseded v1 bar, reported not judged) {name}")
     verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
-    return {"verdict": verdict, "bars": bars, "arms": arms,
-            "comparisons": comparisons, "idle_identical": identical,
+    return {"verdict": verdict, "bars": bars, "superseded_bars": superseded,
+            "arms": arms, "comparisons": comparisons, "idle_identical": identical,
             "scope": "presentation order at matched count in a hashed assembly memory, "
                      "one operating point; the substrate has no decay term"}
 
@@ -391,18 +442,21 @@ def main(argv=None):
     )
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args(argv)
-    validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    if args.smoke:
+        validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    elif tuple(args.seeds) not in SEED_BLOCKS:
+        parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     checkpoints = SMOKE_CHECKPOINTS if args.smoke else CHECKPOINTS
-    visits = SMOKE_EPISODES if args.smoke else EPISODES
     parameters = {"n": N, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
-                  "checkpoints": list(checkpoints), "visits": visits,
+                  "checkpoints": list(checkpoints),
                   "episode_rounds": EPISODE_ROUNDS,
-                  "rounds_per_item": visits * EPISODE_ROUNDS,
+                  "rounds_per_item": TOTAL_ROUNDS, "compare_at": list(COMPARE_AT),
+                  "arm_specs": {k: list(v) for k, v in ARM_SPECS.items()},
                   "recall_rounds": RECALL_ROUNDS,
                   "arms": list(ARMS), "strength": STRENGTH, "idle_gap": 8,
                   "recall_sample": RECALL_SAMPLE, "pair_sample": PAIR_SAMPLE,
                   "device": args.device}
-    profiles = {name: profile_for(RULES[name.rsplit("-", 1)[1]]) for name in ARMS}
+    profiles = {name: profile_for(RULES[spec[1]]) for name, spec in ARM_SPECS.items()}
     path = run_experiment(
         script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
         registration=REGISTRATION, engine=args.engine, seeds=args.seeds,

@@ -10,8 +10,8 @@ import unittest
 from typing import Any
 
 from research.experiments.presentation_schedule import (
-    ARMS, EPISODE_ROUNDS, EPISODES, RULES, SCHEDULES, TOTAL_ROUNDS,
-    SchedulePlan, elapse, visit_order,
+    ARM_SPECS, ARMS, COMPARE_AT, EPISODE_ROUNDS, EPISODES, RULES, SCHEDULES,
+    TOTAL_ROUNDS, SchedulePlan, elapse, visit_order,
 )
 
 
@@ -66,12 +66,39 @@ class Plans(unittest.TestCase):
                             checkpoints=(8,), visits=EPISODES,
                             episode_rounds=EPISODE_ROUNDS)
         self.assertEqual(plan.rounds_per_item, TOTAL_ROUNDS)
+        # true negative: a plan that spends a different budget is refused,
+        # because it would confound grouping with training amount
+        with self.assertRaises(ValueError):
+            SchedulePlan(schedule="massed", rule="control", strength=0.0,
+                         checkpoints=(8,), visits=EPISODES + 1,
+                         episode_rounds=EPISODE_ROUNDS)
 
-    def test_the_arms_are_the_two_by_two(self):
-        self.assertEqual(len(ARMS), len(SCHEDULES) * len(RULES))
-        for schedule in SCHEDULES:
-            for rule in RULES:
-                self.assertIn(f"{schedule}-{rule}", ARMS)
+    def test_every_arm_spends_the_same_rounds_per_item(self):
+        # the arms may differ in GROUPING and ORDER and in nothing else, so a
+        # difference between them is never a difference in training amount
+        for name, (schedule, rule, episodes, rounds_each) in ARM_SPECS.items():
+            self.assertIn(schedule, SCHEDULES, name)
+            self.assertIn(rule, RULES, name)
+            self.assertEqual(episodes * rounds_each, TOTAL_ROUNDS, name)
+
+    def test_the_arms_cover_three_schedules_by_two_rules(self):
+        self.assertEqual(len(ARMS), 6)
+        for rule in RULES:
+            for prefix in ("single", "massed", "interleaved"):
+                self.assertIn(f"{prefix}-{rule}", ARMS)
+
+    def test_the_single_arm_is_one_episode_and_the_others_are_split(self):
+        for rule in RULES:
+            self.assertEqual(ARM_SPECS[f"single-{rule}"][2], 1, rule)
+            self.assertEqual(ARM_SPECS[f"massed-{rule}"][2], EPISODES, rule)
+            self.assertEqual(ARM_SPECS[f"interleaved-{rule}"][2], EPISODES, rule)
+
+    def test_the_comparison_checkpoints_are_fixed_numbers(self):
+        # Amendment 1: never selected from the data. The version-1 rule chose
+        # the one checkpoint where both arms were dead.
+        self.assertEqual(len(COMPARE_AT), 2)
+        for M in COMPARE_AT:
+            self.assertIsInstance(M, int)
 
     def test_the_control_is_unrefracted_and_the_refracted_arm_is_not(self):
         self.assertEqual(RULES["control"], 0.0)
