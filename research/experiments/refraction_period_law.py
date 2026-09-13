@@ -41,7 +41,7 @@ from research.experiments.refraction_convergence import (
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "memory.refraction-period-law"
-VERSION = "2"          # v1 pooled spacings across brains; v2 is per brain with an interval
+VERSION = "3"          # v1 pooled across brains; v2 per brain; v3 adds the Amendment 1 cells
 REGISTRATION = "research/notes/memory/PREREG_refraction_period_law.md"
 REGISTERED_SEEDS = tuple(range(42, 62))
 
@@ -50,6 +50,9 @@ STRENGTH_RATIO = 0.5               # of beta: the arm that relocates
 MIN_ROUNDS, PERIODS_WANTED = 240, 5.5
 #: (w_max, beta). Each parameter swept separately through the measured point.
 CELLS = ((20.0, 0.20), (20.0, 0.10), (20.0, 0.05), (5.0, 0.10), (100.0, 0.10))
+#: Amendment 1: cells sharing no coordinate with CELLS, where the plain and
+#: discretised forms are far enough apart to tell apart.
+AMENDMENT_CELLS = ((8.0, 0.25), (12.0, 0.18), (25.0, 0.15))
 SMOKE_CELLS = ((20.0, 0.20), (5.0, 0.10))
 SMOKE_ROUNDS = 60
 ARMS = ("refracted", "control")
@@ -71,6 +74,16 @@ def rounds_for(w_max, beta):
     the data it is about to measure.
     """
     return max(MIN_ROUNDS, math.ceil(PERIODS_WANTED * clip_period(w_max, beta)))
+
+
+def ceiled_period(w_max, beta):
+    """The clip arithmetic with the climb rounded UP to a whole round.
+
+    A weight needing 31.43 rounds of growth clips on round 32, so the first
+    term is a count and not a length. Amendment 1 tests this against the plain
+    form on cells it was not derived from; it is a hypothesis until then.
+    """
+    return math.ceil(math.log(w_max) / math.log(1 + beta)) + (1 - 1 / w_max) / beta
 
 
 def profile_for(w_max, beta, ratio):
@@ -220,6 +233,17 @@ def experiment(record):
             "spacing_interval": {key: c["arms"]["refracted"]["spacing"] for key, c in cells.items()},
             "predicted_period": {key: c["predicted_period"] for key, c in cells.items()},
             "relative_error": errors,
+            "ceiled_period": {key: ceiled_period(c["w_max"], c["beta"])
+                              for key, c in cells.items()},
+            "ceiled_relative_error": {
+                key: abs(v - ceiled_period(cells[key]["w_max"], cells[key]["beta"]))
+                / ceiled_period(cells[key]["w_max"], cells[key]["beta"])
+                for key, v in measured.items()},
+            "plain_inside_interval": {
+                key: bool(c["arms"]["refracted"]["spacing"] is not None
+                          and c["arms"]["refracted"]["spacing"]["low"] <= c["predicted_period"]
+                          <= c["arms"]["refracted"]["spacing"]["high"])
+                for key, c in cells.items()},
             "cells_without_a_measurement": [k for k in cells if k not in measured],
             "beta_ratio_0.05_over_0.20": beta_ratio,
             "wmax_ratio_100_over_5": wmax_ratio,
@@ -256,9 +280,12 @@ def main(argv=None):
         engines=("hashed_assembly_memory",), default_seeds=REGISTERED_SEEDS,
     )
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--amendment", action="store_true",
+                        help="run Amendment 1's cells, which share no coordinate "
+                             "with the registered five")
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    cells = SMOKE_CELLS if args.smoke else CELLS
+    cells = SMOKE_CELLS if args.smoke else (AMENDMENT_CELLS if args.amendment else CELLS)
     rounds_by_cell = {cell_name(w, b): (SMOKE_ROUNDS if args.smoke else rounds_for(w, b))
                       for w, b in cells}
     parameters = {"n": N, "k": K, "p": P, "cells": [list(c) for c in cells],

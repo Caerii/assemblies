@@ -183,3 +183,91 @@ One area size (n = 4000, k = 100, p = 0.5), one refraction strength
 vary strength, so whether the period is independent of s, as the algebra
 suggests and as the 0.5-beta agreement is consistent with, is NOT measured. A
 strength sweep is the obvious extension and is not claimed here.
+
+## Correction and re-run (2026-09-13): the estimand is per brain, and the intervals change what can be said
+
+The version-1 statistic pooled every relocation spacing of every brain into
+one mean. The methodology ratchet refused it, correctly: pooling weights a
+brain by how often it happened to relocate, and it carries no interval. The
+estimand is now the mean of the per-brain means over brains, with a confidence
+bound and the seeds as keys (protocol version 2, artifact
+`research/results/runs/memory.refraction-period-law/period-law-v2-20260913/results.json`,
+same seeds 42 to 61, pinned worktree at 1813fb19). All five bars pass again.
+
+    cell        measured   95% interval      formula   error   formula in CI?
+    w20b0.2     22.05      [22.02, 22.08]    21.18     4.1%    no
+    w20b0.1     41.60      [41.54, 41.66]    40.93     1.6%    no
+    w20b0.05    80.05      [78.66, 81.43]    80.40     0.4%    yes
+    w5b0.1      25.06      [25.01, 25.10]    24.89     0.7%    no
+    w100b0.1    58.98      [58.93, 59.03]    58.22     1.3%    no
+
+Only the `w20b0.05` cell moved at all between the two statistics, 79.92 to
+80.05, because it is the one cell where brains differ in how many times they
+relocated. Every bar's verdict is unchanged.
+
+**What the intervals add.** They are extraordinarily tight: 0.12 rounds wide
+at the measured point, on twenty brains. That precision is itself a finding,
+and it is the same determinism the convergence study saw when the first
+relocation landed on round 42 on all forty brains. It also changes what can
+honestly be claimed. In four of the five cells **the formula's prediction
+falls OUTSIDE the measured interval**, by 1 to 4%. The law is an excellent
+approximation and PL-1's 15% bar is met with room to spare, but it is not
+exact, and the measurement is now sharp enough to say so. The residual is
+positive in four cells and negative in one, so it is not a clean bias either.
+
+**A post hoc observation, recorded as post hoc.** The first term counts rounds
+to reach the clip, and rounds are integers: a weight that needs 31.43 rounds
+of growth actually clips on round 32. Taking the ceiling of that term gives
+
+    cell        measured   plain formula   ceiled formula
+    w20b0.2     22.05      4.10%           1.38%
+    w20b0.1     41.60      1.63%           0.24%
+    w20b0.05    80.05      0.44%           1.18%
+    w5b0.1      25.06      0.68%           0.22%
+    w100b0.1    58.98      1.31%           0.14%
+
+which improves four cells substantially and worsens the fifth, the one with
+the wide interval. It still misses the interval in four of five. **This was
+found by looking at the residual of a run that had already happened, so it is
+a hypothesis and not a result**, and Amendment 1 tests it where it cannot have
+been fitted.
+
+## Amendment 1 (2026-09-13, registered before running): the discretised form, on cells the refinement has never seen
+
+Three cells, sharing no coordinate with the original five, chosen so that the
+two candidate forms are far enough apart to tell apart. The intervals above
+are about 0.1 rounds wide, so a separation under about 0.3 rounds would decide
+nothing:
+
+    w_max   beta    plain    ceiled   gap (rounds)   gap as % of the period
+    8       0.25    12.82    13.50    0.68           5.3%
+    12      0.18    20.11    21.09    0.99           4.9%
+    25      0.15    29.43    30.40    0.97           3.3%
+
+> **Correction, before running.** The first three cells written here (50/0.15,
+> 10/0.08, 200/0.10) were chosen from an arithmetic slip: their real gaps are
+> 0.01, 0.08 and 0.41 rounds, so two of the three could not have separated the
+> forms at all and the amendment would have been unable to fail. They are
+> replaced above. No data existed under either set.
+
+Rounds per cell as before, `max(240, ceil(5.5 x plain))`. Same twenty seeds,
+same arms including the unrefracted control.
+
+- **PD-1, the discretised form is closer.** In at least 2 of the 3 cells the
+  ceiled form's relative error is smaller than the plain form's.
+  PREDICTION: passes. It was smaller in four of five cells above, and the
+  mechanism is a rounding argument rather than a fitted parameter.
+- **PD-2, and it is closer by enough to matter.** The mean absolute relative
+  error of the ceiled form across the three cells is below 1.0%, and below the
+  plain form's.
+- **PD-3, neither form is exact.** Reported, not barred: whether either
+  prediction falls inside the 95% interval in each cell. The expectation from
+  above is that neither usually does, and saying so keeps the entry from
+  claiming an exactness the intervals refuse.
+- **PD-4, the control still never relocates.** Zero relocations on every brain
+  of every new cell, as PL-5.
+
+If PD-1 fails, the discretisation is dropped and the entry keeps the plain
+form with its measured 1 to 4% residual stated. If it passes, the entry states
+the ceiled form as the better approximation and still records that neither is
+exact.
