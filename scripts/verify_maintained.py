@@ -50,6 +50,11 @@ MAINTAINED_FILES = (
     "research/experiments/seq_capacity_scaling.py",
     "research/experiments/refraction_memory_numpy.py",
     "research/experiments/word_capacity_ladder_run.py",
+    "research/experiments/seq_s5_soft_census_hashed.py",
+    "research/experiments/seq_tm_high_order.py",
+    "research/experiments/word_capacity_run.py",
+    "research/experiments/seq_a1_fsm_parity.py",
+    "research/experiments/seq_a1_exactness_sweep.py",
 )
 
 

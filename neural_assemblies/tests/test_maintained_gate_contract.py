@@ -32,6 +32,11 @@ def test_maintained_sources_are_unique_and_include_contract_surfaces():
     assert "research/experiments/seq_capacity_scaling.py" in normalized
     assert "research/experiments/refraction_memory_numpy.py" in normalized
     assert "research/experiments/word_capacity_ladder_run.py" in normalized
+    assert "research/experiments/seq_s5_soft_census_hashed.py" in normalized
+    assert "research/experiments/seq_tm_high_order.py" in normalized
+    assert "research/experiments/word_capacity_run.py" in normalized
+    assert "research/experiments/seq_a1_fsm_parity.py" in normalized
+    assert "research/experiments/seq_a1_exactness_sweep.py" in normalized
 
 
 def test_missing_maintained_scope_fails_before_static_analysis(tmp_path):
