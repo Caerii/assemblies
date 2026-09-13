@@ -175,6 +175,13 @@ _SEED_ADVICE = (
 #: An earlier draft also pooled every event of every brain into one mean, which
 #: IS a hand-rolled seed statistic and which this ratchet caught; it is gone,
 #: because pooling weights a brain by how often it happened to relocate.
+#:
+#: Raised 1 -> 3 the same day for Amendment 1's two further sites,
+#: `ceiled_mean` and `plain_mean`. Both average one relative error PER CELL
+#: across cells, and each cell's error is already computed from a seed
+#: statistic that carries its own interval. An interval over cells would be a
+#: claim about a population of operating points that was not sampled, which is
+#: the wrong claim; the cells are chosen, not drawn.
 _ENGINE_ADVICE = (
     "\n\n  `Brain(...)` without `engine=` silently selects `numpy_sparse`,"
     "\n  whose candidate sampler INVENTS drive for neurons that have not fired."

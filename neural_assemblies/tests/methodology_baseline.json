@@ -137,7 +137,7 @@
     "research/experiments/unaligned_scenes.py": 1,
     "research/experiments/universality_composition.py": 6,
     "research/experiments/refraction_memory_numpy.py": 1,
-    "research/experiments/refraction_period_law.py": 1
+    "research/experiments/refraction_period_law.py": 3
   },
   "unpinned_engine": {
     "research/experiments/_substrate.py": 4,

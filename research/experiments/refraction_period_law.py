@@ -248,21 +248,52 @@ def experiment(record):
             "beta_ratio_0.05_over_0.20": beta_ratio,
             "wmax_ratio_100_over_5": wmax_ratio,
         }
+        # PL-2 to PL-4 name specific cells. A run that does not CONTAIN those
+        # cells cannot test them, and reporting FAIL there would confuse a
+        # missing test with a failed one; they are omitted instead and the
+        # omission is recorded. PL-1 and PL-5 quantify over whatever cells ran,
+        # so a cell present but unmeasured still fails them.
+        sweep_present = all(k in cells for k in beta_cells + wmax_cells)
+        comparisons["sweep_cells_present"] = sweep_present
         bars = {
             "PL-1 the law holds in every cell: mean spacing within 15% of the predicted period":
                 complete and all(v <= 0.15 for v in errors.values()),
-            "PL-2 beta is inverse: spacing strictly decreasing in beta and the 0.05/0.20 ratio >= 3.0":
-                rises(beta_cells) and beta_ratio is not None and beta_ratio >= 3.0,
-            "PL-3 w_max is logarithmic and weak: spacing strictly increasing in w_max and the 100/5 ratio <= 3.0":
-                rises(wmax_cells) and wmax_ratio is not None and wmax_ratio <= 3.0,
-            "PL-4 the levers are ordered: the beta ratio exceeds the w_max ratio despite w_max moving further":
-                beta_ratio is not None and wmax_ratio is not None and beta_ratio > wmax_ratio,
             "PL-5 relocation is refraction, not the clip: no control relocation anywhere, >= 3 on every refracted brain":
                 all(r["n_relocations"] == 0 and r["stable_fraction"] >= 0.95
                     for c in cells.values() for r in c["arms"]["control"]["rows"])
                 and all(r["n_relocations"] >= 3
                         for c in cells.values() for r in c["arms"]["refracted"]["rows"]),
         }
+        if sweep_present:
+            bars.update({
+                "PL-2 beta is inverse: spacing strictly decreasing in beta and the 0.05/0.20 ratio >= 3.0":
+                    rises(beta_cells) and beta_ratio is not None and beta_ratio >= 3.0,
+                "PL-3 w_max is logarithmic and weak: spacing strictly increasing in w_max and the 100/5 ratio <= 3.0":
+                    rises(wmax_cells) and wmax_ratio is not None and wmax_ratio <= 3.0,
+                "PL-4 the levers are ordered: the beta ratio exceeds the w_max ratio despite w_max moving further":
+                    beta_ratio is not None and wmax_ratio is not None and beta_ratio > wmax_ratio,
+            })
+        ceiled_err = comparisons["ceiled_relative_error"]
+        if ceiled_err and errors:
+            closer = sum(ceiled_err[k] < errors[k] for k in ceiled_err)
+            # means over CELLS, not over seeds: each cell's own error is
+            # already a seed statistic with an interval
+            ceiled_mean = float(np.mean(list(ceiled_err.values())))
+            plain_mean = float(np.mean(list(errors.values())))
+            comparisons["mean_relative_error"] = {"plain": plain_mean, "ceiled": ceiled_mean}
+            bars.update({
+                "PD-1 the discretised form is closer in at least two thirds of the cells":
+                    closer >= math.ceil(2 * len(ceiled_err) / 3),
+                "PD-2 and closer by enough to matter: mean ceiled error below 1% and below the plain form":
+                    ceiled_mean < 0.01 and ceiled_mean < plain_mean,
+            })
+            comparisons["ceiled_closer_in_cells"] = closer
+            comparisons["ceiled_inside_interval"] = {
+                key: bool(c["arms"]["refracted"]["spacing"] is not None
+                          and c["arms"]["refracted"]["spacing"]["low"]
+                          <= ceiled_period(c["w_max"], c["beta"])
+                          <= c["arms"]["refracted"]["spacing"]["high"])
+                for key, c in cells.items()}
         bars = {name: bool(ok) for name, ok in bars.items()}
         for name, ok in bars.items():
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
