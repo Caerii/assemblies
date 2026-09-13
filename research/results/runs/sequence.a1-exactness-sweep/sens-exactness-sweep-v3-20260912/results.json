@@ -1,0 +1,763 @@
+{
+  "attachments": {},
+  "observations": {
+    "by_p": {
+      "0.2": {
+        "exact_steps": [
+          0,
+          3,
+          6,
+          1,
+          0,
+          1,
+          0,
+          4,
+          4,
+          3
+        ],
+        "mean_overlap": [
+          0.9685714285714286,
+          0.9871428571428572,
+          0.9942857142857143,
+          0.9771428571428572,
+          0.9685714285714286,
+          0.9742857142857144,
+          0.8757142857142858,
+          0.9885714285714287,
+          0.9814285714285715,
+          0.9471428571428572
+        ],
+        "seeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "total_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "trajectory_correct": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "0.3": {
+        "exact_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          8
+        ],
+        "mean_overlap": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          0.9971428571428571
+        ],
+        "seeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "total_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "trajectory_correct": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "0.4": {
+        "exact_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "mean_overlap": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "seeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "total_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "trajectory_correct": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      },
+      "0.5": {
+        "exact_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "mean_overlap": [
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0,
+          1.0
+        ],
+        "seeds": [
+          1,
+          2,
+          3,
+          4,
+          5,
+          6,
+          7,
+          8,
+          9,
+          10
+        ],
+        "total_steps": [
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10,
+          10
+        ],
+        "trajectory_correct": [
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1,
+          1
+        ]
+      }
+    },
+    "materialized": true,
+    "rows": [
+      {
+        "decided": true,
+        "exact_steps": 0,
+        "first_step_exact": false,
+        "mean_overlap": 0.9685714285714286,
+        "p": 0.2,
+        "seed": 1,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 3,
+        "first_step_exact": true,
+        "mean_overlap": 0.9871428571428572,
+        "p": 0.2,
+        "seed": 2,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 6,
+        "first_step_exact": false,
+        "mean_overlap": 0.9942857142857143,
+        "p": 0.2,
+        "seed": 3,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 1,
+        "first_step_exact": false,
+        "mean_overlap": 0.9771428571428572,
+        "p": 0.2,
+        "seed": 4,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 0,
+        "first_step_exact": false,
+        "mean_overlap": 0.9685714285714286,
+        "p": 0.2,
+        "seed": 5,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 1,
+        "first_step_exact": true,
+        "mean_overlap": 0.9742857142857144,
+        "p": 0.2,
+        "seed": 6,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 0,
+        "first_step_exact": false,
+        "mean_overlap": 0.8757142857142858,
+        "p": 0.2,
+        "seed": 7,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 4,
+        "first_step_exact": true,
+        "mean_overlap": 0.9885714285714287,
+        "p": 0.2,
+        "seed": 8,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 4,
+        "first_step_exact": true,
+        "mean_overlap": 0.9814285714285715,
+        "p": 0.2,
+        "seed": 9,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 3,
+        "first_step_exact": false,
+        "mean_overlap": 0.9471428571428572,
+        "p": 0.2,
+        "seed": 10,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 1,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 2,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 3,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 4,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 5,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 6,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 7,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 8,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.3,
+        "seed": 9,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 8,
+        "first_step_exact": true,
+        "mean_overlap": 0.9971428571428571,
+        "p": 0.3,
+        "seed": 10,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 1,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 2,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 3,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 4,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 5,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 6,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 7,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 8,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 9,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.4,
+        "seed": 10,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 1,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 2,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 3,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 4,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 5,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 6,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 7,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 8,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 9,
+        "total_steps": 10,
+        "trajectory_correct": true
+      },
+      {
+        "decided": true,
+        "exact_steps": 10,
+        "first_step_exact": true,
+        "mean_overlap": 1.0,
+        "p": 0.5,
+        "seed": 10,
+        "total_steps": 10,
+        "trajectory_correct": true
+      }
+    ],
+    "scope": "A1 exact-step recovery versus afferent probability",
+    "summary": [
+      {
+        "decided": 10,
+        "exact_frac": 0.22,
+        "mean_overlap": 0.9662857142857144,
+        "n": 10,
+        "p": 0.2,
+        "trajectory_correct": 10
+      },
+      {
+        "decided": 10,
+        "exact_frac": 0.98,
+        "mean_overlap": 0.9997142857142857,
+        "n": 10,
+        "p": 0.3,
+        "trajectory_correct": 10
+      },
+      {
+        "decided": 10,
+        "exact_frac": 1.0,
+        "mean_overlap": 1.0,
+        "n": 10,
+        "p": 0.4,
+        "trajectory_correct": 10
+      },
+      {
+        "decided": 10,
+        "exact_frac": 1.0,
+        "mean_overlap": 1.0,
+        "n": 10,
+        "p": 0.5,
+        "trajectory_correct": 10
+      }
+    ],
+    "verdict": "UNADOPTED"
+  },
+  "run": {
+    "engine": "numpy_sparse",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "execution_semantics": {
+      "kind": "brain",
+      "profiles": {
+        "default": {
+          "arithmetic": "float32",
+          "candidate_domain": "materialized-plus-order-statistics",
+          "connectome": "lazy-content-addressed",
+          "default_tie_break": "partition-order",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "lazy-conditioned-afferent-count",
+          "weight_ceiling": 20.0
+        }
+      }
+    },
+    "git_commit": "32b5f67c3030d987268084e71e77acf323a8c985",
+    "input_artifacts": {},
+    "mode": "study",
+    "parameters": {
+      "beta": 0.1,
+      "k": 70,
+      "materialized": true,
+      "n_arc": 5000,
+      "n_state": 500,
+      "norm_init": false,
+      "p_values": [
+        0.2,
+        0.3,
+        0.4,
+        0.5
+      ],
+      "presentations": 15
+    },
+    "protocol": "sequence.a1-exactness-sweep",
+    "protocol_version": "3",
+    "registration": "research/notes/sequence/PREREG_sampler_audit.md",
+    "registration_sha256": "ede9cea1be33b6f6f9cd050b305cd2f01e5a5e77d4da0961ce8df02193da07d1",
+    "schema_version": 7,
+    "scientific_status": "UNJUDGED",
+    "script": "research/experiments/seq_a1_exactness_sweep.py",
+    "script_sha256": "40c3ad7478d495fbec30f367747e17ee3fefe0de0f250f61ac232112e7498f1a",
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "3e2f9203feb378d3cfbe74125be00e340fe4652917eaf12da87946c94dbd0a18"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "574cf9814f1065b6e6db926567b11d68dd345642b5e43097c355e7a917dd7271",
+    "started_utc": "2026-09-13T02:28:02.973898+00:00",
+    "tag": "sens-exactness-sweep-v3-20260912"
+  },
+  "status": "complete"
+}

@@ -1,0 +1,233 @@
+{
+  "attachments": {},
+  "observations": {
+    "ambient_p": 0.05,
+    "arms": [
+      {
+        "arm": "local_regime",
+        "correct": 10,
+        "n": 10,
+        "organ_p": 0.4,
+        "rows": [
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 1
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 2
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 3
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 4
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 5
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 6
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 7
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 8
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 9
+          },
+          {
+            "both": true,
+            "both_correct": 1,
+            "negative": true,
+            "positive": true,
+            "seed": 10
+          }
+        ]
+      },
+      {
+        "arm": "ambient_only",
+        "correct": 0,
+        "n": 10,
+        "organ_p": null,
+        "rows": [
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 1
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 2
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 3
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 4
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": true,
+            "positive": false,
+            "seed": 5
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": true,
+            "positive": false,
+            "seed": 6
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 7
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 8
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 9
+          },
+          {
+            "both": false,
+            "both_correct": 0,
+            "negative": false,
+            "positive": false,
+            "seed": 10
+          }
+        ]
+      }
+    ],
+    "materialized": true,
+    "organ_p": 0.4,
+    "scope": "local organ regime embedded in ambient sparse traffic",
+    "verdict": "PASS"
+  },
+  "run": {
+    "engine": "numpy_sparse",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "execution_semantics": {
+      "kind": "brain",
+      "profiles": {
+        "default": {
+          "arithmetic": "float32",
+          "candidate_domain": "materialized-plus-order-statistics",
+          "connectome": "lazy-content-addressed",
+          "default_tie_break": "partition-order",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "lazy-conditioned-afferent-count",
+          "weight_ceiling": 20.0
+        }
+      }
+    },
+    "git_commit": "32b5f67c3030d987268084e71e77acf323a8c985",
+    "input_artifacts": {},
+    "mode": "study",
+    "parameters": {
+      "ambient_p": 0.05,
+      "beta": 0.1,
+      "k": 70,
+      "materialized": true,
+      "n_arc": 5000,
+      "n_state": 500,
+      "norm_init": false,
+      "organ_p": 0.4,
+      "presentations": 15
+    },
+    "protocol": "sequence.a1-local-regime",
+    "protocol_version": "3",
+    "registration": "research/notes/sequence/PREREG_sampler_audit.md",
+    "registration_sha256": "c0f53ead07f958038a308c508d40cc9e790565f76dc6c09bf3ae131975fc4ad3",
+    "schema_version": 7,
+    "scientific_status": "UNJUDGED",
+    "script": "research/experiments/seq_a1_local_regime.py",
+    "script_sha256": "72dec4f9a0520cb7c4ae39d9e63626ea931104bd66387de0ae5e4322f3819f55",
+    "seeds": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      7,
+      8,
+      9,
+      10
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "2f75e9e4880709f9c294b02094bbcefb693324ef4838b30fb4bea81b3b652fa4"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "6aca55888aafba10873a9d06e4aa06259e065b77622b0f60a4b53c1488c4bb0b",
+    "started_utc": "2026-09-13T02:21:37.146072+00:00",
+    "tag": "sens-local-regime-v3-20260912"
+  },
+  "status": "complete"
+}

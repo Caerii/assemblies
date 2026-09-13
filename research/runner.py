@@ -19,9 +19,11 @@ from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
 from neural_assemblies.core.environment import environment_record
 from neural_assemblies.core.semantics import (
-    ALIGNER_ENGINE_NAMES, AlignerSemantics, AlignmentStore, BRAIN_ENGINE_NAMES, ExecutionKind,
+    ALIGNER_ENGINE_NAMES, AlignerSemantics, AlignmentStore, BASELINE_ENGINE_NAMES,
+    BRAIN_ENGINE_NAMES, BaselineSemantics, ExecutionKind,
     ExecutionSemantics, ModelSemantics, NormalizationMode, ORGAN_ENGINE_KINDS,
-    OrganSemantics, PlasticityRule, describe_brain_model,
+    OrganSemantics, PlasticityRule, REFERENCE_ENGINE_NAMES, REFERENCE_ENGINE_PROFILES,
+    describe_brain_model,
 )
 from research.json_documents import (
     encode_document, snapshot_document, write_new_document as _write_new,
@@ -50,6 +52,8 @@ _ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
 BRAIN_ENGINES = BRAIN_ENGINE_NAMES
 ORGAN_ENGINES = ORGAN_ENGINE_KINDS
 ALIGNER_ENGINES = ALIGNER_ENGINE_NAMES
+BASELINE_ENGINES = BASELINE_ENGINE_NAMES
+REFERENCE_ENGINES = REFERENCE_ENGINE_NAMES
 
 
 @dataclass(frozen=True)
@@ -189,7 +193,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    expected_input_digests: Mapping[str, str] | None = None,
                    model_semantics: ModelSemantics | Mapping | None = None,
                    organ_semantics: OrganSemantics | Mapping | None = None,
-                   aligner_semantics: AlignerSemantics | Mapping | None = None) -> Path:
+                   aligner_semantics: AlignerSemantics | Mapping | None = None,
+                   baseline_semantics: BaselineSemantics | Mapping | None = None) -> Path:
     """Execute one resolved protocol; return its immutable results file.
 
     `measure(record)` receives a JSON snapshot of the resolved inputs. It must
@@ -211,8 +216,9 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     if not isinstance(engine, str) or not _NAME.fullmatch(engine) or engine == 'auto':
         raise ValueError('record the resolved engine; auto is not provenance')
     if engine in BRAIN_ENGINES:
-        if organ_semantics is not None or aligner_semantics is not None:
-            raise ValueError('Brain engines cannot claim organ or aligner semantics')
+        if (organ_semantics is not None or aligner_semantics is not None
+                or baseline_semantics is not None):
+            raise ValueError('Brain engines cannot claim organ, aligner or baseline semantics')
         if model_semantics is None:
             raise ValueError(
                 f'{engine} runs require a complete model_semantics document'
@@ -286,6 +292,37 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
             ExecutionKind.ALIGNMENT, {"default": requested_aligner},
         ).to_dict()
         schema_version = 8
+    elif engine in BASELINE_ENGINES:
+        # A computed baseline ran no substrate. It may not borrow a Brain,
+        # organ or aligner profile, and it must still say what it conditioned
+        # on and how it broke ties (schema 9).
+        if (model_semantics is not None or organ_semantics is not None
+                or aligner_semantics is not None):
+            raise ValueError(f'{engine} cannot claim Brain, organ or aligner semantics')
+        if baseline_semantics is None:
+            raise ValueError(f'{engine} runs require a complete baseline_semantics document')
+        execution_document = ExecutionSemantics(
+            ExecutionKind.BASELINE, {'default': BaselineSemantics.normalize(baseline_semantics)},
+        ).to_dict()
+        schema_version = 9
+    elif engine in REFERENCE_ENGINES:
+        # A vendored reference has no ComputeEngine to describe itself; its
+        # profile is declared by a describer and the request must equal it.
+        if (organ_semantics is not None or aligner_semantics is not None
+                or baseline_semantics is not None):
+            raise ValueError(f'{engine} requires model_semantics exclusively')
+        if model_semantics is None:
+            raise ValueError(f'{engine} runs require the declared model_semantics document')
+        requested_model = ModelSemantics.normalize(model_semantics)
+        mismatch = requested_model.mismatch(REFERENCE_ENGINE_PROFILES[engine]())
+        if mismatch:
+            raise ValueError(
+                f'{engine} does not implement requested model_semantics: {mismatch}'
+            )
+        execution_document = ExecutionSemantics(
+            ExecutionKind.REFERENCE, {'default': requested_model},
+        ).to_dict()
+        schema_version = 9
     else:
         raise ValueError(f'unknown execution engine: {engine}')
     if type(smoke) is not bool or type(minimum_study_seeds) is not int or minimum_study_seeds < 3:
@@ -409,7 +446,11 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'temporal-memory-high-order': 'research.experiments.seq_tm_high_order',
                's5-soft-census': 'research.experiments.seq_s5_soft_census_hashed',
                'per-fiber-plasticity': 'research.experiments.per_fiber_plasticity',
-               'capacity-scaling': 'research.experiments.seq_capacity_scaling'}
+               'capacity-scaling': 'research.experiments.seq_capacity_scaling',
+               'word-capacity': 'research.experiments.word_capacity_run',
+               'word-capacity-ladder': 'research.experiments.word_capacity_ladder_run',
+               'a3-oracle-ceiling': 'research.experiments.seq_a3_oracle_ceiling',
+               'arc-refraction-reference': 'research.experiments.seq_arc_refraction_reference'}
 
 
 def main(argv=None):

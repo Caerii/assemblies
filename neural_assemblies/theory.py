@@ -233,13 +233,28 @@ _RESULTS: List[Result] = [
     # ------------------------------------------------- measured in this repo
     Result(
         id="SEQ-REGIME-CLIFF",
-        engine="numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance",
+        engine="numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc",
         status=Status.MEASURED,
-        sensitivity_gap="No retained immutable materialized/hashed sweep pairs "
-                        "the regime crossing with a mechanism-disabled null.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json",
+            sample_path="observations/by_p/0.4/seeds",
+            treatment_path="observations/by_p/0.4/exact_steps",
+            control_path="observations/by_p/0.2/exact_steps",
+            relation="all-greater", minimum_effect=4,
+            mechanism="exact recovery steps of 10 per seed at kp = 28 (above the 3 ln n floor of 18.6) against kp = 14 (below it), arc materialized",
+        ),),
+        sensitivity_gap="The retained contrast crosses the floor by changing p; "
+                        "no retained arm disables plasticity at fixed p, so the "
+                        "cliff's dependence on learning as such rests on the "
+                        "learning-disabled null of [[SEQ-EXACT-RECOVERY]].",
         claim="Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it "
-              "recovery is almost never exact and the machine fails; above it "
-              "every seed runs correctly.",
+              "recovery is rarely exact (0.22 of steps at kp = 14, arc "
+              "materialized) and a long run derails at its first non-exact "
+              "step; above it recovery is exact on every seed (0.98 at kp = 21, "
+              "1.00 at kp = 28). The cliff is in EXACTNESS: on the short "
+              "decision strings the trajectory is still correct below the "
+              "floor once the arc is materialized (10/10 at kp = 14); the "
+              "sampled arc had made it a cliff in decisions as well (4/10).",
         source="This repository.",
         evidence=("research/experiments/seq_a1_exactness_sweep.py: state kp "
                   "14 -> 4/100 exact steps and 4/10 trajectories; kp 21 -> "
@@ -249,9 +264,11 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/sequence/seq_a1_exactness_sweep_results.json", "artifact",
                         "sampled numpy arc; sequence verdict void under sampler audit"),
             EvidenceRef("research/results/sequence/seq_a1_exactness_sweep_results_materialized.json", "artifact"),
+            EvidenceRef("research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json", "artifact",
+                        "shared-runner replay with source archive and per-seed vectors per density"),
             EvidenceRef("research/experiments/seq_a1_exactness_sweep.py", "producer"),
         ),
-        provenance_gap="legacy result files have no immutable runner/source record",
+        provenance_gap="the two legacy result files have no runner/source record; the 2026-09-12 replay has both",
         implemented_by=("neural_assemblies.diagnostics.regime_audit",),
         caveat="The original sweep used the sampled numpy arc; its sequence-dynamics "
                "numbers are void under PREREG_sampler_audit.md until reproduced "
@@ -262,8 +279,29 @@ _RESULTS: List[Result] = [
         id="SEQ-EXACT-RECOVERY",
         engine="mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats",
         status=Status.MEASURED,
-        sensitivity_gap="This composite entry spans several legacy protocols; "
-                        "no one retained runner artifact encodes its null.",
+        sensitivity_checks=(
+            SensitivityCheck(
+                artifact="research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json",
+                sample_path="observations/cells/0/ensembles/exact_fraction/trained/keys",
+                treatment_path="observations/cells/0/ensembles/exact_fraction/trained/values",
+                control_path="observations/cells/0/ensembles/exact_fraction/null/values",
+                relation="all-greater", minimum_effect=0.5,
+                mechanism="exact state recovery with arc->state learning (beta and refraction) disabled, hashed organ at p = 0.3",
+            ),
+            SensitivityCheck(
+                artifact="research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json",
+                sample_path="observations/cells/1/ensembles/exact_fraction/trained/keys",
+                treatment_path="observations/cells/1/ensembles/exact_fraction/trained/values",
+                control_path="observations/cells/1/ensembles/exact_fraction/null/values",
+                relation="all-greater", minimum_effect=0.5,
+                mechanism="exact state recovery with arc->state learning (beta and refraction) disabled, hashed organ at p = 0.4",
+            ),
+        ),
+        sensitivity_gap="The retained learning-disabled null covers the A1 "
+                        "exact-recovery subclaim on the hashed organ (both "
+                        "densities, 20 seeds each). The soft-census subclaims "
+                        "(rate, first-hitting law, presentation window) still "
+                        "have no retained mechanism-disabled null artifact.",
         claim="The state area is a DISCRETE attractor: k-WTA maps a whole "
               "neighbourhood onto exactly one stored assembly in one step. "
               "Recovery must be EXACT -- 69 of 70 neurons is a failure, not a "
@@ -298,6 +336,8 @@ _RESULTS: List[Result] = [
                         "sampled numpy arc"),
             EvidenceRef("research/results/sequence/seq_s5_soft_census_results_hashed.json", "artifact"),
             EvidenceRef("research/notes/sequence/PREREG_s5_cliff_anatomy.md", "registration"),
+            EvidenceRef("research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json", "artifact",
+                        "paired learning-disabled null for the A1 exact-recovery subclaim; hashed organ, seeds 1-20"),
         ),
         provenance_gap="some legacy subclaims have no source archive or raw runner artifact",
         caveat="(1) Expansion and quantization are a PAIR: amplification alone "
@@ -478,10 +518,20 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-NEEDS-LOAD",
-        engine="numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted",
+        engine="numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted",
         status=Status.MEASURED,
-        sensitivity_gap="Legacy load sweeps lack an immutable paired "
-                        "mechanism-disabled artifact.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json",
+            sample_path="observations/rows/8/seeds",
+            treatment_path="observations/rows/8/correct_by_seed",
+            control_path="observations/rows/9/correct_by_seed",
+            relation="all-greater", minimum_effect=1,
+            mechanism="nine-conjunction arc at load 1.26 (n_arc 500) against load 1.80 (n_arc 350): the ceiling, arc materialized",
+        ),),
+        sensitivity_gap="The retained contrast is the ceiling (load 1.26 against 1.80). "
+                        "No retained arm disables refraction itself at a fitting load; "
+                        "the refraction ablation this entry's docstring cites (0/10, arc "
+                        "collapsed to 0.988) predates the runner.",
         claim="A refracted conjunction area has a CEILING in load M*k/n: "
               "above ~1.3 its conjunctions do not fit (10/10 correct at load "
               "1.26, 0/10 at 1.80). RE-SCOPED 2026-09-09 (PREREG_sampler_audit.md): "
@@ -504,9 +554,11 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/sequence/seq_a2_refraction_load_results.json", "artifact",
                         "sampled arc; lower-edge inference retracted"),
             EvidenceRef("research/results/sequence/seq_a2_refraction_load_results_materialized.json", "artifact"),
+            EvidenceRef("research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json", "artifact",
+                        "shared-runner replay with source archive and per-seed outcomes"),
             EvidenceRef("research/experiments/seq_a2_refraction_load.py", "producer"),
         ),
-        provenance_gap="legacy artifacts lack runner records and source archives",
+        provenance_gap="the two legacy artifacts lack runner records and source archives; the 2026-09-12 replay has both",
         preconditions=("refraction active -- this is a statement about what "
                        "refraction needs, not about k-WTA generally",),
         caveat="The 'silent failure under load' this entry once described -- "
@@ -705,22 +757,40 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="AC-CAP",
-        engine="incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved",
+        engine="original capacity-note run: incompletely recorded (graded-similarity evidence compares explicit, materialized and sampled numpy_sparse); retained bracket: hashed_assembly_memory, the unrefracted Hebbian control arm of the paired capacity replay at (n, k) = (4000, 60)",
         status=Status.MEASURED,
-        sensitivity_gap="The underlying capacity run is unidentified and has no "
-                        "retained mechanism-null comparison.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/control/cells/B~14000~160/checkpoints/32/rank1",
+            control_path="observations/conditions/control/cells/B~14000~160/checkpoints/128/rank1",
+            relation="all-greater", minimum_effect=0.9,
+            mechanism="Hebbian control arm: half-cue rank-1 recall at M = 32 (0.48 n/k, below the extensive ceiling) against M = 128 (1.9 n/k, above it); the ceiling lies between them on every brain",
+        ),),
+        sensitivity_gap="The retained bracket shows the Hebbian ceiling lies "
+                        "between 0.48 and 1.9 n/k on twenty brains at one cell; "
+                        "it does not pin the 1.15 constant, and the original "
+                        "capacity-note run remains unidentified.",
         claim="Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct "
               "assemblies per area.",
         source="This repository (critical-load measurement).",
         evidence=("research/notes/categories/capacity_is_not_the_constraint_separation_is.md",
-                  "research/notes/substrate/graded_similarity_and_sampler_load.md"),
+                  "research/notes/substrate/graded_similarity_and_sampler_load.md",
+                  "refraction-paired-sensitivity-20260911, control arm (4000, 60), 20 brains: "
+                  "rank-1 recall 1.000 on every brain at M = 32 and at M = 64 on 16 of 20 "
+                  "(mean 0.81, min 0.03); at M = 128 the maximum over brains is 0.031"),
         evidence_refs=(
             EvidenceRef("research/notes/categories/capacity_is_not_the_constraint_separation_is.md", "analysis"),
             EvidenceRef("research/notes/substrate/graded_similarity_and_sampler_load.md", "analysis"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json", "artifact",
+                        "Hebbian control arm only; brackets the extensive ceiling at one (n, k) cell"),
         ),
         provenance_gap="capacity-note run has no identifiable immutable artifact",
         caveat="The capacity-note run's engine provenance remains unresolved; "
-               "this entry does not certify the numerical capacity claim. "
+               "this entry does not certify the 1.15 constant. What the "
+               "retained control arm certifies is the extensive form at one "
+               "cell: the Hebbian area holds every item at half n/k and none "
+               "at twice n/k. "
                "This is why k and p are not interchangeable routes to a regime: "
                "raising k to reach kp spends capacity and forces n up with it.",
     ),
@@ -781,10 +851,17 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="SEQ-ORGAN-EMBEDS",
-        engine="numpy_sparse (original organ-density experiment; sampled-arc provenance limitation)",
+        engine="numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original organ-density experiment ran on the sampled arc",
         status=Status.MEASURED,
-        sensitivity_gap="The materialized density rerun predates immutable run "
-                        "records and has no encoded disabled-organ null.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json",
+            sample_path="observations/arms/0/rows/*/seed",
+            treatment_path="observations/arms/0/rows/*/both_correct",
+            control_path="observations/arms/1/rows/*/both_correct",
+            relation="all-greater", minimum_effect=1,
+            mechanism="organ fibers at p = 0.4 inside an ambient p = 0.05 brain against the same organ left at the ambient density (kp 3.5 against a floor of 18.6), arc materialized",
+        ),),
+        sensitivity_gap="",
         claim="A sequence organ runs at its own regime INSIDE a brain whose "
               "ambient density is far lower, given per-fiber p.",
         source="This repository.",
@@ -800,9 +877,11 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/sequence/seq_a1_local_regime_results.json", "artifact",
                         "sampled arc; sequence verdict void"),
             EvidenceRef("research/results/sequence/seq_a1_local_regime_results_materialized.json", "artifact"),
+            EvidenceRef("research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json", "artifact",
+                        "shared-runner replay with source archive; the ambient-only arm is the disabled-organ null"),
             EvidenceRef("research/experiments/seq_a1_local_regime.py", "producer"),
         ),
-        provenance_gap="legacy artifacts lack runner records and source archives",
+        provenance_gap="the two legacy artifacts lack runner records and source archives; the 2026-09-12 replay has both",
         caveat="The original organ-density experiment used the sampled numpy arc; "
                "its sequence-dynamics numbers are void under PREREG_sampler_audit.md "
                "until reproduced materialized or hashed. "
@@ -1093,7 +1172,12 @@ def unresolved_citations(root: str) -> Dict[str, List[str]]:
 
 
 def _json_values(document, path: str) -> list:
-    """Resolve RFC 6901 tokens with ``*`` list expansion into scalar values."""
+    """Resolve RFC 6901 tokens with ``*`` list expansion into scalar values.
+
+    A token that is a decimal index without leading zeros selects one element
+    of a list, as RFC 6901 specifies; ``*`` selects every element. Anything
+    else must name a key of a mapping.
+    """
     nodes = [document]
     for raw_token in path.split('/'):
         if not raw_token:
@@ -1103,7 +1187,10 @@ def _json_values(document, path: str) -> list:
         token = raw_token.replace("~1", "/").replace("~0", "~")
         expanded = []
         for node in nodes:
-            if token == '*':
+            if (isinstance(node, list) and re.fullmatch(r"0|[1-9][0-9]*", token)
+                    and int(token) < len(node)):
+                expanded.append(node[int(token)])
+            elif token == '*':
                 if not isinstance(node, list):
                     raise ValueError("sensitivity wildcard requires a list")
                 expanded.extend(node)

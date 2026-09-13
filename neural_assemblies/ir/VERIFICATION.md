@@ -1138,6 +1138,44 @@ semantics remain visible until an organ contract supplies them. Historical run
 schemas remain readable without retroactive semantics.
 
 
+<a id="contract-execution-kinds"></a>
+
+## Execution kinds without a ComputeEngine
+
+Two kinds of registered run have no engine to describe themselves, and both
+used to be unspellable in the shared runner, which pushed their scripts
+outside the maintained boundary.
+
+**Computed baselines** (`ExecutionKind.BASELINE`, engine name
+`computed_baseline`) are count estimators and corpus oracles: no substrate
+runs. Their profile is a `BaselineSemantics` record naming the corpus family,
+the scoring rule, the tie policy and its seed. The only tie policy admitted is
+`seeded-uniform-jitter`; an engine tie rule on a count estimator is rejected at
+construction. A baseline run may not claim Brain, organ or aligner semantics,
+and a Brain, organ or aligner run may not claim a baseline profile. The
+estimators a run reports (unigram, bigram, oracle state, generator-exact) are
+protocol parameters: they change the columns, not what a column means.
+
+**Vendored references** (`ExecutionKind.REFERENCE`, engine name
+`reference_nemo_numpy`) are measured as-is. Their `ModelSemantics` profile is
+declared by a describer in `neural_assemblies/core/semantics.py`
+(`describe_nemo_numpy_reference`), not derived from an engine. `run_experiment`
+requires the request to equal the declared profile field by field and refuses
+before reserving a tag otherwise; `validate_artifact` re-checks the retained
+profile against the describer, so a describer change invalidates old records
+rather than silently re-labelling them. The declared profile adds one
+connectome mode, `fixed-dense-stream-addressed`: matrices drawn in full from
+one seeded stream, so a cell's identity depends on draw order rather than on
+its `(row, col)` key.
+
+Both kinds write run schema 9. The validator rejects either kind under an
+earlier schema, rejects a kind that disagrees with the engine name, and keeps
+schemas 1 to 8 readable unchanged. Constructed negatives: a baseline profile
+with an engine tie rule, a reference request whose plasticity differs from the
+describer, a schema-7 record carrying a baseline kind, and a Brain run handed
+a baseline profile all fail before any measurement.
+
+
 <a id="contract-homeostasis-config"></a>
 
 ## Shared homeostasis configuration

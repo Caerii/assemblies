@@ -42,6 +42,11 @@ from .semantics import (
     describe_hashed_arc_fsm,
     describe_hashed_aligner,
     describe_hashed_transducer,
+    BaselineScoring,
+    BaselineSemantics,
+    CorpusFamily,
+    describe_computed_baseline,
+    describe_nemo_numpy_reference,
 )
 from .backend import set_backend, get_xp, get_backend_name, to_cpu, to_xp
 
@@ -62,5 +67,7 @@ __all__ = [
     'describe_brain_model', 'describe_assembly_memory',
     'describe_hashed_arc_fsm', 'describe_hashed_transducer',
     'describe_hashed_aligner',
+    'BaselineSemantics', 'BaselineScoring', 'CorpusFamily',
+    'describe_computed_baseline', 'describe_nemo_numpy_reference',
     'set_backend', 'get_xp', 'get_backend_name', 'to_cpu', 'to_xp',
 ]

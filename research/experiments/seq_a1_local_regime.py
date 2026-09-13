@@ -86,8 +86,11 @@ def arm(name, *, organ_p, seeds, materialized=False, presentations=PRESENTATIONS
                            presentations=presentations)
         pos = trajectory_correct(fsm, list(POSITIVE))
         neg = trajectory_correct(fsm, list(NEGATIVE))
+        # `both_correct` is the same outcome as an integer, so the register's
+        # sensitivity check (which compares finite numbers per seed) can read
+        # the local-regime arm against the ambient-only null from this file.
         rows.append({"seed": seed, "positive": pos, "negative": neg,
-                     "both": bool(pos and neg)})
+                     "both": bool(pos and neg), "both_correct": int(pos and neg)})
         print(f"    seed {seed:2d}: positive {'ok' if pos else ' .'}  "
               f"negative {'ok' if neg else ' .'}", flush=True)
         if seed == seeds[0]:
@@ -137,7 +140,9 @@ def main(argv=None):
                   "materialized": args.materialized, "norm_init": False}
     path = run_experiment(
         script=Path(__file__), protocol="sequence.a1-local-regime",
-        protocol_version="2", registration="research/notes/sequence/PREREG_sampler_audit.md",
+        # Version 3: rows retain the per-seed outcome as an integer
+        # (`both_correct`) beside the booleans; nothing measured changed.
+        protocol_version="3", registration="research/notes/sequence/PREREG_sampler_audit.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         parameters=parameters,
         model_semantics=describe_brain_model("numpy_sparse", p=AMBIENT_P,

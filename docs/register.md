@@ -10,18 +10,18 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQ-FSM`](#seq-fsm) | PROVED | Not an empirical entry | A finite-state machine is simulable by three areas: input, state, and a CONJUNCTION arc that fires for (state, symbol) and projects to the next state. |
 | [`SEQ-TRANSDUCER`](#seq-transducer) | PROVED | Not an empirical entry | Prediction/output is an FSM with one more area, fired together with the state update during training -- a transducer. |
 | [`SEQ-TM`](#seq-tm) | PROVED | Not an empirical entry | A Turing machine is simulable by an FSM plus three-area tape cycles, about ten areas in total. |
-| [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is almost never exact and the machine fails; above it every seed runs correctly. |
+| [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is rarely exact (0.22 of steps at kp = 14, arc materialized) and a long run derails at its first non-exact step; above it recovery is exact on every seed (0.98 at kp = 21, 1.00 at kp = 28). |
 | [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
 | [`SEQ-TEMPORAL-CARRY`](#seq-temporal-carry) | MEASURED | hashed transducer / temporal organ (20 brains per cell) | A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) improves next-token prediction on the synthetic agreement chain. |
 | [`ARC-CONJUNCT-EXPOSURE`](#arc-conjunct-exposure) | MEASURED | vendored reference/nemo_numpy (explicit NumPy matrices) | A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present. |
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | vendored reference/nemo_numpy (explicit NumPy matrices) | Refraction must charge in proportion to the winner's raw drive. |
-| [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
+| [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
 | [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed substrate (HashedArea with AreaFiber/StimulusFiber) | [RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the churn above ~0.75 beta stands; the intermediate-strength rows were a selector artefact -- at 0.5 beta the recurrent assembly converges, relocates once when the clip binds (~round 40-60, the registered P2 prediction) and holds; at 0.7 beta most brains no longer converge. |
-| [`AC-CAP`](#ac-cap) | MEASURED | incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
+| [`AC-CAP`](#ac-cap) | MEASURED | original capacity-note run: incompletely recorded (graded-similarity evidence compares explicit, materialized and sampled numpy_sparse); retained bracket: hashed_assembly_memory, the unrefracted Hebbian control arm of the paired capacity replay at (n, k) = (4000, 60) | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
 | [`RATE-HETEROGENEITY`](#rate-heterogeneity) | MEASURED | numpy_explicit (materialized copied-fiber protocol) | Learning rate is settable PER FIBER: copied fibers with identical pre/post activity at beta 0.06 and 0.005 diverge 14.35-fold after 50 updates without reaching the weight clip. |
 | [`DUAL-RATE`](#dual-rate) | EXTENSION | Not an empirical entry | Running fast and slow pathways at once is FUNCTIONALLY useful: a high-beta fiber binds in one shot (episodic) while a low-beta fiber accumulates statistics (semantic), and a system with both does something neither does alone. |
-| [`SEQ-ORGAN-EMBEDS`](#seq-organ-embeds) | MEASURED | numpy_sparse (original organ-density experiment; sampled-arc provenance limitation) | A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p. |
+| [`SEQ-ORGAN-EMBEDS`](#seq-organ-embeds) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original organ-density experiment ran on the sampled arc | A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p. |
 | [`SEQ-STATE-CODE-EMERGENT`](#seq-state-code-emergent) | EXTENSION | Not an empirical entry | The state alphabet can be INDUCED from data rather than assigned. |
 | [`KWTA-TIE-FRAGILE`](#kwta-tie-fragile) | MEASURED | torch/CUDA selector prototype; not a Brain-engine conformance claim | The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order. |
 | [`HEBB-OUTER-PRODUCT`](#hebb-outer-product) | PROVED | Not an empirical entry | The Hebbian co-firing count is a SUM OF RANK-1 OUTER PRODUCTS: count = SUM_t x_{t-1} x_t^T, with x_t the 0/1 winner indicator at round t. |
@@ -116,21 +116,25 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
-**Engine / substrate.** numpy_sparse; sampled arc in the original sweep; materialized reruns require their own artifact provenance
+**Engine / substrate.** numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc
 
-**Claim.** Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is almost never exact and the machine fails; above it every seed runs correctly.
+**Claim.** Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is rarely exact (0.22 of steps at kp = 14, arc materialized) and a long run derails at its first non-exact step; above it recovery is exact on every seed (0.98 at kp = 21, 1.00 at kp = 28). The cliff is in EXACTNESS: on the short decision strings the trajectory is still correct below the floor once the arc is materialized (10/10 at kp = 14); the sampled arc had made it a cliff in decisions as well (4/10).
 
 **Evidence.**
 - research/experiments/seq_a1_exactness_sweep.py: state kp 14 -> 4/100 exact steps and 4/10 trajectories; kp 21 -> 80/100 and 10/10; kp 28 -> 100/100 and 10/10, with the transition at the predicted p = 18.6/70 = 0.266
 
 **Evidence files.**
-- [research/results/sequence/seq_a1_exactness_sweep_results.json](../research/results/sequence/seq_a1_exactness_sweep_results.json) (artifact) â€” sampled numpy arc; sequence verdict void under sampler audit
+- [research/results/sequence/seq_a1_exactness_sweep_results.json](../research/results/sequence/seq_a1_exactness_sweep_results.json) (artifact) — sampled numpy arc; sequence verdict void under sampler audit
 - [research/results/sequence/seq_a1_exactness_sweep_results_materialized.json](../research/results/sequence/seq_a1_exactness_sweep_results_materialized.json) (artifact)
+- [research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json](../research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json) (artifact) — shared-runner replay with source archive and per-seed vectors per density
 - [research/experiments/seq_a1_exactness_sweep.py](../research/experiments/seq_a1_exactness_sweep.py) (producer)
 
-**Provenance gap.** legacy result files have no immutable runner/source record
+**Provenance gap.** the two legacy result files have no runner/source record; the 2026-09-12 replay has both
 
-**Sensitivity gap.** No retained immutable materialized/hashed sweep pairs the regime crossing with a mechanism-disabled null.
+**Mechanism sensitivity.**
+- exact recovery steps of 10 per seed at kp = 28 (above the 3 ln n floor of 18.6) against kp = 14 (below it), arc materialized: `observations/by_p/0.4/exact_steps` all-greater `observations/by_p/0.2/exact_steps` by at least 4, retained in [research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json](../research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json) and paired by `observations/by_p/0.4/seeds`.
+
+**Sensitivity gap.** The retained contrast crosses the floor by changing p; no retained arm disables plasticity at fixed p, so the cliff's dependence on learning as such rests on the learning-disabled null of [[SEQ-EXACT-RECOVERY]].
 
 **Used by.** `neural_assemblies.diagnostics.regime_audit`
 
@@ -155,13 +159,18 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence files.**
 - [research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json](../research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json) (artifact)
 - [research/results/sequence/seq_a1_horizon_materialized_check.json](../research/results/sequence/seq_a1_horizon_materialized_check.json) (artifact)
-- [research/results/sequence/seq_s5_soft_census_results.json](../research/results/sequence/seq_s5_soft_census_results.json) (artifact) â€” sampled numpy arc
+- [research/results/sequence/seq_s5_soft_census_results.json](../research/results/sequence/seq_s5_soft_census_results.json) (artifact) — sampled numpy arc
 - [research/results/sequence/seq_s5_soft_census_results_hashed.json](../research/results/sequence/seq_s5_soft_census_results_hashed.json) (artifact)
 - [research/notes/sequence/PREREG_s5_cliff_anatomy.md](../research/notes/sequence/PREREG_s5_cliff_anatomy.md) (registration)
+- [research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json](../research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json) (artifact) — paired learning-disabled null for the A1 exact-recovery subclaim; hashed organ, seeds 1-20
 
 **Provenance gap.** some legacy subclaims have no source archive or raw runner artifact
 
-**Sensitivity gap.** This composite entry spans several legacy protocols; no one retained runner artifact encodes its null.
+**Mechanism sensitivity.**
+- exact state recovery with arc->state learning (beta and refraction) disabled, hashed organ at p = 0.3: `observations/cells/0/ensembles/exact_fraction/trained/values` all-greater `observations/cells/0/ensembles/exact_fraction/null/values` by at least 0.5, retained in [research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json](../research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json) and paired by `observations/cells/0/ensembles/exact_fraction/trained/keys`.
+- exact state recovery with arc->state learning (beta and refraction) disabled, hashed organ at p = 0.4: `observations/cells/1/ensembles/exact_fraction/trained/values` all-greater `observations/cells/1/ensembles/exact_fraction/null/values` by at least 0.5, retained in [research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json](../research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json) and paired by `observations/cells/1/ensembles/exact_fraction/trained/keys`.
+
+**Sensitivity gap.** The retained learning-disabled null covers the A1 exact-recovery subclaim on the hashed organ (both densities, 20 seeds each). The soft-census subclaims (rate, first-hitting law, presentation window) still have no retained mechanism-disabled null artifact.
 
 **Findings and caveats.**
 1. Expansion and quantization are a PAIR: amplification alone is chaos, benign only because a quantizing area follows it; composition steps without a re-quantizing stage drift.
@@ -258,7 +267,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
-**Engine / substrate.** numpy_sparse, sampled versus explicitly materialized arc; sampled load floor is retracted
+**Engine / substrate.** numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted
 
 **Claim.** A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). RE-SCOPED 2026-09-09 (PREREG_sampler_audit.md): the lower edge this entry was named for -- 'below ~0.2 its assemblies never converge' -- was the numpy sampler's; with the arc materialized a 3-conjunction arc is 10/10 correct at every load from 0.04 to 0.60. An arc must be sized so its conjunctions fit; it need not be filled.
 
@@ -271,13 +280,17 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - arc assembly stability across training: 0.286 from presentation 5 to 15 under-loaded, 0.957 from 10 to 15 loaded
 
 **Evidence files.**
-- [research/results/sequence/seq_a2_refraction_load_results.json](../research/results/sequence/seq_a2_refraction_load_results.json) (artifact) â€” sampled arc; lower-edge inference retracted
+- [research/results/sequence/seq_a2_refraction_load_results.json](../research/results/sequence/seq_a2_refraction_load_results.json) (artifact) — sampled arc; lower-edge inference retracted
 - [research/results/sequence/seq_a2_refraction_load_results_materialized.json](../research/results/sequence/seq_a2_refraction_load_results_materialized.json) (artifact)
+- [research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json](../research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json) (artifact) — shared-runner replay with source archive and per-seed outcomes
 - [research/experiments/seq_a2_refraction_load.py](../research/experiments/seq_a2_refraction_load.py) (producer)
 
-**Provenance gap.** legacy artifacts lack runner records and source archives
+**Provenance gap.** the two legacy artifacts lack runner records and source archives; the 2026-09-12 replay has both
 
-**Sensitivity gap.** Legacy load sweeps lack an immutable paired mechanism-disabled artifact.
+**Mechanism sensitivity.**
+- nine-conjunction arc at load 1.26 (n_arc 500) against load 1.80 (n_arc 350): the ceiling, arc materialized: `observations/rows/8/correct_by_seed` all-greater `observations/rows/9/correct_by_seed` by at least 1, retained in [research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json](../research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json) and paired by `observations/rows/8/seeds`.
+
+**Sensitivity gap.** The retained contrast is the ceiling (load 1.26 against 1.80). No retained arm disables refraction itself at a fitting load; the refraction ablation this entry's docstring cites (0/10, arc collapsed to 0.988) predates the runner.
 
 **Caveat.** The 'silent failure under load' this entry once described -- assemblies that never stop moving while every diagnostic reads healthy -- was measured on the sampled engine and does not occur materialized; treat it as a property of lazily drawn areas, not of refraction. The ceiling is [[AC-CAP]]'s and is not independent of it. One task, 10 seeds.
 
@@ -306,12 +319,12 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence files.**
 - [research/notes/memory/PREREG_refraction_memory.md](../research/notes/memory/PREREG_refraction_memory.md) (registration)
-- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) â€” registered protocol-consumption replay, not the whole historical grid
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) — registered protocol-consumption replay, not the whole historical grid
 - [research/results/memory/refraction_memory_numpy_results.json](../research/results/memory/refraction_memory_numpy_results.json) (artifact)
 - [research/results/memory/capacity_scaling_results_figure_ref.json](../research/results/memory/capacity_scaling_results_figure_ref.json) (artifact)
 - [research/results/memory/capacity_scaling_results_figure_ctl.json](../research/results/memory/capacity_scaling_results_figure_ctl.json) (artifact)
-- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) â€” paired version-3 reproduction and sensitivity run
-- [research/results/comparisons/refraction-paired-sensitivity-20260911.json](../research/results/comparisons/refraction-paired-sensitivity-20260911.json) (comparison) â€” 2090-scalar migration comparison receipt
+- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) — paired version-3 reproduction and sensitivity run
+- [research/results/comparisons/refraction-paired-sensitivity-20260911.json](../research/results/comparisons/refraction-paired-sensitivity-20260911.json) (comparison) — 2090-scalar migration comparison receipt
 
 **Provenance gap.** most capacity-grid artifacts predate immutable source/environment records
 
@@ -357,23 +370,28 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository (critical-load measurement).
 
-**Engine / substrate.** incompletely recorded: graded-similarity evidence compares explicit, materialized and sampled numpy_sparse; capacity-note run provenance remains unresolved
+**Engine / substrate.** original capacity-note run: incompletely recorded (graded-similarity evidence compares explicit, materialized and sampled numpy_sparse); retained bracket: hashed_assembly_memory, the unrefracted Hebbian control arm of the paired capacity replay at (n, k) = (4000, 60)
 
 **Claim.** Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area.
 
 **Evidence.**
 - research/notes/categories/capacity_is_not_the_constraint_separation_is.md
 - research/notes/substrate/graded_similarity_and_sampler_load.md
+- refraction-paired-sensitivity-20260911, control arm (4000, 60), 20 brains: rank-1 recall 1.000 on every brain at M = 32 and at M = 64 on 16 of 20 (mean 0.81, min 0.03); at M = 128 the maximum over brains is 0.031
 
 **Evidence files.**
 - [research/notes/categories/capacity_is_not_the_constraint_separation_is.md](../research/notes/categories/capacity_is_not_the_constraint_separation_is.md) (analysis)
 - [research/notes/substrate/graded_similarity_and_sampler_load.md](../research/notes/substrate/graded_similarity_and_sampler_load.md) (analysis)
+- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) — Hebbian control arm only; brackets the extensive ceiling at one (n, k) cell
 
 **Provenance gap.** capacity-note run has no identifiable immutable artifact
 
-**Sensitivity gap.** The underlying capacity run is unidentified and has no retained mechanism-null comparison.
+**Mechanism sensitivity.**
+- Hebbian control arm: half-cue rank-1 recall at M = 32 (0.48 n/k, below the extensive ceiling) against M = 128 (1.9 n/k, above it); the ceiling lies between them on every brain: `observations/conditions/control/cells/B~14000~160/checkpoints/32/rank1` all-greater `observations/conditions/control/cells/B~14000~160/checkpoints/128/rank1` by at least 0.9, retained in [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) and paired by `run/seeds`.
 
-**Caveat.** The capacity-note run's engine provenance remains unresolved; this entry does not certify the numerical capacity claim. This is why k and p are not interchangeable routes to a regime: raising k to reach kp spends capacity and forces n up with it.
+**Sensitivity gap.** The retained bracket shows the Hebbian ceiling lies between 0.48 and 1.9 n/k on twenty brains at one cell; it does not pin the 1.15 constant, and the original capacity-note run remains unidentified.
+
+**Caveat.** The capacity-note run's engine provenance remains unresolved; this entry does not certify the 1.15 constant. What the retained control arm certifies is the extensive form at one cell: the Hebbian area holds every item at half n/k and none at twice n/k. This is why k and p are not interchangeable routes to a regime: raising k to reach kp spends capacity and forces n up with it.
 
 ## RATE-HETEROGENEITY
 
@@ -414,7 +432,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
-**Engine / substrate.** numpy_sparse (original organ-density experiment; sampled-arc provenance limitation)
+**Engine / substrate.** numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original organ-density experiment ran on the sampled arc
 
 **Claim.** A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p.
 
@@ -426,13 +444,15 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_a1_local_regime.py: ambient p=0.05 with organ fibers at p=0.4 gives 10/10 correct trajectories, matching the uniform p=0.4 result, while the same organ left at the ambient density gives 0/10
 
 **Evidence files.**
-- [research/results/sequence/seq_a1_local_regime_results.json](../research/results/sequence/seq_a1_local_regime_results.json) (artifact) â€” sampled arc; sequence verdict void
+- [research/results/sequence/seq_a1_local_regime_results.json](../research/results/sequence/seq_a1_local_regime_results.json) (artifact) — sampled arc; sequence verdict void
 - [research/results/sequence/seq_a1_local_regime_results_materialized.json](../research/results/sequence/seq_a1_local_regime_results_materialized.json) (artifact)
+- [research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json](../research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json) (artifact) — shared-runner replay with source archive; the ambient-only arm is the disabled-organ null
 - [research/experiments/seq_a1_local_regime.py](../research/experiments/seq_a1_local_regime.py) (producer)
 
-**Provenance gap.** legacy artifacts lack runner records and source archives
+**Provenance gap.** the two legacy artifacts lack runner records and source archives; the 2026-09-12 replay has both
 
-**Sensitivity gap.** The materialized density rerun predates immutable run records and has no encoded disabled-organ null.
+**Mechanism sensitivity.**
+- organ fibers at p = 0.4 inside an ambient p = 0.05 brain against the same organ left at the ambient density (kp 3.5 against a floor of 18.6), arc materialized: `observations/arms/0/rows/*/both_correct` all-greater `observations/arms/1/rows/*/both_correct` by at least 1, retained in [research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json](../research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json) and paired by `observations/arms/0/rows/*/seed`.
 
 **Caveat.** The original organ-density experiment used the sampled numpy arc; its sequence-dynamics numbers are void under PREREG_sampler_audit.md until reproduced materialized or hashed. The heterogeneous path found a defect that the regime audit could NOT see: the stimulus weight clamp was scaled by the global p while the weights were drawn at the fiber's p, so a dense fiber in a sparse brain saturated at a sparse ceiling. The organ read 1/10 while every area reported comfortably in-regime. Any NEW per-fiber quantity is a candidate for the same class. The pooled candidate draw also remains moment-matched -- exact in the first two moments, an approximation beyond them.
 
@@ -574,8 +594,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_capacity_scaling.py
 
 **Evidence files.**
-- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) â€” maintained-run replay at (4000,60), not the registered cliff cell
-- [research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json) (artifact) â€” fresh exact-path reproduction and retained sensitivity vectors
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) — maintained-run replay at (4000,60), not the registered cliff cell
+- [research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json) (artifact) — fresh exact-path reproduction and retained sensitivity vectors
 - [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
 
 **Mechanism sensitivity.**

@@ -103,6 +103,7 @@ jobs:
           neural_assemblies/tests/test_transition_contract.py
           neural_assemblies/tests/test_transitions.py
           neural_assemblies/tests/test_docs_examples_smoke.py
+          neural_assemblies/tests/test_execution_kinds.py
 
   lean-contracts:
     runs-on: ubuntu-latest

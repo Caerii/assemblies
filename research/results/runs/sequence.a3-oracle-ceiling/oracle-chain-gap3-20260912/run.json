@@ -1,0 +1,73 @@
+{
+  "engine": "computed_baseline",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "execution_semantics": {
+    "kind": "baseline",
+    "profiles": {
+      "default": {
+        "corpus": "agreement-chain",
+        "scoring": "mrr-random-ties",
+        "tie_break": "seeded-uniform-jitter",
+        "tie_seed": 0
+      }
+    }
+  },
+  "git_commit": "32b5f67c3030d987268084e71e77acf323a8c985",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "corpus": "agreement-chain",
+    "gap": 3,
+    "n_test": 25,
+    "n_train": 200,
+    "predictors": [
+      "unigram",
+      "bigram",
+      "phase-oracle",
+      "phase-number-oracle"
+    ],
+    "tie_seed": 0,
+    "vocab": 50
+  },
+  "protocol": "sequence.a3-oracle-ceiling",
+  "protocol_version": "2",
+  "registration": "research/notes/sequence/PREREG_agreement_corpus.md",
+  "registration_sha256": "501050d2b37c940c4d050ba390ceaa94eb5c00f701b7ac913bf5f9e591b914b7",
+  "schema_version": 9,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_a3_oracle_ceiling.py",
+  "script_sha256": "db1d959066062cddf43591647f7c2f931a43e113eb44855d44ba775a92af70a0",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "c99c35498043763cb0f167f7e5df0ec7f9e6295576762d693fd4b03313119b48"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "6aca55888aafba10873a9d06e4aa06259e065b77622b0f60a4b53c1488c4bb0b",
+  "started_utc": "2026-09-13T02:21:19.869240+00:00",
+  "tag": "oracle-chain-gap3-20260912"
+}

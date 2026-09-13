@@ -39,6 +39,8 @@ _LAZY_EXPORTS = {
         "describe_assembly_memory", "describe_hashed_arc_fsm",
         "describe_hashed_transducer",
         "describe_hashed_aligner",
+        "BaselineSemantics", "BaselineScoring", "CorpusFamily",
+        "describe_computed_baseline", "describe_nemo_numpy_reference",
     )
 }
 _LAZY_EXPORTS["cupy_available"] = ".core.backend"
@@ -135,15 +137,18 @@ if TYPE_CHECKING:  # pragma: no cover
         FeedforwardInhibitionConfig,
         ProjectionResult, Stimulus,
         AlignerSemantics, AlignmentInferenceSchedule, AlignmentStore,
-        AlignmentTrainingSchedule, ArithmeticMode, CandidateDomain,
-        ConnectomeMode, ModelSemantics,
+        AlignmentTrainingSchedule, ArithmeticMode, BaselineScoring,
+        BaselineSemantics, CandidateDomain,
+        ConnectomeMode, CorpusFamily, ModelSemantics,
         ExecutionKind, ExecutionSemantics, InferenceSchedule,
         NormalizationMode, OrganKind, OrganSemantics,
         PlasticityRule, SampledRecurrencePolicy, StateCode,
         StimulusDriveLaw, TieBreakRule, TrainingSchedule, create_engine,
         describe_assembly_memory, describe_brain_model,
+        describe_computed_baseline,
         describe_hashed_aligner, describe_hashed_arc_fsm,
-        describe_hashed_transducer, list_engines,
+        describe_hashed_transducer, describe_nemo_numpy_reference,
+        list_engines,
     )
     from .core.backend import cupy_available
     from .utils import (
@@ -201,6 +206,8 @@ __all__ = [
     'InferenceSchedule', 'describe_brain_model', 'describe_assembly_memory',
     'describe_hashed_aligner', 'describe_hashed_arc_fsm',
     'describe_hashed_transducer',
+    'BaselineSemantics', 'BaselineScoring', 'CorpusFamily',
+    'describe_computed_baseline', 'describe_nemo_numpy_reference',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

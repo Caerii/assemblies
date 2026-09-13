@@ -21,6 +21,14 @@ BRAIN_ENGINE_NAMES = frozenset({
     "cupy_sparse",
 })
 ALIGNER_ENGINE_NAMES = frozenset({"hashed_aligner", "scheduled_aligner"})
+#: Substrate-free computations (count estimators, corpus oracles). They have
+#: no engine to conform to; their record names what the estimator conditions
+#: on and how ties are broken, and nothing else.
+BASELINE_ENGINE_NAMES = frozenset({"computed_baseline"})
+#: Vendored reference implementations measured as-is (no Brain). Their model
+#: profile is DECLARED by a describer in this module and checked for equality
+#: against the run's request; it is not derived from a ComputeEngine.
+REFERENCE_ENGINE_NAMES = frozenset({"reference_nemo_numpy"})
 
 
 class _SemanticEnum(str, Enum):
@@ -42,6 +50,10 @@ class ConnectomeMode(_SemanticEnum):
     LAZY_CONTENT_ADDRESSED = "lazy-content-addressed"
     LAZY_STREAM_ADDRESSED = "lazy-stream-addressed"
     FIXED_DENSE_CONTENT_ADDRESSED = "fixed-dense-content-addressed"
+    #: Dense matrices drawn in full from one seeded random stream at
+    #: construction (the vendored numpy reference); the identity of a cell
+    #: depends on draw order, not on its (row, col) key.
+    FIXED_DENSE_STREAM_ADDRESSED = "fixed-dense-stream-addressed"
     FIXED_HASH_REGENERATED = "fixed-hash-regenerated"
 
 
@@ -62,6 +74,9 @@ class TieBreakRule(_SemanticEnum):
     PARTITION_ORDER = "partition-order"
     BACKEND_TOPK_ORDER = "backend-topk-order"
     DETERMINISTIC_HASH_JITTER = "deterministic-hash-jitter"
+    #: Ties among candidates broken by a uniform draw from a seeded stream
+    #: (computed baselines rank words this way; no engine does).
+    SEEDED_UNIFORM_JITTER = "seeded-uniform-jitter"
 
 
 class ArithmeticMode(_SemanticEnum):
@@ -117,6 +132,20 @@ class ExecutionKind(_SemanticEnum):
     BRAIN = "brain"
     ORGAN = "organ"
     ALIGNMENT = "alignment"
+    #: A computed baseline: no substrate ran. Admitted from run schema 9.
+    BASELINE = "baseline"
+    #: A vendored reference implementation with a declared model profile.
+    #: Admitted from run schema 9.
+    REFERENCE = "reference"
+
+
+class CorpusFamily(_SemanticEnum):
+    STUDY4_TEMPLATE = "study4-template"
+    AGREEMENT_CHAIN = "agreement-chain"
+
+
+class BaselineScoring(_SemanticEnum):
+    MRR_RANDOM_TIES = "mrr-random-ties"
 
 
 class AlignmentStore(_SemanticEnum):
@@ -480,11 +509,83 @@ def describe_hashed_aligner(
 
 
 @dataclass(frozen=True)
+class BaselineSemantics(_SemanticRecord):
+    """Specification: neural_assemblies/ir/VERIFICATION.md#contract-execution-kinds
+
+    Identity of a substrate-free baseline: which corpus family its counts
+    and oracles are estimated on, the scoring rule, and the tie policy with
+    its seed. The estimators themselves (unigram, bigram, oracle state, ...)
+    are protocol parameters; they change which columns a run reports, not
+    what any column means.
+    """
+
+    corpus: CorpusFamily
+    scoring: BaselineScoring
+    tie_break: TieBreakRule
+    tie_seed: int
+    _document_name: ClassVar[str] = "baseline_semantics"
+
+    def __post_init__(self):
+        object.__setattr__(self, "corpus", CorpusFamily.normalize(self.corpus))
+        object.__setattr__(self, "scoring", BaselineScoring.normalize(self.scoring))
+        object.__setattr__(self, "tie_break", TieBreakRule.normalize(self.tie_break))
+        if self.tie_break is not TieBreakRule.SEEDED_UNIFORM_JITTER:
+            raise ValueError(
+                "computed baselines break ties with a seeded uniform jitter; "
+                "engine tie rules do not apply to a count estimator"
+            )
+        if isinstance(self.tie_seed, bool) or type(self.tie_seed) is not int:
+            raise ValueError("tie_seed must be an integer identity")
+
+
+def describe_computed_baseline(*, corpus: str, tie_seed: int = 0) -> BaselineSemantics:
+    """The only baseline profile this repository computes: MRR with seeded random ties."""
+    return BaselineSemantics(
+        corpus=CorpusFamily.normalize(corpus),
+        scoring=BaselineScoring.MRR_RANDOM_TIES,
+        tie_break=TieBreakRule.SEEDED_UNIFORM_JITTER,
+        tie_seed=tie_seed,
+    )
+
+
+def describe_nemo_numpy_reference() -> ModelSemantics:
+    """Declared profile of the vendored ``reference/nemo_numpy`` FSM network.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-execution-kinds
+
+    Dense Bernoulli matrices drawn from one seeded stream, every neuron a
+    candidate, a fixed afferent count per stimulus row, float64 arithmetic,
+    no normalization, multiplicative potentiation without a ceiling, and
+    the reference's own top-k (``np.argpartition``, backend order on ties).
+    A run against this engine must request exactly this profile; the
+    describer is the contract, since no ComputeEngine stands behind it.
+    """
+    return ModelSemantics(
+        connectome=ConnectomeMode.FIXED_DENSE_STREAM_ADDRESSED,
+        candidate_domain=CandidateDomain.ALL_NEURONS,
+        stimulus_drive=StimulusDriveLaw.FIXED_BERNOULLI_AFFERENT_COUNT,
+        default_tie_break=TieBreakRule.BACKEND_TOPK_ORDER,
+        arithmetic=ArithmeticMode.FLOAT64,
+        normalization=NormalizationMode.NONE,
+        plasticity=PlasticityRule.MULTIPLICATIVE_UNBOUNDED,
+        weight_ceiling=None,
+    )
+
+
+REFERENCE_ENGINE_PROFILES = {
+    "reference_nemo_numpy": describe_nemo_numpy_reference,
+}
+
+
+@dataclass(frozen=True)
 class ExecutionSemantics:
     """A strict, discriminated collection of model profiles used by one run."""
 
     kind: ExecutionKind
-    profiles: Mapping[str, ModelSemantics | OrganSemantics | AlignerSemantics]
+    # Records or their wire mappings; __post_init__ normalizes every profile
+    # to the record type the kind requires and rejects anything else.
+    profiles: Mapping[str, ModelSemantics | OrganSemantics | AlignerSemantics
+                      | BaselineSemantics | Mapping[str, object]]
 
     def __post_init__(self):
         object.__setattr__(self, "kind", ExecutionKind.normalize(self.kind))
@@ -495,14 +596,17 @@ class ExecutionSemantics:
             if (not isinstance(name, str) or not name
                     or any(ch not in "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789_.-" for ch in name)):
                 raise ValueError("semantic profile names must be nonempty simple names")
-            if self.kind is ExecutionKind.BRAIN:
+            if self.kind in (ExecutionKind.BRAIN, ExecutionKind.REFERENCE):
                 profile = ModelSemantics.normalize(value)
             elif self.kind is ExecutionKind.ORGAN:
                 profile = OrganSemantics.normalize(value)
+            elif self.kind is ExecutionKind.BASELINE:
+                profile = BaselineSemantics.normalize(value)
             else:
                 profile = AlignerSemantics.normalize(value)
             normalized[name] = profile
-        if (self.kind in (ExecutionKind.BRAIN, ExecutionKind.ALIGNMENT)
+        if (self.kind in (ExecutionKind.BRAIN, ExecutionKind.ALIGNMENT,
+                          ExecutionKind.BASELINE, ExecutionKind.REFERENCE)
                 and set(normalized) != {"default"}):
             raise ValueError(
                 f"{self.kind.value} execution semantics require exactly the default profile"
@@ -523,7 +627,9 @@ class ExecutionSemantics:
         return {
             "kind": self.kind.value,
             "profiles": {
-                name: profile.to_dict() for name, profile in self.profiles.items()
+                # Every profile is a record after __post_init__.
+                name: cast(_SemanticRecord, profile).to_dict()
+                for name, profile in self.profiles.items()
             },
         }
 def describe_assembly_memory(*, w_max: float | None = 20.0,

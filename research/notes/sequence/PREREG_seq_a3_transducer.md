@@ -283,3 +283,16 @@ carries more than 0.02 of MRR -- long-range dependencies (agreement,
 nesting) with a computed oracle gap of >= 0.1 -- and the organ first
 needs to reach the bigram it already has the information for (its loss
 is in the readout, not the state).
+
+## Amendment 3, retained (2026-09-12): the ceiling as a registered computation
+
+The Amendment 3 computation now runs through the shared runner as a
+computed baseline with a retained record:
+`python -m research.runner a3-oracle-ceiling --corpus study4-template`
+(engine `computed_baseline`, seeds 42 to 61, tie seed 0), artifact
+`research/results/runs/sequence.a3-oracle-ceiling/oracle-study4-20260912/results.json`.
+Unigram 0.1265, bigram 0.2299, class-bigram 0.2330, phase 0.2487,
+phase-exact 0.2596; phase minus bigram +0.0188 [-0.0385, 0.0710]
+(Student t, 20 seeds). The ceiling is reported, not judged: no bar was
+registered for it, and the interval includes zero, which is what Amendment
+3 concluded from the printed means.

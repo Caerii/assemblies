@@ -123,6 +123,35 @@ def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=
             if key not in old or not _equal(r, old[key]):
                 errors.append(f"A1 cell {key} differs (including length and exactness)")
             checked += 1
+    elif kind == "baseline":
+        # A computed-baseline artifact (sequence.a3-oracle-ceiling) against a
+        # legacy A3 transducer result file, which recorded the same seeds'
+        # bigram and oracle MRR under `bigram.values` / `oracle.values`.
+        predictors = observations["predictors"]
+        old_seeds = baseline.get("seeds")
+        if (not isinstance(old_seeds, list) or any(type(s) is not int for s in old_seeds)
+                or len(set(old_seeds)) != len(old_seeds)):
+            raise ValueError("historical A3 file must record unique integer seeds")
+        indices = {seed: i for i, seed in enumerate(old_seeds)}
+        if any(seed not in indices for seed in record["seeds"]):
+            raise ValueError("candidate seed is absent from the historical seed list")
+        oracle = ("phase" if record["parameters"]["corpus"] == "study4-template"
+                  else "phase-number-oracle")
+        for new_name, old_name in (("bigram", "bigram"), (oracle, "oracle")):
+            if new_name not in predictors or old_name not in baseline:
+                errors.append(f"{new_name}: missing candidate or historical column")
+                continue
+            column = predictors[new_name]
+            if list(column["keys"]) != list(record["seeds"]):
+                errors.append(f"{new_name}: candidate keys differ from the run's seeds")
+                continue
+            prior = baseline[old_name]["values"]
+            if len(prior) != len(old_seeds):
+                raise ValueError("historical values do not match the historical seed list")
+            expected = [prior[indices[s]] for s in record["seeds"]]
+            if any(not _equal(a, b) for a, b in zip(column["values"], expected, strict=True)):
+                errors.append(f"{new_name}: per-seed values differ")
+            checked += len(expected)
     elif kind in {"capacity", "capacity-paired"}:
         if (not reference_seeds or any(type(seed) is not int for seed in reference_seeds)
                 or len(set(reference_seeds)) != len(reference_seeds)):
@@ -175,16 +204,27 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
     if not isinstance(receipt, dict) or set(receipt) != required:
         return ["comparison receipt has an incomplete or unknown schema"]
     errors = []
+    # Kinds whose receipts are retained under research/results/comparisons.
+    # `capacity-paired` needs a treatment reference; `baseline` compares one
+    # candidate against one historical file and records `null` for it.
+    retained_kinds = {"capacity-paired": True, "baseline": False}
     if (receipt["comparison_version"] != 4
-            or receipt["kind"] != "capacity-paired"
+            or receipt["kind"] not in retained_kinds
             or receipt["numerical_match"] is not True
             or receipt["errors"] != []
             or type(receipt["comparisons"]) is not int
             or receipt["comparisons"] < 1):
         errors.append("comparison receipt does not record a successful version-4 comparison")
+        needs_treatment = True
+    else:
+        needs_treatment = retained_kinds[receipt["kind"]]
     paths = {}
     for field in ("candidate", "reference", "treatment_reference"):
         name = receipt[field]
+        if field == "treatment_reference" and not needs_treatment:
+            if name is not None or receipt["treatment_reference_sha256"] is not None:
+                errors.append("comparison receipt names a treatment reference its kind does not use")
+            continue
         target = (root / name).resolve() if isinstance(name, str) else root.parent
         if (not isinstance(name, str) or not target.is_relative_to(root.resolve())
                 or not target.is_file()):
@@ -211,12 +251,13 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
     if "candidate" in paths:
         errors.extend(f"candidate: {error}" for error in
                       validate_artifact(paths["candidate"], root=root))
-    if not errors and len(paths) == 3:
+    if not errors and len(paths) == (3 if needs_treatment else 2):
         try:
             recomputed = compare(
                 _load_json(paths["candidate"]), _load_json(paths["reference"]),
                 receipt["kind"], receipt["reference_seeds"],
-                treatment_baseline=_load_json(paths["treatment_reference"]),
+                treatment_baseline=(_load_json(paths["treatment_reference"])
+                                    if needs_treatment else None),
             )
             for field in ("numerical_match", "comparisons", "errors", "scope"):
                 if recomputed[field] != receipt[field]:
@@ -228,7 +269,7 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired"))
+    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired", "baseline"))
     parser.add_argument("candidate", type=Path)
     parser.add_argument("reference", type=Path)
     parser.add_argument("--reference-seeds", nargs="+", type=int)

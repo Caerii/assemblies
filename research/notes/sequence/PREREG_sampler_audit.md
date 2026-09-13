@@ -65,3 +65,28 @@ were convergence failures of the sampled engine, and on the explicit
 substrate a refracted conjunction converges at any load below the
 ceiling. That is consistent with everything the port found: the sampler
 adds failures, never successes.
+
+## Retained sensitivity replays (2026-09-12, shared runner, arc materialized)
+
+The three SA lines were re-run through `research.runner` so the register's
+mechanism-disabled contrasts are retained per seed in an immutable artifact
+rather than in prose. Same seeds (1 to 10), same sizes and presentations,
+`numpy_sparse` with the arc materialized; the protocols went to version 3
+only to retain per-seed integer outcomes beside the existing fields.
+
+- SA-3, `SEQ-ORGAN-EMBEDS`:
+  `research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json`.
+  Organ fibers at p = 0.4 inside an ambient p = 0.05 brain: 10/10; the same
+  organ left at the ambient density: 0/10. PASS as before. The register
+  check reads `both_correct` of the local-regime arm against the
+  ambient-only arm seed by seed.
+- SA-2, `REFRACTION-NEEDS-LOAD`:
+  `research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json`.
+  Single-mood arc 10/10 at every load 0.04 to 0.60; nine-conjunction arc
+  10/10 up to load 1.26 and 0/10 at 1.80, as in the 2026-09-09 result. The
+  register check reads `correct_by_seed` at load 1.26 against load 1.80.
+- SA-1, `SEQ-REGIME-CLIFF`:
+  `research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json`
+  (the first attempt on this date was voided by the runner's source-change
+  guard and discarded before completion; this is the clean rerun). The
+  register check reads per-seed exact steps at p = 0.4 against p = 0.2.

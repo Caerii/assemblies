@@ -76,18 +76,22 @@ def experiment(record):
                          ("multi-mood (9 conjunctions)", list(ORDERS))):
         m_count = len(transitions_for(moods))
         for n_arc in n_arcs:
-            ok = sum(order_correct(build(
-                            s, moods, n_arc, materialized=materialized,
-                            presentations=presentations)[1], moods[0])
-                     if len(moods) == 1
-                     else all(order_correct(build(
-                            s, moods, n_arc, materialized=materialized,
-                            presentations=presentations)[1], mm)
-                              for mm in moods)
-                     for s in seeds)
+            # One integer per seed, in seed order, so a register sensitivity
+            # check can pair a loaded cell against an overloaded one seed by
+            # seed; `correct` remains the count over seeds.
+            by_seed = []
+            for s in seeds:
+                fsm = build(s, moods, n_arc, materialized=materialized,
+                            presentations=presentations)[1]
+                if len(moods) == 1:
+                    by_seed.append(int(order_correct(fsm, moods[0])))
+                else:
+                    by_seed.append(int(all(order_correct(fsm, mm) for mm in moods)))
+            ok = sum(by_seed)
             load = m_count * K / n_arc
             rows.append({"arm": label, "n_arc": n_arc, "load": load,
-                         "correct": ok, "n": len(seeds)})
+                         "correct": ok, "n": len(seeds),
+                         "seeds": list(seeds), "correct_by_seed": by_seed})
             rows[-1]["materialized"] = materialized
     return {"verdict": "VOID" if record["mode"] == "smoke" else "UNADOPTED",
             "rows": rows, "scope": "refraction convergence versus arc load"}
@@ -108,7 +112,10 @@ def main(argv=None):
                   "materialized": args.materialized, "norm_init": False}
     path = run_experiment(
         script=Path(__file__), protocol="sequence.a2-refraction-load",
-        protocol_version="2", registration="research/notes/sequence/PREREG_sampler_audit.md",
+        # Version 3: every row retains `seeds` and `correct_by_seed`; the
+        # multi-mood arm previously rebuilt each brain once per mood, and now
+        # builds it once and checks every mood on it. Nothing measured changed.
+        protocol_version="3", registration="research/notes/sequence/PREREG_sampler_audit.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         parameters=parameters,
         model_semantics=describe_brain_model("numpy_sparse", p=AMBIENT_P,

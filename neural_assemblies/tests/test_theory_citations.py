@@ -183,6 +183,9 @@ class TestTheoryCitations(unittest.TestCase):
         self.assertEqual(checked, {
             "CAP-CLIFF", "RATE-HETEROGENEITY", "REFRACTION-ANTI-MERGING",
             "SEQ-TEMPORAL-CARRY",
+            # 2026-09-12: retained nulls wired from shared-runner artifacts.
+            "SEQ-EXACT-RECOVERY", "AC-CAP", "SEQ-ORGAN-EMBEDS",
+            "REFRACTION-NEEDS-LOAD", "SEQ-REGIME-CLIFF",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

@@ -1,0 +1,85 @@
+{
+  "engine": "reference_nemo_numpy",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "execution_semantics": {
+    "kind": "reference",
+    "profiles": {
+      "default": {
+        "arithmetic": "float64",
+        "candidate_domain": "all-neurons",
+        "connectome": "fixed-dense-stream-addressed",
+        "default_tie_break": "backend-topk-order",
+        "normalization": "none",
+        "plasticity": "multiplicative-unbounded",
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "weight_ceiling": null
+      }
+    }
+  },
+  "git_commit": "32b5f67c3030d987268084e71e77acf323a8c985",
+  "input_artifacts": {},
+  "mode": "smoke",
+  "parameters": {
+    "arms": [
+      {
+        "presentations": 2,
+        "rule": "proportional",
+        "strength": 0.0
+      },
+      {
+        "presentations": 2,
+        "rule": "off",
+        "strength": 0.0
+      },
+      {
+        "presentations": 2,
+        "rule": "constant",
+        "strength": 10.0
+      }
+    ],
+    "cap": 70,
+    "density": 0.2,
+    "n_arc": 5000,
+    "n_state": 500,
+    "n_symbol": 1000,
+    "negative": [
+      6,
+      7,
+      3,
+      10
+    ],
+    "plasticity": 0.1,
+    "positive": [
+      3,
+      0,
+      4,
+      7,
+      1,
+      10
+    ]
+  },
+  "protocol": "sequence.arc-refraction-reference",
+  "protocol_version": "2",
+  "registration": "research/notes/sequence/PREREG_arc_refraction_reference.md",
+  "registration_sha256": "c6af07ed6027aff126cf4803d02414bc5ed5212dfc4f05ea40237ddec11f0deb",
+  "schema_version": 9,
+  "scientific_status": "VOID",
+  "script": "research/experiments/seq_arc_refraction_reference.py",
+  "script_sha256": "db505007df1dbc36dd41d3c5c3bafb7b3df9d5611a0fdabb88bddafd53d4745b",
+  "seeds": [
+    42,
+    43,
+    44
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "111a83a4748f2bdd806fbd975c6e903df499fda45e6beffaf81952f618581185"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "6aca55888aafba10873a9d06e4aa06259e065b77622b0f60a4b53c1488c4bb0b",
+  "started_utc": "2026-09-13T02:20:54.853252+00:00",
+  "tag": "arc-ref-smoke-20260912"
+}

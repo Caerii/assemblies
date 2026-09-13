@@ -1,0 +1,96 @@
+# Registration: refraction in the vendored reference arc, twenty seeds
+
+> **Status (2026-09-12): registered, not yet run.** The bars below were
+> fixed before the twenty-seed run. The only prior data are the three-seed
+> legacy log (`research/results/logs/seq_arc_refraction_reference.log`,
+> seeds 42, 7, 13) whose numbers the register entries `ARC-CONJUNCT-EXPOSURE`
+> and `REFRACTION-PROPORTIONAL` currently cite. That log has no run record,
+> no seed identities in its artifact and no source archive; this
+> registration exists to replace it with a retained runner artifact whose
+> mechanism-disabled arms the register can check by seed.
+
+## Why
+
+Two register entries rest on one script and one log:
+
+- `ARC-CONJUNCT-EXPOSURE` cites the ablation (bias never accumulates): the
+  reference arc collapses onto the symbol-blind degeneracy and the task
+  fails.
+- `REFRACTION-PROPORTIONAL` cites the constant-versus-proportional sweep:
+  a constant increment has an operating point at fifteen presentations that
+  moves when the drive scale moves, while the drive-proportional rule does
+  not.
+
+Both are legitimate mechanism ablations, and both are held as prose. The
+rule every adopted result meets is a retained treatment/control vector that
+still moves. This run supplies it.
+
+## What runs
+
+`python -m research.runner arc-refraction-reference --tag UNIQUE`
+
+- Engine `reference_nemo_numpy`, the vendored `reference/nemo_numpy` FSM
+  network as-is (no `Brain`), with its declared model profile
+  (`describe_nemo_numpy_reference`): dense stream-addressed Bernoulli
+  matrices, all neurons candidates, float64, no normalization, unbounded
+  multiplicative potentiation, the reference's own top-k.
+- Sizes as in the legacy script: symbol 1000, state 500, arc 5000, cap 70,
+  density 0.2, plasticity 0.1. Chance arc overlap k/n = 0.014.
+- Seeds 42 to 61 (twenty). Each seed draws its own network and its own
+  symbol and state assemblies.
+- Arms, each trained from scratch per seed:
+  - `proportional` at 5, 15 and 30 presentations (the reference rule:
+    `bias[winner] += drive[winner] * plasticity`).
+  - `off` at 15 presentations (the ablation: `FFArea.update` in place of
+    `RefractedArea.update`, so the bias stays at zero; manipulation-checked).
+  - `constant` at strengths 1, 3, 10, 30 and 100, each at 5, 15 and 30
+    presentations (this repository's engine rule at the time:
+    `bias[winner] += strength`).
+- Per seed and arm the run retains: across-state arc overlap (mean pairwise
+  overlap of the arc for one symbol across the three states), across-symbol
+  arc overlap (mean pairwise overlap across the ten digits at one state),
+  and whether the machine decides both strings (positive accepted, negative
+  rejected) as an integer.
+
+Smoke (`--smoke --seeds 42 43 44`) runs two presentations on three arms and
+is VOID.
+
+## Bars
+
+Written against the three-seed priors (proportional 3/3 with overlaps
+0.000/0.000; off 0/3 with across-symbol 0.989; constant 10 alone decides at
+15 presentations and fails at 30, where constant 30 decides).
+
+- **AR-1, golden.** `proportional` at 15 presentations decides both strings
+  on at least 18 of 20 seeds, and its mean across-state and across-symbol
+  overlaps are each at most 0.05.
+- **AR-2, ablation (for `ARC-CONJUNCT-EXPOSURE`).** `off` at 15
+  presentations has across-symbol overlap at least 0.5 on every seed and
+  decides on at most 2 of 20; across-state overlap stays at most 0.2 in the
+  mean. The retained sensitivity check is across-symbol overlap, `off`
+  against `proportional`, all seeds greater by at least 0.5.
+- **AR-3, a constant operating point exists.** At 15 presentations at least
+  one constant strength decides on at least 18 of 20 seeds.
+- **AR-4, the operating point moves (for `REFRACTION-PROPORTIONAL`).** Let
+  s* be the constant strength with the most decided seeds at 15
+  presentations. At 30 presentations s* decides on at most 2 of 20 seeds,
+  while `proportional` decides on at least 18 of 20 at 30 presentations.
+  The retained sensitivity check for the register is chosen after the data
+  among the retained per-seed quantities at 30 presentations (decided,
+  across-state, across-symbol), and must move on every seed; the choice is
+  recorded here with the result. It is a sensitivity, not a bar.
+
+A bar that fails is recorded with its numbers; the register entries are
+then amended to say what the twenty-seed run supports, not left on the
+three-seed log.
+
+Not claimed: anything about this repository's own engines. The constant
+rule is measured on the reference substrate to ask whether it is an
+acceptable substitute; the engines' actual rule has since become
+drive-proportional (`REFRACTION-PROPORTIONAL`, `implemented_by`).
+
+## Smoke (2026-09-12, VOID)
+
+API check only, three seeds, two presentations, three arms:
+`research/results/runs/sequence.arc-refraction-reference/arc-ref-smoke-20260912/results.json`.
+Its numbers are VOID by construction.

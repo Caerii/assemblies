@@ -100,7 +100,7 @@ def experiment(record):
     seeds = record["seeds"]
     presentations = parameters["presentations"]
     materialized = parameters["materialized"]
-    rows, summary = [], []
+    rows, summary, by_p = [], [], {}
     for p in P_VALUES:
         got = [trial(s, p, materialized=materialized,
                      presentations=presentations) for s in seeds]
@@ -113,8 +113,20 @@ def experiment(record):
              "mean_overlap": float(np.mean([r["mean_overlap"] for r in got])),
              "n": len(got)}
         summary.append(s)
+        # Per-seed vectors keyed by density, in seed order, so the register's
+        # sensitivity check can pair an above-floor density against a
+        # below-floor one seed by seed (the rows list repeats each seed once
+        # per density and cannot serve as a sample identity).
+        by_p[f"{p:g}"] = {
+            "seeds": list(seeds),
+            "exact_steps": [r["exact_steps"] for r in got],
+            "total_steps": [r["total_steps"] for r in got],
+            "trajectory_correct": [int(r["trajectory_correct"]) for r in got],
+            "mean_overlap": [r["mean_overlap"] for r in got],
+        }
     return {"verdict": "VOID" if record["mode"] == "smoke" else "UNADOPTED",
-            "summary": summary, "rows": rows, "materialized": materialized,
+            "summary": summary, "rows": rows, "by_p": by_p,
+            "materialized": materialized,
             "scope": "A1 exact-step recovery versus afferent probability"}
 
 
@@ -133,7 +145,9 @@ def main(argv=None):
                   "materialized": args.materialized, "norm_init": False}
     path = run_experiment(
         script=Path(__file__), protocol="sequence.a1-exactness-sweep",
-        protocol_version="2", registration="research/notes/sequence/PREREG_sampler_audit.md",
+        # Version 3: `by_p` retains per-seed vectors per density beside the
+        # flat rows; nothing measured changed.
+        protocol_version="3", registration="research/notes/sequence/PREREG_sampler_audit.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         parameters=parameters,
         model_semantics=describe_brain_model("numpy_sparse", p=P_VALUES[0], norm_init=False),

@@ -63,3 +63,21 @@ gap = 2: the state must carry the number across two steps.
 
     corpus          unigram   bigram   phase oracle   phase+number oracle   oracle - bigram
     chain, gap 2    0.107     0.122    0.250          0.336                 +0.214 +/- 0.007   ACCEPTED
+
+## Computed through the shared runner (2026-09-12)
+
+The oracle-ceiling computation became a registered computed-baseline run
+(`python -m research.runner a3-oracle-ceiling --corpus agreement-chain`,
+engine `computed_baseline`, seeds 42 to 61, tie seed 0):
+
+- gap 2: `research/results/runs/sequence.a3-oracle-ceiling/oracle-chain-gap2-20260912/results.json`.
+  bigram 0.1221, phase-only oracle 0.2501, phase+number oracle 0.3360;
+  oracle minus bigram +0.2139 [0.2069, 0.2209], the acceptance criterion
+  (lower bound >= 0.10) PASS. The per-seed bigram and oracle values equal
+  those the transducer study recorded for the same seeds in
+  `research/results/sequence/seq_a3_transducer_results_temporal_chain_gap2.json`
+  to the last digit (receipt:
+  `research/results/comparisons/oracle-chain-gap2-20260912.json`).
+- gap 3: `research/results/runs/sequence.a3-oracle-ceiling/oracle-chain-gap3-20260912/results.json`.
+  phase+number oracle 0.2737; oracle minus bigram +0.1753 [0.1684, 0.1822],
+  PASS.
