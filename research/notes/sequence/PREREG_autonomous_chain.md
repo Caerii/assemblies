@@ -324,7 +324,7 @@ sequence results carry over to the papers' setting unchanged.
 
 Run `chain-limit-v3-20260913`, seeds 62..81, twenty brains a cell, sixteen
 cells plus the mechanism-disabled null. Artifact
-`research/results/runs/sequence.autonomous-chain/chain-limit-v3-20260913/`.
+`research/results/runs/sequence.autonomous-chain/chain-limit-v3-20260913/results.json`.
 
 **The bars as they fell, unamended.**
 
@@ -499,3 +499,109 @@ concentrated in any one.
 This does not rescue SC-3, which is untouched and still the amendment's main claim:
 fewer than 5 of 20 brains exact at the smallest area. A SC-3 failure remains
 the stronger and more interesting outcome.
+
+## Amendment 3 result (2026-09-13): the end-of-chain structure replicates; the backward claim does not, on a two-point median
+
+Run `chain-limit-am3-20260913`, the fresh block 82..101, same cells, corrected
+instrument. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-limit-am3-20260913/results.json`.
+
+    FAIL  AL-1  (unchanged; the coincidence detector)
+    PASS  AL-2
+    FAIL  AL-3  (unchanged; ratio 2.4 again)
+    PASS  AL-4  VOID, tautology
+    PASS  AL-5
+    PASS  AL-6  the break is at the END
+    FAIL  AL-7  the break is a BACKWARD jump
+    PASS  AL-8  the state area control HOLDS
+    PASS  AL-9  relative arc crowding RISES with n_arc
+
+**The limit replicates cell for cell.** exact/20 by length, the two blocks:
+
+    n_arc    62..81                82..101
+     1000    [20,  0,  0,  0]      [20,  0,  0,  0]
+     2000    [20, 14,  0,  0]      [20, 14,  0,  0]
+     3000    [20, 20,  5, 18]      [20, 20,  5, 18]
+     4000    [20, 20, 20,  2]      [20, 20, 20,  4]
+
+`exact_length` is `{1000: 160, 2000: 160, 3000: 256, 4000: 384}` on both, ratio
+2.4 on both. AL-3 fails identically: a fourfold arc ratio buys 2.4x, sublinear.
+
+**The seeds do reach the brains**, checked rather than assumed: the eight cells
+whose per-brain vectors are byte-identical across blocks are exactly the
+saturated ones (every brain at L, or the all-zero null). Every non-saturated
+cell has different per-brain values -- `n3000-L384` runs
+`[383, 380, 384, 383, ...]` against `[384, 383, 383, 382, ...]` -- and still
+lands on 5 of 20. The replication is real.
+
+**So the hole at n3000 is structural, not seed noise.** L = 384 gives 5 of 20
+while L = 512 gives 18 of 20, on two independent seed blocks, to the brain.
+Exactness is not monotone in chain length and `exact_length` cannot express
+that. No explanation is offered here; it is now a fact that needs one.
+
+**AL-6 confirms.** In every edge cell the median first error is at 0.99 to 1.00
+of L, on both blocks. The chain does not degrade along its length.
+
+**AL-7 fails, and the failure is in its threshold, not its claim.** The bar has
+two clauses. "Every landing earlier than expected" HELD in every edge cell on
+both blocks -- there is not one forward jump anywhere. "Median landing before
+0.5 L" failed in exactly one cell, `n3000-L512` on the fresh block, where 18 of
+20 brains are exact so the median is taken over TWO failures, `[2, 274]`, and
+lands on 274 against a threshold of 256. A two-point median is not a
+measurement of central tendency. The bar is recorded FAILED as written; the
+backward-jump claim is neither confirmed nor refuted by it, and a bar stated
+over so few failing brains was the wrong instrument for the claim.
+
+## Amendment 2 result (2026-09-13): the chain does NOT care whether states collide
+
+Run `chain-states-20260913`, block 62..81, `L = 160`, `n_arc = 3000`. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json`.
+
+    arm                exact   state overlap   load   arc overlap
+    blocks-n64000      20/20          0.0000   0.25        0.0921
+    random-n64000      20/20          0.0016   0.25        0.0817
+    random-n32000      20/20          0.0031   0.50        0.0757
+    random-n16000      20/20          0.0062   1.01        0.0675
+    random-n8000       20/20          0.0126   2.01        0.0563
+    random-n4000       20/20          0.0251   4.03        0.0447
+
+    PASS  SC-1 the decoder is not the treatment
+    PASS  SC-2 a roomy random code is as good as a disjoint one
+    FAIL  SC-3 crowding the states breaks the chain
+    FAIL  SC-4 (threshold unreachable, as recorded before the run)
+    PASS  SC-5, PASS SC-6 (vacuous: nothing broke)
+    FAIL  SC-7 (no effect to attribute)
+
+**SC-3 fails, and the registration says in advance what that means:** "A fail
+of SC-3 would be the stronger result: it would say the chain tolerates state
+collision, that teacher-forcing is not doing the work, and that our sequence
+results carry over to the papers' setting unchanged."
+
+Every arm is exact on every brain. Across a sixteenfold change in load -- from
+a quarter of a state per neuron to four states per neuron, where the code
+CANNOT be disjoint -- not one brain drops a single step. The measured state
+overlap matches the `k / n` arithmetic to the digit (predicted 0.0016, 0.0031,
+0.0063, 0.0125, 0.0250), so the treatment was applied and measured as intended.
+
+The arc overlap FALLS as the state area shrinks, 0.0817 to 0.0447. Crowding the
+states made the arcs more distinct, not less. No mechanism is claimed for that.
+
+### What this settles, and the three things it does not
+
+It settles that the disjoint teacher-forced block code is not what carries this
+repository's sequence results, at this operating point. That was a live worry
+-- every sequence result here was measured in a world where state collision is
+impossible by construction -- and it is now measured rather than assumed.
+
+It does NOT settle:
+
+1. **Collision at the EDGE.** This ran at a cell that is 20 of 20 exact with
+   room to spare. A treatment that costs nothing where there is margin may
+   still cost everything where there is none. The same sweep at `n3000-L384`
+   (5 of 20) is the test that matters and has not been run.
+2. **Correlated collision.** Random `k`-subsets are uncorrelated. Projection
+   forms assemblies whose overlap TRACKS input similarity, which is a
+   structured interference this sweep does not produce. The papers' states are
+   projection-formed; these are not.
+3. **Higher load.** The sweep stops at 4.03 states per neuron. Nothing here
+   says where it would break, only that 4.03 is not enough.

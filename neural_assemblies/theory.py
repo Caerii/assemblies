@@ -271,6 +271,57 @@ _RESULTS: List[Result] = [
 
     # ------------------------------------------------- measured in this repo
     Result(
+        id="SEQ-STATE-COLLISION-TOLERATED",
+        engine="hashed_arc_fsm (HashedArcFSM, membership readout), 20 brains a cell",
+        status=Status.MEASURED,
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json",
+            sample_path="observations/arms/blocks-n64000/rows/*/seed",
+            treatment_path="observations/arms/random-n4000/rows/*/arc_overlap",
+            control_path="observations/arms/blocks-n64000/rows/*/arc_overlap",
+            relation="all-less", minimum_effect=0.03,
+            mechanism="the collidable code demonstrably reaches the organ: arc overlap falls on EVERY brain (0.034 to 0.068) between the disjoint code and the 4000-neuron random code, while consecutive-correct stays at 160 on every brain in both -- the knob turns and the outcome does not, which is what makes this null a measurement rather than a saturation",
+        ),),
+        sensitivity_gap="The null is established at ONE cell with margin "
+                        "(L = 160, n_arc = 3000, 20/20 exact in every arm). No "
+                        "retained arm tests collision at a marginal cell, where "
+                        "a costless treatment could still be decisive; "
+                        "n3000-L384 (5/20) is the cell that would say.",
+        claim="The autonomous chain TOLERATES state collision. Replacing the "
+              "teacher-forced disjoint block code with random k-subsets and "
+              "shrinking the state area over a sixteenfold range of load -- "
+              "(L+1)k/n_state from 0.25 to 4.03, so that at the tightest area "
+              "every neuron carries about four states and a disjoint code is "
+              "impossible -- leaves every one of 20 brains exact on all 160 "
+              "steps in all six arms. Measured state overlap tracks the k/n "
+              "arithmetic exactly (0.0016 to 0.0251). So the disjoint code is "
+              "NOT what carries this repository's sequence results, and they "
+              "are not an artifact of a world where state collision cannot "
+              "happen.",
+        source="This repository.",
+        evidence=("research/experiments/autonomous_chain.py --states: six arms, "
+                  "blocks-n64000 plus random-n{64000,32000,16000,8000,4000}, "
+                  "all 20/20 exact; SC-3 (fewer than 5/20 exact at the "
+                  "smallest area) FAILED, which the registration named in "
+                  "advance as the stronger outcome",
+                  "arc overlap FALLS as the state area shrinks, 0.0921 to "
+                  "0.0447: crowding the states made the arcs more distinct, "
+                  "which is unexplained",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json", "artifact",
+                        "six arms, per-brain correct/arc_overlap, per-arm state overlap and load"),
+            EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
+            EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
+        ),
+        caveat="Random k-subsets are UNCORRELATED. Projection forms assemblies "
+               "whose overlap tracks input similarity, which is structured "
+               "interference this sweep does not produce, and the papers' "
+               "states are projection-formed. This measures collision per se, "
+               "not correlated collision, and it stops at 4.03 states per "
+               "neuron: nothing here says where the chain would break.",
+    ),
+
+    Result(
         id="SEQ-REGIME-CLIFF",
         engine="numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc",
         status=Status.MEASURED,

@@ -1,0 +1,294 @@
+{
+  "engine": "hashed_arc_fsm",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "blocks-n64000": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-transition",
+        "organ": "assigned-state-fsm",
+        "prediction_gain": 0.0,
+        "state_code": "assigned-blocks",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "teacher-forced-transition"
+      },
+      "random-n16000": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-transition",
+        "organ": "assigned-state-fsm",
+        "prediction_gain": 0.0,
+        "state_code": "assigned-blocks",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "teacher-forced-transition"
+      },
+      "random-n32000": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-transition",
+        "organ": "assigned-state-fsm",
+        "prediction_gain": 0.0,
+        "state_code": "assigned-blocks",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "teacher-forced-transition"
+      },
+      "random-n4000": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-transition",
+        "organ": "assigned-state-fsm",
+        "prediction_gain": 0.0,
+        "state_code": "assigned-blocks",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "teacher-forced-transition"
+      },
+      "random-n64000": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-transition",
+        "organ": "assigned-state-fsm",
+        "prediction_gain": 0.0,
+        "state_code": "assigned-blocks",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "teacher-forced-transition"
+      },
+      "random-n8000": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-transition",
+        "organ": "assigned-state-fsm",
+        "prediction_gain": 0.0,
+        "state_code": "assigned-blocks",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "none",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "teacher-forced-transition"
+      }
+    }
+  },
+  "git_commit": "5c6bfc7a906e17cad663b71db5168fcd0a2a60b0",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "arm_specs": {
+      "blocks-n64000": [
+        160,
+        20,
+        1.0,
+        0.3,
+        3000
+      ],
+      "random-n16000": [
+        160,
+        20,
+        1.0,
+        0.3,
+        3000
+      ],
+      "random-n32000": [
+        160,
+        20,
+        1.0,
+        0.3,
+        3000
+      ],
+      "random-n4000": [
+        160,
+        20,
+        1.0,
+        0.3,
+        3000
+      ],
+      "random-n64000": [
+        160,
+        20,
+        1.0,
+        0.3,
+        3000
+      ],
+      "random-n8000": [
+        160,
+        20,
+        1.0,
+        0.3,
+        3000
+      ]
+    },
+    "arms": [
+      "blocks-n64000",
+      "random-n64000",
+      "random-n32000",
+      "random-n16000",
+      "random-n8000",
+      "random-n4000"
+    ],
+    "beta": 0.1,
+    "device": "cuda",
+    "k": 100,
+    "limit_mode": false,
+    "max_potentiations": 96,
+    "n_arc": 10000,
+    "n_state_fixed": null,
+    "p": 0.2,
+    "presentations": 20,
+    "state_specs": {
+      "blocks-n64000": [
+        64000,
+        "blocks"
+      ],
+      "random-n16000": [
+        16000,
+        "random"
+      ],
+      "random-n32000": [
+        32000,
+        "random"
+      ],
+      "random-n4000": [
+        4000,
+        "random"
+      ],
+      "random-n64000": [
+        64000,
+        "random"
+      ],
+      "random-n8000": [
+        8000,
+        "random"
+      ]
+    },
+    "states_mode": true,
+    "strength_ratio": 1.0,
+    "symbol": "tick",
+    "w_max": 20.0
+  },
+  "protocol": "sequence.autonomous-chain",
+  "protocol_version": "3",
+  "registration": "research/notes/sequence/PREREG_autonomous_chain.md",
+  "registration_sha256": "f821e5067774449034c6789f40cbb68108f97516cdaf8f60598dc373d87aaeb7",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/autonomous_chain.py",
+  "script_sha256": "a9f2606a2b3cd5d3f71dd075dd8dde6c1172d51fc7d1de869b90ec899b159e1f",
+  "seeds": [
+    62,
+    63,
+    64,
+    65,
+    66,
+    67,
+    68,
+    69,
+    70,
+    71,
+    72,
+    73,
+    74,
+    75,
+    76,
+    77,
+    78,
+    79,
+    80,
+    81
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "3103fef4a08b47f093121913c80c20b8fb2639fc3a21d1ead9889951456f9695"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "f89d92510348ec648f251803a5f577c6dfbeac1ba05faffed3dfee87f81c6c7d",
+  "started_utc": "2026-09-13T22:37:17.648657+00:00",
+  "tag": "chain-states-20260913"
+}

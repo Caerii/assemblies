@@ -324,6 +324,29 @@ source-linked contract, negative control, and relevant gate are all present.
     off by one ((L+1)k = 16100, so THREE of five arms force overlap, not two),
     and SC-5 inherits AL-1's position-locked defect so SC-6 asks the same
     question with the wrap/stall/scatter classifier. Not yet run.
+  - RESULT 2026-09-13 (`chain-states-20260913`): **the chain tolerates state
+    collision.** All six arms 20/20 exact at L = 160, n_arc = 3000, across a
+    sixteenfold load range (0.25 to 4.03 states per neuron; at the tightest
+    area a disjoint code is impossible). SC-3 FAILED, which the registration
+    named in advance as the stronger outcome: the disjoint teacher-forced code
+    is NOT what carries this repository's sequence results. Adopted as
+    `SEQ-STATE-COLLISION-TOLERATED`, whose sensitivity check proves the
+    treatment reached the organ (arc overlap moves on every brain) while the
+    outcome did not move at all. THREE things this does not settle, all
+    recorded in the registration: collision at a MARGINAL cell (this ran where
+    there is margin; n3000-L384 at 5/20 is the test that matters),
+    CORRELATED collision (random k-subsets are uncorrelated; projection forms
+    assemblies whose overlap tracks input similarity, and the papers' states
+    are projection-formed), and higher load than 4.03. The item stays open on
+    those three.
+  - Amendment 3 ran on the fresh block 82..101 (`chain-limit-am3-20260913`):
+    AL-6 CONFIRMS (median first error at 0.99-1.00 of L in every edge cell),
+    AL-8 and AL-9 pass on the corrected instrument, AL-7 FAILED on a two-point
+    median in one cell (its "every landing earlier than expected" clause held
+    everywhere; no forward jump exists in either block). The limit replicates
+    cell for cell across independent seed blocks, INCLUDING the n3000
+    non-monotonicity (5/20 at L = 384, 18/20 at L = 512, both blocks), so that
+    hole is structural rather than seed noise and now needs an explanation.
   - Amendment 1 ran (`chain-limit-v3-20260913`) and localizes the limit, but
     its instrument was wrong in five ways, all recorded in the registration:
     the chance denominator read a module constant (reported 20.9x-8.2x chance

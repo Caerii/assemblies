@@ -189,6 +189,10 @@ class TestTheoryCitations(unittest.TestCase):
             "ARC-CONJUNCT-EXPOSURE", "REFRACTION-PROPORTIONAL",
             "KWTA-TIE-FRAGILE", "CAP-ANCHOR-RATIO", "CAP-RATIO",
             "REFRACTION-CANCELS-CONVERGENCE",
+            # 2026-09-13: the state-collision null, whose check proves the
+            # treatment REACHED the organ (arc overlap moves on every brain)
+            # while the outcome did not move at all
+            "SEQ-STATE-COLLISION-TOLERATED",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

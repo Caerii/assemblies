@@ -10,6 +10,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQ-FSM`](#seq-fsm) | PROVED | Not an empirical entry | A finite-state machine is simulable by three areas: input, state, and a CONJUNCTION arc that fires for (state, symbol) and projects to the next state. |
 | [`SEQ-TRANSDUCER`](#seq-transducer) | PROVED | Not an empirical entry | Prediction/output is an FSM with one more area, fired together with the state update during training -- a transducer. |
 | [`SEQ-TM`](#seq-tm) | PROVED | Not an empirical entry | A Turing machine is simulable by an FSM plus three-area tape cycles, about ten areas in total. |
+| [`SEQ-STATE-COLLISION-TOLERATED`](#seq-state-collision-tolerated) | MEASURED | hashed_arc_fsm (HashedArcFSM, membership readout), 20 brains a cell | The autonomous chain TOLERATES state collision. |
 | [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is rarely exact (0.22 of steps at kp = 14, arc materialized) and a long run derails at its first non-exact step; above it recovery is exact on every seed (0.98 at kp = 21, 1.00 at kp = 28). |
 | [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
 | [`SEQ-TEMPORAL-CARRY`](#seq-temporal-carry) | MEASURED | hashed transducer / temporal organ (20 brains per cell) | A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) improves next-token prediction on the synthetic agreement chain. |
@@ -131,6 +132,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Used by.** `neural_assemblies/programs/tm_demo.py`
 
 **Caveat.** Caveat corrected 2026-09-13 by a provenance pass: it read 'NOT BUILT HERE'. A minimal unary-increment demo IS built and tested; the general roughly-ten-area construction is not. [[SEQ-EXACT-RECOVERY]] gives unbounded TIME with fixed memory, which is the control half only -- it does not by itself confer more than finite-automaton power.
+
+## SEQ-STATE-COLLISION-TOLERATED
+
+**Status.** MEASURED. **Source.** This repository.
+
+**Engine / substrate.** hashed_arc_fsm (HashedArcFSM, membership readout), 20 brains a cell
+
+**Claim.** The autonomous chain TOLERATES state collision. Replacing the teacher-forced disjoint block code with random k-subsets and shrinking the state area over a sixteenfold range of load -- (L+1)k/n_state from 0.25 to 4.03, so that at the tightest area every neuron carries about four states and a disjoint code is impossible -- leaves every one of 20 brains exact on all 160 steps in all six arms. Measured state overlap tracks the k/n arithmetic exactly (0.0016 to 0.0251). So the disjoint code is NOT what carries this repository's sequence results, and they are not an artifact of a world where state collision cannot happen.
+
+**Evidence.**
+- research/experiments/autonomous_chain.py --states: six arms, blocks-n64000 plus random-n{64000,32000,16000,8000,4000}, all 20/20 exact; SC-3 (fewer than 5/20 exact at the smallest area) FAILED, which the registration named in advance as the stronger outcome
+- arc overlap FALLS as the state area shrinks, 0.0921 to 0.0447: crowding the states made the arcs more distinct, which is unexplained
+
+**Evidence files.**
+- [research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json](../research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json) (artifact) â€” six arms, per-brain correct/arc_overlap, per-arm state overlap and load
+- [research/experiments/autonomous_chain.py](../research/experiments/autonomous_chain.py) (producer)
+- [research/notes/sequence/PREREG_autonomous_chain.md](../research/notes/sequence/PREREG_autonomous_chain.md) (registration)
+
+**Mechanism sensitivity.**
+- the collidable code demonstrably reaches the organ: arc overlap falls on EVERY brain (0.034 to 0.068) between the disjoint code and the 4000-neuron random code, while consecutive-correct stays at 160 on every brain in both -- the knob turns and the outcome does not, which is what makes this null a measurement rather than a saturation: `observations/arms/random-n4000/rows/*/arc_overlap` all-less `observations/arms/blocks-n64000/rows/*/arc_overlap` by at least 0.03, retained in [research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json](../research/results/runs/sequence.autonomous-chain/chain-states-20260913/results.json) and paired by `observations/arms/blocks-n64000/rows/*/seed`.
+
+**Sensitivity gap.** The null is established at ONE cell with margin (L = 160, n_arc = 3000, 20/20 exact in every arm). No retained arm tests collision at a marginal cell, where a costless treatment could still be decisive; n3000-L384 (5/20) is the cell that would say.
+
+**Caveat.** Random k-subsets are UNCORRELATED. Projection forms assemblies whose overlap tracks input similarity, which is structured interference this sweep does not produce, and the papers' states are projection-formed. This measures collision per se, not correlated collision, and it stops at 4.03 states per neuron: nothing here says where the chain would break.
 
 ## SEQ-REGIME-CLIFF
 
