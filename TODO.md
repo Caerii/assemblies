@@ -358,6 +358,25 @@ source-linked contract, negative control, and relevant gate are all present.
     STILL CONFOUNDED: Amendments 2 and 4 differ in margin AND in load (4.03 vs
     6.42). The cheap run that separates them -- sweep the roomy cell to
     n_state 2500 and 2000, load 6.44 and 8.05 -- is not yet run.
+  - RESOLVED 2026-09-13 (`chain-load-20260913`, Amendment 5): **it is the
+    MARGIN, not the load.** At matched load 6.4 the roomy cell sits at 1.000 of
+    L and the marginal cell at 0.430; the roomy cell then holds at 1.000 all
+    the way to load 13.42 -- more than twice the killing load, 161 states in
+    1200 neurons at pairwise code overlap 0.083. State collision costs nothing
+    until the chain is already marginal and then costs enormously: an AMPLIFIER
+    of an existing limit, not a limit of its own.
+    LM-4 FAILED (the roomy cell has no breaking point in the sweep) and the
+    registration's pre-declared reading of LM-2-pass-with-LM-4-fail
+    ("uninformative") is WITHDRAWN with the reasoning written out: LM-4 guarded
+    against a treatment that never reaches the organ, and this treatment
+    demonstrably did (state overlap tripled, arc overlap moved monotonically,
+    one brain broke). The decisive evidence is the load-matched comparison,
+    which does not rest on LM-4.
+    OPEN: what "margin" IS. The two cells differ in chain length and arc size
+    jointly and nothing separates them. Named hypothesis, not run: the ARC is
+    the bottleneck, so state crowding is costly exactly when the arc has no
+    room -- consistent with MC-4 failing and LM-5 confirming that crowding the
+    STATES moves the ARC in every run.
   - Amendment 3 ran on the fresh block 82..101 (`chain-limit-am3-20260913`):
     AL-6 CONFIRMS (median first error at 0.99-1.00 of L in every edge cell),
     AL-8 and AL-9 pass on the corrected instrument, AL-7 FAILED on a two-point

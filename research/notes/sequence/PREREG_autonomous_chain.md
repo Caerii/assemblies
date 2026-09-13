@@ -785,3 +785,79 @@ uninformative about both. It would need areas smaller than 1200.
 Note that LM-2 and LM-4 are the same statistic at two loads, so they cannot
 both be gamed by a threshold choice: the bar that makes LM-2 easy makes LM-4
 hard.
+
+## Amendment 5 result (2026-09-13): it is the MARGIN, not the load
+
+Run `chain-load-20260913`, block 62..81, the roomy cell `L = 160, n_arc = 3000`.
+Artifact
+`research/results/runs/sequence.autonomous-chain/chain-load-20260913/results.json`.
+
+    PASS  LM-1   PASS  LM-2   PASS  LM-3   FAIL  LM-4   PASS  LM-5
+
+    load    ROOMY cell (L=160)    MARGINAL cell (L=256)
+    0.40                     -               0.984 of L
+    0.80                     -               0.862 of L
+    1.61                     -               0.706 of L
+    3.21                     -               0.555 of L
+    4.03            1.000 of L                        -
+    6.42                     -               0.430 of L
+    6.44            1.000 of L                        -
+    8.05            1.000 of L                        -
+   10.06            1.000 of L                        -
+   13.42            1.000 of L                        -
+
+**At matched load the two cells could not differ more.** 6.44 against 6.42:
+the roomy cell is perfect, the marginal cell is at 0.43 of its chain. The roomy
+cell then holds at 1.000 all the way to load 13.42, **more than twice the load
+that destroyed the marginal one**, with one brain of twenty losing one step.
+
+### I am revising a pre-declared interpretation, and flagging it as such
+
+The registration says of this exact bar combination: "LM-2 passes and LM-4
+fails: the sweep never bit and the run is uninformative about both." That
+reading was miscalibrated, and revising an interpretation after seeing the data
+is the move that most deserves suspicion, so the reasoning is set out rather
+than assumed.
+
+LM-4 was written to guard against ONE failure: a sweep whose treatment never
+reaches the organ, which would make LM-2 pass vacuously. That did not happen.
+The treatment demonstrably applied -- state overlap more than tripled across
+the random arms (0.0251 to 0.0831), arc overlap moved monotonically (0.0447 to
+0.0346, LM-5), and at the tightest area one brain did break. What LM-4 failed
+to establish is a BREAKING POINT for the roomy cell, which is a different
+proposition from the treatment being inert.
+
+**And the decisive evidence does not rest on LM-4 at all.** It is the
+load-matched comparison: hold load fixed at 6.4, change only the cell, and the
+outcome goes from 1.000 to 0.430 of L. LM-4 could have failed for either reason
+without touching that.
+
+The bar stands FAILED as written. The pre-declared reading of it is withdrawn,
+with the reason given above, and a reader who disagrees has the numbers.
+
+### What this settles
+
+**Load is not the variable; margin is.** State crowding is not an independent
+failure mode with a threshold near 6. A chain with room absorbs load 13.42 --
+161 states packed into 1200 neurons, every neuron carrying about thirteen
+states, pairwise code overlap 0.083 -- and still recalls all 160 steps. The
+same load region annihilates a chain that is already near its limit.
+
+So state collision costs NOTHING until the chain is already marginal, and then
+it costs enormously. It is an amplifier of an existing limit rather than a
+limit of its own.
+
+### What "margin" is remains unmeasured, and one hypothesis is worth naming
+
+"Margin" here is a label for "the cell had slack", not a mechanism. The two
+cells differ in chain length AND arc size (160 at n_arc 3000 against 256 at
+n_arc 2000), and those jointly determine whether a cell is marginal, so nothing
+separates them.
+
+The hypothesis worth testing: the mediating variable is the ARC, not the state
+area. The marginal cell runs 256 arcs in 2000 arc neurons, and in BOTH crowded
+runs, crowding the STATES moved the ARC overlap -- MC-4 failed on exactly that
+(0.0868 against a 0.05 bar) and LM-5 predicted and confirmed the monotone fall.
+If the arc is the bottleneck, state crowding would be costly precisely when the
+arc has no room, which is what these three amendments look like from outside.
+That is a prediction and it has not been run.

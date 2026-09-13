@@ -284,12 +284,13 @@ _RESULTS: List[Result] = [
         ),),
         sensitivity_gap="The cost at the marginal cell is NOT attributed to "
                         "state collision specifically: MC-4 failed, the arc "
-                        "overlap moving 0.0868 across the random arms against "
-                        "a 0.05 bar, so crowding the state area changes the arc "
-                        "too. And margin and load are confounded between the "
-                        "two runs (20/20-with-room at load 4.03 against 14/20 "
-                        "at load 6.42); sweeping the roomy cell to load 8 is "
-                        "the run that would separate them, and it has not run.",
+                        "overlap moving 0.0868 across the random arms against a "
+                        "0.05 bar, so crowding the state area changes the arc "
+                        "too. What 'margin' IS remains unmeasured -- the two "
+                        "cells differ in chain length and arc size jointly, and "
+                        "nothing separates them. The named hypothesis, not yet "
+                        "run: the ARC is the bottleneck, so state crowding is "
+                        "costly exactly when the arc has no room.",
         claim="The autonomous chain tolerates state collision ONLY WHERE IT HAS "
               "MARGIN, and the margin is doing the work. At a cell with room "
               "(L = 160, n_arc = 3000, 20/20 exact) all six arms stay 20/20 "
@@ -299,9 +300,16 @@ _RESULTS: List[Result] = [
               "devastating: mean consecutive-correct falls 251.8, 220.8, "
               "180.8, 142.0, 110.0 as load runs 0.40 to 6.42, losing 142 of "
               "256 steps. Measured state overlap tracks the k/n arithmetic "
-              "exactly in both (0.0016 to 0.0251). Separately and much "
-              "smaller, a random code costs 3.7 steps of 256 against the "
-              "contiguous block code even when roomy, which is unexplained.",
+              "exactly in all three runs. LOAD IS NOT THE VARIABLE: at matched "
+              "load 6.4 the roomy cell is at 1.000 of L and the marginal cell "
+              "at 0.430, and the roomy cell holds at 1.000 to load 13.42 -- "
+              "more than twice the killing load, 161 states in 1200 neurons at "
+              "pairwise overlap 0.083. So state collision costs nothing until "
+              "the chain is already marginal and then costs enormously: an "
+              "AMPLIFIER of an existing limit, not a limit of its own. "
+              "Separately and much smaller, a random code costs 3.7 steps of "
+              "256 against the contiguous block code even when roomy, which is "
+              "unexplained.",
         source="This repository.",
         evidence=("--states at the roomy cell: six arms all 20/20 exact; SC-3 "
                   "FAILED, which the registration named in advance as the "
@@ -309,6 +317,12 @@ _RESULTS: List[Result] = [
                   "--margin at the marginal cell: mean correct 255.5 (blocks), "
                   "251.8, 220.8, 180.8, 142.0, 110.0 (random, load 0.40 to "
                   "6.42) -- a monotone dose-response",
+                  "--load drives the ROOMY cell to 13.42 and it stays at 1.000 "
+                  "of L throughout (19/20 exact at the tightest, one brain "
+                  "losing one step); LM-4 FAILED because that cell has no "
+                  "breaking point in the sweep, and the registration's "
+                  "pre-declared reading of that bar combination is WITHDRAWN "
+                  "in the note, with the reasoning set out",
                   "the marginal run's BARS cannot carry this: all five read "
                   "exact/20, every random arm is 0/20 roomy and crowded alike, "
                   "so MC-3 passed vacuously (0 <= 0) and MC-2 passed by "
@@ -324,6 +338,8 @@ _RESULTS: List[Result] = [
                         "roomy cell: six arms, per-brain correct/arc_overlap, per-arm state overlap and load"),
             EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-margin-20260913/results.json", "artifact",
                         "marginal cell: the same six arms, where the dose-response appears"),
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-load-20260913/results.json", "artifact",
+                        "the roomy cell driven to load 13.42, which separates margin from load"),
             EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
             EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
         ),
