@@ -470,7 +470,8 @@ def main(argv=None):
                 describe_assembly_memory(
                     w_max=values["w_max"], beta=values["beta"],
                     strength=(values["refracted_factor"] if values["refracted"] else 0.0),
-                    gate=values["converge"], **ARMS[arm],
+                    gate=values["converge"], norm_init=ARMS[arm]["norm_init"],
+                    synaptic_scaling=ARMS[arm]["synaptic_scaling"],
                 )
             )
     path = run_experiment(
