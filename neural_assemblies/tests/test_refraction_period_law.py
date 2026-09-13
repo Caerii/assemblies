@@ -15,7 +15,8 @@ import unittest
 
 from research.experiments.refraction_convergence import clip_period
 from research.experiments.refraction_period_law import (
-    CELLS, MIN_ROUNDS, PERIODS_WANTED, cell_name, rounds_for,
+    CELLS, MIN_ROUNDS, PERIODS_WANTED, STRENGTH_POINT, STRENGTH_RATIO,
+    STRENGTH_RATIOS, ceiled_period, cell_name, rounds_for, strength_period,
 )
 
 MEASURED_POINT = (20.0, 0.10)
@@ -95,6 +96,51 @@ class TheFormulaMakesTheClaims(unittest.TestCase):
             return 40.93
         self.assertEqual(flat(20.0, 0.05), flat(20.0, 0.20))
         self.assertNotEqual(clip_period(20.0, 0.05), clip_period(20.0, 0.20))
+
+
+
+class TheStrengthSweepCanSeparateTheForms(unittest.TestCase):
+    """Amendment 2. The two candidate erosion terms COINCIDE at s = 0.5 beta,
+    which is where every earlier cell was measured, so the sweep only means
+    something if it reaches strengths where they differ."""
+
+    def test_the_forms_agree_exactly_at_the_strength_already_used(self):
+        w, b = STRENGTH_POINT
+        self.assertAlmostEqual(strength_period(w, b, STRENGTH_RATIO),
+                               ceiled_period(w, b), places=9)
+
+    def test_the_sweep_reaches_strengths_where_they_disagree(self):
+        w, b = STRENGTH_POINT
+        gaps = [abs(strength_period(w, b, r) - ceiled_period(w, b)) / ceiled_period(w, b)
+                for r in STRENGTH_RATIOS]
+        # the intervals are ~0.1 rounds on a ~41 round period, so a separation
+        # of a few per cent is decisive; one arm must clear that comfortably
+        self.assertGreater(max(gaps), 0.15)
+
+    def test_the_sweep_straddles_the_measured_strength(self):
+        self.assertIn(STRENGTH_RATIO, STRENGTH_RATIOS)
+        self.assertLess(min(STRENGTH_RATIOS), STRENGTH_RATIO)
+        self.assertGreater(max(STRENGTH_RATIOS), STRENGTH_RATIO)
+
+    def test_every_arm_stays_below_the_churn_threshold(self):
+        # above about 0.7 beta the area churns and has no period to measure
+        self.assertLess(max(STRENGTH_RATIOS), 0.7)
+
+    def test_strength_cells_get_distinct_names_and_keep_the_old_one(self):
+        w, b = STRENGTH_POINT
+        names = {cell_name(w, b, r) for r in STRENGTH_RATIOS}
+        self.assertEqual(len(names), len(STRENGTH_RATIOS))
+        # the default strength keeps the key earlier artifacts and the
+        # register's retained check already use
+        self.assertEqual(cell_name(w, b, STRENGTH_RATIO), cell_name(w, b))
+        self.assertIn(cell_name(w, b), names)
+
+    def test_form_b_is_monotone_in_strength_and_form_a_is_not(self):
+        w, b = STRENGTH_POINT
+        got = [strength_period(w, b, r) for r in sorted(STRENGTH_RATIOS)]
+        self.assertTrue(all(x > y for x, y in zip(got, got[1:])), got)
+        flat = {ceiled_period(w, b) for _ in STRENGTH_RATIOS}
+        self.assertEqual(len(flat), 1)
 
 
 if __name__ == "__main__":

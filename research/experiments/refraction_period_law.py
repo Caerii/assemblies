@@ -41,7 +41,7 @@ from research.experiments.refraction_convergence import (
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "memory.refraction-period-law"
-VERSION = "3"          # v1 pooled across brains; v2 per brain; v3 adds the Amendment 1 cells
+VERSION = "4"          # v1 pooled; v2 per brain; v3 Amendment 1 cells; v4 sweeps STRENGTH
 REGISTRATION = "research/notes/memory/PREREG_refraction_period_law.md"
 REGISTERED_SEEDS = tuple(range(42, 62))
 
@@ -53,6 +53,12 @@ CELLS = ((20.0, 0.20), (20.0, 0.10), (20.0, 0.05), (5.0, 0.10), (100.0, 0.10))
 #: Amendment 1: cells sharing no coordinate with CELLS, where the plain and
 #: discretised forms are far enough apart to tell apart.
 AMENDMENT_CELLS = ((8.0, 0.25), (12.0, 0.18), (25.0, 0.15))
+#: Amendment 2: one operating point, four refraction strengths. The two
+#: candidate forms for the erosion term coincide exactly at s = 0.5 beta,
+#: which is where every earlier cell was measured. Above ~0.7 beta the area
+#: churns and has no period (PREREG_refraction_convergence.md).
+STRENGTH_RATIOS = (0.25, 0.375, 0.5, 0.625)
+STRENGTH_POINT = (20.0, 0.10)
 SMOKE_CELLS = ((20.0, 0.20), (5.0, 0.10))
 SMOKE_ROUNDS = 60
 ARMS = ("refracted", "control")
@@ -63,8 +69,11 @@ def to_i32(value):
     return value - 0x100000000 if value >= 0x80000000 else value
 
 
-def cell_name(w_max, beta):
-    return f"w{w_max:g}b{beta:g}"
+def cell_name(w_max, beta, ratio=STRENGTH_RATIO):
+    """A cell's key. The strength is named only when it is not the default, so
+    the keys of every earlier run are unchanged."""
+    base = f"w{w_max:g}b{beta:g}"
+    return base if ratio == STRENGTH_RATIO else f"{base}s{ratio:g}"
 
 
 def rounds_for(w_max, beta):
@@ -74,6 +83,17 @@ def rounds_for(w_max, beta):
     the data it is about to measure.
     """
     return max(MIN_ROUNDS, math.ceil(PERIODS_WANTED * clip_period(w_max, beta)))
+
+
+def strength_period(w_max, beta, ratio):
+    """Form B: the erosion term set by the STRENGTH rather than by beta.
+
+    `bias += s x raw` at every win, so the clipped member's margin falls at a
+    rate proportional to s. This equals `ceiled_period` exactly at
+    `ratio = 0.5`, which is why a sweep is needed to tell them apart.
+    """
+    return (math.ceil(math.log(w_max) / math.log(1 + beta))
+            + (1 - 1 / w_max) / (2 * ratio * beta))
 
 
 def ceiled_period(w_max, beta):
@@ -171,13 +191,13 @@ def experiment(record):
     seeds = list(record["seeds"])
     smoke = record["mode"] == "smoke"
     cells = {}
-    for w_max, beta in (tuple(c) for c in p["cells"]):
-        name = cell_name(w_max, beta)
+    for w_max, beta, cell_ratio in (tuple(c) for c in p["cells"]):
+        name = cell_name(w_max, beta, cell_ratio)
         rounds = int(p["rounds_by_cell"][name])
         predicted = clip_period(w_max, beta)
         arms = {}
         for arm in ARMS:
-            ratio = STRENGTH_RATIO if arm == "refracted" else 0.0
+            ratio = cell_ratio if arm == "refracted" else 0.0
             rows = run_cell(seeds, w_max, beta, ratio, rounds=rounds,
                             device=p["device"],
                             organ_semantics=record["execution_semantics"]["profiles"][f"{name}.{arm}"])
@@ -198,8 +218,10 @@ def experiment(record):
                       f"{cell_spacing['mean']:7.2f} "
                       f"[{cell_spacing['low']:.2f}, {cell_spacing['high']:.2f}]  "
                       f"predicted {predicted:7.2f}  error {err * 100:5.1f}%", flush=True)
-        cells[name] = {"w_max": w_max, "beta": beta, "rounds": rounds,
-                       "predicted_period": predicted, "arms": arms}
+        cells[name] = {"w_max": w_max, "beta": beta, "strength_ratio": cell_ratio,
+                       "rounds": rounds, "predicted_period": predicted,
+                       "form_b_period": strength_period(w_max, beta, cell_ratio),
+                       "arms": arms}
 
     bars, comparisons = {}, {}
     if not smoke:
@@ -273,6 +295,34 @@ def experiment(record):
                 "PL-4 the levers are ordered: the beta ratio exceeds the w_max ratio despite w_max moving further":
                     beta_ratio is not None and wmax_ratio is not None and beta_ratio > wmax_ratio,
             })
+        strength_cells = [cell_name(*STRENGTH_POINT, r) for r in STRENGTH_RATIOS]
+        if all(k in measured for k in strength_cells):
+            got = [measured[k] for k in strength_cells]
+            centre = sum(got) / len(got)
+            flat = max(abs(v - centre) for v in got) / centre
+            form_b = {k: abs(measured[k] - cells[k]["form_b_period"])
+                      / cells[k]["form_b_period"] for k in strength_cells}
+            st1 = flat <= 0.05
+            st2 = all(v <= 0.05 for v in form_b.values())
+            comparisons["strength_sweep"] = {
+                "measured": {k: measured[k] for k in strength_cells},
+                "form_a": {k: ceiled_period(cells[k]["w_max"], cells[k]["beta"])
+                           for k in strength_cells},
+                "form_b": {k: cells[k]["form_b_period"] for k in strength_cells},
+                "form_b_relative_error": form_b,
+                "spread_about_the_mean": flat,
+            }
+            bars.update({
+                "ST-1 the period is independent of strength: every arm within 5% of their mean":
+                    st1,
+                "ST-2 the period follows 1/2s: every arm within 5% of the strength form":
+                    st2,
+                "ST-3 the sweep decides: exactly one of ST-1 and ST-2 holds":
+                    st1 != st2,
+                "ST-4 every strength arm is in the relocating regime: >= 3 relocations on every brain":
+                    all(r["n_relocations"] >= 3 for k in strength_cells
+                        for r in cells[k]["arms"]["refracted"]["rows"]),
+            })
         ceiled_err = comparisons["ceiled_relative_error"]
         if ceiled_err and errors:
             closer = sum(ceiled_err[k] < errors[k] for k in ceiled_err)
@@ -314,21 +364,35 @@ def main(argv=None):
     parser.add_argument("--amendment", action="store_true",
                         help="run Amendment 1's cells, which share no coordinate "
                              "with the registered five")
+    parser.add_argument("--strengths", action="store_true",
+                        help="run Amendment 2's strength sweep at one operating point")
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    cells = SMOKE_CELLS if args.smoke else (AMENDMENT_CELLS if args.amendment else CELLS)
-    rounds_by_cell = {cell_name(w, b): (SMOKE_ROUNDS if args.smoke else rounds_for(w, b))
-                      for w, b in cells}
+    chosen = (SMOKE_CELLS if args.smoke
+              else AMENDMENT_CELLS if args.amendment
+              else [(*STRENGTH_POINT, r) for r in STRENGTH_RATIOS] if args.strengths
+              else CELLS)
+    cells = [(c[0], c[1], c[2] if len(c) > 2 else STRENGTH_RATIO) for c in chosen]
+
+    def cell_rounds(w, b, r):
+        if args.smoke:
+            return SMOKE_ROUNDS
+        # size the run by the LONGER candidate so no arm is under-run
+        return max(rounds_for(w, b), math.ceil(PERIODS_WANTED * strength_period(w, b, r)))
+    rounds_by_cell = {cell_name(w, b, r): cell_rounds(w, b, r) for w, b, r in cells}
     parameters = {"n": N, "k": K, "p": P, "cells": [list(c) for c in cells],
                   "rounds_by_cell": rounds_by_cell, "arms": list(ARMS),
-                  "strength_ratio": STRENGTH_RATIO, "stable": STABLE,
+                  "default_strength_ratio": STRENGTH_RATIO, "stable": STABLE,
                   "relocated": RELOCATED, "stable_from": STABLE_FROM,
                   "formation_round": FORMATION_ROUND,
-                  "predicted_period": {cell_name(w, b): clip_period(w, b) for w, b in cells},
+                  "predicted_period": {cell_name(w, b, r): clip_period(w, b)
+                                       for w, b, r in cells},
+                  "form_b_period": {cell_name(w, b, r): strength_period(w, b, r)
+                                    for w, b, r in cells},
                   "device": args.device}
-    profiles = {f"{cell_name(w, b)}.{arm}":
-                profile_for(w, b, STRENGTH_RATIO if arm == "refracted" else 0.0)
-                for w, b in cells for arm in ARMS}
+    profiles = {f"{cell_name(w, b, r)}.{arm}":
+                profile_for(w, b, r if arm == "refracted" else 0.0)
+                for w, b, r in cells for arm in ARMS}
     path = run_experiment(
         script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
         registration=REGISTRATION, engine=args.engine, seeds=args.seeds,

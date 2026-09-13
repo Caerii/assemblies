@@ -323,3 +323,58 @@ quantify over whatever cells ran so a present-but-unmeasured cell fails them.
 The superseded first run is not retained; its numbers are identical because
 the protocol is deterministic on fixed seeds, and only the bar bookkeeping
 changed.
+
+## Amendment 2 (2026-09-13, registered before running): does the period depend on the refraction STRENGTH?
+
+Every cell so far ran at one refraction strength, `s = 0.5 beta`. The formula
+carries no strength term, and the entry records that as an unmeasured scope
+limit. It is worse than unmeasured: the two candidate forms **coincide exactly
+at the strength we happened to use.**
+
+The second term counts the rounds the bias needs to erode a clipped member's
+margin. Written as `(1 - 1/w_max) / beta` it says the erosion rate is set by
+beta. But the mechanism is `bias += s x raw` at every win, so the rate ought to
+be set by `s`, which gives `(1 - 1/w_max) / 2s`. At `s = 0.5 beta` those are
+the same number, and every measurement in this registration was taken there.
+
+This is the repository's own recorded lesson from the wrong retraction: when
+two forms agree everywhere you have looked, a test they both pass verifies
+neither. The second term is 9.5 of 41.5 rounds at the measured point, about
+23% of the period, and the intervals are a tenth of a round wide, so a
+strength sweep separates them decisively.
+
+### What runs
+
+Four arms at fixed `w_max = 20, beta = 0.10`, differing only in `s / beta`,
+281 rounds each (5.5 periods at the slowest candidate). Twenty seeds, plus the
+unrefracted control as before.
+
+    s/beta   s        form A (no strength term)   form B (erosion at 2s)   gap
+    0.250    0.0250   41.50                        51.00                   22.9%
+    0.375    0.0375   41.50                        44.67                    7.6%
+    0.500    0.0500   41.50                        41.50                    0.0%
+    0.625    0.0625   41.50                        39.60                    4.6%
+
+Strengths above about 0.7 beta are excluded by construction: the convergence
+study found the area churns there with no period to measure.
+
+### Bars
+
+- **ST-1, the period is independent of strength.** The four measured periods
+  all lie within 5% of their mean.
+  PREDICTION: uncertain. This is form A and it is what the register currently
+  implies by carrying no strength term.
+- **ST-2, the period follows 1/2s.** Each arm's measured period is within 5%
+  of `ceil(ln(w_max)/ln(1+beta)) + (1 - 1/w_max) / 2s`.
+  PREDICTION: uncertain. This is form B.
+- **ST-3, the sweep decides.** Exactly one of ST-1 and ST-2 passes. If both
+  fail, neither closed form survives and the second term is something else,
+  which is reported as measured values with no adopted form. If both pass the
+  sweep was too narrow to separate them and the amendment is void.
+- **ST-4, every arm is in the relocating regime.** At least three relocations
+  on every brain of every arm, and zero on every control brain. An arm that
+  churns has no period and cannot be scored; its bar fails rather than being
+  skipped.
+
+Whichever form survives, the register entry's period sentence gains an
+explicit strength condition, because the present sentence has none.
