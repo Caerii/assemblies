@@ -24,9 +24,23 @@ deadline it has is a COUNT:
   ([[REFRACTION-CANCELS-CONVERGENCE]], `PREREG_refraction_convergence.md`
   Amendment 2, confirmed to 1.4% on a fresh seed block).
 
-There is no decay term anywhere in the model. An interval in which nothing is
-presented therefore leaves every weight, every bias and every winner set
-exactly as it found them. **Idle spacing is a no-op by construction, and this
+There is no decay term anywhere on **this** path. An interval in which nothing
+is presented therefore leaves every weight, every bias and every winner set
+exactly as it found them.
+
+> **Correction (2026-09-13).** "No decay term anywhere in the model" was too
+> broad and is narrowed here to the path this study runs on, the hashed
+> `AssemblyMemory`. The `Brain` and `Area` path DOES carry a decaying
+> inhibition: `refractory_period` with `inhibition_strength`, a finite-memory
+> penalty on recently fired neurons (`neural_assemblies/core/area.py`,
+> implemented in the torch engine), which the assembly calculus calls long
+> range inhibition. It is load-bearing there: `ordered_recall`
+> (`neural_assemblies/assembly_calculus/ops.py`) REFUSES to run without it,
+> because within-assembly recurrence otherwise wins every competition and the
+> area sits on the current assembly forever. The bar below is unaffected,
+> since it asserts a property of the path actually used and the artifacts
+> confirm it bit for bit; only the reason as stated was wider than the
+> evidence. **Idle spacing is a no-op by construction, and this
 registration asserts it rather than measuring it** (bar SR-4). Any claim that
 "spacing helps" in this substrate that is not mediated by something happening
 in the gap would be an instrument fault.

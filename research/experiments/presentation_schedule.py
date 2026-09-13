@@ -125,6 +125,12 @@ def elapse(gap: int) -> int:
     recover at all: it accumulates over a neuron's whole history. Giving it a
     decay here is what would turn it into a refractory period and, in the same
     stroke, make idle spacing a treatment rather than a no-op.
+
+    The repository already has that decaying variant on the OTHER path, as
+    `Area(refractory_period=..., inhibition_strength=...)`, which the assembly
+    calculus calls long range inhibition and which `ordered_recall` refuses to
+    run without. It is not available to the hashed `AssemblyMemory` this study
+    uses, so on this path the function stays a no-op.
     """
     del gap                 # no state in this substrate is time-dependent
     return 0
@@ -475,7 +481,9 @@ def experiment(record):
     return {"verdict": verdict, "bars": bars, "superseded_bars": superseded,
             "arms": arms, "comparisons": comparisons, "idle_identical": identical,
             "scope": "presentation order at matched count in a hashed assembly memory, "
-                     "one operating point; the substrate has no decay term"}
+                     "one operating point; the hashed AssemblyMemory path has "
+                     "no decay term (the Brain path has LRI, which this does "
+                     "not use)"}
 
 
 def main(argv=None):
