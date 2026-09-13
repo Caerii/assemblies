@@ -444,3 +444,59 @@ term in `(beta - s)/s` rather than in `1/s`, which the four points do not
 cleanly fit either. Settling it needs the margin measured directly rather than
 inferred from the period, which is a different instrument and is not attempted
 here.
+
+## Amendment 3 (2026-09-13, registered before running): Part 2, with strength as the tenure knob instead of beta
+
+Part 2 above asks whether the schedule study's episode penalty is the tenure.
+Its PL-7 proposed halving beta to double the period, and admitted the
+confound in the same breath: beta also changes capacity, so the two cells
+would not be matched on load.
+
+Amendment 2 supplies a better knob. Strength moves the tenure a long way,
+59.49, 47.15 and 41.60 rounds at `s/beta` of 0.25, 0.375 and 0.5, and the
+register holds that strength is a capacity SWITCH with one plateau across 0.3
+to 0.6 beta. So 0.375 and 0.5 differ in tenure by 13% while sitting inside one
+capacity plateau, which is the controlled comparison PL-7 could not make.
+Expressed as what a 16-round episode costs:
+
+    s/beta   tenure   16 rounds as a fraction of one tenure   inside the capacity plateau
+    0.250    59.49    26.9%                                   no, below it
+    0.375    47.15    33.9%                                   yes
+    0.500    41.60    38.5%                                   yes
+
+PL-7 is withdrawn and replaced by PL-8 and PL-9. PL-6 stands as written.
+
+### What runs
+
+`python -m research.runner episode-tenure --tag UNIQUE`. All arms are the
+refracted memory at `w_max = 20, beta = 0.10`, massed, read with the bias
+masked, 16 rounds per item, checkpoints M = 64, 128, 256 where the penalty was
+seen. Seeds 42 to 61. Eight arms: the four episode structures 1x16, 2x8, 4x4
+and 8x2 at `s = 0.5 beta`, and the two extremes 1x16 and 8x2 at `s = 0.375
+beta` and `s = 0.25 beta`.
+
+The write primitive is `ScheduledMemory` imported from the schedule study,
+which owns it, and whose single-episode write is bit-identical to
+`AssemblyMemory.store`.
+
+- **PL-6, shorter episodes help at a fixed tenure.** At `s = 0.5 beta` and
+  M = 256, mean rank-1 is non-decreasing across 1x16, 2x8, 4x4, 8x2, and the
+  1x16 arm is strictly worst on at least 18 of 20 brains.
+  PREDICTION: passes. The schedule study already saw 1x16 against 4x4.
+- **PL-8, the penalty tracks the episode's share of a tenure.** Define the
+  penalty as `rank1(8x2) - rank1(1x16)` at M = 256. It is strictly larger at
+  `s = 0.5 beta` than at `s = 0.375 beta`, and strictly larger at `s = 0.375
+  beta` than at `s = 0.25 beta`.
+  PREDICTION: uncertain, and this is the whole test. A 16-round episode is
+  38.5%, 33.9% and 26.9% of a tenure at those three strengths.
+- **PL-9, and it is not capacity in disguise.** Between `s = 0.5 beta` and
+  `s = 0.375 beta`, both inside the register's capacity plateau, the 8x2 arm's
+  mean rank-1 at M = 256 differs by less than 0.05 while the penalty differs
+  by more. If the 8x2 arms differ by more than that, the two strengths are not
+  matched on capacity after all and PL-8 cannot be read as a tenure effect.
+- **PL-10, instrument.** Every arm spends exactly 16 rounds per item and
+  presents every item exactly its registered number of episodes.
+
+If PL-8 fails while PL-6 passes, the episode penalty is real and the tenure
+does not explain it, and the reading offered in the schedule study is
+withdrawn rather than amended.

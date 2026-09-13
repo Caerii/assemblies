@@ -559,7 +559,8 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'a3-transducer': 'research.experiments.seq_a3_transducer',
                'refraction-convergence': 'research.experiments.refraction_convergence',
                'presentation-schedule': 'research.experiments.presentation_schedule',
-               'refraction-period-law': 'research.experiments.refraction_period_law'}
+               'refraction-period-law': 'research.experiments.refraction_period_law',
+               'episode-tenure': 'research.experiments.episode_tenure'}
 
 
 def main(argv=None):

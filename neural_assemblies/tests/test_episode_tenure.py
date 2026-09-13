@@ -1,0 +1,76 @@
+"""The episode-tenure design (PREREG_refraction_period_law.md, Amendment 3).
+
+The study asks whether the schedule study's episode penalty is the tenure. For
+that to be a test, the arms must differ ONLY in how their rounds are grouped
+and in the strength that sets the tenure, and two of the strengths must sit
+inside the register's capacity plateau so the comparison is not capacity in
+disguise.
+"""
+from __future__ import annotations
+
+import unittest
+
+from research.experiments.episode_tenure import (
+    ARM_SPECS, ARMS, PENALTY_AT, STRENGTHS, TENURE, episode_share,
+)
+from research.experiments.presentation_schedule import TOTAL_ROUNDS
+
+#: research/notes/memory/PREREG_refraction_memory.md: strength is a capacity
+#: SWITCH with one plateau across these bounds.
+CAPACITY_PLATEAU = (0.3, 0.6)
+
+
+class EveryArmSpendsTheSameRounds(unittest.TestCase):
+    def test_grouping_and_strength_are_the_only_differences(self):
+        for name, (episodes, rounds_each, ratio) in ARM_SPECS.items():
+            self.assertEqual(episodes * rounds_each, TOTAL_ROUNDS, name)
+            self.assertIn(ratio, TENURE, name)
+
+    def test_the_ladder_and_the_extremes_are_present(self):
+        for episodes, rounds_each in ((1, 16), (2, 8), (4, 4), (8, 2)):
+            self.assertIn(f"e{episodes}x{rounds_each}-s0.5", ARMS)
+        for ratio in STRENGTHS:
+            self.assertIn(f"e1x16-s{ratio:g}", ARMS)
+            self.assertIn(f"e8x2-s{ratio:g}", ARMS)
+
+
+class TheTenureContrastIsReal(unittest.TestCase):
+    def test_the_episode_share_falls_as_the_tenure_grows(self):
+        shares = [episode_share(r) for r in STRENGTHS]
+        self.assertTrue(all(a > b for a, b in zip(shares, shares[1:])), shares)
+
+    def test_the_shares_are_far_enough_apart_to_order(self):
+        # PL-8 asks for a strict ordering of penalties across these; if the
+        # shares were nearly equal the bar could not fail honestly
+        shares = [episode_share(r) for r in STRENGTHS]
+        self.assertGreater(shares[0] / shares[-1], 1.3)
+
+    def test_two_strengths_sit_inside_the_capacity_plateau(self):
+        lo, hi = CAPACITY_PLATEAU
+        inside = [r for r in STRENGTHS if lo <= r <= hi]
+        self.assertGreaterEqual(len(inside), 2, "PL-9 needs a matched pair")
+        self.assertIn(0.5, inside)
+        self.assertIn(0.375, inside)
+
+    def test_the_third_strength_is_outside_it_and_is_labelled_so(self):
+        lo, hi = CAPACITY_PLATEAU
+        self.assertTrue(min(STRENGTHS) < lo, "0.25 is meant to be below the plateau")
+
+
+class TheShortEpisodeIsNearlyFree(unittest.TestCase):
+    def test_two_round_episodes_are_a_small_share_of_any_tenure(self):
+        # the 8x2 arm is the reference the penalty is measured against, so it
+        # must not itself be paying a tenure cost
+        for ratio in STRENGTHS:
+            self.assertLess(episode_share(ratio, 2), 0.06, ratio)
+
+    def test_the_long_episode_is_a_large_share_at_every_strength(self):
+        for ratio in STRENGTHS:
+            self.assertGreater(episode_share(ratio, TOTAL_ROUNDS), 0.25, ratio)
+
+    def test_the_penalty_checkpoint_is_where_the_effect_was_seen(self):
+        self.assertEqual(PENALTY_AT, 256)
+
+
+if __name__ == "__main__":
+    unittest.main()
