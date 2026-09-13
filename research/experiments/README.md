@@ -34,9 +34,10 @@ them.
 | sequence | `seq_s5_soft_census_hashed.py` | soft transitions in the word-problem organs at width | `--seeds 100 --groups S5 --presentations 20`, ~6 min |
 | sequence | `seq_s5_arc_drift.py`, `seq_s5_arc_clip.py` | post hoc diagnostics: arc relocation across presentations, and its cause | ~1 min each |
 | sequence | `seq_a3_transducer.py --engine hashed` | the induced-state transducer at width (`--strength` for Amendment 2) | ~45 min |
-| sequence | `seq_a3_oracle_ceiling.py` | the corpus's oracle-state ceiling, computed | seconds |
-| aligner | `word_capacity_run.py` | word capacity of the cross-situational learner, with schema-8 alignment semantics | `python -m research.experiments.word_capacity_run --tag UNIQUE` (registered 20 seeds by default); add `--smoke --seeds 42 1 2` only for a VOID API check |
-| aligner | `word_capacity_ladder_run.py` | FEAT-size ladder for cells A and C; per-rung curves and ceilings, without re-adopting F1/F2 | `python -m research.experiments.word_capacity_ladder_run --tag UNIQUE` (20 seeds by current substrate rule) |
+| sequence | `seq_a3_oracle_ceiling.py` | computed next-token baselines and oracle ceilings on either A3 corpus; no substrate runs (engine `computed_baseline`) | `python -m research.runner a3-oracle-ceiling --corpus agreement-chain --gap 2 --tag UNIQUE` (seeds 42..61), seconds |
+| sequence | `seq_arc_refraction_reference.py` | the vendored reference arc: refraction ablation and constant-versus-proportional rule, per seed (engine `reference_nemo_numpy`) | `python -m research.runner arc-refraction-reference --tag UNIQUE` (seeds 42..61, ~15 min CPU); add `--smoke --seeds 42 43 44` only for a VOID API check |
+| aligner | `word_capacity_run.py` | word capacity of the cross-situational learner, with schema-8 alignment semantics | `python -m research.runner word-capacity --tag UNIQUE` (registered 20 seeds by default); add `--smoke --seeds 42 1 2` only for a VOID API check |
+| aligner | `word_capacity_ladder_run.py` | FEAT-size ladder for cells A and C; per-rung curves and ceilings, without re-adopting F1/F2 | `python -m research.runner word-capacity-ladder --tag UNIQUE` (20 seeds by current substrate rule) |
 
 The numpy-era scripts these supersede (`seq_a1_horizon.py`,
 `seq_s5_soft_census.py`, `seq_s5_word_problem.py`, ...) remain runnable and

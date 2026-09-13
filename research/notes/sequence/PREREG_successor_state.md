@@ -118,3 +118,7 @@ with EM (clone-structured graphs) or gradients. Recorded as a negative
 result; nothing adopted. The next construction
 (PREREG_temporal_memory.md) takes the literature's design instead: the
 state is the previous arc and predicted arc neurons win.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (SR-2' and SR-3' FAIL, SR-1' PASS). Retained artifacts: research/results/sequence/seq_a3_transducer_results_successor_chain.json, research/results/sequence/seq_a3_transducer_results_successor_chain_gap2_g0.3.json and research/results/sequence/seq_a3_transducer_results_successor_chain_gap2_g1.0.json, written by the legacy A3 entry point without runner record or source archive.

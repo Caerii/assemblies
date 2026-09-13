@@ -187,3 +187,7 @@ Fixed by breaking ties with a seeded random key, after which H4 fell to
 chance. This was a harness defect found BY the null control before any
 hypothesis was tested, not a change made after seeing H1 — which is what H4
 was placed first to guarantee. No parameter was altered.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Results section. No retained artifact: the numbers stand in the Results section only. Historical (study 4, sampled numpy engine); its sequence numbers are void under PREREG_sampler_audit.md.

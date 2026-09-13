@@ -304,3 +304,7 @@ n=2000. G's cell is CENSORED -- at this n its ceiling sits at the tiling
 limit, so part of what norm_init+scaling buys is the ability to fill the area
 completely. The B row of the same run (M* = 96, no interior) is a grid
 artifact -- the grid began above B's ceiling -- and is not a measurement.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (NOT ANSWERED by the registered rule). Retained artifact: research/results/logs/capacity_scaling_run.log. The maintained capacity protocol that superseded this design is capacity-scaling under the shared runner (PREREG_refraction_memory.md, PREREG_capacity_nk_law.md).

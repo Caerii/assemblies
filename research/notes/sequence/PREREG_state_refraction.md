@@ -116,3 +116,7 @@ not exhibit the thing being studied and the study stops" -- G0 fails and
 the study is closed without running R1-R3. What the induced state lacks
 is not separation but information (A3 Amendments 2-3), and no strength
 on the state addresses that.
+
+## Evidence disposition (2026-09-12)
+
+Closed at width by its own gate (2026-09-09). No retained artifact: the gate reading stands in the note only.

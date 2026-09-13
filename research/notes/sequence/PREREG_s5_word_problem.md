@@ -171,3 +171,7 @@ L=500 does decay, and the per-step numbers explain WHY without excusing it --
 a ~1e-3 per-step error compounded over 500 steps. [[SEQ-EXACT-RECOVERY]] is
 bounded rather than overturned, and this amendment measures the bound instead
 of inferring it.
+
+## Evidence disposition (2026-09-12)
+
+Superseded: the word-problem census results are carried in PREREG_s5_cliff_anatomy.md, which cites this design. Retained artifact of the first run: research/results/logs/seq_s5_word_problem.log.

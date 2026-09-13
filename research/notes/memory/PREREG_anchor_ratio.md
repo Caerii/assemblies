@@ -78,3 +78,7 @@ that ratio and trade off against the anchor. Registered as `CAP-ANCHOR-RATIO`.
 Consistent with F2 (anchor 2x -> 2.86x), C5 (retroactive erosion: later
 training strengthens the pull on earlier attractors), and CS1 (the (n/k)
 dependence is the pull's second-order chance-overlap term, still unquoted).
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (PASS 3/3). Retained artifacts: the three excursion logs research/results/logs/anchor_ratio_A1.log, research/results/logs/anchor_ratio_A2.log and research/results/logs/anchor_ratio_A3.log. No runner record or source archive exists for them; the register entry CAP-ANCHOR-RATIO carries that provenance gap.

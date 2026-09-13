@@ -101,3 +101,7 @@ n/k alone" was established AT FIXED p = 0.5, beta = 0.10 and is now known to
 be conditional on both: M* moved 1.6x across p in [0.3, 0.7] and ~6x across
 beta in [0.05, 0.20] at fixed n/k. The claim's preconditions are sharpened
 accordingly; CS1 (n-invariance at fixed k/n ratio AND fixed p, beta) stands.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (X1 and X2 FAIL; the mechanism is refuted). No retained artifact: the numbers stand in the Result section only, computed from the capacity runs of 2026-08-25. Historical; nothing in the register cites it.

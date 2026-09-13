@@ -312,3 +312,7 @@ it must not be re-scored there as independent evidence.
     PASS  O7  the baseline is not a w_max artifact
     PASS  O8  normalization breaks the organ at both w_max
     FAIL  O9  no climb-then-degrade shape at either w_max
+
+## Evidence disposition (2026-09-12)
+
+Closed by Amendment 2 (the registered question is unanswerable here; the collateral result carries a fairness caveat). No retained artifact: the numbers stand in the note only.

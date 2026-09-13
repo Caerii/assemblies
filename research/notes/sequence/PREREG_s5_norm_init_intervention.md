@@ -141,3 +141,7 @@ A live confound for the group ordering, addressable at organ_p=0.5.
 Registered next steps: build substrate C (per-round row renormalization),
 re-run this census under it; re-run the M-ceiling table under C on
 numpy_exact; clear the regime floor and re-measure the group ordering.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (N1/N5 PASS, N2/N3/N4 FAIL, run 351e1cb). Retained artifact: research/results/logs/seq_s5_norm_init.log. The script still delegates to the legacy tiered S5 executor and sits outside the shared runner (research/experiments/README.md, migration boundary).

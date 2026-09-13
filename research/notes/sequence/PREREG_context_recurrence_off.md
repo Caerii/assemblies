@@ -97,3 +97,7 @@ free.
 * That merge is caused by recurrence DURING TRAINING (study III, H1).
 * Whether gated recurrence can hold history without merging is still OPEN --
   the arm meant to test it was dead.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Results section. No retained artifact: the numbers stand in the Results section only. Historical (study 4, sampled numpy engine); its sequence numbers are void under PREREG_sampler_audit.md.

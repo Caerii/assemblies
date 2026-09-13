@@ -230,3 +230,7 @@ negative half is treated as a statement about the assembly calculus.
 
 That third point is what the next study must test, and it is a claim about the
 *window* rather than a point — see the follow-up pre-registration.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Results section. No retained artifact: the numbers stand in the Results section only. Historical; nothing in the register cites it.

@@ -252,3 +252,7 @@ Two things this study should NOT re-score when it runs:
 
 Note the settings differ: this note runs `organ_p=0.5, w_max=None` with
 `norm_init=False`, matching the substrate study's NONE and C arms exactly.
+
+## Evidence disposition (2026-09-12)
+
+Never run. The note registered three amendments before data and then found, through PREREG_organ_substrate.md, that the climb-then-degrade shape it was designed to move did not reproduce on numpy_sparse; R5 was answered there. No result section and no artifact exist for this registration.

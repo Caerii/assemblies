@@ -95,3 +95,7 @@ reinforcement MERGES multi-assembly areas) more than with prospective capture.
 Constraint ledger for the next mechanism attempt: C1-C3 as before, plus
 C4 (anchor strength raises M*, ratio ~2.9 at 2x anchor) and C5 (retroactive,
 diffuse, early-items-first).
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (F2 PASS, F3 FAIL; not adopted). No retained artifact: the numbers stand in the Result section only. CAP-ANCHOR-RATIO cites this note as a registration; its provenance gap names the missing artifact.

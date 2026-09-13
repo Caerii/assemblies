@@ -117,3 +117,7 @@ by defining base_sum over SORTED rows, second amendment, golden regenerated
 -- and are now bounded by engine-loop overhead, not drive). The memoization
 architecture is sound and becomes decisive at CDS scale where n_cols grows;
 at S5 scale the drive was no longer the bottleneck after 5732e15.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (V-S5 FAILED; the stop clause governs). No retained artifact: the numbers stand in the Result section only.

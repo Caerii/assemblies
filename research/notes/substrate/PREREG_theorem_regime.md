@@ -163,3 +163,7 @@ cleared (see PREREG_refraction_stability.md). The theorems have no refraction
 term. This run cannot separate "homeostasis is unnecessary" from "refraction
 dominated whatever homeostasis did". Noted as a limitation of this design,
 not repaired by it.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (80/80 cells, four bars PASS). Retained artifact: research/results/logs/seq_s5_theorem_regime.log, a run log without runner record or source archive.

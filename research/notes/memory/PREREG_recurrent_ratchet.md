@@ -618,3 +618,7 @@ Substrate C alone remains a lookup mechanism. `norm_init` + `synaptic_scaling`
 Not yet done: whether G lifts the ratchet CEILING (M where retrieval fails) is
 a different measurement from these fixed-M points, and the original RC3 bar is
 not re-scored here on that basis.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Result section (81 cells). Retained artifact: research/results/logs/seq_recurrent_ratchet.log, a run log without runner record or source archive.

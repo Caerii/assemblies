@@ -13,15 +13,47 @@ source-linked contract, negative control, and relevant gate are all present.
   fewer than three study seeds, duplicate/nonregistered seed identities, and
   ambiguous engine names. Preserve committed evidence with a tagged,
   numerical migration comparison.
+  - Progress 2026-09-12: the adapter refuses all five (argparse `choices`
+    for engines, `auto` rejected, `validate_registered_seeds`, `mkdir` as
+    reservation). Two execution kinds added so the last unspellable
+    scripts could migrate: `computed_baseline` (`BaselineSemantics`) and
+    `reference_nemo_numpy` (declared `ModelSemantics`), run schema 9.
+    Migrated: `seq_a3_oracle_ceiling.py` (`a3-oracle-ceiling`; per-seed
+    bigram and oracle vectors equal the committed gap-2 file, receipt
+    `research/results/comparisons/oracle-chain-gap2-20260912.json`),
+    `seq_arc_refraction_reference.py` (`arc-refraction-reference`,
+    twenty seeds registered in `PREREG_arc_refraction_reference.md`);
+    `word-capacity` and `word-capacity-ladder` registered. Remaining:
+    `seq_a3_transducer.py` (its five arms still parse `sys.argv`; the
+    migration comparison needs a ~45 min GPU replay of seeds 62..81 at
+    gap 2), and a written disposition for `seq_s5_arc_drift.py` and
+    `seq_s5_arc_clip.py` (post hoc diagnostics).
 - [ ] **Complete the evidence graph.** Require every results artifact to carry
   script, commit/source digest, engine, protocol version, seeds, tag, parameters,
   and semantic profile. Require every register evidence edge and every
   `PREREG_*.md` result link to resolve. Add orphan detection and make the graph
   gate fail on dangling or unreferenced maintained results.
+  - Progress 2026-09-12: the gate already fails on a tracked runner result
+    its registration does not link, on a dangling register evidence edge,
+    and on an invalid comparison receipt; receipts of kind `baseline` now
+    validate. Of the 19 "pending" registrations the audit lists, 15 carry a
+    Result section with outcomes inline and no artifact link: the phrase
+    heuristic mislabels closed notes. Disposition lines are being added to
+    each note; the classifier should then report "inline results, no
+    retained artifact" as its own category.
 - [ ] **Close all register sensitivity/provenance gaps.** Keep the engine field
   accurate for every measured entry, and migrate each entry from prose-only
   caveats to retained treatment/control vectors. Every adopted result needs a
   beta-zero or mechanism-disabled null whose measured number moves.
+  - Progress 2026-09-12: retained checks now on 9 of 15 MEASURED entries
+    (added SEQ-EXACT-RECOVERY, AC-CAP, SEQ-ORGAN-EMBEDS,
+    REFRACTION-NEEDS-LOAD, SEQ-REGIME-CLIFF). Running: the twenty-seed
+    arc-reference study for ARC-CONJUNCT-EXPOSURE and
+    REFRACTION-PROPORTIONAL. Still prose-only: REFRACTION-CANCELS-CONVERGENCE
+    (needs a registration splitting the wander diagnostic's arms, GPU),
+    KWTA-TIE-FRAGILE (a CPU tie-count experiment with a jittered null, to
+    register), CAP-RATIO and CAP-ANCHOR-RATIO (GPU capacity cells: equal
+    n/k at different n, and anchor 100 against 200).
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,

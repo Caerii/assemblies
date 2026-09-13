@@ -123,3 +123,7 @@ fixed. If the collapse is the recurrence, overlap should fall well below
 0.7566 and the arm should recover to at least the no-context 0.2074. The
 repo already has the fiber-gating primitive (task #45) needed to open and
 close that fiber on a schedule rather than leaving it always-on.
+
+## Evidence disposition (2026-09-12)
+
+Closed with its Results section. No retained artifact: the numbers stand in the Results section only. Historical (study 4, sampled numpy engine); its sequence numbers are void under PREREG_sampler_audit.md.
