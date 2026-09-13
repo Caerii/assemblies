@@ -52,6 +52,10 @@ def run(tmp_path, monkeypatch):
     # Exercise storage and protocol validation without scanning the whole repo
     # per test or invoking an actual experiment.
     monkeypatch.setattr(runner, '_source_paths', lambda: [Path(__file__).relative_to(runner.ROOT).as_posix()])
+    # Never take the machine's real device lock from a test: a study running
+    # on the card would refuse these fixtures, and parallel workers would
+    # refuse each other.
+    monkeypatch.setenv('ASSEMBLIES_DEVICE_LOCK', str(tmp_path / 'device.lock'))
     def execute(**kwargs):
         values: dict[str, Any] = dict(script=Path(__file__), protocol='audit.fixture', protocol_version='1',
                       registration='research/notes/sequence/DESIGN_sequence_port.md',

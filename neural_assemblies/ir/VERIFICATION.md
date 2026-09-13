@@ -191,6 +191,26 @@ device allocation. These tests establish that the boundary detects mismatch;
 they do not prove the CUDA implementation refines the profile. CUDA parity,
 mechanism-disabling nulls and observation contracts remain separate obligations.
 
+<a id="contract-organ-count-saturation"></a>
+
+## Organ count saturation
+
+The dense organ fiber stores potentiation counts as int8 (`ORGAN_CMAX`
+127). Its write kernel leaves a count at 127 when the next potentiation
+would pass it and raises a flag; its drive kernel prices every count at or
+beyond the chain table's last index with that entry. When the weight clip
+has bound by the table's last entry (`table[-1] == table[-2]`) and the
+table's last index is at most 127, a stored 127 and the true count price
+identically, so the flag is informational and `DenseOrganFiber.check`
+clears it. Without a clip, or with a table longer than the count range, a
+capped count would have changed a weight and the flag stays an
+`OverflowError`. The predicate is `count_saturation_is_exact(table,
+max_count)`; `tests/test_organ_count_saturation.py` holds both directions.
+Motivation: the registered position instrument at gap 3 repeats the same
+noun-to-noun transitions often enough that counts pass 127 under the
+registered `max_potentiations` of 64, where every such synapse is already
+at w_max.
+
 ## Source links and proof workflow
 
 Definitions use `Specification: repository/path.md#stable-anchor` in docstrings.

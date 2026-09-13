@@ -83,6 +83,10 @@ evidence. Then follow the reading order below.
   a smaller grid than registered produces void numbers; tag it so.
 - **Adopted results go into `neural_assemblies/theory.py`**, rendered to
   `docs/register.md`; a test fails if the rendering is stale.
+- **Every run record says how it read the model.** `observation_policy`
+  (plastic, frozen, probe, read-only, none) is required for any run that
+  reads a Brain engine or the vendored reference and refused elsewhere;
+  organ and aligner profiles carry their inference schedule instead.
 - **Measured register entries use typed evidence references.** Every local file
   names its role (artifact, registration, producer, analysis, or log) and must
   resolve. Missing immutable evidence is an explicit `provenance_gap`, never an
@@ -123,23 +127,30 @@ Each of these has data in hand and a registration to extend.
    and a small recurrent network at matched step counts on the chain
    corpus, plus gaps 4 to 6 for the carry's decay law, decide whether the
    temporal memory is worth a paper or a paragraph.
-5. **Close the register's sensitivity gaps.** All fifteen MEASURED entries name
-   their engine. Four currently have machine-checked treatment/control vectors;
-   eleven have only missing-control gaps, and the composite refraction result
-   retains gaps for facets beyond its checked R1 contrast. Migrate each producing
-   experiment to an immutable run record and replace its `sensitivity_gap` with
-   a retained comparison that a known dead configuration fails.
+5. **Close the register's last two sensitivity gaps.** All fifteen MEASURED
+   entries name their engine and thirteen carry a retained treatment/control
+   vector the register validates on every test run (a check that stops moving
+   fails the suite). The two left are registered and need the device:
+   `PREREG_refraction_convergence.md` (`refraction-convergence`) and the n/k
+   replay in `PREREG_capacity_nk_law.md` (`capacity-scaling`). Run them, wire
+   the checks, and the register is closed on this rule; the composite
+   refraction entry still lists facets beyond its checked contrast.
 
 ## Process constraints that have cost us results
 
-- **One working tree per session.** Two sessions editing the same
-  checkout put reverted engine files into a commit and voided a run. If
-  you must share a machine, use a worktree pinned at a commit and import
-  from it (the editable install resolves to the main checkout, so drop
-  that finder from `sys.meta_path` and put the worktree first).
+- **One working tree per session, and a second one for running.** Two
+  sessions editing the same checkout put reverted engine files into a
+  commit and voided a run; the shared runner now voids a run itself if any
+  source file in its checkout changes while it runs. Edit in one worktree
+  and run studies from another pinned at a commit
+  (`git worktree add --detach <path> <commit>`, `uv sync --extra gpu`
+  there; a worktree's own `.venv` imports itself). Copy the finished run
+  directory back, validate it, link it from its registration, then add.
 - **One GPU job at a time.** Studies contend for the card and the memory
   limit; a smoke run scheduled beside a study slowed both and had to be
-  killed by PID.
+  killed by PID. The runner enforces it: a device job takes a machine-wide
+  lock before reserving its tag and a second one is refused, not queued
+  (`research/README.md#one-device-job`).
 - **Commit by explicit path** when anything else may be staged;
   `git add -A` swept another session's files once.
 - **Commits go to `dev`; `master` is a fast-forward of it.**

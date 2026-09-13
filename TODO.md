@@ -62,10 +62,12 @@ source-linked contract, negative control, and relevant gate are all present.
     REFRACTION-NEEDS-LOAD, SEQ-REGIME-CLIFF, and, from the twenty-seed
     arc-reference study with all four registered bars passing,
     ARC-CONJUNCT-EXPOSURE and REFRACTION-PROPORTIONAL, and, from the
-    registered tie census, KWTA-TIE-FRAGILE: 12 of 15). Still prose-only:
-    REFRACTION-CANCELS-CONVERGENCE (needs a registration splitting the
-    wander diagnostic's arms, GPU), CAP-RATIO and CAP-ANCHOR-RATIO (GPU
-    capacity cells: equal n/k at different n, and anchor 100 against 200).
+    registered tie census, KWTA-TIE-FRAGILE, and from the paired-anchor
+    replay, CAP-ANCHOR-RATIO: 13 of 15). The last two are registered and
+    wait for the device: REFRACTION-CANCELS-CONVERGENCE
+    (`PREREG_refraction_convergence.md`, runner `refraction-convergence`)
+    and CAP-RATIO (`PREREG_capacity_nk_law.md`, sensitivity replay of three
+    cells in one run).
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,
@@ -159,6 +161,11 @@ source-linked contract, negative control, and relevant gate are all present.
   chain-corpus instrument through gaps 3--6 with at least twenty hashed seeds;
   fit and report a preregistered decay model. Keep the corrected position
   instrument distinct from the void pooled 0.11/0.22 numbers.
+  - Progress 2026-09-13: registered as Amendment 1 of
+    `PREREG_temporal_positions.md` (geometric model on the per-offset carry,
+    five bars per gap, the gap-2 replay as the instrument comparison); the
+    runner takes `--gap 2..6`; the five twenty-seed runs are in progress on
+    the device from the pinned worktree. The pooled numbers stay void.
 - [ ] **Clip-window retention.** Test weight rules that preserve exact
   transition-organ behavior from 20 through 200 presentations, with both
   retention and new-learning bars. Preserve failed homeostasis attempts and

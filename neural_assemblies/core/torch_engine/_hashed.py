@@ -64,6 +64,25 @@ def _chain_table(beta, w_max, rounds):
     return out
 
 
+def count_saturation_is_exact(table, max_count: int) -> bool:
+    """Whether stored counts capped at ``max_count`` price exactly like unbounded ones.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-count-saturation
+
+    True when the chain table's last entry equals the one before it (the
+    weight clip has bound, so every further potentiation leaves the weight
+    unchanged) and the table's last index is at most ``max_count`` (so a
+    stored count of ``max_count`` still lands on that entry). With no clip,
+    or a table longer than the count range, a capped count would have
+    changed a weight and the cap is a real loss.
+    """
+    import numpy as np
+    table = np.asarray(table)
+    if table.ndim != 1 or table.size < 2:
+        return False
+    return bool(table.size - 1 <= int(max_count) and table[-1] == table[-2])
+
+
 def _rel_table(beta, depth):
     """``(1 + beta)**(-d)`` for d = 0..depth, by repeated float32 division.
 
@@ -768,10 +787,28 @@ class DenseOrganFiber:
             max_count = int(self.C.max())
         return _S()
 
+    @property
+    def count_saturation_is_exact(self) -> bool:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-count-saturation"""
+        return count_saturation_is_exact(self.tab.cpu().numpy(), self.MAX_COUNT)
+
     def check(self):
         code = int(self.err.item())
         if code == 1:
-            raise OverflowError(f"a count passed {self.MAX_COUNT}")
+            if self.count_saturation_is_exact:
+                # The write kernel leaves a count at MAX_COUNT when the next
+                # potentiation would pass it, and the drive kernel prices
+                # every count at or beyond the table's last index with that
+                # entry, which is the clipped weight. A stored 127 and the true
+                # count therefore give identical drives: saturation is exact,
+                # and the flag is informational. Clear it and continue.
+                self.err.zero_()
+                return
+            raise OverflowError(
+                f"a count passed {self.MAX_COUNT} and the chain table is not "
+                "saturated at its last entry (no weight clip, or a table longer "
+                "than the count range), so the lost potentiations would have "
+                "changed a weight")
         if code:
             raise RuntimeError(f"organ fiber kernel error {code}")
 

@@ -216,3 +216,29 @@ TP-1 to TP-4 are also evaluated at every gap and reported. Failed bars are
 retained with their numbers; the gap at which DL-3 first fails, if any, is
 the measured horizon of the predicted-win carry and is reported as such,
 not as a fitted extrapolation.
+
+## Amendment 1, first results (2026-09-13)
+
+**Gap 2 under protocol version 2 reproduces version 1.** Artifact
+`research/results/runs/sequence.temporal-positions/temporal-positions-gap2-20260912/results.json`
+(seeds 82 to 101, run from the pinned runs worktree at 24f7767e). Every
+per-seed `D`, `D_1` and `D_2` value equals the 2026-09-10 record on every
+arm; TP-1 to TP-4 PASS as before and the five decay bars pass at gap 2
+(DL-1 0.2032 lower bound 0.1859; DL-2 paired D_1 - D_2 0.0365 [0.0291,
+0.0440]; DL-3 D_2(g=1) 0.1666 lower bound 0.1455; DL-4 blind D upper
+bound 0.0046; DL-5 D_2(g=0) upper bound 0.0084). The instrument change
+adds nothing and removes nothing at gap 2.
+
+**Gap 3 hit the substrate's count range.** The first gap-3 attempt failed
+in the organ fiber with `OverflowError: a count passed 127`
+(`research/results/runs/sequence.temporal-positions/temporal-positions-gap3-20260912-overflow/failure.json`, retained with its `run.json`): the
+longer chain repeats the same noun-to-noun transitions often enough over
+200 sentences and 3 rounds that an int8 potentiation count passes 127.
+Every such synapse is already at w_max (the chain table clips from count
+32 under beta 0.10 and w_max 20, and the drive kernel prices every count
+at or beyond the table's last index with that entry), so a count held at
+127 gives the same drive as the true count. The organ fiber now treats the
+flag as informational exactly when its chain table is saturated within the
+count range (`VERIFICATION.md#contract-organ-count-saturation`; an
+unclipped table still raises). Gaps 3 to 6 run under that contract; the
+protocol is unchanged.
