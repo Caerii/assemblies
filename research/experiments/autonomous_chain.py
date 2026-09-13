@@ -54,9 +54,9 @@ SMOKE_ARMS = ("L32", "L32-no-refraction")
 #: otherwise sizes it from the chain length, so varying L would redraw the
 #: connectome. The engine caps it at 65536 (topk_select packs a 16-bit index),
 #: which bounds the chain at 65536/k - 1 = 639 here.
-N_STATE_FIXED = 64000
+N_STATE_FIXED = 51200      # exactly L_max * k; larger wastes the memory budget
 LIMIT_P = 0.3          # kp = 30 clears 3 ln n in every limit cell
-LIMIT_ARCS = (2000, 3000, 4000, 6000)
+LIMIT_ARCS = (1000, 2000, 3000, 4000)
 LIMIT_LENGTHS = (160, 256, 384, 512)
 
 
@@ -305,8 +305,8 @@ def experiment(record):
                     for _, a in deaths for r in a["rows"] if r["correct"] < a["length"]),
             "AL-2 exact_length is non-decreasing in n_arc":
                 all(x <= y for x, y in zip(ordered, ordered[1:])),
-            "AL-3 superlinear but not square: the 3x arc ratio lands strictly between 3 and 9":
-                ratio_3x is not None and 3.0 < ratio_3x < 9.0,
+            "AL-3 superlinear but not square: the 4x arc ratio lands strictly between 4 and 16":
+                ratio_3x is not None and 4.0 < ratio_3x < 16.0,
             "AL-4 the state area cannot be the cause: n_state identical in every cell":
                 comparisons["n_state_identical"],
             "AL-5 refraction still carries it: 0 correct with strength 0":

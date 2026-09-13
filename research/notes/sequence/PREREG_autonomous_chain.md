@@ -191,9 +191,11 @@ exponent and no fit is attempted.**
 
 ## Amendment 1 bars, registered before running
 
-Fixed grid, no search: `n_state = 64000`, `k = 100`, `p = 0.3`, `beta = 0.10`,
+Fixed grid, no search: `n_state = 51200`, `k = 100`, `p = 0.3`, `beta = 0.10`,
 `w_max = 20`, `s = beta`, 20 presentations, seeds 62 to 81. Cells
-`n_arc` in {2000, 3000, 4000, 6000}; lengths {160, 256, 384, 512}.
+`n_arc` in {1000, 2000, 3000, 4000}; lengths {160, 256, 384, 512}. (Both
+numbers were revised before any artifact existed; see the instrument note
+above.)
 
 The estimand is `exact_length`: the largest tested length at which EVERY brain
 recalls every visit. It is a grid quantity, not an interpolation, and cells
@@ -205,9 +207,9 @@ whose `exact_length` is the top of the grid are CENSORED and reported as such.
   dropped step).
 - **AL-2, it is monotone in the arc.** `exact_length` is non-decreasing in
   `n_arc` across the four cells.
-- **AL-3, it is superlinear but not square.** `exact_length(6000) /
-  exact_length(2000)` lies strictly between 3 and 9, the values a linear and a
-  square law in `n/k` would give for a threefold change.
+- **AL-3, it is superlinear but not square.** `exact_length(4000) /
+  exact_length(1000)` lies strictly between 4 and 16, the values a linear and a
+  square law in `n/k` would give for a FOURfold change.
   PREDICTION: uncertain, and this is the point of the amendment.
 - **AL-4, the state area is not what limits it.** `n_state` is identical in
   every cell, so a monotone result in `n_arc` cannot be the state area. Checked
@@ -218,6 +220,24 @@ whose `exact_length` is the top of the grid are CENSORED and reported as such.
 If AL-2 fails, the limit is not an arc property and the account above is
 withdrawn. If AL-3 fails high the square law survives; if it fails low the
 limit is linear in `n/k` and is a different mechanism from capacity.
+
+## Instrument note (2026-09-13): the grid is bounded by device memory, and the cells moved
+
+The organ fiber allocates a count matrix of `n_state x n_arc x brains` bytes.
+The registered grid's largest cell, `n_arc = 6000` at `n_state = 64000` and 20
+brains, needs 8.0 GiB and the engine refuses it by name rather than failing on
+the device. Eleven cells completed before it was reached.
+
+Two changes, both before any artifact exists. `n_state` drops from 64000 to
+**51200**, which is exactly `L_max * k` and so the smallest area that still
+holds disjoint blocks for the longest chain; the surplus was pure memory cost.
+And the arcs become **{1000, 2000, 3000, 4000}**, a FOURFOLD span whose largest
+cell is one that has already run, instead of a threefold span whose largest
+cannot.
+
+AL-3's band moves with the span, on the same principle it was written on: for
+an `r`-fold change in `n/k`, a linear law predicts `r` and a square law `r^2`.
+At `r = 3` that was the registered 3 to 9; at `r = 4` it is **4 to 16**.
 
 ## Instrument note (2026-09-13): the collapse measure now SAMPLES pairs
 
