@@ -21,8 +21,6 @@ from __future__ import annotations
 from dataclasses import asdict
 from pathlib import Path
 
-import numpy as np
-
 from neural_assemblies import describe_hashed_arc_fsm
 from neural_assemblies.diagnostics import ensemble_from_values
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
@@ -156,11 +154,13 @@ def experiment(record):
             "arc_overlap": _ens([r["arc_overlap"] for r in rows], f"{name}:arc", seeds),
             "exact_brains": sum(c == length for c in correct),
         }
+        # the ensemble already carries the seed statistic with its interval;
+        # printing a second hand-rolled mean would be a different claim
+        overlap_mean = arms[name]["arc_overlap"]["mean"]
         print(f"  {name:<20s} L={length:<4d} correct {min(correct)}..{max(correct)}"
               f"  exact {arms[name]['exact_brains']}/{len(seeds)}"
-              f"  arc overlap {np.mean([r['arc_overlap'] for r in rows]):.3f}"
-              f" ({np.mean([r['arc_overlap'] for r in rows]) / chance:.1f}x chance)",
-              flush=True)
+              f"  arc overlap {overlap_mean:.4f}"
+              f" ({overlap_mean / chance:.1f}x chance)", flush=True)
 
     bars, comparisons = {}, {}
     if not smoke:
