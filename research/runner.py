@@ -6,14 +6,17 @@ neural_assemblies.diagnostics owns statistics. A completed run is not a PASS.
 from __future__ import annotations
 
 import argparse
+import contextlib
 from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import gzip
 import hashlib
 import importlib
+import os
 from pathlib import Path
 import re
 import subprocess
+import tempfile
 from typing import Any, Callable, Mapping, cast
 from zipfile import ZIP_DEFLATED, ZipFile, ZipInfo
 
@@ -54,6 +57,73 @@ ORGAN_ENGINES = ORGAN_ENGINE_KINDS
 ALIGNER_ENGINES = ALIGNER_ENGINE_NAMES
 BASELINE_ENGINES = BASELINE_ENGINE_NAMES
 REFERENCE_ENGINES = REFERENCE_ENGINE_NAMES
+#: Engines that put work on the CUDA device. One such run at a time on a
+#: machine: studies contend for the card and its memory limit, and a smoke
+#: run beside a study slowed both (docs/onboarding.md, process constraints).
+DEVICE_ENGINES = frozenset({'torch_sparse', 'cuda_implicit', 'cupy_sparse',
+                            *ORGAN_ENGINE_KINDS, *ALIGNER_ENGINE_NAMES})
+
+
+def _device_lock_path() -> Path:
+    """One lock per machine, shared by every worktree and environment.
+
+    Specification: research/README.md#one-device-job
+    """
+    override = os.environ.get('ASSEMBLIES_DEVICE_LOCK')
+    return Path(override) if override else Path(tempfile.gettempdir()) / 'assemblies-device-job.lock'
+
+
+@contextlib.contextmanager
+def exclusive_device(engine: str, tag: str):
+    """Hold the machine's device lock for the whole run, or refuse at once.
+
+    Refusal is not a wait: a second device job is an error in this
+    repository's process, so the caller learns immediately and nothing is
+    reserved. Engines that never touch the device pass straight through.
+    """
+    if engine not in DEVICE_ENGINES:
+        yield
+        return
+    path = _device_lock_path()
+    handle = open(path, 'a+', encoding='utf-8')
+    try:
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_NBLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except OSError as exc:
+            # A held region cannot be read through another handle on
+            # Windows; the holder line is a courtesy, not a requirement.
+            try:
+                handle.seek(0)
+                holder = handle.read().strip() or 'unknown holder'
+            except OSError:
+                holder = 'unknown holder'
+            raise RuntimeError(
+                f'another device job holds {path} ({holder}); one GPU job at a '
+                f'time -- wait for it or stop it before running {tag!r}'
+            ) from exc
+        handle.seek(0)
+        handle.truncate()
+        handle.write(f'pid {os.getpid()} engine {engine} tag {tag}\n')
+        handle.flush()
+        yield
+    finally:
+        try:
+            if os.name == 'nt':
+                import msvcrt
+                handle.seek(0)
+                msvcrt.locking(handle.fileno(), msvcrt.LK_UNLCK, 1)
+            else:
+                import fcntl
+                fcntl.flock(handle.fileno(), fcntl.LOCK_UN)
+        except OSError:
+            pass
+        handle.close()
 
 
 @dataclass(frozen=True)
@@ -380,6 +450,17 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                   started_utc=datetime.now(timezone.utc).isoformat(), **_source_identity())
     # Freeze nested caller-owned mappings/lists into a distinct JSON value.
     record = snapshot_document(record)
+    with exclusive_device(engine, tag):
+        return _reserve_and_measure(record, protocol=protocol, tag=tag,
+                                    output_root=output_root, input_bytes=input_bytes,
+                                    script_path=script_path,
+                                    registration_path=registration_path,
+                                    measure=measure)
+
+
+def _reserve_and_measure(record, *, protocol, tag, output_root, input_bytes,
+                         script_path, registration_path, measure) -> Path:
+    inputs = record['input_artifacts']
     parent = (output_root or ROOT / 'research' / 'results' / 'runs') / protocol
     parent.mkdir(parents=True, exist_ok=True)
     directory = parent / tag
@@ -473,7 +554,8 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'word-capacity': 'research.experiments.word_capacity_run',
                'word-capacity-ladder': 'research.experiments.word_capacity_ladder_run',
                'a3-oracle-ceiling': 'research.experiments.seq_a3_oracle_ceiling',
-               'arc-refraction-reference': 'research.experiments.seq_arc_refraction_reference'}
+               'arc-refraction-reference': 'research.experiments.seq_arc_refraction_reference',
+               'kwta-tie-fragility': 'research.experiments.kwta_tie_fragility'}
 
 
 def main(argv=None):

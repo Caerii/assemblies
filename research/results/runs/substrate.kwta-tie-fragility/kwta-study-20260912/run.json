@@ -1,0 +1,72 @@
+{
+  "engine": "numpy_explicit",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "execution_semantics": {
+    "kind": "brain",
+    "profiles": {
+      "default": {
+        "arithmetic": "float32",
+        "candidate_domain": "all-neurons",
+        "connectome": "fixed-dense-content-addressed",
+        "default_tie_break": "lowest-neuron-id",
+        "normalization": "none",
+        "plasticity": "multiplicative-clipped",
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "weight_ceiling": 20.0
+      }
+    }
+  },
+  "git_commit": "1268c56c2c9cce4866445645cfdc17b6224e1644",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": "none",
+  "parameters": {
+    "jitter": 0.001,
+    "k": 50,
+    "n": 1000,
+    "normalizing_population_rows": 500,
+    "p": 0.1,
+    "stimulus_rows": 50
+  },
+  "protocol": "substrate.kwta-tie-fragility",
+  "protocol_version": "1",
+  "registration": "research/notes/substrate/PREREG_kwta_tie_fragility.md",
+  "registration_sha256": "06e5c01927ad79545e5ec2c74bb4a6231e07e3c77d40d53a3c6123ebbebb428e",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/kwta_tie_fragility.py",
+  "script_sha256": "30c6819195a59f489dd8aaa98b87f10c2a8e7f430b33fcaf5c5fb18f7a203315",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "623f2ebd4ea90a0d5bd4d4fe71272928fdcdef1c6bbca576d7175563decff9a7"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "7517b53f111038e5008c3bcf020e06f708d7fc195b0c95b4d4403d69dfd1cb47",
+  "started_utc": "2026-09-13T03:20:26.327835+00:00",
+  "tag": "kwta-study-20260912"
+}

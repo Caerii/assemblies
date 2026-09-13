@@ -939,10 +939,26 @@ _RESULTS: List[Result] = [
     # ------------------------------------------------- representation algebra
     Result(
         id="KWTA-TIE-FRAGILE",
-        engine="torch/CUDA selector prototype; not a Brain-engine conformance claim",
+        engine="tie census: numpy_explicit (retained runner study, 20 seeds, PREREG_kwta_tie_fragility.md); the last-bit split under a change of arithmetic: torch/CUDA selector prototype (no retained artifact) and the fused-kernel gate of 2026-09-10",
         status=Status.MEASURED,
-        sensitivity_gap="The selector prototype retained no raw artifact for a "
-                        "tie-free negative comparison.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/substrate.kwta-tie-fragility/kwta-study-20260912/results.json",
+            sample_path="observations/rows/*/seed",
+            treatment_path="observations/rows/*/ties_raw",
+            control_path="observations/rows/*/ties_jittered",
+            relation="all-greater", minimum_effect=4,
+            mechanism="candidates tied at the k-th drive of the untrained 0/1 stimulus fiber (n = 1000, k = 50, p = 0.1) against the same drive with a deterministic per-neuron jitter that leaves exactly one at the bar",
+        ),),
+        sensitivity_gap="The retained check covers the counting half (the bar is "
+                        "tied on every seed, 26 to 73 candidates). The other half, "
+                        "that a change of arithmetic splits those ties into "
+                        "different winners, is retained only as the GPU gate's "
+                        "log and the selector prototype: on the CPU explicit "
+                        "engine's own float32 reciprocal and division paths no "
+                        "winner differed on any of 20 seeds, and the one-ulp "
+                        "construction flipped the winner set on 19 of 20 (the "
+                        "twentieth is the exact-fit case, every tied candidate "
+                        "already inside the top k).",
         claim="The k-WTA bar is routinely TIED, so anything that perturbs the "
               "drive in its last bits -- a change of summation order, of "
               "arithmetic, or of tie-break policy -- can change WHICH neurons "
@@ -956,9 +972,23 @@ _RESULTS: List[Result] = [
         preconditions=("integer or near-integer drive, i.e. before heavy "
                        "potentiation spreads the values",
                        "k-WTA selecting at a bar that several columns reach"),
-        evidence=("research/experiments/gpu_radix_select_prototype.py",),
-        evidence_refs=(EvidenceRef("research/experiments/gpu_radix_select_prototype.py", "producer"),),
-        provenance_gap="prototype measurement has no retained raw result artifact",
+        evidence=("research/experiments/gpu_radix_select_prototype.py",
+                  "kwta-study-20260912 (numpy_explicit, 20 seeds): candidates tied at the "
+                  "bar of the untrained stimulus drive 26-73 per seed (KT-1 PASS); with "
+                  "in-degree normalization 1-12, at least 2 on 17 of 20 (KT-3 PASS); a "
+                  "one-ulp raise of a tied outsider changes the winner set on 19 of 20 "
+                  "seeds and never on the jittered drive (KT-2 as registered FAIL: seed "
+                  "49 has 19 candidates above the bar and 31 at it, so all 50 are "
+                  "inside k and no outsider is tied); float32 division, float32 "
+                  "reciprocal and float64 division select the same winners on every seed"),
+        evidence_refs=(
+            EvidenceRef("research/experiments/gpu_radix_select_prototype.py", "producer",
+                        "the split half; no retained artifact"),
+            EvidenceRef("research/results/runs/substrate.kwta-tie-fragility/kwta-study-20260912/results.json", "artifact"),
+            EvidenceRef("research/notes/substrate/PREREG_kwta_tie_fragility.md", "registration"),
+            EvidenceRef("research/experiments/kwta_tie_fragility.py", "producer"),
+        ),
+        provenance_gap="the selector prototype's split measurement has no retained raw artifact; the tie census does",
         implemented_by=("neural_assemblies.core.numpy_engine._kwta_prune",),
         caveat="`_kwta_prune` records the operational rule this implies: making "
                "the selector's tie-break CANONICAL is a science-affecting "

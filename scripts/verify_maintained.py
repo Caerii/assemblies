@@ -60,6 +60,7 @@ MAINTAINED_FILES = (
     "research/experiments/seq_a3_transducer.py",
     "research/experiments/seq_a3_oracle_ceiling.py",
     "research/experiments/seq_arc_refraction_reference.py",
+    "research/experiments/kwta_tie_fragility.py",
     "research/experiments/seq_a1_local_regime.py",
     "research/experiments/seq_a2_refraction_load.py",
     "research/experiments/study4/ntp.py",

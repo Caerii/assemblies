@@ -111,6 +111,25 @@ def test_invalid_run_stops_before_compute(run, kwargs):
     assert calls == []
 
 
+def test_second_device_job_is_refused_before_reservation(run, tmp_path, monkeypatch):
+    """One GPU job at a time: a held device lock refuses a hashed or torch
+    run before its tag is reserved, and leaves a Brain-engine run alone."""
+    lock = tmp_path / "device.lock"
+    monkeypatch.setenv("ASSEMBLIES_DEVICE_LOCK", str(lock))
+    with runner.exclusive_device("hashed_arc_fsm", "holder"):
+        assert lock.exists()   # held: the region cannot be read through another handle
+        calls = []
+        with pytest.raises(RuntimeError, match="one GPU job at a time"):
+            run(engine="hashed_arc_fsm", smoke=True, tag="second",
+                measure=lambda record: calls.append(record))
+        assert calls == []
+        assert not (tmp_path / "audit.fixture" / "second").exists()
+        # a CPU run does not contend for the device
+        assert run(tag="cpu").exists()
+    # released: the same device job now proceeds
+    assert run(engine="hashed_arc_fsm", smoke=True, tag="after").exists()
+
+
 def test_wrong_engine_profile_stops_before_reservation(run, tmp_path):
     with pytest.raises(ValueError, match="does not implement requested"):
         run(engine="numpy_sparse", model_semantics=FIXTURE_MODEL)

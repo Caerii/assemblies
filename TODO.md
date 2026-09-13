@@ -49,12 +49,11 @@ source-linked contract, negative control, and relevant gate are all present.
     (added SEQ-EXACT-RECOVERY, AC-CAP, SEQ-ORGAN-EMBEDS,
     REFRACTION-NEEDS-LOAD, SEQ-REGIME-CLIFF, and, from the twenty-seed
     arc-reference study with all four registered bars passing,
-    ARC-CONJUNCT-EXPOSURE and REFRACTION-PROPORTIONAL). Still prose-only:
+    ARC-CONJUNCT-EXPOSURE and REFRACTION-PROPORTIONAL, and, from the
+    registered tie census, KWTA-TIE-FRAGILE: 12 of 15). Still prose-only:
     REFRACTION-CANCELS-CONVERGENCE (needs a registration splitting the
-    wander diagnostic's arms, GPU), KWTA-TIE-FRAGILE (a CPU tie-count
-    experiment with a jittered null, to register), CAP-RATIO and
-    CAP-ANCHOR-RATIO (GPU capacity cells: equal n/k at different n, and
-    anchor 100 against 200).
+    wander diagnostic's arms, GPU), CAP-RATIO and CAP-ANCHOR-RATIO (GPU
+    capacity cells: equal n/k at different n, and anchor 100 against 200).
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,
@@ -160,6 +159,14 @@ source-linked contract, negative control, and relevant gate are all present.
   Add an environment diagnostic for `vcvars64`, `ninja`, `CUDA_HOME`, compiler,
   and device capability; serialize one GPU job at a time. Do not call a CPU
   smoke run a GPU science result.
+  - Progress 2026-09-12: the toolchain diagnostic exists
+    (`scripts/check_cuda_toolchain.py`, `scripts/cuda-dev.cmd`; device
+    capability is not probed). The runner now takes a machine-wide exclusive
+    lock for every device engine before reserving a tag and refuses a
+    second device job outright (research/README.md#one-device-job; test
+    `test_second_device_job_is_refused_before_reservation`). Studies run
+    from a worktree pinned at a commit
+    (`%TEMP%/assemblies-runs-20260912`) so edits here cannot void them.
 - [ ] **Measure end-to-end throughput at scale.** Extend the README performance
   table with reproducible sizes, seeds, backend, materialization semantics,
   wall time, memory, and confidence intervals. Include plots/artifacts rather

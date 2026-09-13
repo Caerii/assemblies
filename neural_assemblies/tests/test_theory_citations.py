@@ -187,6 +187,7 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQ-EXACT-RECOVERY", "AC-CAP", "SEQ-ORGAN-EMBEDS",
             "REFRACTION-NEEDS-LOAD", "SEQ-REGIME-CLIFF",
             "ARC-CONJUNCT-EXPOSURE", "REFRACTION-PROPORTIONAL",
+            "KWTA-TIE-FRAGILE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

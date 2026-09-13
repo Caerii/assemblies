@@ -200,6 +200,23 @@ Version 3 adds Windows `.cmd` build scripts to the source inventory. Earlier
 version 2 records remain historical records with that coverage limitation.
 
 
+<a id="one-device-job"></a>
+
+## One device job
+
+Studies contend for the card and its memory limit, and a smoke run
+scheduled beside a study slowed both and had to be killed by PID
+(docs/onboarding.md). The runner enforces the rule: a run whose engine puts
+work on the device (`torch_sparse`, `cuda_implicit`, `cupy_sparse`, every
+hashed organ, both aligners) takes a machine-wide exclusive lock
+(`%TEMP%/assemblies-device-job.lock`, or `ASSEMBLIES_DEVICE_LOCK`) before
+reserving its tag and holds it until the record is written. A second device
+job is refused immediately with the holder's pid, engine and tag; it is not
+queued, because a queued job would run against a checkout that may have
+moved. CPU engines, the vendored reference and computed baselines never take
+the lock. The lock is shared across worktrees and environments on the same
+machine, which is what "one GPU job at a time" means.
+
 ## Recoverable source
 
 The [runner](runner.py) writes schema 10 records for every execution kind (Brain,

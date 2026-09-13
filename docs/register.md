@@ -23,7 +23,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`DUAL-RATE`](#dual-rate) | EXTENSION | Not an empirical entry | Running fast and slow pathways at once is FUNCTIONALLY useful: a high-beta fiber binds in one shot (episodic) while a low-beta fiber accumulates statistics (semantic), and a system with both does something neither does alone. |
 | [`SEQ-ORGAN-EMBEDS`](#seq-organ-embeds) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original organ-density experiment ran on the sampled arc | A sequence organ runs at its own regime INSIDE a brain whose ambient density is far lower, given per-fiber p. |
 | [`SEQ-STATE-CODE-EMERGENT`](#seq-state-code-emergent) | EXTENSION | Not an empirical entry | The state alphabet can be INDUCED from data rather than assigned. |
-| [`KWTA-TIE-FRAGILE`](#kwta-tie-fragile) | MEASURED | torch/CUDA selector prototype; not a Brain-engine conformance claim | The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order. |
+| [`KWTA-TIE-FRAGILE`](#kwta-tie-fragile) | MEASURED | tie census: numpy_explicit (retained runner study, 20 seeds, PREREG_kwta_tie_fragility.md); the last-bit split under a change of arithmetic: torch/CUDA selector prototype (no retained artifact) and the fused-kernel gate of 2026-09-10 | The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order. |
 | [`HEBB-OUTER-PRODUCT`](#hebb-outer-product) | PROVED | Not an empirical entry | The Hebbian co-firing count is a SUM OF RANK-1 OUTER PRODUCTS: count = SUM_t x_{t-1} x_t^T, with x_t the 0/1 winner indicator at round t. |
 | [`DRIVE-SPLIT`](#drive-split) | PROVED | Not an empirical entry | With a Bernoulli 0/1 base B and G[i,j] = chain(1, count[i,j]), the drive splits as 1_S^T (B (.) G) = 1_S^T B + SUM_{i in S, j} B[i,j] D[i,j] where D = G - 1 is nonzero only on potentiated cells. |
 | [`CAP-RATIO`](#cap-ratio) | MEASURED | hashed AssemblyMemory / exact count-then-apply path | The assembly-capacity ceiling M* is a function of n/k ALONE, not of n and k separately. |
@@ -472,7 +472,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** The base drive is a Bernoulli COUNT, hence integer-valued, so exact ties are the common case rather than an edge case. Measured 5-18 columns tied at the bar per brain at n=4000-50000 (research/experiments/gpu_radix_select_prototype.py). An ulp-level change to a summation once moved sixteen cells of an exact table with no direction to it.
 
-**Engine / substrate.** torch/CUDA selector prototype; not a Brain-engine conformance claim
+**Engine / substrate.** tie census: numpy_explicit (retained runner study, 20 seeds, PREREG_kwta_tie_fragility.md); the last-bit split under a change of arithmetic: torch/CUDA selector prototype (no retained artifact) and the fused-kernel gate of 2026-09-10
 
 **Claim.** The k-WTA bar is routinely TIED, so anything that perturbs the drive in its last bits -- a change of summation order, of arithmetic, or of tie-break policy -- can change WHICH neurons fire, not merely their order.
 
@@ -482,13 +482,20 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/experiments/gpu_radix_select_prototype.py
+- kwta-study-20260912 (numpy_explicit, 20 seeds): candidates tied at the bar of the untrained stimulus drive 26-73 per seed (KT-1 PASS); with in-degree normalization 1-12, at least 2 on 17 of 20 (KT-3 PASS); a one-ulp raise of a tied outsider changes the winner set on 19 of 20 seeds and never on the jittered drive (KT-2 as registered FAIL: seed 49 has 19 candidates above the bar and 31 at it, so all 50 are inside k and no outsider is tied); float32 division, float32 reciprocal and float64 division select the same winners on every seed
 
 **Evidence files.**
-- [research/experiments/gpu_radix_select_prototype.py](../research/experiments/gpu_radix_select_prototype.py) (producer)
+- [research/experiments/gpu_radix_select_prototype.py](../research/experiments/gpu_radix_select_prototype.py) (producer) â€” the split half; no retained artifact
+- [research/results/runs/substrate.kwta-tie-fragility/kwta-study-20260912/results.json](../research/results/runs/substrate.kwta-tie-fragility/kwta-study-20260912/results.json) (artifact)
+- [research/notes/substrate/PREREG_kwta_tie_fragility.md](../research/notes/substrate/PREREG_kwta_tie_fragility.md) (registration)
+- [research/experiments/kwta_tie_fragility.py](../research/experiments/kwta_tie_fragility.py) (producer)
 
-**Provenance gap.** prototype measurement has no retained raw result artifact
+**Provenance gap.** the selector prototype's split measurement has no retained raw artifact; the tie census does
 
-**Sensitivity gap.** The selector prototype retained no raw artifact for a tie-free negative comparison.
+**Mechanism sensitivity.**
+- candidates tied at the k-th drive of the untrained 0/1 stimulus fiber (n = 1000, k = 50, p = 0.1) against the same drive with a deterministic per-neuron jitter that leaves exactly one at the bar: `observations/rows/*/ties_raw` all-greater `observations/rows/*/ties_jittered` by at least 4, retained in [research/results/runs/substrate.kwta-tie-fragility/kwta-study-20260912/results.json](../research/results/runs/substrate.kwta-tie-fragility/kwta-study-20260912/results.json) and paired by `observations/rows/*/seed`.
+
+**Sensitivity gap.** The retained check covers the counting half (the bar is tied on every seed, 26 to 73 candidates). The other half, that a change of arithmetic splits those ties into different winners, is retained only as the GPU gate's log and the selector prototype: on the CPU explicit engine's own float32 reciprocal and division paths no winner differed on any of 20 seeds, and the one-ulp construction flipped the winner set on 19 of 20 (the twentieth is the exact-fit case, every tied candidate already inside the top k).
 
 **Used by.** `neural_assemblies.core.numpy_engine._kwta_prune`
 
