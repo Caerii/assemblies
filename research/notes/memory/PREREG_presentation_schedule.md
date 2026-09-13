@@ -323,3 +323,137 @@ test, so all of them are tested on the FRESH block **seeds 62 to 81**.
 
 The version-1 bars SR-1, SR-2, SR-3 stay failed and are reported on every run
 as superseded. A bar that fails is recorded with its numbers.
+
+## Amendment 1 result (2026-09-13): six of eight bars pass on the fresh block, and splitting and ordering do opposite things
+
+Artifact
+`research/results/runs/memory.presentation-schedule/presentation-schedule-fresh2-20260913/results.json`
+(protocol version 2, six arms, seeds 62 to 81, pinned worktree at 9ba0f885).
+PS-1, PS-2, PS-4, PS-5, PS-6 and PS-8 pass; PS-3 and PS-7 fail. Verdict FAIL.
+
+    mean rank-1              M=8    M=16   M=32   M=64   M=128  M=256
+    single-control           0.150  0.081  0.041  0.020  0.016  0.005
+    massed-control           0.169  0.066  0.031  0.016  0.005  0.001
+    interleaved-control      1.000  1.000  1.000  1.000  0.741  0.000
+    single-refracted         1.000  1.000  1.000  0.763  0.452  0.198
+    massed-refracted         1.000  1.000  1.000  0.990  0.964  0.925
+    interleaved-refracted    1.000  1.000  1.000  1.000  1.000  1.000
+
+    hub statistic            M=8    M=16   M=32   M=64   M=128  M=256
+    single-control          35.61  36.62  37.85  38.43  39.09  39.34
+    massed-control          20.17  28.67  33.31  37.25  38.47  39.16
+    interleaved-control      1.04   1.11   1.14   1.16   1.25  40.00
+    all three refracted      0.00   0.00   0.00   ~0.47  ~0.72  ~0.86
+
+### The finding Amendment 1 was written to make possible
+
+The version-1 arms could not tell splitting from ordering. With the
+single-episode arm restored they separate completely, and in opposite
+directions for the two rules:
+
+    rule        M      single -> massed   (splitting)   -> interleaved  (ordering)
+    control     64     0.020 -> 0.016       -0.004        -> 1.000        +0.984
+    control     128    0.016 -> 0.005       -0.010        -> 0.741        +0.735
+    control     256    0.005 -> 0.001       -0.005        -> 0.000        -0.001
+    refracted   64     0.763 -> 0.990       +0.227        -> 1.000        +0.010
+    refracted   128    0.452 -> 0.964       +0.512        -> 1.000        +0.036
+    refracted   256    0.198 -> 0.925       +0.727        -> 1.000        +0.075
+
+**For the unrefracted memory, ORDER is the whole effect and splitting is
+nothing. For the refracted memory, SPLITTING is the whole effect and order
+adds a little.** Both are at 16 rounds per item; no arm receives more training
+than another.
+
+The control's story is the one the registration predicted: interleaving keeps
+the hub statistic at chance (1.04 to 1.25) where both massed schedules run to
+20 to 39 times chance, and recall follows. PS-1 and PS-2 pass, 20 of 20 brains
+each.
+
+The refracted arm's story is new and was not predicted. One long episode is
+markedly worse than four short ones at load: 0.198 against 0.925 at M = 256.
+The plausible mechanism, stated as a reading and not adopted, is the bias
+itself. Refraction charges per win, so sixteen consecutive winning rounds
+leave the assembly carrying sixteen units of bias against the neurons it just
+recruited, and the stored assembly is the one selected BEFORE that charge is
+paid. Four episodes re-form the item under the bias as it accumulates, so the
+retained assembly is one the charged area still selects. The relocation period
+measured in `PREREG_refraction_convergence.md` (Amendment 2) is about 41
+rounds at this operating point, and a single 16-round episode is a substantial
+fraction of one tenure, which is why this reading is worth testing rather than
+asserting.
+
+PS-4 passes: interleaving still adds on the refracted arms at M = 128 with the
+paired interval excluding zero, so refraction does not absorb the schedule.
+PS-5 passes: the interleaved control holds 0.741 at M = 128 and falls to 0.000
+at M = 256, its hub statistic jumping 1.25 to 40.00, so its protection ends in
+a cliff while refraction degrades smoothly. PS-6 passes: idle spacing remains
+a no-op bit for bit.
+
+### PS-3 FAILED: the write-order signature is a mean, not a per-brain fact
+
+    massed first eighth      mean 0.037   range [0.00, 0.25]
+    massed last eighth       mean 0.000   range [0.00, 0.00]
+    interleaved first        mean 1.000
+    interleaved last         mean 1.000
+
+The interleaved clause passes 20 of 20. The massed clause fails: first beats
+last on 3 of 20 brains and the two are EQUAL on 17 of 20, because at M = 32
+both ends sit on the floor for most brains. The direction is right in the mean
+and the effect is real in the version-1 curve at M = 32 in eighths
+(0.04, 0.19, 0.04, then zeros), but a bar demanding a strict per-brain
+ordering between two quantities that are both usually zero cannot pass. The
+bar is kept failed. A checkpoint nearer the control's edge, or a comparison of
+the first eighth against zero rather than against the last, is what would test
+it, and neither may be chosen now on this data.
+
+### PS-7 FAILED: this instrument's write is NOT the published capacity cell
+
+    single-control at M = 8   mean 0.150   range [0.12, 0.25]   bar >= 0.5
+    beats massed-control      3 of 20 brains                    bar 18 of 20
+
+The single-episode arm is one episode of sixteen rounds, which is the capacity
+protocol's own write, and it recalls 0.150 at M = 8 where the published
+control's ceiling is M* = 8. So the arm does not reproduce the published cell,
+and **no number in this registration may be compared with the capacity line's
+published cells.** Every comparison reported above is internal: all six arms
+share one instrument, so splitting and ordering are measured against each
+other and not against the register.
+
+The leading candidate cause, identified and not tested: this instrument reads
+with a fixed 8 frozen completion rounds, while `AssemblyMemory.recall` uses as
+many rounds as the protocol writes with, which is 16 for a T = 16 cell. A
+half-cue completed for 8 rounds instead of 16 is a weaker read, and the
+control, whose assemblies are hub-contaminated, has the most to lose from it.
+The hub statistic at M = 8 is already 35.6 on the single arm against the
+published control's 15 times chance at its collapse, which points the same
+way.
+
+## Amendment 2 (2026-09-13, registered before running): make the read the protocol's read
+
+One change, and it is the candidate cause named above: the completion read
+uses as many frozen rounds as the arm writes per item, 16, rather than a fixed
+8. Everything else is held. Protocol version 3. Tested on seeds 42 to 61,
+which have seen version 1's four arms but never the single-episode arm nor
+this read.
+
+- **PS-9, the instrument reproduces the protocol.** The `single-control` arm's
+  mean rank-1 at M = 8 is at least 0.5, and its hub statistic at M = 8 is
+  below 20 times chance.
+  PREDICTION: uncertain. This is PS-7 restated against the one change. If it
+  fails again, the difference is not the read and the instrument's write must
+  be diffed against `AssemblyMemory.store` line by line before any further
+  comparison is reported.
+- **PS-10, the dissociation survives the read.** With the longer read, the
+  splitting gain on the refracted arm at M = 256 (`massed` minus `single`) has
+  a paired lower bound above 0.3, and the ordering gain on the control at
+  M = 64 (`interleaved` minus `massed`) has a paired lower bound above 0.5.
+  PREDICTION: passes. A change in how a stored assembly is READ should not
+  reverse which schedule stored it better.
+- **PS-11, the write-order signature, restated where it can be seen.** At
+  M = 8, where the massed control is not yet at the floor, its first-eighth
+  mean rank-1 exceeds its last-eighth mean on at least 16 of 20 brains.
+  PREDICTION: uncertain, and PS-3's failure is the reason it is restated at a
+  checkpoint chosen for having signal rather than for being deep in collapse.
+
+PS-3 and PS-7 stay failed and are reported on every run as superseded, with
+SR-1, SR-2 and SR-3.
