@@ -30,6 +30,7 @@ def test_maintained_sources_are_unique_and_include_contract_surfaces():
     assert "research/experiments/per_fiber_plasticity.py" in normalized
     assert "research/experiments/seq_temporal_positions.py" in normalized
     assert "research/experiments/seq_capacity_scaling.py" in normalized
+    assert "research/experiments/refraction_memory_numpy.py" in normalized
 
 
 def test_missing_maintained_scope_fails_before_static_analysis(tmp_path):

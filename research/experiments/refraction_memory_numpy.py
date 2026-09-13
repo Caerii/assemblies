@@ -21,6 +21,7 @@ import os
 import random
 import sys
 import time
+from typing import Any, cast
 
 import numpy as np
 
@@ -30,7 +31,10 @@ sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 
 from neural_assemblies.core.brain import Brain                              # noqa: E402
 from neural_assemblies.core.semantics import describe_brain_model            # noqa: E402
-from research.runner import experiment_parser, run_experiment               # noqa: E402
+from research.runner import (                                               # noqa: E402
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
 from _substrate import ceiling_from_curve                                   # noqa: E402
 
 N, K, P, T, BETA, W_MAX, STRENGTH = 2000, 60, 0.5, 8, 0.10, 20.0, 0.05
@@ -54,7 +58,7 @@ _HERE = os.path.dirname(os.path.abspath(__file__))
 
 def build(seed, refracted):
     random.seed(seed)
-    np.random.seed(seed)
+    cast(Any, np.random).seed(seed)
     b = Brain(p=P, seed=seed, engine="numpy_sparse", w_max=W_MAX, norm_init=True,
               recurrent_projection=True, synaptic_scaling=False)
     b.add_area(AREA, N, K, BETA)
@@ -139,11 +143,13 @@ def run_brain(seed, refracted, masked):
 
 def main(argv=None):
     ap = experiment_parser(
-        __doc__.splitlines()[0], engines=("numpy_sparse",),
+        (__doc__ or "Refraction memory study").splitlines()[0],
+        engines=("numpy_sparse",),
         default_seeds=(42, 43, 44, 45, 46),
     )
     ap.add_argument("--arm", choices=("ref", "ctl", "both"), default="both")
     args = ap.parse_args(argv)
+    validate_registered_seeds(ap, args, (42, 43, 44, 45, 46))
     global MS
     if args.smoke:
         MS = (4, 8)
