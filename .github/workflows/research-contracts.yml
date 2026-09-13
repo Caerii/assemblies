@@ -104,6 +104,8 @@ jobs:
           neural_assemblies/tests/test_transitions.py
           neural_assemblies/tests/test_docs_examples_smoke.py
           neural_assemblies/tests/test_execution_kinds.py
+          neural_assemblies/tests/test_refraction_convergence_instrument.py
+          neural_assemblies/tests/test_organ_count_saturation.py
 
   lean-contracts:
     runs-on: ubuntu-latest

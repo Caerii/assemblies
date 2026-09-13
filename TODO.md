@@ -65,10 +65,16 @@ source-linked contract, negative control, and relevant gate are all present.
     registered tie census, KWTA-TIE-FRAGILE, and from the paired-anchor
     replay, CAP-ANCHOR-RATIO: 13 of 15; and on 2026-09-13 from the nk
     sensitivity replay, CAP-RATIO, whose three registered bars pass with the
-    (8000, 120) ceiling noted as a cliff interpolation: 14 of 15). The last,
-    REFRACTION-CANCELS-CONVERGENCE, is registered
-    (`PREREG_refraction_convergence.md`, runner `refraction-convergence`)
-    and its twenty-seed study is on the device.
+    (8000, 120) ceiling noted as a cliff interpolation: 14 of 15; and
+    REFRACTION-CANCELS-CONVERGENCE from the twenty-brain convergence study,
+    15 of 15). That study passed its churn and control bars and FAILED
+    "converges and holds" (RC-2), "feedforward holds" (RC-4) and the
+    transition bracket (RC-5): the entry now says the sub-beta assembly is
+    stable between wholesale relocations, a reading of the marks that
+    Amendment 1 (version-2 instrument, full consecutive curve, RC-6 to
+    RC-10) tests next on the device. Every MEASURED entry now holds a
+    retained treatment/control check; what remains under this item is the
+    bias-masked capacity numbers of `PREREG_refraction_capacity.md` (logs).
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,

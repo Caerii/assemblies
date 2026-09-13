@@ -9,6 +9,12 @@ twenty runner seeds paired across arms, and the per-brain convergence
 quantities retained. The organ profile declares `training-trajectory`:
 there is no recall; the write is the observation.
 
+Version 2 (Amendment 1) retains the whole consecutive-round overlap curve
+per brain and its relocation events (maximal runs of rounds whose
+consecutive overlap is below the stability threshold), so the register can
+tell an assembly that is stable between wholesale relocations from one
+that churns every round. Version 1 retained the curve at nine marks only.
+
 Run:  python -m research.runner refraction-convergence --tag UNIQUE
       (smoke: --smoke --seeds 1 2 3; VOID)
 """
@@ -28,12 +34,14 @@ from research.runner import (
 )
 
 PROTOCOL = "memory.refraction-convergence"
-VERSION = "1"
+VERSION = "2"          # version 1 retained the curve at MARKS only
 REGISTRATION = "research/notes/memory/PREREG_refraction_convergence.md"
 REGISTERED_SEEDS = tuple(range(42, 62))
 N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
 ROUNDS, REF_ROUND = 240, 10
 MARKS = (10, 20, 30, 40, 60, 100, 150, 200, 240)
+STABLE, RELOCATED = 0.95, 0.5     # consecutive overlap at or above / below
+STABLE_FROM = 20                  # rounds counted by the stable fraction: STABLE_FROM..ROUNDS
 ARMS = {
     "control": {"refracted": False, "recurrent": True, "ratio": 0.0},
     "feedforward": {"refracted": True, "recurrent": False, "ratio": 1.0},
@@ -49,6 +57,27 @@ SMOKE_ARMS = ("control", "s0.5", "s1.0")
 def _to_i32(value):
     value &= 0xFFFFFFFF
     return value - 0x100000000 if value >= 0x80000000 else value
+
+
+def relocation_events(consecutive, *, stable=STABLE):
+    """Maximal runs of rounds whose consecutive overlap is below ``stable``.
+
+    ``consecutive[i]`` compares rounds ``i + 1`` and ``i + 2``. Returns
+    ``(starts, lengths)`` in rounds: an event starting at round ``r`` means
+    the winners of round ``r`` differ from those of round ``r - 1``.
+    """
+    starts, lengths = [], []
+    in_event = False
+    for i, value in enumerate(consecutive):
+        if value < stable:
+            if not in_event:
+                starts.append(i + 2)
+                lengths.append(0)
+                in_event = True
+            lengths[-1] += 1
+        else:
+            in_event = False
+    return starts, lengths
 
 
 def profile_for(arm):
@@ -98,16 +127,24 @@ def run_arm(seeds, arm, *, rounds, device, organ_semantics):
     rows = []
     for b, seed in enumerate(seeds):
         conv = -1
-        ok = cs[:, b] >= 0.95
+        ok = cs[:, b] >= STABLE
         for r in range(len(ok)):
             if ok[r:].all():
                 conv = r + 2          # cs[r] compares rounds r+1 and r+2
                 break
+        curve = [round(float(v), 4) for v in cs[:, b]]
+        starts, lengths = relocation_events(curve)
+        counted = cs[STABLE_FROM - 2:, b]          # rounds STABLE_FROM..rounds
         rows.append({
             "seed": seed, "late": float(cs[late_from:, b].mean()), "conv": int(conv),
-            "converged": int(conv >= 0 and cs[late_from:, b].mean() >= 0.95),
+            "converged": int(conv >= 0 and cs[late_from:, b].mean() >= STABLE),
             "vs_round_10": {str(m): float(ov[m - REF_ROUND, b]) for m in MARKS if m - REF_ROUND < len(ov)},
             "consecutive_at": {str(m): float(cs[m - 2, b]) for m in MARKS if 0 <= m - 2 < len(cs)},
+            "consecutive": curve,
+            "stable_fraction": float((counted >= STABLE).mean()) if len(counted) else None,
+            "relocated_fraction": float((counted < RELOCATED).mean()) if len(counted) else None,
+            "event_starts": starts, "event_lengths": lengths, "n_events": len(starts),
+            "spacings": [b2 - a2 for a2, b2 in zip(starts, starts[1:])],
             "fill": float(area.fill.cpu().numpy()[b]),
         })
     del area, fiber, stim
@@ -145,34 +182,53 @@ def experiment(record):
               f"{arms[name]['ensembles']['late']['mean']:.3f}  median conv "
               f"{arms[name]['median_conv']}", flush=True)
     smoke = record["mode"] == "smoke"
-    bars = {}
+    bars, superseded = {}, {}
     if not smoke:
         def late(name):
             return [r["late"] for r in arms[name]["rows"]]
 
         def convs(name):
             return [r["conv"] for r in arms[name]["rows"]]
+
+        def arm_rows(name):
+            return arms[name]["rows"]
         n = len(seeds)
         bars = {
             "RC-1 control converges on every brain, median conv <= 20":
-                all(v >= 0.95 for v in late("control")) and all(c >= 0 for c in convs("control"))
+                all(v >= STABLE for v in late("control")) and all(c >= 0 for c in convs("control"))
                 and arms["control"]["median_conv"] is not None and arms["control"]["median_conv"] <= 20,
-            "RC-2 s=0.5 beta: late >= 0.95 on every brain, conv <= 100 on >= 18/20":
-                all(v >= 0.95 for v in late("s0.5"))
-                and sum(0 <= c <= 100 for c in convs("s0.5")) >= 18 * n // 20,
             "RC-3 s=beta churns: late <= 0.5 on every brain, conv = -1 on >= 18/20":
                 all(v <= 0.5 for v in late("s1.0"))
                 and sum(c == -1 for c in convs("s1.0")) >= 18 * n // 20,
+            # Amendment 1 bars (version 2): stability BETWEEN relocations.
+            "RC-6 s=0.5 beta is stable between relocations: stable_fraction >= 0.85 on every brain":
+                all(r["stable_fraction"] >= 0.85 for r in arm_rows("s0.5")),
+            "RC-7 s=0.5 beta relocates periodically: 4..9 events, first start in 30..70, every spacing in 20..50, on every brain":
+                all(4 <= r["n_events"] <= 9 and 30 <= r["event_starts"][0] <= 70
+                    and all(20 <= s <= 50 for s in r["spacings"]) for r in arm_rows("s0.5")),
+            "RC-8 feedforward at s=beta relocates too: n_events >= 3 and stable_fraction >= 0.8 on every brain":
+                all(r["n_events"] >= 3 and r["stable_fraction"] >= 0.8 for r in arm_rows("feedforward")),
+            "RC-9 churn is not relocation: s=beta stable_fraction <= 0.1 on every brain":
+                all(r["stable_fraction"] <= 0.1 for r in arm_rows("s1.0")),
+            "RC-10 transition between 0.5 and 0.8: s=0.8 beta stable_fraction <= 0.4 on every brain":
+                all(r["stable_fraction"] <= 0.4 for r in arm_rows("s0.8")),
+        }
+        superseded = {
+            "RC-2 s=0.5 beta: late >= 0.95 on every brain, conv <= 100 on >= 18/20":
+                all(v >= STABLE for v in late("s0.5"))
+                and sum(0 <= c <= 100 for c in convs("s0.5")) >= 18 * n // 20,
             "RC-4 feedforward at s=beta holds: late >= 0.95 on every brain":
-                all(v >= 0.95 for v in late("feedforward")),
+                all(v >= STABLE for v in late("feedforward")),
             "RC-5 transition between 0.7 and 0.8: 0.7 converges >= 18/20, 0.8 <= 2/20":
-                sum(v >= 0.95 for v in late("s0.7")) >= 18 * n // 20
-                and sum(v >= 0.95 for v in late("s0.8")) <= 2 * n // 20,
+                sum(v >= STABLE for v in late("s0.7")) >= 18 * n // 20
+                and sum(v >= STABLE for v in late("s0.8")) <= 2 * n // 20,
         }
         for name, ok in bars.items():
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+        for name, ok in superseded.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  (version-1 bar, superseded by Amendment 1) {name}")
     verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
-    return {"verdict": verdict, "bars": bars, "arms": arms,
+    return {"verdict": verdict, "bars": bars, "superseded_bars": superseded, "arms": arms,
             "scope": "refraction strength against convergence of one recurrent assembly, hashed substrate"}
 
 
@@ -188,6 +244,7 @@ def main(argv=None):
     parameters = {"n": N, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "rounds": 40 if args.smoke else ROUNDS, "reference_round": REF_ROUND,
                   "marks": list(MARKS), "arms": names,
+                  "stable": STABLE, "relocated": RELOCATED, "stable_from": STABLE_FROM,
                   "arm_settings": {name: ARMS[name] for name in names},
                   "device": args.device}
     profiles = {name: profile_for(ARMS[name])[0] for name in names}

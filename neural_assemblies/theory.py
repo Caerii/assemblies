@@ -713,11 +713,38 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
-        engine="hashed substrate (HashedArea with AreaFiber/StimulusFiber)",
+        engine="hashed_assembly_memory (HashedArea with AreaFiber/StimulusFiber); the registered twenty-brain run is a runner artifact, the wander diagnostic and the bias-readout numbers are logs",
         status=Status.MEASURED,
-        sensitivity_gap="The claimed mechanism has no identified immutable "
-                        "result artifact, so its null cannot yet be checked.",
-        claim="[RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the "
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.refraction-convergence/refraction-convergence-20260913/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/arms/s0.5/rows/*/late",
+            control_path="observations/arms/s1.0/rows/*/late",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refraction strength 0.5 beta against beta on the same recurrent area (n 4000, k 100, p 0.5, beta 0.10, w_max 20), late consecutive-round overlap over rounds 200 to 240: 0.904 to 0.932 against 0.003 to 0.007 on every paired brain; the s = beta area reshuffles its winners every round",
+        ),),
+        sensitivity_gap="The retained check is the strength contrast on the "
+                        "convergence protocol; the bias-masked capacity "
+                        "numbers below the transition remain logs "
+                        "(PREREG_refraction_capacity.md).",
+        claim="[MEASURED 2026-09-13 on twenty registered brains, "
+              "PREREG_refraction_convergence.md: the churn at s >= 0.8 beta "
+              "stands (late consecutive overlap <= 0.28 at 0.8, <= 0.01 at "
+              "0.9 and 1.0, fill 1.000, no brain converges); the control "
+              "converges at round 3-4. But 'converges, relocates once when "
+              "the clip binds and holds' FAILED its bar: at 0.5 beta no brain "
+              "holds a consecutive overlap of 0.95 through rounds 200-240 "
+              "(0.904-0.932), and the retained marks show an assembly that is "
+              "identical from round to round at every mark yet wholesale "
+              "elsewhere by round 60 -- stable BETWEEN relocations that recur "
+              "(about six in 240 rounds) each time the clip binds on the "
+              "current occupants, the arc's relocation-is-the-clip mechanism. "
+              "The feedforward area at s = beta relocates the same way rather "
+              "than holding (overlap with round 10 is 0.006 by round 40; late "
+              "0.91-0.98). The transition lies between 0.5 and 0.7 beta (0.7: "
+              "late 0.63-0.97, 1 of 20 converge). Amendment 1 registers the "
+              "full-curve instrument that tests the periodic reading.] "
+              "[RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the "
               "churn above ~0.75 beta stands; the intermediate-strength rows "
               "were a selector artefact -- at 0.5 beta the recurrent assembly "
               "converges, relocates once when the clip binds (~round 40-60, "
@@ -743,7 +770,13 @@ _RESULTS: List[Result] = [
               "anti-merging force of [[REFRACTION-ANTI-MERGING]]: ~25x the "
               "Hebbian ceiling, read with the bias masked.",
         source="This repository; PREREG_refraction_capacity.md.",
-        evidence=("seq_refraction_wander.py at n=4000 k=100 p=0.5 beta=0.1 "
+        evidence=("refraction-convergence-20260913 (twenty brains, seeds "
+                  "42-61, 240 one-round episodes, seven arms): late "
+                  "consecutive overlap control 1.000; feedforward 0.912-0.975; "
+                  "0.5 beta 0.904-0.932 (conv 217-220 on every brain, fill "
+                  "0.28); 0.7 beta 0.632-0.966 (fill 0.91); 0.8 beta <= 0.277; "
+                  "0.9 and 1.0 beta <= 0.010 (fill 1.000)",
+                  "seq_refraction_wander.py at n=4000 k=100 p=0.5 beta=0.1 "
                   "w_max=20, 16 brains, 240 rounds: s/beta = 0.5, 0.7 converge "
                   "(rounds 48, 45 vs control 4; late stability 1.000); 0.8, "
                   "0.9, 0.95, 1.0 never converge (late stability <= 0.22, fill "
@@ -759,11 +792,14 @@ _RESULTS: List[Result] = [
                   "M=8, same training: the intrinsic bias vetoes recall from "
                   "a partial cue, as the identity predicts"),
         evidence_refs=(
+            EvidenceRef("research/results/runs/memory.refraction-convergence/refraction-convergence-20260913/results.json", "artifact"),
+            EvidenceRef("research/notes/memory/PREREG_refraction_convergence.md", "registration"),
+            EvidenceRef("research/experiments/refraction_convergence.py", "producer"),
             EvidenceRef("research/experiments/seq_refraction_wander.py", "producer"),
             EvidenceRef("research/notes/memory/PREREG_refraction_capacity.md", "registration"),
             EvidenceRef("research/notes/memory/AUDIT_refraction_scaling.md", "analysis"),
         ),
-        provenance_gap="wander and bias-readout numbers have no identified immutable result artifact",
+        provenance_gap="the wander diagnostic's and the bias-readout numbers have no immutable result artifact; the convergence contrast now does (refraction-convergence-20260913)",
         preconditions=("recurrent area; strength quoted relative to beta; "
                        "T=8 rounds per item in the capacity protocol",
                        "the reference uses RefractedArea only as a FEEDFORWARD "
@@ -771,8 +807,12 @@ _RESULTS: List[Result] = [
                        "where none of this applies"),
         implemented_by=("neural_assemblies/core/_homeostasis.py",
                         "neural_assemblies/core/torch_engine/_hashed.py"),
-        caveat="The critical ratio is bracketed in (0.7, 0.8) at one operating "
-               "point; a transient-handicap estimate gives ~2/3. Whether "
+        caveat="The critical ratio is bracketed in (0.5, 0.7) at one operating "
+               "point on twenty brains (the earlier (0.7, 0.8) came from the "
+               "16-brain diagnostic); a transient-handicap estimate gives "
+               "~2/3. 'Stable between periodic relocations' is a reading of "
+               "version 1's marks, registered as Amendment 1 (RC-6 to RC-10) "
+               "and not yet tested on the full curve. Whether "
                "REFRACTION-NEEDS-LOAD's under-loaded non-convergence is this "
                "mechanism (the arc's state input is itself changing) is "
                "suggested, not established. TWO FURTHER LIMITS (AUDIT_"

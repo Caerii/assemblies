@@ -188,6 +188,7 @@ class TestTheoryCitations(unittest.TestCase):
             "REFRACTION-NEEDS-LOAD", "SEQ-REGIME-CLIFF",
             "ARC-CONJUNCT-EXPOSURE", "REFRACTION-PROPORTIONAL",
             "KWTA-TIE-FRAGILE", "CAP-ANCHOR-RATIO", "CAP-RATIO",
+            "REFRACTION-CANCELS-CONVERGENCE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
