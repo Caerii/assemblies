@@ -122,6 +122,12 @@ source-linked contract, negative control, and relevant gate are all present.
 
 ## Research tree and legacy disposition
 
+Current inventory baseline (2026-09-12): `research.evidence audit` sees 2,821
+tracked files, 3,306 resolved literal edges, 1,023 unresolved/ambiguous
+references, 368 candidate orphan result files, and 19 preregistrations that are
+explicitly pending results. These are inventory signals, not automatic deletion
+decisions; triage them by role and provenance before tightening the gate.
+
 - [ ] **Repair or explicitly retire the remaining static-debt clusters.** The
   latest inventory is 451 experiment files, 1,165 Pyright errors. Start with
   `gpu_writeback_gemm_prototype.py` (40), `primitives/run_all.py` (30),
