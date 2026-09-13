@@ -2,7 +2,8 @@
 
 The scope is intentionally explicit: shipped runtime packages are checked by
 Pyright, while the package test suite is run without slow GPU studies. Legacy
-research tests remain a separate, visible workload.
+research tests remain a separate, visible workload. ``--proofs`` extends the
+same gate across the Lean and Rust AssemblyIR bridges and their shared corpus.
 """
 
 from __future__ import annotations
@@ -148,6 +149,23 @@ def check_evidence_graph(root: Path = ROOT) -> bool:
     return result.returncode == 0
 
 
+def check_proofs(root: Path = ROOT) -> bool:
+    """Run the language bridges against the shared IR contracts and corpus."""
+    ok = True
+    lean = run(["lake", "build"], root=root / "formal",
+               display_command="lake build (formal AssemblyIR)")
+    ok = lean.returncode == 0 and ok
+    cases = root / "neural_assemblies" / "ir" / "v1" / "explicit-round.cases.json"
+    wire = run(["lake", "exe", "check-wire-cases", str(cases)],
+               root=root / "formal",
+               display_command="lake exe check-wire-cases <explicit-round cases>")
+    ok = wire.returncode == 0 and ok
+    rust = run(["cargo", "test", "--locked", "-p", "assembly-ir"],
+               root=root / "crates",
+               display_command="cargo test --locked -p assembly-ir")
+    return rust.returncode == 0 and ok
+
+
 def main() -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--skip-tests", action="store_true",
@@ -160,10 +178,16 @@ def main() -> int:
         "--serial", action="store_true",
         help="disable xdist and run the test suite in one process",
     )
+    parser.add_argument(
+        "--proofs", action="store_true",
+        help="also build Lean AssemblyIR and run Lean/Rust shared-wire checks",
+    )
     args = parser.parse_args()
 
     ok = check_pyright(ROOT)
     ok = check_evidence_graph(ROOT) and ok
+    if args.proofs:
+        ok = check_proofs(ROOT) and ok
     if not args.skip_tests:
         test_command = ["uv", "run", "pytest", "neural_assemblies/tests", "-q", "-m", "not slow"]
         if not args.serial:
