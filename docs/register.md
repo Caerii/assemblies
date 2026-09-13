@@ -124,9 +124,9 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_a1_exactness_sweep.py: state kp 14 -> 4/100 exact steps and 4/10 trajectories; kp 21 -> 80/100 and 10/10; kp 28 -> 100/100 and 10/10, with the transition at the predicted p = 18.6/70 = 0.266
 
 **Evidence files.**
-- [research/results/sequence/seq_a1_exactness_sweep_results.json](../research/results/sequence/seq_a1_exactness_sweep_results.json) (artifact) — sampled numpy arc; sequence verdict void under sampler audit
+- [research/results/sequence/seq_a1_exactness_sweep_results.json](../research/results/sequence/seq_a1_exactness_sweep_results.json) (artifact) â€” sampled numpy arc; sequence verdict void under sampler audit
 - [research/results/sequence/seq_a1_exactness_sweep_results_materialized.json](../research/results/sequence/seq_a1_exactness_sweep_results_materialized.json) (artifact)
-- [research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json](../research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json) (artifact) — shared-runner replay with source archive and per-seed vectors per density
+- [research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json](../research/results/runs/sequence.a1-exactness-sweep/sens-exactness-sweep-v3-20260912/results.json) (artifact) â€” shared-runner replay with source archive and per-seed vectors per density
 - [research/experiments/seq_a1_exactness_sweep.py](../research/experiments/seq_a1_exactness_sweep.py) (producer)
 
 **Provenance gap.** the two legacy result files have no runner/source record; the 2026-09-12 replay has both
@@ -159,10 +159,10 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence files.**
 - [research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json](../research/results/sequence/seq_a1_horizon_results_hashed_int8_timing.json) (artifact)
 - [research/results/sequence/seq_a1_horizon_materialized_check.json](../research/results/sequence/seq_a1_horizon_materialized_check.json) (artifact)
-- [research/results/sequence/seq_s5_soft_census_results.json](../research/results/sequence/seq_s5_soft_census_results.json) (artifact) — sampled numpy arc
+- [research/results/sequence/seq_s5_soft_census_results.json](../research/results/sequence/seq_s5_soft_census_results.json) (artifact) â€” sampled numpy arc
 - [research/results/sequence/seq_s5_soft_census_results_hashed.json](../research/results/sequence/seq_s5_soft_census_results_hashed.json) (artifact)
 - [research/notes/sequence/PREREG_s5_cliff_anatomy.md](../research/notes/sequence/PREREG_s5_cliff_anatomy.md) (registration)
-- [research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json](../research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json) (artifact) — paired learning-disabled null for the A1 exact-recovery subclaim; hashed organ, seeds 1-20
+- [research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json](../research/results/runs/sequence.a1-learning-null/a1-learning-null-20260910/results.json) (artifact) â€” paired learning-disabled null for the A1 exact-recovery subclaim; hashed organ, seeds 1-20
 
 **Provenance gap.** some legacy subclaims have no source archive or raw runner artifact
 
@@ -280,9 +280,9 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - arc assembly stability across training: 0.286 from presentation 5 to 15 under-loaded, 0.957 from 10 to 15 loaded
 
 **Evidence files.**
-- [research/results/sequence/seq_a2_refraction_load_results.json](../research/results/sequence/seq_a2_refraction_load_results.json) (artifact) — sampled arc; lower-edge inference retracted
+- [research/results/sequence/seq_a2_refraction_load_results.json](../research/results/sequence/seq_a2_refraction_load_results.json) (artifact) â€” sampled arc; lower-edge inference retracted
 - [research/results/sequence/seq_a2_refraction_load_results_materialized.json](../research/results/sequence/seq_a2_refraction_load_results_materialized.json) (artifact)
-- [research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json](../research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json) (artifact) — shared-runner replay with source archive and per-seed outcomes
+- [research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json](../research/results/runs/sequence.a2-refraction-load/sens-refraction-load-v3-20260912/results.json) (artifact) â€” shared-runner replay with source archive and per-seed outcomes
 - [research/experiments/seq_a2_refraction_load.py](../research/experiments/seq_a2_refraction_load.py) (producer)
 
 **Provenance gap.** the two legacy artifacts lack runner records and source archives; the 2026-09-12 replay has both
@@ -319,12 +319,12 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence files.**
 - [research/notes/memory/PREREG_refraction_memory.md](../research/notes/memory/PREREG_refraction_memory.md) (registration)
-- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) — registered protocol-consumption replay, not the whole historical grid
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) â€” registered protocol-consumption replay, not the whole historical grid
 - [research/results/memory/refraction_memory_numpy_results.json](../research/results/memory/refraction_memory_numpy_results.json) (artifact)
 - [research/results/memory/capacity_scaling_results_figure_ref.json](../research/results/memory/capacity_scaling_results_figure_ref.json) (artifact)
 - [research/results/memory/capacity_scaling_results_figure_ctl.json](../research/results/memory/capacity_scaling_results_figure_ctl.json) (artifact)
-- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) — paired version-3 reproduction and sensitivity run
-- [research/results/comparisons/refraction-paired-sensitivity-20260911.json](../research/results/comparisons/refraction-paired-sensitivity-20260911.json) (comparison) — 2090-scalar migration comparison receipt
+- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) â€” paired version-3 reproduction and sensitivity run
+- [research/results/comparisons/refraction-paired-sensitivity-20260911.json](../research/results/comparisons/refraction-paired-sensitivity-20260911.json) (comparison) â€” 2090-scalar migration comparison receipt
 
 **Provenance gap.** most capacity-grid artifacts predate immutable source/environment records
 
@@ -382,7 +382,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence files.**
 - [research/notes/categories/capacity_is_not_the_constraint_separation_is.md](../research/notes/categories/capacity_is_not_the_constraint_separation_is.md) (analysis)
 - [research/notes/substrate/graded_similarity_and_sampler_load.md](../research/notes/substrate/graded_similarity_and_sampler_load.md) (analysis)
-- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) — Hebbian control arm only; brackets the extensive ceiling at one (n, k) cell
+- [research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/refraction-paired-sensitivity-20260911/results.json) (artifact) â€” Hebbian control arm only; brackets the extensive ceiling at one (n, k) cell
 
 **Provenance gap.** capacity-note run has no identifiable immutable artifact
 
@@ -444,9 +444,9 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_a1_local_regime.py: ambient p=0.05 with organ fibers at p=0.4 gives 10/10 correct trajectories, matching the uniform p=0.4 result, while the same organ left at the ambient density gives 0/10
 
 **Evidence files.**
-- [research/results/sequence/seq_a1_local_regime_results.json](../research/results/sequence/seq_a1_local_regime_results.json) (artifact) — sampled arc; sequence verdict void
+- [research/results/sequence/seq_a1_local_regime_results.json](../research/results/sequence/seq_a1_local_regime_results.json) (artifact) â€” sampled arc; sequence verdict void
 - [research/results/sequence/seq_a1_local_regime_results_materialized.json](../research/results/sequence/seq_a1_local_regime_results_materialized.json) (artifact)
-- [research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json](../research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json) (artifact) — shared-runner replay with source archive; the ambient-only arm is the disabled-organ null
+- [research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json](../research/results/runs/sequence.a1-local-regime/sens-local-regime-v3-20260912/results.json) (artifact) â€” shared-runner replay with source archive; the ambient-only arm is the disabled-organ null
 - [research/experiments/seq_a1_local_regime.py](../research/experiments/seq_a1_local_regime.py) (producer)
 
 **Provenance gap.** the two legacy artifacts lack runner records and source archives; the 2026-09-12 replay has both
@@ -594,8 +594,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - research/experiments/seq_capacity_scaling.py
 
 **Evidence files.**
-- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) — maintained-run replay at (4000,60), not the registered cliff cell
-- [research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json) (artifact) — fresh exact-path reproduction and retained sensitivity vectors
+- [research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json](../research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json) (artifact) â€” maintained-run replay at (4000,60), not the registered cliff cell
+- [research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json](../research/results/runs/memory.capacity-scaling/capacity-cliff-sensitivity-20260911/results.json) (artifact) â€” fresh exact-path reproduction and retained sensitivity vectors
 - [research/experiments/seq_capacity_scaling.py](../research/experiments/seq_capacity_scaling.py) (producer)
 
 **Mechanism sensitivity.**
