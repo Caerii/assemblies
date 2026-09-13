@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/stability/test_assembly_distinctiveness.py`
 **Results file**: `assembly_distinctiveness_20260206_160448.json`
+**Earlier runs of this script**: `assembly_distinctiveness_20251128_232403_quick.json`, `assembly_distinctiveness_20260206_124740.json`, `assembly_distinctiveness_20260206_131609.json`, `assembly_distinctiveness_20260206_132152.json`, `assembly_distinctiveness_20260206_135322.json`.
 **Date**: 2026-02-06
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 

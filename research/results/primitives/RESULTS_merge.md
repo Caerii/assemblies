@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/primitives/test_merge.py`
 **Results file**: `merge_composition_20260206_150412.json`
+**Other runs of this script** (experiment name `merge_composition`): earlier the same day `merge_composition_20260206_145449_full.json`, `merge_composition_20260206_150119.json`; quick runs of 2025-11-28 `merge_composition_20251128_230503_quick.json`, `merge_composition_20251128_230521_quick.json`, `merge_composition_20251128_230715_quick.json`, `merge_composition_20251128_230731_quick.json`, `merge_composition_20251128_231227_quick.json`; a later full run `merge_composition_20260207_162041_full.json`.
 **Date**: 2026-02-06
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 

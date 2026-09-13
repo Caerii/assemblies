@@ -193,7 +193,9 @@ gated on replayed winners. Fixed in 1b475fc; GATE-1 could not have caught
 it (it replays winners). A stimulus-model difference found first
 (Binomial counts vs the engine's zero-or-size draw) was NOT the cause but
 is now the organ's default, as the engine's model. The Binomial-stimuli
-run's file is kept (`..._hashed_binomial_stimuli.json`): with the selector
+run's file is kept
+(`research/results/sequence/seq_a3_transducer_results_hashed_binomial_stimuli.json`;
+selector defect, kept): with the selector
 defect it also read a state-blind delta of exactly zero.
 
 **Instrument.** 20 seeds x (null + 3 cells + H4 + blind) = 120 organ
@@ -254,6 +256,9 @@ a state that is distinct and carries nothing the current word does not --
 is NOT the arc's pinned margin. It is structural, the branch the amendment
 named: [[SEQ-STATE-CODE-EMERGENT]] stays unproven, and the induced state
 is a bigram model's state by construction.
+
+Artifacts of this amendment:
+`research/results/sequence/seq_a3_transducer_results_hashed_s0.05.json` (s = 0.05).
 
 ## Amendment 3 (2026-09-09): the corpus's ORACLE-STATE ceiling -- a computation, not a run
 

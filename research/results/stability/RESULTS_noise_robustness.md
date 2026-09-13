@@ -3,6 +3,7 @@
 Script: `research/experiments/stability/test_noise_robustness.py`
 
 Result artifact: `noise_robustness_20260206_155522.json`
+Earlier runs of this script: `noise_robustness_20251128_231117_quick.json`, `noise_robustness_20251128_231235_quick.json`, `noise_robustness_20260206_154726_quick.json`, `noise_robustness_20260206_155043_quick.json`. `noise_robustness_v2_20251128_232255_quick.json` records the experiment name `noise_robustness_v2`, which no tracked script carries.
 
 Date: 2026-02-06
 

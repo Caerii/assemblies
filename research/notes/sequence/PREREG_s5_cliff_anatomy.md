@@ -382,6 +382,10 @@ second-best outsider is far rarer) and the n_state dependence. It
 predicts the rate is set by the GAIN (1 + beta)^presentations, which
 Addendum 5 tests.
 
+Artifacts of this addendum: `research/results/sequence/seq_s5_soft_census_results_hashed_amend4_100.json`. The census files of
+Addenda 4-8 are read by their tag in `research/experiments/figures_notes.py`
+(`organ_soft_rate`, `organ_strength_pinned`), which draws the figure above.
+
 ## Addendum 5 (2026-09-09, before running): the tail-tie mechanism, tested through the gain
 
 If a soft pair is the tail tie above, the soft rate is a steep function
@@ -485,6 +489,9 @@ presentations sit at half of it. Below the clip the arc never relocates at
 s <= beta. Refraction alone does not set the edge; refraction AND the clip
 do, and the neurons that relocate are the arc's best-connected ones.
 
+Artifacts of this addendum's census arms: `research/results/sequence/seq_s5_soft_census_results_hashed_amend5_p8.json` (8 presentations),
+`research/results/sequence/seq_s5_soft_census_results_hashed_amend5_p15.json` (15), `research/results/sequence/seq_s5_soft_census_results_hashed_amend5_p30.json` (30).
+
 ## Addendum 6 (2026-09-09, before running): strength below beta
 
 Diagnostic 2 derived that at s = beta a member's net drive is pinned at
@@ -548,6 +555,11 @@ pins the point), or balancing the two conjuncts' exposure
 ([[ARC-CONJUNCT-EXPOSURE]]). Nothing is adopted; the register entry's
 caveat records the pinning.
 
+Artifacts of this addendum: `research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.0.json`,
+`research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.05.json`,
+`research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.08.json`,
+`research/results/sequence/seq_s5_soft_census_results_hashed_amend6_s0.1.json`.
+
 ## Addendum 7 (2026-09-09, before running): the collision's arithmetic, used constructively
 
 Two tests of the mechanism, one predicted to do nothing and one to work,
@@ -607,6 +619,10 @@ The registered 15 was inside the window but at the point where the two
 tails just touch; the S5 census's entire soft-pair phenomenon at width
 was that choice.
 
+Artifacts of this addendum: `research/results/sequence/seq_s5_soft_census_results_hashed_amend7_norm.json` (norm_init),
+`research/results/sequence/seq_s5_soft_census_results_hashed_amend7_p20.json` (20 presentations),
+`research/results/sequence/seq_s5_soft_census_results_hashed_amend7_p24.json` (24).
+
 ## Addendum 8 (2026-09-09, before running): generality, and the onset
 
     E1  GENERALITY.  Z60, A4xZ5, A5, Z120 at 20 presentations, 100 seeds:
@@ -629,6 +645,8 @@ was that choice.
     With S5 (Addendum 7) that is 500 organs and 84,000 pairs exact at
     20 presentations, against 33 soft pairs at 15 on the same organs.
 
+Artifacts of E1: `research/results/sequence/seq_s5_soft_census_results_hashed_amend8_p20_groups.json`.
+
 ### Addendum 8 -- E2 result (2026-09-09, S5, 28 presentations, 100 seeds)
 
     28 presentations (g 14.4)   0 soft, 0 hard / 24,000    0 words derailing    P-CONJ 0.001 / 0.000
@@ -642,6 +660,8 @@ was that choice.
         (c* = 29.7). The safe window is therefore 20 to 28 presentations at
         this organ, and the formula's base should be read at the members'
         upper tail, which it was not.
+
+Artifacts of E2: `research/results/sequence/seq_s5_soft_census_results_hashed_amend8_p28.json`.
 
 ## Scorecard
 

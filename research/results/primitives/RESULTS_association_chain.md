@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/primitives/test_association_chain.py`
 **Results file**: `association_chain_20260206_171818.json`
+**Earlier run of this script** (the same day): `association_chain_20260206_170239.json`.
 **Date**: 2026-02-06
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 

@@ -27,3 +27,14 @@ Runner schema 6 keeps compact conclusions in `results.json` and may store large 
 JSON as digest-bound `.json.gz` siblings. Read those through
 `research.evidence.load_json_attachment`, which validates the complete artifact
 before decoding. A sidecar is part of its result, not an optional cache.
+
+## Historical folders (2026-09-13)
+
+`primitives/`, `applications/`, `stability/`, `biological_validation/`,
+`information_theory/`, `dev_runs/`, `sweeps/` and the timestamped files at this
+folder's root are the February 2026 language and substrate lines. No
+registration or register entry cites them. They are kept as history and never
+deleted; dispositions per cluster are in
+`docs/reviews/whole-codebase/ORPHAN_RESULTS_DISPOSITIONS.md`. Under `sweeps/`,
+`_vis_smoke*.csv`, `explore_perf*.csv` and `explore_checkpoint.csv` are smoke or
+performance probes, not evidence.

@@ -165,3 +165,8 @@ Stated before the data:
   our null is not the reference's null and must be labelled as such.
 
 Evidence artifact: `research/results/logs/seq_a1_fsm_parity.log`.
+Result files, kept and marked: `research/experiments/seq_a1_fsm_parity_results.json`
+and `research/experiments/seq_a1_fsm_parity_p040_results.json` (p = 0.4; its log
+`research/results/logs/seq_a1_fsm_parity_p040.log`) -- sampled-engine sequence
+numbers (`numpy_sparse`, no materialization), superseded by the hashed horizon
+run (runner protocol `sequence.a1-horizon`, `research/results/runs/sequence.a1-horizon/`).

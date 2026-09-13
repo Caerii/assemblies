@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/primitives/test_association.py`
 **Results file**: `association_20260206_144409.json`
+**Other runs of this script** (earlier the same day): `association_20260206_130337.json`, `association_20260206_135711.json`, `association_20260206_142212.json`, `association_20260206_142833.json`. The `association_binding` files carry an earlier producer name for the same primitive (docs/reviews/whole-codebase/STATIC_DEBT_DISPOSITIONS.md): `association_binding_20251128_230322_quick.json`, `association_binding_20251128_230356_quick.json`, `association_binding_20251128_230403_quick.json`, `association_binding_20251128_230714_quick.json`, `association_binding_20251128_230730_quick.json`, `association_binding_20251128_231225_quick.json`, `association_binding_20260207_161937_full.json`.
 **Date**: 2026-02-06 (co-stimulation protocol)
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 

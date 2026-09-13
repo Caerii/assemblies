@@ -3,8 +3,9 @@
 Generated from `research/experiments/recruitment/`:
 `recruitment_mechanisms.py` (sweep), `analyze.py` (aggregation),
 `diagnose_synaptic_scaling.py` and `smoke.py` (mechanism engagement checks).
-Raw data: `results_recruitment_shard*.json` (32 cells x 5 seeds, sharded only
-to get a larger scheduler share on a contended host) and
+Raw data: `results_recruitment_shard0of8.json`, `results_recruitment_shard1of8.json`, `results_recruitment_shard2of8.json`, `results_recruitment_shard3of8.json`, `results_recruitment_shard4of8.json`, `results_recruitment_shard5of8.json`, `results_recruitment_shard6of8.json`, `results_recruitment_shard7of8.json`
+(32 cells x 5 seeds, sharded only to get a larger scheduler share on a
+contended host) and
 `results_beta_pass.json` (12 cells x 5 seeds). Regenerate this file with
 `python -m research.experiments.recruitment.analyze`; the prose lives in
 `PROSE.md` and every table below is recomputed from the JSON on each run.

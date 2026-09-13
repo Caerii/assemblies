@@ -257,6 +257,8 @@ every REF ceiling and 0.36-0.95 at the control's: the control dies of
 merging before the area is full, the refracted memory fills the area and
 goes on to a ceiling ~25x higher, distinct 1.000 throughout.
 
+Artifacts of this amendment: [capacity_scaling_results_ksweep_ctl.json](../../results/memory/capacity_scaling_results_ksweep_ctl.json) (the k sweep, cells at n = 2000, 4000, 8000).
+
 ### Amendment 3 -- Result (2026-09-05, numpy_sparse, materialized, 5 brains, M grid to 512)
 
     numpy REF (0.5 beta, masked)   rank-1 1.000 at EVERY M to 512 on all 5 brains;
@@ -414,6 +416,8 @@ R7 restated by this: the n/k = 133 pair, both now resolved, disagree by
 0.68 -- R7 holds only within the regime; recorded against the Amendment 2
 result, which counted the censored pair as consistent.
 
+Artifacts of this amendment: [capacity_scaling_results_amend4_ref133.json](../../results/memory/capacity_scaling_results_amend4_ref133.json).
+
 ### Amendment 5, addendum (2026-09-07, before running): G5, the out-of-regime cell under the gate
 
 If the (4000, 30) cell is convergence-limited from below, then rounds
@@ -482,6 +486,8 @@ starves it. So "fewer rounds per item raise the ceiling" is replaced by:
 end an item's rounds at convergence under a ceiling T_max the memory
 still forms under (8 for the refracted memory; the control has no such
 gate).
+
+Artifacts of this amendment: [capacity_scaling_results_amend5_ref_gated.json](../../results/memory/capacity_scaling_results_amend5_ref_gated.json) (REF gated), [capacity_scaling_results_amend5_ref_gated_refine.json](../../results/memory/capacity_scaling_results_amend5_ref_gated_refine.json) (its bracket refinement), [capacity_scaling_results_amend5_ctl_gated.json](../../results/memory/capacity_scaling_results_amend5_ctl_gated.json) (CTL gated, G4), [capacity_scaling_results_amend5_g5.json](../../results/memory/capacity_scaling_results_amend5_g5.json) (G5).
 
 ## Adopted (2026-09-07), Amendments 4 and 5
 
@@ -563,6 +569,8 @@ stands as the protocol's value, now as the middle of a measured plateau
 rather than a chosen point. The gate is NOT re-run at another strength
 (there is no other strength).
 
+Artifacts of this result: [capacity_scaling_results_amend6_s0.3.json](../../results/memory/capacity_scaling_results_amend6_s0.3.json), [capacity_scaling_results_amend6_s0.4.json](../../results/memory/capacity_scaling_results_amend6_s0.4.json), [capacity_scaling_results_amend6_s0.6.json](../../results/memory/capacity_scaling_results_amend6_s0.6.json) (the 0.5 beta row is R1's cell).
+
 ### Amendment 6 -- Gate result (2026-09-09, (8000, 60), 20 brains, arm B, T_max = 8, grid to 16384, 305 s)
 
     arm                  M*      bracket             ratio    rounds/item (min)   conv < 8: peak -> at M*
@@ -577,6 +585,8 @@ rather than a chosen point. The gate is NOT re-run at another strength
     settling -- as at n/k = 67. Stated in the entry as the mechanism.
     Gated ceilings over (n/k)^2: 0.59 at 67, 0.49 at 133 (doubling
     exponent 1.71); the ungated 0.44, 0.40 (1.82).
+
+Artifacts of this result: [capacity_scaling_results_amend6_g6_gated133.json](../../results/memory/capacity_scaling_results_amend6_g6_gated133.json).
 
 ## Adopted (2026-09-09), Amendment 6
 
@@ -609,6 +619,8 @@ Two windows, two physics: the memory's is synaptic (potentiation per item
 against the store's crosstalk, which the convergence gate trims); the
 organ's is intrinsic (bias against the clip). The "one mechanism, two
 faces" reading offered in conversation is withdrawn in favour of this.
+
+Artifacts of this post hoc run: [capacity_scaling_results_ctl_T16.json](../../results/memory/capacity_scaling_results_ctl_T16.json).
 
 ## Scorecard
 

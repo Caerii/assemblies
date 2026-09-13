@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/stability/test_phase_diagram.py`
 **Results file**: `phase_diagram_20260206_160402.json`
+**Earlier runs of this script**: `phase_diagram_20251128_230642_quick.json`, `phase_diagram_20251128_231227_quick.json`, `phase_diagram_20260206_123808.json`.
 **Date**: 2026-02-06
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 

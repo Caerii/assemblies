@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/primitives/test_projection.py`
 **Date**: 2026-02-06 (post-bugfix run)
+**Runs of this script on 2026-02-06**, in order: `projection_20260206_130128.json`, `projection_20260206_135502.json`, `projection_20260206_144109.json`. The `projection_convergence` quick files of 2025-11-28 carry an earlier producer name for the same primitive (docs/reviews/whole-codebase/STATIC_DEBT_DISPOSITIONS.md): `projection_convergence_20251128_230228_quick.json`, `projection_convergence_20251128_230713_quick.json`, `projection_convergence_20251128_230728_quick.json`, `projection_convergence_20251128_231224_quick.json`.
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 
 ## Bug Fixes Applied Before This Run

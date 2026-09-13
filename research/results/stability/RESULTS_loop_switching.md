@@ -3,6 +3,7 @@
 Script: `research/experiments/stability/test_loop_switching.py`
 
 Result artifact: `loop_switching_20260206_191220.json`
+Other runs of this script: an earlier run the same day `loop_switching_20260206_174736.json`; later quick repeat runs `loop_switching_20260210_194639_quick.json`, `loop_switching_20260210_194930_quick.json`.
 
 Date: 2026-02-06
 

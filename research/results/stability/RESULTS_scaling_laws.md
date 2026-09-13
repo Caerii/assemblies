@@ -2,6 +2,7 @@
 
 **Script**: `research/experiments/stability/test_scaling_laws.py`
 **Results file**: `scaling_laws_20260206_155822.json`
+**Earlier runs of this script**: `scaling_laws_20251128_231109_quick.json`, `scaling_laws_20251128_231235_quick.json`.
 **Date**: 2026-02-06
 **Brain implementation**: `src.core.brain.Brain` (with w_max saturation, corrected winner remapping and stimulus plasticity)
 

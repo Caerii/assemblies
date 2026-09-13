@@ -59,6 +59,13 @@ torch_sparse reproduces numpy_sparse exactly — global energy d=-24.3,
 p=0.0006; settling d=-9.9, p=0.003.
 
 References: `research/results/applications/n400_pre_kwta_20260211_131944.json`
+Other runs of the same script, kept as history:
+`research/results/applications/n400_pre_kwta_20260211_124000.json`,
+`research/results/applications/n400_pre_kwta_20260211_124300.json`,
+`research/results/applications/n400_pre_kwta_20260211_124720.json` (earlier the same
+day; no engine field recorded) and
+`research/results/applications/n400_pre_kwta_20260212_113859.json` (the next day,
+engine numpy_sparse).
 
 ### Control Conditions (test_n400_controls.py)
 

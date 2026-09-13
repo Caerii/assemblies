@@ -120,6 +120,10 @@ One protocol difference from the numpy path is a nuisance, not a treatment:
 the five seeds are five brains trained on ONE corpus (seeded 42) rather than
 five corpora, because batched brains share a presentation sequence.
 
+Artifacts of this amendment: the stopped numpy sweep's file
+[`word_capacity_results.json`](../../results/aligner/word_capacity_results.json) (partial curves; Amendment 1); the hashed run's
+file and log are listed under the Result below.
+
 ---
 
 ## Result (2026-09-03, hashed learner, dense fiber, ~7 minutes for all five cells)
@@ -153,6 +157,11 @@ registered question -- does the LEX-side ceiling follow the anchor law --
 needs FEAT scaled with the cells (or held large enough not to bind), which
 is Amendment 3 to register before running. On the dense fiber the whole
 sweep took seven minutes, so that is an afternoon, not a week.
+
+Artifacts of this result: [`word_capacity_results_hashed.json`](../../results/aligner/word_capacity_results_hashed.json) (the hashed
+run reported above), its log [`word_capacity_hashed.log`](../../results/logs/word_capacity_hashed.log), and
+[`word_capacity_results_scheduled.json`](../../results/aligner/word_capacity_results_scheduled.json) (the same five cells and five
+seeds on the scheduled aligner, V grid to 512).
 
 ---
 
