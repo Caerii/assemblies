@@ -861,3 +861,87 @@ runs, crowding the STATES moved the ARC overlap -- MC-4 failed on exactly that
 If the arc is the bottleneck, state crowding would be costly precisely when the
 arc has no room, which is what these three amendments look like from outside.
 That is a prediction and it has not been run.
+
+## Diagnostic (2026-09-13): the backward jump is an ARC that degrades in the last few steps
+
+Not a registered study: eight brains, seeds 82..89, at `n_arc = 4000, L = 512`,
+recording the decode margin at every step and then comparing the arc actually
+driven at the break against every trained arc. No bars, no artifact. It informs
+a registration.
+
+**The decode margin does not decay. It falls off a cliff.** Top block count
+minus runner-up, of `k = 100`:
+
+    step      0    64   128   256   384   448   496   508   510   511
+    seed 82 100    97    98    95    98    93    94    29     4     3
+    seed 85  98   100    98    96    95   100    92     1     1     3
+    seed 88  97    97   100    95    93    96    92    20     0     0
+
+Every brain holds a margin averaging 96.2 to 96.4 out of 100 for the whole
+chain, with a pre-break minimum of 17 to 47, and then collapses to 0-7 in the
+final three or four steps. **This rules out margin decay** as the mechanism:
+there is no downward trend to find. Whatever happens, happens at the end.
+
+**And the arc being driven at the break is the RIGHT arc, degraded.** For every
+broken brain, the arc driven at the failing step best matches -- over all 511
+trained arcs -- the arc out of the state the chain was correctly at. But it
+matches it at only 0.42 to 0.51, where a healthy arc would be near 1. The
+landing state's own source arc matches much less (0.18 to 0.40), so the chain is
+not being pulled onto a competing arc:
+
+    seed   broke at   wanted   landed   best match   overlap   landing source
+      82        509     q510     q335    q509 (right)    0.430           0.400
+      83        511     q512       q6    q511 (right)    0.500           0.180
+      87        508     q509       q2    q508 (right)    0.420           0.230
+
+So the readout is reporting honestly. The arc has degraded to about half its
+trained assembly, the state drive that follows is ambiguous, and the decode
+flips to whichever block the noise favours -- which is why the landing state
+looks arbitrary (q2, q6, q42, q139, q335) rather than systematic.
+
+**This eliminates two of the three candidates** and leaves the question one
+step further back: why is the arc weak specifically at the END of the chain?
+
+**A mechanism worth testing, from the training loop.** `train` sweeps the table
+in order, `q0 -> q1` through `q511 -> q512`, repeated `presentations` times, and
+the arc is REFRACTED: bias accumulates on every winner and never decays. So
+within each sweep, by the time the last transitions are presented, nearly every
+arc neuron already carries fresh bias from that same sweep, and the late arcs
+are recruited from whatever is least suppressed. The end of the chain would then
+be weak BECAUSE it is trained last, not because it is far along.
+
+That predicts something sharp and cheap: **shuffle the presentation order within
+each sweep and the cliff should move off the end of the chain.** Not yet run.
+
+## Amendment 6 (2026-09-13, registered before running): is the ARC what makes a cell marginal?
+
+Amendment 5 showed margin decides whether state crowding costs anything, but
+"margin" is a label rather than a mechanism, and the two cells it compared
+differed in chain length AND arc size together.
+
+**This holds the chain and the state crowding fixed at the combination that
+collapsed** -- `L = 256`, random code in a 4000-neuron state area, load 6.42,
+measured at 0.430 of L -- **and gives the arc more neurons**: `n_arc` of 2000,
+3000, 4000 and 6000. A disjoint-block control runs at `n_arc` 2000 and 4000 in
+a roomy 32000 state area. Every cell is checked against the device ceiling
+first: the largest here is 128 M cell-products against the 205 M that has run
+and the 384 M that refused.
+
+All bars read mean correct as a fraction of chain length.
+
+- **AB-1, the killing cell reproduces**, below 0.60 of L at the smallest arc.
+  Measured 0.430 in Amendment 4; if it does not reproduce the rest is moot.
+- **AB-2, DECISIVE.** At `n_arc = 6000` the same crowded code is above 0.90 of
+  L. Enlarging only the arc rescues a chain that state crowding destroyed.
+- **AB-3, the rescue is monotone in arc size.**
+- **AB-4, the blocks control is above 0.95 of L at BOTH arc sizes**, so the
+  rescue is specific to the crowded code rather than the arc helping everything.
+- **AB-5, arc overlap falls as the arc gets room.**
+
+**AB-2 passes:** the ARC is the bottleneck, and one variable explains all four
+amendments -- state crowding is costly exactly when the arc has no room. That
+would make the papers' 20-to-40 limit an arc-capacity limit, and it would say
+the state area is not where the sequence limit lives at all.
+
+**AB-2 fails:** the arc is not sufficient, "margin" is something else, and the
+next variable to isolate is chain length at fixed arc size.

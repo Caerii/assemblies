@@ -92,24 +92,22 @@ STATE_L, STATE_ARC = 160, 3000
 STATE_AREAS = (64000, 32000, 16000, 8000, 4000)
 
 
-def state_arms():
-    """name -> (n_state, code) where code is 'blocks' or 'random'.
+def code_arms(length, n_arc, areas, *, prefix=""):
+    """Arms that carry their OWN state code.
 
-    Covers every area any amendment sweeps, since the arm name is what the
-    experiment looks the code up by.
+    Spec shape (length, presentations, strength ratio, density, n_arc,
+    n_state, kind) -- a superset of every other arm's five. Carrying the code
+    in the spec rather than looking it up by arm NAME removes a whole class of
+    defect: the load sweep drops an area the name lookup still expected, and
+    that would have raised KeyError at the readout after minutes of training.
     """
-    out = {f"blocks-n{STATE_AREAS[0]}": (STATE_AREAS[0], "blocks")}
-    out.update({f"random-n{n}": (n, "random")
-                for n in sorted(set(STATE_AREAS) | {4000, 2500, 2000, 1600, 1200},
-                                reverse=True)})
+    head = (length, PRESENTATIONS, 1.0, LIMIT_P, n_arc)
+    out = {f"{prefix}blocks-n{areas[0]}": head + (areas[0], "blocks")}
+    out.update({f"{prefix}random-n{n}": head + (n, "random") for n in areas})
     return out
 
 
-STATE_SPECS = state_arms()
-#: the same spec shape every other arm uses: (length, presentations, strength
-#: ratio, density, n_arc). Only the state code and its area vary across these.
-STATE_ARM_SPECS = {name: (STATE_L, PRESENTATIONS, 1.0, LIMIT_P, STATE_ARC)
-                   for name in STATE_SPECS}
+STATE_ARM_SPECS = code_arms(STATE_L, STATE_ARC, STATE_AREAS)
 #: the code is disjoint exactly when the area holds (L + 1) k neurons
 STATE_ROOMY = tuple(n for n in STATE_AREAS if n >= (STATE_L + 1) * K)
 STATE_CROWDED = tuple(n for n in STATE_AREAS if n < (STATE_L + 1) * K)
@@ -121,8 +119,7 @@ STATE_CROWDED = tuple(n for n in STATE_AREAS if n < (STATE_L + 1) * K)
 #: 14 of 20 exact on two independent seed blocks -- high enough that a cost
 #: would show as a drop, low enough that it is not at ceiling.
 MARGIN_L, MARGIN_ARC = 256, 2000
-MARGIN_ARM_SPECS = {name: (MARGIN_L, PRESENTATIONS, 1.0, LIMIT_P, MARGIN_ARC)
-                    for name in STATE_SPECS}
+MARGIN_ARM_SPECS = code_arms(MARGIN_L, MARGIN_ARC, STATE_AREAS)
 MARGIN_ROOMY = tuple(n for n in STATE_AREAS if n >= (MARGIN_L + 1) * K)
 MARGIN_CROWDED = tuple(n for n in STATE_AREAS if n < (MARGIN_L + 1) * K)
 
@@ -132,12 +129,38 @@ MARGIN_CROWDED = tuple(n for n in STATE_AREAS if n < (MARGIN_L + 1) * K)
 #: past the load the marginal cell died at. n_state 2500 gives load 6.44, which
 #: matches the marginal cell's tightest arm; the rest go further.
 LOAD_AREAS = (4000, 2500, 2000, 1600, 1200)
-LOAD_ARM_SPECS = {f"blocks-n{STATE_AREAS[0]}": (STATE_L, PRESENTATIONS, 1.0,
-                                                LIMIT_P, STATE_ARC)}
-LOAD_ARM_SPECS.update({f"random-n{n}": (STATE_L, PRESENTATIONS, 1.0, LIMIT_P,
-                                        STATE_ARC) for n in LOAD_AREAS})
+LOAD_ARM_SPECS = code_arms(STATE_L, STATE_ARC, LOAD_AREAS)
+# the roomy reference the sweep is measured against
+LOAD_ARM_SPECS[f"blocks-n{STATE_AREAS[0]}"] = (
+    STATE_L, PRESENTATIONS, 1.0, LIMIT_P, STATE_ARC, STATE_AREAS[0], "blocks")
+LOAD_ARM_SPECS.pop(f"blocks-n{LOAD_AREAS[0]}", None)
 #: the arm whose load matches Amendment 4's tightest cell, within 0.02
 LOAD_MATCHED = "random-n2500"
+
+#: Amendment 6. Amendment 5 says MARGIN decides whether state crowding costs
+#: anything, but "margin" is a label, not a mechanism: the two cells differed in
+#: chain length AND arc size together. The named hypothesis is that the ARC is
+#: the bottleneck, so crowding the states bites exactly when the arc has no
+#: room. This holds the chain and the state crowding FIXED at the combination
+#: that collapsed to 0.43 of L, and gives the arc more neurons.
+ARCB_L, ARCB_STATE = MARGIN_L, 4000      # the killing cell: L=256, load 6.42
+ARCB_ARCS = (2000, 3000, 4000, 6000)
+ARCB_BLOCKS_STATE = 32000                # roomy for 257 states (needs 25700)
+ARCB_BLOCKS_ARCS = (2000, 4000)          # 6000 x 32000 nears the device ceiling
+
+
+def arc_bottleneck_arms():
+    """The crowded code at four arc sizes, plus a blocks control at two."""
+    head = (ARCB_L, PRESENTATIONS, 1.0, LIMIT_P)
+    out = {f"random-n{ARCB_STATE}-arc{a}": head + (a, ARCB_STATE, "random")
+           for a in ARCB_ARCS}
+    out.update({f"blocks-n{ARCB_BLOCKS_STATE}-arc{a}":
+                head + (a, ARCB_BLOCKS_STATE, "blocks")
+                for a in ARCB_BLOCKS_ARCS})
+    return out
+
+
+ARCB_ARM_SPECS = arc_bottleneck_arms()
 #: what the marginal cell did at that load, as a fraction of its chain length
 MARGIN_COLLAPSE_FRACTION = 110.0 / 256
 
@@ -361,12 +384,14 @@ def experiment(record):
     limit_mode = bool(p.get("limit_mode"))
     margin_mode = bool(p.get("margin_mode"))
     load_mode = bool(p.get("load_mode"))
-    states_mode = bool(p.get("states_mode")) or margin_mode or load_mode
-    cell_L = MARGIN_L if margin_mode else STATE_L
-    specs = (LOAD_ARM_SPECS if load_mode
-             else (MARGIN_ARM_SPECS if margin_mode
-                   else (STATE_ARM_SPECS if states_mode
-                         else (LIMIT_SPECS if limit_mode else ARM_SPECS))))
+    arcb_mode = bool(p.get("arc_bottleneck_mode"))
+    states_mode = bool(p.get("states_mode")) or margin_mode or load_mode or arcb_mode
+    cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
+    specs = (ARCB_ARM_SPECS if arcb_mode
+             else (LOAD_ARM_SPECS if load_mode
+                   else (MARGIN_ARM_SPECS if margin_mode
+                         else (STATE_ARM_SPECS if states_mode
+                               else (LIMIT_SPECS if limit_mode else ARM_SPECS)))))
     for name in p["arms"]:
         spec = specs[name]
         length, presentations, ratio, density = spec[:4]
@@ -374,8 +399,8 @@ def experiment(record):
         if smoke:
             length = 8
         code = None
+        n_state_arm, kind = (spec[5], spec[6]) if len(spec) > 6 else (None, "blocks")
         if states_mode:
-            n_state_arm, kind = STATE_SPECS[name]
             # BOTH arms get an explicit code, including the disjoint one, so
             # both are read out by membership and the comparison is on one
             # instrument rather than two (SC-1)
@@ -383,7 +408,7 @@ def experiment(record):
         rows, actual_state, state_ov = run_arm(
             seeds, length, presentations, ratio, density,
             device=p["device"], n_arc=n_arc,
-            n_state=(STATE_SPECS[name][0] if states_mode
+            n_state=(n_state_arm if states_mode
                      else (N_STATE_FIXED if limit_mode else None)),
             code=code,
             organ_semantics=record["execution_semantics"]["profiles"][name])
@@ -402,7 +427,7 @@ def experiment(record):
             "n_state_requested": (N_STATE_FIXED if limit_mode else None),
             "n_state": actual_state, "chance_overlap": chance, "rows": rows,
             "state_overlap": state_ov,
-            "state_code_kind": (STATE_SPECS[name][1] if states_mode else "blocks"),
+            "state_code_kind": kind,
             "correct": _ens(correct, f"{name}:correct", seeds),
             "arc_overlap": _ens([r["arc_overlap"] for r in rows], f"{name}:arc", seeds),
             "exact_brains": sum(c == length for c in correct),
@@ -453,8 +478,8 @@ def experiment(record):
             # a 16-fold change that is nowhere near SC-4's 0.05 threshold. Load
             # is how many states share the average neuron, and it moves 0.25 to
             # 4.03 over the same arms.
-            "state_load_by_arm": {name: (cell_L + 1) * K / STATE_SPECS[name][0]
-                                  for name in arms},
+            "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
+                                  for n, a in arms.items()},
         }
         bars = {
             "SC-1 the decoder is not the treatment: 20/20 exact with disjoint blocks through the overlap decoder":
@@ -483,7 +508,31 @@ def experiment(record):
                 arc_gap < 0.05
                 and exact_of(tightest) < exact_of(roomiest),
         }
-        if load_mode:
+        if arcb_mode:
+            # Amendment 6. Graded measure throughout, as Amendment 5.
+            def frac(name):
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            crowded = [f"random-n{ARCB_STATE}-arc{a}" for a in ARCB_ARCS]
+            controls = [f"blocks-n{ARCB_BLOCKS_STATE}-arc{a}"
+                        for a in ARCB_BLOCKS_ARCS]
+            bars = {
+                "AB-1 the killing cell reproduces: the crowded code at the smallest arc is below 0.60 of L":
+                    frac(crowded[0]) < 0.60,
+                "AB-2 DECISIVE -- enlarging the ARC rescues it: the crowded code at the largest arc is above 0.90 of L":
+                    frac(crowded[-1]) > 0.90,
+                "AB-3 the rescue is monotone in arc size":
+                    all(frac(a) <= frac(b) for a, b in zip(crowded, crowded[1:])),
+                "AB-4 the blocks control is fine at BOTH arc sizes, so the rescue is specific to the crowded code":
+                    all(frac(c) > 0.95 for c in controls),
+                "AB-5 arc overlap falls as the arc gets room":
+                    all(arm(a)["arc_overlap"]["mean"] >= arm(b)["arc_overlap"]["mean"]
+                        for a, b in zip(crowded, crowded[1:])),
+            }
+            comparisons["mean_correct_fraction_by_arm"] = {
+                n: frac(n) for n in (crowded + controls)}
+            comparisons["arc_sizes"] = list(ARCB_ARCS)
+        elif load_mode:
             # Amendment 5. Every bar here reads MEAN CORRECT, not exact/20.
             # Amendment 4 is the reason: three of its five bars used exact/20,
             # which saturates at 0 the moment a random code is used at all, and
@@ -695,18 +744,22 @@ def main(argv=None):
                         help="run Amendment 4's collidable states at the MARGINAL cell")
     parser.add_argument("--load", action="store_true",
                         help="run Amendment 5: the ROOMY cell driven past the load that killed the marginal one")
+    parser.add_argument("--arc-bottleneck", action="store_true",
+                        help="run Amendment 6: is the ARC what makes a cell marginal?")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    if sum(map(bool, (args.limit, args.states, args.margin, args.load))) > 1:
-        parser.error("--limit, --states, --margin and --load are different "
-                     "amendments; run one")
-    specs = (LOAD_ARM_SPECS if args.load
-             else (MARGIN_ARM_SPECS if args.margin
-                   else (STATE_ARM_SPECS if args.states
-                         else (LIMIT_SPECS if args.limit else ARM_SPECS))))
+    modes = (args.limit, args.states, args.margin, args.load, args.arc_bottleneck)
+    if sum(map(bool, modes)) > 1:
+        parser.error("--limit, --states, --margin, --load and --arc-bottleneck "
+                     "are different amendments; run one")
+    specs = (ARCB_ARM_SPECS if args.arc_bottleneck
+             else (LOAD_ARM_SPECS if args.load
+                   else (MARGIN_ARM_SPECS if args.margin
+                         else (STATE_ARM_SPECS if args.states
+                               else (LIMIT_SPECS if args.limit else ARM_SPECS)))))
     names = list(SMOKE_ARMS if args.smoke else specs)
     parameters = {"n_arc": N_ARC, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "strength_ratio": 1.0, "max_potentiations": MAX_POTENTIATIONS,
@@ -716,9 +769,10 @@ def main(argv=None):
                   "states_mode": bool(args.states),
                   "margin_mode": bool(args.margin),
                   "load_mode": bool(args.load),
-                  "state_specs": ({k: list(v) for k, v in STATE_SPECS.items()}
-                                  if (args.states or args.margin or args.load)
-                                  else None),
+                  "arc_bottleneck_mode": bool(args.arc_bottleneck),
+                  # the arm specs already carry (n_state, kind); recording a
+                  # second copy keyed by name is what let the two drift apart
+                  "state_specs": None,
                   "n_state_fixed": (N_STATE_FIXED if args.limit else None),
                   "device": args.device}
     profiles = {name: profile_for(specs[name][2]) for name in names}

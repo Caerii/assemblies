@@ -173,30 +173,34 @@ def test_al1_fires_on_a_single_coincidence():
     assert first == 20 and total == 21, "one coincidence flips AL-1's premise"
 
 
-def test_every_amendment_arm_resolves_to_a_state_code():
-    """An arm whose code cannot be looked up is a KeyError at the END of a run.
+def test_every_state_mode_arm_carries_its_own_code():
+    """The spec carries (n_state, kind); nothing is looked up by arm NAME.
 
-    Each amendment sweeps a different set of state areas and the experiment
-    looks the code up by ARM NAME, so a spec added without its STATE_SPECS
-    entry would train for minutes on the device and then fail at the readout.
+    The name lookup this replaces was a KeyError waiting at the END of a run:
+    the load sweep drops an area the lookup still expected, so the failure
+    would have landed after minutes of training on the device rather than at
+    import. Carrying the code in the spec makes that unspellable.
     """
     from research.experiments.autonomous_chain import (LOAD_ARM_SPECS,
                                                        MARGIN_ARM_SPECS,
-                                                       STATE_ARM_SPECS,
-                                                       STATE_SPECS)
+                                                       STATE_ARM_SPECS)
     for specs in (STATE_ARM_SPECS, MARGIN_ARM_SPECS, LOAD_ARM_SPECS):
-        missing = [name for name in specs if name not in STATE_SPECS]
-        assert not missing, f"arms with no state code: {missing}"
+        for name, spec in specs.items():
+            assert len(spec) == 7, f"{name} carries no state code: {spec}"
+            n_state, kind = spec[5], spec[6]
+            assert isinstance(n_state, int) and n_state > 0, name
+            assert kind in ("blocks", "random"), name
+            assert name.startswith(kind), f"{name} disagrees with its kind {kind}"
 
 
 def test_the_load_sweep_brackets_the_load_that_killed_the_marginal_cell():
     """Amendment 5 is only decisive if it reaches the marginal cell's load."""
-    from research.experiments.autonomous_chain import (K, LOAD_AREAS,
-                                                       LOAD_MATCHED, STATE_L,
-                                                       STATE_SPECS)
+    from research.experiments.autonomous_chain import (K, LOAD_ARM_SPECS,
+                                                       LOAD_AREAS,
+                                                       LOAD_MATCHED, STATE_L)
     need = (STATE_L + 1) * K
     loads = [need / n for n in LOAD_AREAS]
     assert min(loads) < 6.42 < max(loads), "the sweep must bracket load 6.42"
-    matched = need / STATE_SPECS[LOAD_MATCHED][0]
+    matched = need / LOAD_ARM_SPECS[LOAD_MATCHED][5]
     assert abs(matched - 6.42) < 0.05, (
         f"{LOAD_MATCHED} is load {matched:.2f}, not the marginal cell's 6.42")
