@@ -90,7 +90,9 @@ def experiment(record):
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=('torch_sparse', 'numpy_sparse'), default_seeds=tuple(SEEDS))
+    parser = experiment_parser(__doc__ or "Context readout noise sweep",
+                               engines=('torch_sparse', 'numpy_sparse'),
+                               default_seeds=tuple(SEEDS))
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, tuple(SEEDS))
     print(run_experiment(script=Path(__file__), protocol='memory.context-noise', protocol_version='1',

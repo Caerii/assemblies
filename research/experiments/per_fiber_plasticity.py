@@ -197,7 +197,8 @@ def experiment(record: dict) -> ExperimentOutput:
 
 
 def main(argv=None):
-    parser = experiment_parser(__doc__, engines=("numpy_explicit",),
+    parser = experiment_parser(__doc__ or "Per-fiber plasticity study",
+                               engines=("numpy_explicit",),
                                default_seeds=tuple(SEEDS))
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, tuple(SEEDS))
