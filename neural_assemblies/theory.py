@@ -793,9 +793,18 @@ _RESULTS: List[Result] = [
               "set by the potentiation schedule and not by the connectome. "
               "The formula is a LAW, not a number that landed: swept across "
               "beta in {0.05, 0.10, 0.20} and w_max in {5, 20, 100} on twenty "
-              "brains per cell it holds in every cell to 4.1% and in four of "
-              "five to 1.6%, with the measured w_max ratio 2.354 against a "
-              "predicted 2.34. For small beta it is within half a percent of "
+              "brains per cell it holds in every cell to 4.1%, with the "
+              "measured w_max ratio 2.354 against a predicted 2.34. The "
+              "per-brain intervals are 0.1 rounds wide, tight enough to show "
+              "the plain form is an approximation: it falls OUTSIDE the "
+              "interval in four of five cells. DISCRETISING it, "
+              "ceil(ln(w_max)/ln(1+beta)) + (1-1/w_max)/beta -- a weight "
+              "needing 31.43 rounds of growth clips on round 32 -- cuts the "
+              "mean error from 4.05% to 0.78% on three further cells chosen "
+              "before the run and sharing no coordinate with the first five, "
+              "closer in 3 of 3. Neither form lands inside an interval: the "
+              "measurement is sharper than either approximation. For small "
+              "beta the period is within half a percent of "
               "(ln w_max + 1)/beta, so TENURE IS BOUGHT WITH BETA AND NOT "
               "WITH THE WEIGHT CEILING: a fourfold beta change moved the "
               "period by 3.6, a twentyfold w_max change by 2.4. The "
@@ -839,7 +848,18 @@ _RESULTS: List[Result] = [
               "anti-merging force of [[REFRACTION-ANTI-MERGING]]: ~25x the "
               "Hebbian ceiling, read with the bias masked.",
         source="This repository; PREREG_refraction_capacity.md.",
-        evidence=("period-law-20260913 (five cells, twenty brains each): "
+        evidence=("period-law-amendment2-20260913 (three cells unseen by the "
+                  "refinement, twenty brains each): measured 13.57, 20.83, "
+                  "30.23 at (w_max, beta) = (8, 0.25), (12, 0.18), (25, 0.15) "
+                  "against plain 12.82, 20.11, 29.43 and discretised 13.50, "
+                  "21.09, 30.40; mean relative error 4.05% plain against "
+                  "0.78% discretised; zero control relocations",
+                  "period-law-v2-20260913 (five cells, twenty brains each, "
+                  "per-brain spacing with intervals): 22.05 [22.02, 22.08], "
+                  "41.60 [41.54, 41.66], 80.05 [78.66, 81.43], 25.06 "
+                  "[25.01, 25.10], 58.98 [58.93, 59.03]",
+                  "period-law-20260913 (the same five cells, pooled spacing "
+                  "superseded by the per-brain statistic): "
                   "measured mean spacing 22.05, 41.60, 79.92 at beta 0.20, "
                   "0.10, 0.05 (w_max 20) and 25.06, 41.60, 58.98 at w_max 5, "
                   "20, 100 (beta 0.10), against predictions 21.18, 40.93, "
@@ -879,6 +899,8 @@ _RESULTS: List[Result] = [
             EvidenceRef("research/results/runs/memory.refraction-convergence/refraction-convergence-v2-20260913/results.json", "artifact"),
             EvidenceRef("research/results/runs/memory.refraction-convergence/refraction-convergence-fresh-20260913/results.json", "artifact"),
             EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-20260913/results.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-v2-20260913/results.json", "artifact"),
+            EvidenceRef("research/results/runs/memory.refraction-period-law/period-law-amendment2-20260913/results.json", "artifact"),
             EvidenceRef("research/notes/memory/PREREG_refraction_period_law.md", "registration"),
             EvidenceRef("research/experiments/refraction_period_law.py", "producer"),
             EvidenceRef("research/notes/memory/PREREG_refraction_convergence.md", "registration"),
@@ -898,8 +920,9 @@ _RESULTS: List[Result] = [
         caveat="The critical ratio is bracketed in (0.5, 0.7) at one operating "
                "point on forty brains (the earlier (0.7, 0.8) came from the "
                "16-brain diagnostic); a transient-handicap estimate gives "
-               "~2/3. The period law now holds across a surface (five cells, "
-               "beta 0.05-0.20, w_max 5-100), but at ONE area size, ONE "
+               "~2/3. The period law now holds across EIGHT cells (beta "
+               "0.05-0.25, w_max 5-100) in its discretised form, but at ONE "
+               "area size, ONE "
                "density and ONE refraction strength: the formula carries no "
                "strength term and strength was not varied, so the period's "
                "independence of s is suggested by the algebra and NOT "

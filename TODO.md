@@ -200,7 +200,13 @@ source-linked contract, negative control, and relevant gate are all present.
     (beta 0.05 to 0.20, w_max 5 to 100, twenty brains each) to 4.1% in the
     worst cell and 1.6% in four of five, with the measured w_max ratio 2.354
     against a predicted 2.34 (`PREREG_refraction_period_law.md`, PL-1 to PL-5
-    all pass). The unrefracted control relocates ZERO times in every cell
+    all pass). Amendment 1 then DISCRETISED it, `ceil(ln(w_max)/ln(1+beta)) +
+    (1-1/w_max)/beta`, since a weight needing 31.43 rounds of growth clips on
+    round 32; on three further cells chosen before the run and sharing no
+    coordinate with the first five that cuts the mean error from 4.05% to
+    0.78% and is closer in 3 of 3 (PD-1, PD-2 pass). Neither form lands inside
+    a 95% interval: at 0.02 to 0.12 rounds wide the measurement is sharper
+    than either approximation, which is recorded rather than smoothed over. The unrefracted control relocates ZERO times in every cell
     though its weights clip on the same schedule, so the clip alone does not
     move an assembly. **This is the deadline any retention rule has to move,
     and it says how:** for small beta the period is

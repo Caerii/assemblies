@@ -271,3 +271,55 @@ If PD-1 fails, the discretisation is dropped and the entry keeps the plain
 form with its measured 1 to 4% residual stated. If it passes, the entry states
 the ceiled form as the better approximation and still records that neither is
 exact.
+
+## Amendment 1 result (2026-09-13): the discretised form is confirmed on cells it was never fitted on
+
+Artifact
+`research/results/runs/memory.refraction-period-law/period-law-amendment2-20260913/results.json`
+(seeds 42 to 61, pinned worktree at ad8c94dc). PL-1, PL-5, PD-1 and PD-2 all
+pass. PL-2, PL-3 and PL-4 name cells this run does not contain and are omitted
+rather than failed, which is a fix to the instrument recorded below.
+
+    cell        measured   95% interval      plain    err     ceiled   err
+    w8b0.25     13.57      [13.55, 13.59]    12.82    5.86%   13.50    0.52%
+    w12b0.18    20.83      [20.80, 20.86]    20.11    3.59%   21.09    1.26%
+    w25b0.15    30.23      [30.18, 30.27]    29.43    2.71%   30.40    0.56%
+
+**PD-1 PASS, 3 of 3.** The discretised form is closer in every cell, not two
+of three.
+
+**PD-2 PASS.** Mean relative error falls from **4.05% to 0.78%**, a fivefold
+reduction, on cells chosen before the run and sharing no coordinate with the
+five the refinement was noticed on. That is the test the observation needed:
+it was found in a residual and it held where it could not have been fitted.
+
+**PD-3, reported as registered.** Neither form lands inside a 95% interval in
+any of the three cells. The intervals are 0.02 to 0.09 rounds wide, so this
+says the measurement is sharper than either approximation and not that either
+is wrong. The honest statement is that the ceiled form predicts the period to
+under one per cent and the plain form to about four, and that the residual of
+the better one is still resolvable.
+
+**PD-4 PASS.** Zero control relocations on every brain of every new cell, as
+in all five original cells. Across eight cells now, the unrefracted control
+has never relocated once.
+
+### What the entry should say
+
+The relocation period is `ceil(ln(w_max) / ln(1 + beta)) + (1 - 1/w_max)/beta`
+to under one per cent, across eight cells spanning beta 0.05 to 0.25 and w_max
+5 to 100. The ceiling is not a fitted correction: the first term counts rounds
+to the clip and a weight needing 31.43 rounds of growth clips on round 32.
+The design consequence is unchanged, because the ceiling moves the period by
+at most one round: tenure is bought with beta and not with the weight ceiling.
+
+### An instrument fix, recorded
+
+The first amendment run reported PL-2, PL-3 and PL-4 as FAILED when its cell
+set simply does not contain the cells those bars name. A missing test is not a
+failed one. Bars naming specific cells are now evaluated only when those cells
+are present, the omission is recorded in the run, and PL-1 and PL-5 still
+quantify over whatever cells ran so a present-but-unmeasured cell fails them.
+The superseded first run is not retained; its numbers are identical because
+the protocol is deterministic on fixed seeds, and only the bar bookkeeping
+changed.
