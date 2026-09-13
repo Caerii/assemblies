@@ -15,6 +15,7 @@ import numpy as np
 
 from .assembly import Assembly
 from ..core.index_spaces import NeuronIds
+from ..core.semantics import ObservationPolicy
 
 _P = ParamSpec("_P")
 _R_co = TypeVar("_R_co", covariant=True)
@@ -1042,7 +1043,14 @@ class ContextAccumulationStepPlan:
             raise KeyError(f"context step stimulus is unknown: {self.phon!r}")
 
 
-_COMPLETION_OBSERVATION_MODES = frozenset({"plastic", "frozen", "read-only"})
+# The three policies completion can honour, spelled by the one closed enum
+# every run record uses (ObservationPolicy); `probe` and `none` do not apply
+# to a recurrent recovery schedule.
+_COMPLETION_OBSERVATION_MODES = frozenset({
+    ObservationPolicy.PLASTIC.value,
+    ObservationPolicy.FROZEN.value,
+    ObservationPolicy.READ_ONLY.value,
+})
 
 
 @dataclass(frozen=True)

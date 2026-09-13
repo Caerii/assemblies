@@ -1,0 +1,5387 @@
+{
+  "attachments": {},
+  "observations": {
+    "arms": {
+      "constant-s1-p15": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.006660064793241624,
+            "high": 0.04094577907895591,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s1-p15 across-state",
+            "low": 0.027625649492472662,
+            "mean": 0.03428571428571429,
+            "values": [
+              0.04714285714285715,
+              0.018571428571428565,
+              0.030952380952380946,
+              0.03619047619047619,
+              0.021904761904761896,
+              0.029523809523809525,
+              0.03333333333333333,
+              0.014285714285714287,
+              0.014285714285714287,
+              0.0542857142857143,
+              0.03142857142857143,
+              0.06190476190476191,
+              0.05714285714285715,
+              0.04714285714285715,
+              0.022380952380952376,
+              0.028571428571428574,
+              0.04428571428571428,
+              0.0319047619047619,
+              0.018571428571428565,
+              0.0419047619047619
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.006367495984203533,
+            "high": 0.9690659086826162,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s1-p15 across-symbol",
+            "low": 0.9563309167142092,
+            "mean": 0.9626984126984127,
+            "values": [
+              0.947936507936508,
+              0.9761904761904764,
+              0.9578835978835979,
+              0.9625396825396824,
+              0.9780952380952381,
+              0.9619047619047622,
+              0.9714285714285716,
+              0.9860317460317459,
+              0.980952380952381,
+              0.943068783068783,
+              0.9667724867724867,
+              0.9438095238095238,
+              0.9434920634920635,
+              0.9523809523809522,
+              0.9714285714285714,
+              0.9717460317460319,
+              0.9478306878306877,
+              0.9619047619047617,
+              0.9761904761904764,
+              0.9523809523809522
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.04714285714285715,
+            "across_symbol": 0.947936507936508,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.018571428571428565,
+            "across_symbol": 0.9761904761904764,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.030952380952380946,
+            "across_symbol": 0.9578835978835979,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 44
+          },
+          {
+            "across_state": 0.03619047619047619,
+            "across_symbol": 0.9625396825396824,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 45
+          },
+          {
+            "across_state": 0.021904761904761896,
+            "across_symbol": 0.9780952380952381,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.029523809523809525,
+            "across_symbol": 0.9619047619047622,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.03333333333333333,
+            "across_symbol": 0.9714285714285716,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.014285714285714287,
+            "across_symbol": 0.9860317460317459,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 49
+          },
+          {
+            "across_state": 0.014285714285714287,
+            "across_symbol": 0.980952380952381,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.0542857142857143,
+            "across_symbol": 0.943068783068783,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.03142857142857143,
+            "across_symbol": 0.9667724867724867,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 52
+          },
+          {
+            "across_state": 0.06190476190476191,
+            "across_symbol": 0.9438095238095238,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.05714285714285715,
+            "across_symbol": 0.9434920634920635,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.04714285714285715,
+            "across_symbol": 0.9523809523809522,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 55
+          },
+          {
+            "across_state": 0.022380952380952376,
+            "across_symbol": 0.9714285714285714,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 56
+          },
+          {
+            "across_state": 0.028571428571428574,
+            "across_symbol": 0.9717460317460319,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.04428571428571428,
+            "across_symbol": 0.9478306878306877,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0319047619047619,
+            "across_symbol": 0.9619047619047617,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.018571428571428565,
+            "across_symbol": 0.9761904761904764,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 60
+          },
+          {
+            "across_state": 0.0419047619047619,
+            "across_symbol": 0.9523809523809522,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 1.0
+      },
+      "constant-s1-p30": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.0061315425866328285,
+            "high": 0.039988685443775686,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s1-p30 across-state",
+            "low": 0.027725600270510027,
+            "mean": 0.033857142857142856,
+            "values": [
+              0.042857142857142864,
+              0.018571428571428565,
+              0.031428571428571424,
+              0.03619047619047619,
+              0.019047619047619042,
+              0.029523809523809525,
+              0.03333333333333333,
+              0.014285714285714287,
+              0.014285714285714287,
+              0.0542857142857143,
+              0.03142857142857143,
+              0.053809523809523814,
+              0.05714285714285715,
+              0.04761904761904763,
+              0.03190476190476191,
+              0.028571428571428574,
+              0.040476190476190464,
+              0.0319047619047619,
+              0.018571428571428565,
+              0.0419047619047619
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.006197039727683425,
+            "high": 0.9717896323202759,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s1-p30 across-symbol",
+            "low": 0.9593955528649092,
+            "mean": 0.9655925925925926,
+            "values": [
+              0.9572486772486772,
+              0.9761904761904764,
+              0.9715343915343917,
+              0.9715343915343917,
+              0.9859259259259257,
+              0.9619047619047622,
+              0.9714285714285716,
+              0.9860317460317459,
+              0.980952380952381,
+              0.9431746031746031,
+              0.9667724867724867,
+              0.9523809523809522,
+              0.9434920634920635,
+              0.9523809523809522,
+              0.9761904761904764,
+              0.9717460317460319,
+              0.9524867724867725,
+              0.9619047619047617,
+              0.9761904761904764,
+              0.9523809523809522
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 30,
+        "rows": [
+          {
+            "across_state": 0.042857142857142864,
+            "across_symbol": 0.9572486772486772,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.018571428571428565,
+            "across_symbol": 0.9761904761904764,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.031428571428571424,
+            "across_symbol": 0.9715343915343917,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 44
+          },
+          {
+            "across_state": 0.03619047619047619,
+            "across_symbol": 0.9715343915343917,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 45
+          },
+          {
+            "across_state": 0.019047619047619042,
+            "across_symbol": 0.9859259259259257,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.029523809523809525,
+            "across_symbol": 0.9619047619047622,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.03333333333333333,
+            "across_symbol": 0.9714285714285716,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.014285714285714287,
+            "across_symbol": 0.9860317460317459,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 49
+          },
+          {
+            "across_state": 0.014285714285714287,
+            "across_symbol": 0.980952380952381,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.0542857142857143,
+            "across_symbol": 0.9431746031746031,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.03142857142857143,
+            "across_symbol": 0.9667724867724867,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 52
+          },
+          {
+            "across_state": 0.053809523809523814,
+            "across_symbol": 0.9523809523809522,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 53
+          },
+          {
+            "across_state": 0.05714285714285715,
+            "across_symbol": 0.9434920634920635,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.04761904761904763,
+            "across_symbol": 0.9523809523809522,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 55
+          },
+          {
+            "across_state": 0.03190476190476191,
+            "across_symbol": 0.9761904761904764,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 56
+          },
+          {
+            "across_state": 0.028571428571428574,
+            "across_symbol": 0.9717460317460319,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.040476190476190464,
+            "across_symbol": 0.9524867724867725,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0319047619047619,
+            "across_symbol": 0.9619047619047617,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.018571428571428565,
+            "across_symbol": 0.9761904761904764,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 60
+          },
+          {
+            "across_state": 0.0419047619047619,
+            "across_symbol": 0.9523809523809522,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 1.0
+      },
+      "constant-s1-p5": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.006092868789945354,
+            "high": 0.04778334498042154,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s1-p5 across-state",
+            "low": 0.035597607400530834,
+            "mean": 0.04169047619047619,
+            "values": [
+              0.04476190476190476,
+              0.020952380952380945,
+              0.03857142857142857,
+              0.04857142857142858,
+              0.038571428571428555,
+              0.038571428571428576,
+              0.03619047619047618,
+              0.02761904761904761,
+              0.02857142857142857,
+              0.06095238095238096,
+              0.03571428571428571,
+              0.0642857142857143,
+              0.05904761904761905,
+              0.05761904761904763,
+              0.02666666666666666,
+              0.03142857142857143,
+              0.06047619047619047,
+              0.04047619047619048,
+              0.029999999999999992,
+              0.04476190476190477
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0064693353354319215,
+            "high": 0.951538118404215,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s1-p5 across-symbol",
+            "low": 0.9385994477333511,
+            "mean": 0.9450687830687831,
+            "values": [
+              0.9432804232804233,
+              0.9605291005291006,
+              0.9308994708994709,
+              0.9355555555555557,
+              0.9417989417989417,
+              0.9531216931216931,
+              0.9612698412698413,
+              0.9584126984126983,
+              0.9616931216931216,
+              0.9284656084656088,
+              0.9499470899470899,
+              0.9226455026455027,
+              0.9255026455026457,
+              0.9366137566137566,
+              0.9629629629629628,
+              0.9602116402116403,
+              0.9241269841269844,
+              0.9495238095238093,
+              0.9512169312169314,
+              0.9435978835978838
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 5,
+        "rows": [
+          {
+            "across_state": 0.04476190476190476,
+            "across_symbol": 0.9432804232804233,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.020952380952380945,
+            "across_symbol": 0.9605291005291006,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.03857142857142857,
+            "across_symbol": 0.9308994708994709,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 44
+          },
+          {
+            "across_state": 0.04857142857142858,
+            "across_symbol": 0.9355555555555557,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 45
+          },
+          {
+            "across_state": 0.038571428571428555,
+            "across_symbol": 0.9417989417989417,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.038571428571428576,
+            "across_symbol": 0.9531216931216931,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.03619047619047618,
+            "across_symbol": 0.9612698412698413,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.02761904761904761,
+            "across_symbol": 0.9584126984126983,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 49
+          },
+          {
+            "across_state": 0.02857142857142857,
+            "across_symbol": 0.9616931216931216,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.06095238095238096,
+            "across_symbol": 0.9284656084656088,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.03571428571428571,
+            "across_symbol": 0.9499470899470899,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 52
+          },
+          {
+            "across_state": 0.0642857142857143,
+            "across_symbol": 0.9226455026455027,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.05904761904761905,
+            "across_symbol": 0.9255026455026457,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.05761904761904763,
+            "across_symbol": 0.9366137566137566,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 55
+          },
+          {
+            "across_state": 0.02666666666666666,
+            "across_symbol": 0.9629629629629628,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 56
+          },
+          {
+            "across_state": 0.03142857142857143,
+            "across_symbol": 0.9602116402116403,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.06047619047619047,
+            "across_symbol": 0.9241269841269844,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.04047619047619048,
+            "across_symbol": 0.9495238095238093,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.029999999999999992,
+            "across_symbol": 0.9512169312169314,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 60
+          },
+          {
+            "across_state": 0.04476190476190477,
+            "across_symbol": 0.9435978835978838,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 1.0
+      },
+      "constant-s10-p15": {
+        "decided": 20,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.00037484555116963945,
+            "high": 0.0009700836464077347,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s10-p15 across-state",
+            "low": 0.00022039254406845573,
+            "mean": 0.0005952380952380952,
+            "values": [
+              0.0004761904761904762,
+              0.0,
+              0.0,
+              0.0004761904761904762,
+              0.0004761904761904762,
+              0.0019047619047619048,
+              0.0004761904761904762,
+              0.0004761904761904762,
+              0.0004761904761904762,
+              0.0,
+              0.003333333333333333,
+              0.0009523809523809524,
+              0.0,
+              0.0009523809523809524,
+              0.0,
+              0.0004761904761904762,
+              0.0,
+              0.0009523809523809524,
+              0.0,
+              0.0004761904761904762
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0004976975096413397,
+            "high": 0.0007516657636095936,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s10-p15 across-symbol",
+            "low": -0.00024372925567308577,
+            "mean": 0.00025396825396825396,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0047619047619047615,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.00031746031746031746
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 42
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 43
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 44
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0047619047619047615,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 46
+          },
+          {
+            "across_state": 0.0019047619047619048,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 47
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 48
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 49
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 50
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 51
+          },
+          {
+            "across_state": 0.003333333333333333,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.0009523809523809524,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.0009523809523809524,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 56
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 57
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0009523809523809524,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 59
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 60
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.00031746031746031746,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 10.0
+      },
+      "constant-s10-p30": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.0062639831276465495,
+            "high": 0.13774017360383703,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s10-p30 across-state",
+            "low": 0.1252122073485439,
+            "mean": 0.13147619047619047,
+            "values": [
+              0.14428571428571424,
+              0.1385714285714286,
+              0.10904761904761907,
+              0.13857142857142854,
+              0.12666666666666665,
+              0.1366666666666667,
+              0.1319047619047619,
+              0.13666666666666666,
+              0.12571428571428572,
+              0.1585714285714286,
+              0.12380952380952379,
+              0.11285714285714284,
+              0.13047619047619047,
+              0.14523809523809525,
+              0.14142857142857143,
+              0.11428571428571427,
+              0.1285714285714286,
+              0.1138095238095238,
+              0.12142857142857141,
+              0.15095238095238098
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.013603380814302818,
+            "high": 0.38276740197832393,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s10-p30 across-symbol",
+            "low": 0.35556064034971835,
+            "mean": 0.36916402116402114,
+            "values": [
+              0.4016931216931217,
+              0.36783068783068784,
+              0.4168253968253968,
+              0.3098412698412698,
+              0.395978835978836,
+              0.3521693121693122,
+              0.3333333333333333,
+              0.36835978835978833,
+              0.3675132275132275,
+              0.35746031746031753,
+              0.41047619047619044,
+              0.3643386243386243,
+              0.39206349206349195,
+              0.3641269841269841,
+              0.37619047619047624,
+              0.41428571428571426,
+              0.3383068783068782,
+              0.36783068783068773,
+              0.3445502645502646,
+              0.34010582010582013
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 30,
+        "rows": [
+          {
+            "across_state": 0.14428571428571424,
+            "across_symbol": 0.4016931216931217,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 42
+          },
+          {
+            "across_state": 0.1385714285714286,
+            "across_symbol": 0.36783068783068784,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 43
+          },
+          {
+            "across_state": 0.10904761904761907,
+            "across_symbol": 0.4168253968253968,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 44
+          },
+          {
+            "across_state": 0.13857142857142854,
+            "across_symbol": 0.3098412698412698,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 45
+          },
+          {
+            "across_state": 0.12666666666666665,
+            "across_symbol": 0.395978835978836,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 46
+          },
+          {
+            "across_state": 0.1366666666666667,
+            "across_symbol": 0.3521693121693122,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 47
+          },
+          {
+            "across_state": 0.1319047619047619,
+            "across_symbol": 0.3333333333333333,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 48
+          },
+          {
+            "across_state": 0.13666666666666666,
+            "across_symbol": 0.36835978835978833,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 49
+          },
+          {
+            "across_state": 0.12571428571428572,
+            "across_symbol": 0.3675132275132275,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 50
+          },
+          {
+            "across_state": 0.1585714285714286,
+            "across_symbol": 0.35746031746031753,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 51
+          },
+          {
+            "across_state": 0.12380952380952379,
+            "across_symbol": 0.41047619047619044,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "2",
+            "seed": 52
+          },
+          {
+            "across_state": 0.11285714285714284,
+            "across_symbol": 0.3643386243386243,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.13047619047619047,
+            "across_symbol": 0.39206349206349195,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 54
+          },
+          {
+            "across_state": 0.14523809523809525,
+            "across_symbol": 0.3641269841269841,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 55
+          },
+          {
+            "across_state": 0.14142857142857143,
+            "across_symbol": 0.37619047619047624,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 56
+          },
+          {
+            "across_state": 0.11428571428571427,
+            "across_symbol": 0.41428571428571426,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 57
+          },
+          {
+            "across_state": 0.1285714285714286,
+            "across_symbol": 0.3383068783068782,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.1138095238095238,
+            "across_symbol": 0.36783068783068773,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 59
+          },
+          {
+            "across_state": 0.12142857142857141,
+            "across_symbol": 0.3445502645502646,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 60
+          },
+          {
+            "across_state": 0.15095238095238098,
+            "across_symbol": 0.34010582010582013,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 10.0
+      },
+      "constant-s10-p5": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.003295707350260313,
+            "high": 0.11972427877883174,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s10-p5 across-state",
+            "low": 0.11313286407831111,
+            "mean": 0.11642857142857142,
+            "values": [
+              0.11619047619047619,
+              0.10380952380952382,
+              0.1176190476190476,
+              0.1123809523809524,
+              0.11714285714285715,
+              0.11285714285714285,
+              0.11714285714285716,
+              0.1080952380952381,
+              0.10523809523809521,
+              0.12619047619047621,
+              0.11333333333333334,
+              0.11761904761904761,
+              0.12428571428571429,
+              0.11095238095238094,
+              0.11666666666666668,
+              0.11238095238095239,
+              0.12238095238095238,
+              0.12047619047619047,
+              0.12095238095238094,
+              0.13285714285714284
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0027304245435220043,
+            "high": 0.04833359914669661,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s10-p5 across-symbol",
+            "low": 0.042872750059652596,
+            "mean": 0.045603174603174604,
+            "values": [
+              0.03195767195767196,
+              0.0435978835978836,
+              0.04243386243386243,
+              0.0525925925925926,
+              0.046772486772486764,
+              0.040423280423280424,
+              0.04624338624338624,
+              0.05174603174603175,
+              0.05544973544973545,
+              0.045291005291005285,
+              0.04878306878306879,
+              0.04190476190476191,
+              0.054708994708994714,
+              0.043809523809523805,
+              0.043597883597883594,
+              0.04973544973544974,
+              0.04275132275132274,
+              0.04708994708994709,
+              0.04708994708994709,
+              0.03608465608465608
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 5,
+        "rows": [
+          {
+            "across_state": 0.11619047619047619,
+            "across_symbol": 0.03195767195767196,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.10380952380952382,
+            "across_symbol": 0.0435978835978836,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.1176190476190476,
+            "across_symbol": 0.04243386243386243,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 44
+          },
+          {
+            "across_state": 0.1123809523809524,
+            "across_symbol": 0.0525925925925926,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.11714285714285715,
+            "across_symbol": 0.046772486772486764,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.11285714285714285,
+            "across_symbol": 0.040423280423280424,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.11714285714285716,
+            "across_symbol": 0.04624338624338624,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 48
+          },
+          {
+            "across_state": 0.1080952380952381,
+            "across_symbol": 0.05174603174603175,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 49
+          },
+          {
+            "across_state": 0.10523809523809521,
+            "across_symbol": 0.05544973544973545,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "2",
+            "seed": 50
+          },
+          {
+            "across_state": 0.12619047619047621,
+            "across_symbol": 0.045291005291005285,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.11333333333333334,
+            "across_symbol": 0.04878306878306879,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.11761904761904761,
+            "across_symbol": 0.04190476190476191,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.12428571428571429,
+            "across_symbol": 0.054708994708994714,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.11095238095238094,
+            "across_symbol": 0.043809523809523805,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "reject",
+            "seed": 55
+          },
+          {
+            "across_state": 0.11666666666666668,
+            "across_symbol": 0.043597883597883594,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 56
+          },
+          {
+            "across_state": 0.11238095238095239,
+            "across_symbol": 0.04973544973544974,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "reject",
+            "seed": 57
+          },
+          {
+            "across_state": 0.12238095238095238,
+            "across_symbol": 0.04275132275132274,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 58
+          },
+          {
+            "across_state": 0.12047619047619047,
+            "across_symbol": 0.04708994708994709,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.12095238095238094,
+            "across_symbol": 0.04708994708994709,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 60
+          },
+          {
+            "across_state": 0.13285714285714284,
+            "across_symbol": 0.03608465608465608,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "accept",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 10.0
+      },
+      "constant-s100-p15": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.007141867594230801,
+            "high": 0.4167132961656594,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s100-p15 across-state",
+            "low": 0.4024295609771978,
+            "mean": 0.4095714285714286,
+            "values": [
+              0.4395238095238096,
+              0.42476190476190473,
+              0.420952380952381,
+              0.4142857142857143,
+              0.4204761904761905,
+              0.4047619047619048,
+              0.3919047619047619,
+              0.4228571428571429,
+              0.3890476190476191,
+              0.4152380952380953,
+              0.3790476190476191,
+              0.42142857142857143,
+              0.40047619047619054,
+              0.3947619047619048,
+              0.40380952380952384,
+              0.4171428571428572,
+              0.42333333333333345,
+              0.40761904761904766,
+              0.3895238095238095,
+              0.4104761904761905
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.00654394561539544,
+            "high": 0.41325823132968115,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s100-p15 across-symbol",
+            "low": 0.40017034009889024,
+            "mean": 0.4067142857142857,
+            "values": [
+              0.38074074074074077,
+              0.38952380952380955,
+              0.38878306878306884,
+              0.4078306878306878,
+              0.38888888888888884,
+              0.4146031746031746,
+              0.4131216931216931,
+              0.39587301587301593,
+              0.4093121693121693,
+              0.3955555555555556,
+              0.4384126984126984,
+              0.4032804232804233,
+              0.4231746031746032,
+              0.4152380952380952,
+              0.4157671957671957,
+              0.4047619047619047,
+              0.4082539682539682,
+              0.41703703703703704,
+              0.42042328042328037,
+              0.4037037037037036
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.4395238095238096,
+            "across_symbol": 0.38074074074074077,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 42
+          },
+          {
+            "across_state": 0.42476190476190473,
+            "across_symbol": 0.38952380952380955,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.420952380952381,
+            "across_symbol": 0.38878306878306884,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 44
+          },
+          {
+            "across_state": 0.4142857142857143,
+            "across_symbol": 0.4078306878306878,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 45
+          },
+          {
+            "across_state": 0.4204761904761905,
+            "across_symbol": 0.38888888888888884,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.4047619047619048,
+            "across_symbol": 0.4146031746031746,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.3919047619047619,
+            "across_symbol": 0.4131216931216931,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 48
+          },
+          {
+            "across_state": 0.4228571428571429,
+            "across_symbol": 0.39587301587301593,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 49
+          },
+          {
+            "across_state": 0.3890476190476191,
+            "across_symbol": 0.4093121693121693,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 50
+          },
+          {
+            "across_state": 0.4152380952380953,
+            "across_symbol": 0.3955555555555556,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 51
+          },
+          {
+            "across_state": 0.3790476190476191,
+            "across_symbol": 0.4384126984126984,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 52
+          },
+          {
+            "across_state": 0.42142857142857143,
+            "across_symbol": 0.4032804232804233,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 53
+          },
+          {
+            "across_state": 0.40047619047619054,
+            "across_symbol": 0.4231746031746032,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.3947619047619048,
+            "across_symbol": 0.4152380952380952,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 55
+          },
+          {
+            "across_state": 0.40380952380952384,
+            "across_symbol": 0.4157671957671957,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 56
+          },
+          {
+            "across_state": 0.4171428571428572,
+            "across_symbol": 0.4047619047619047,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.42333333333333345,
+            "across_symbol": 0.4082539682539682,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 58
+          },
+          {
+            "across_state": 0.40761904761904766,
+            "across_symbol": 0.41703703703703704,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 59
+          },
+          {
+            "across_state": 0.3895238095238095,
+            "across_symbol": 0.42042328042328037,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 60
+          },
+          {
+            "across_state": 0.4104761904761905,
+            "across_symbol": 0.4037037037037036,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 100.0
+      },
+      "constant-s100-p30": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.005735242337652632,
+            "high": 0.42459238519479553,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s100-p30 across-state",
+            "low": 0.4131219005194902,
+            "mean": 0.4188571428571429,
+            "values": [
+              0.3976190476190476,
+              0.4347619047619048,
+              0.4347619047619048,
+              0.4328571428571429,
+              0.4233333333333333,
+              0.4066666666666666,
+              0.41809523809523813,
+              0.4166666666666667,
+              0.4114285714285714,
+              0.39714285714285713,
+              0.4099999999999999,
+              0.420952380952381,
+              0.42190476190476195,
+              0.4180952380952381,
+              0.4066666666666666,
+              0.4109523809523809,
+              0.4228571428571428,
+              0.44142857142857145,
+              0.4319047619047619,
+              0.41904761904761906
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0076255557060879555,
+            "high": 0.2443980424785747,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s100-p30 across-symbol",
+            "low": 0.2291469310663988,
+            "mean": 0.23677248677248675,
+            "values": [
+              0.2661375661375662,
+              0.22465608465608464,
+              0.21312169312169307,
+              0.221058201058201,
+              0.22666666666666663,
+              0.2503703703703703,
+              0.22783068783068777,
+              0.24338624338624332,
+              0.238095238095238,
+              0.2477248677248678,
+              0.27301587301587293,
+              0.23703703703703705,
+              0.23629629629629623,
+              0.2357671957671957,
+              0.24539682539682534,
+              0.2439153439153439,
+              0.23174603174603167,
+              0.21259259259259256,
+              0.21354497354497354,
+              0.24708994708994705
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 30,
+        "rows": [
+          {
+            "across_state": 0.3976190476190476,
+            "across_symbol": 0.2661375661375662,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 42
+          },
+          {
+            "across_state": 0.4347619047619048,
+            "across_symbol": 0.22465608465608464,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 43
+          },
+          {
+            "across_state": 0.4347619047619048,
+            "across_symbol": 0.21312169312169307,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 44
+          },
+          {
+            "across_state": 0.4328571428571429,
+            "across_symbol": 0.221058201058201,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 45
+          },
+          {
+            "across_state": 0.4233333333333333,
+            "across_symbol": 0.22666666666666663,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 46
+          },
+          {
+            "across_state": 0.4066666666666666,
+            "across_symbol": 0.2503703703703703,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 47
+          },
+          {
+            "across_state": 0.41809523809523813,
+            "across_symbol": 0.22783068783068777,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 48
+          },
+          {
+            "across_state": 0.4166666666666667,
+            "across_symbol": 0.24338624338624332,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 49
+          },
+          {
+            "across_state": 0.4114285714285714,
+            "across_symbol": 0.238095238095238,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 50
+          },
+          {
+            "across_state": 0.39714285714285713,
+            "across_symbol": 0.2477248677248678,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 51
+          },
+          {
+            "across_state": 0.4099999999999999,
+            "across_symbol": 0.27301587301587293,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 52
+          },
+          {
+            "across_state": 0.420952380952381,
+            "across_symbol": 0.23703703703703705,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 53
+          },
+          {
+            "across_state": 0.42190476190476195,
+            "across_symbol": 0.23629629629629623,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 54
+          },
+          {
+            "across_state": 0.4180952380952381,
+            "across_symbol": 0.2357671957671957,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 55
+          },
+          {
+            "across_state": 0.4066666666666666,
+            "across_symbol": 0.24539682539682534,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 56
+          },
+          {
+            "across_state": 0.4109523809523809,
+            "across_symbol": 0.2439153439153439,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 57
+          },
+          {
+            "across_state": 0.4228571428571428,
+            "across_symbol": 0.23174603174603167,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 58
+          },
+          {
+            "across_state": 0.44142857142857145,
+            "across_symbol": 0.21259259259259256,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 59
+          },
+          {
+            "across_state": 0.4319047619047619,
+            "across_symbol": 0.21354497354497354,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 60
+          },
+          {
+            "across_state": 0.41904761904761906,
+            "across_symbol": 0.24708994708994705,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 100.0
+      },
+      "constant-s100-p5": {
+        "decided": 2,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.0043096662576696115,
+            "high": 0.1714287138767172,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s100-p5 across-state",
+            "low": 0.162809381361378,
+            "mean": 0.1671190476190476,
+            "values": [
+              0.15857142857142856,
+              0.18,
+              0.17380952380952377,
+              0.1738095238095238,
+              0.16857142857142857,
+              0.18285714285714283,
+              0.1704761904761905,
+              0.1576190476190476,
+              0.17761904761904765,
+              0.16809523809523813,
+              0.1585714285714286,
+              0.16857142857142857,
+              0.16857142857142854,
+              0.16476190476190475,
+              0.17428571428571432,
+              0.14904761904761904,
+              0.14857142857142858,
+              0.16428571428571426,
+              0.16523809523809524,
+              0.16904761904761906
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.002532988256039157,
+            "high": 0.05274462846767936,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s100-p5 across-symbol",
+            "low": 0.04767865195560105,
+            "mean": 0.05021164021164021,
+            "values": [
+              0.055767195767195764,
+              0.055978835978835975,
+              0.04878306878306878,
+              0.03936507936507936,
+              0.04486772486772487,
+              0.04317460317460317,
+              0.050687830687830684,
+              0.050476190476190466,
+              0.050264550264550255,
+              0.05703703703703703,
+              0.0511111111111111,
+              0.04687830687830687,
+              0.051322751322751325,
+              0.06063492063492063,
+              0.05375661375661375,
+              0.04708994708994709,
+              0.05756613756613756,
+              0.048783068783068775,
+              0.04560846560846561,
+              0.04507936507936508
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 5,
+        "rows": [
+          {
+            "across_state": 0.15857142857142856,
+            "across_symbol": 0.055767195767195764,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.18,
+            "across_symbol": 0.055978835978835975,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 43
+          },
+          {
+            "across_state": 0.17380952380952377,
+            "across_symbol": 0.04878306878306878,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "2",
+            "seed": 44
+          },
+          {
+            "across_state": 0.1738095238095238,
+            "across_symbol": 0.03936507936507936,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "1",
+            "seed": 45
+          },
+          {
+            "across_state": 0.16857142857142857,
+            "across_symbol": 0.04486772486772487,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "accept",
+            "seed": 46
+          },
+          {
+            "across_state": 0.18285714285714283,
+            "across_symbol": 0.04317460317460317,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "2",
+            "seed": 47
+          },
+          {
+            "across_state": 0.1704761904761905,
+            "across_symbol": 0.050687830687830684,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 48
+          },
+          {
+            "across_state": 0.1576190476190476,
+            "across_symbol": 0.050476190476190466,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 49
+          },
+          {
+            "across_state": 0.17761904761904765,
+            "across_symbol": 0.050264550264550255,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.16809523809523813,
+            "across_symbol": 0.05703703703703703,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "1",
+            "seed": 51
+          },
+          {
+            "across_state": 0.1585714285714286,
+            "across_symbol": 0.0511111111111111,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.16857142857142857,
+            "across_symbol": 0.04687830687830687,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.16857142857142854,
+            "across_symbol": 0.051322751322751325,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.16476190476190475,
+            "across_symbol": 0.06063492063492063,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.17428571428571432,
+            "across_symbol": 0.05375661375661375,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 56
+          },
+          {
+            "across_state": 0.14904761904761904,
+            "across_symbol": 0.04708994708994709,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 57
+          },
+          {
+            "across_state": 0.14857142857142858,
+            "across_symbol": 0.05756613756613756,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "1",
+            "seed": 58
+          },
+          {
+            "across_state": 0.16428571428571426,
+            "across_symbol": 0.048783068783068775,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.16523809523809524,
+            "across_symbol": 0.04560846560846561,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "0",
+            "seed": 60
+          },
+          {
+            "across_state": 0.16904761904761906,
+            "across_symbol": 0.04507936507936508,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "2",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 100.0
+      },
+      "constant-s3-p15": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.007283578655095923,
+            "high": 0.12018834055985783,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s3-p15 across-state",
+            "low": 0.10562118324966599,
+            "mean": 0.11290476190476191,
+            "values": [
+              0.11333333333333334,
+              0.1223809523809524,
+              0.0961904761904762,
+              0.13285714285714287,
+              0.07333333333333333,
+              0.11666666666666667,
+              0.1023809523809524,
+              0.12095238095238094,
+              0.10095238095238097,
+              0.11952380952380952,
+              0.12523809523809523,
+              0.12142857142857143,
+              0.11047619047619049,
+              0.14095238095238097,
+              0.10523809523809526,
+              0.11523809523809524,
+              0.12238095238095238,
+              0.09380952380952383,
+              0.09904761904761908,
+              0.12571428571428572
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.008297483558831652,
+            "high": 0.8809271131884613,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s3-p15 across-symbol",
+            "low": 0.864332146070798,
+            "mean": 0.8726296296296296,
+            "values": [
+              0.8704761904761902,
+              0.864232804232804,
+              0.8813756613756613,
+              0.846031746031746,
+              0.9193650793650794,
+              0.866772486772487,
+              0.883809523809524,
+              0.8659259259259258,
+              0.8821164021164023,
+              0.8688888888888887,
+              0.8577777777777776,
+              0.8604232804232803,
+              0.875238095238095,
+              0.8431746031746031,
+              0.8821164021164024,
+              0.872063492063492,
+              0.8619047619047617,
+              0.8952380952380954,
+              0.8952380952380954,
+              0.8604232804232802
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.11333333333333334,
+            "across_symbol": 0.8704761904761902,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.1223809523809524,
+            "across_symbol": 0.864232804232804,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 43
+          },
+          {
+            "across_state": 0.0961904761904762,
+            "across_symbol": 0.8813756613756613,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 44
+          },
+          {
+            "across_state": 0.13285714285714287,
+            "across_symbol": 0.846031746031746,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "2",
+            "seed": 45
+          },
+          {
+            "across_state": 0.07333333333333333,
+            "across_symbol": 0.9193650793650794,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.11666666666666667,
+            "across_symbol": 0.866772486772487,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 47
+          },
+          {
+            "across_state": 0.1023809523809524,
+            "across_symbol": 0.883809523809524,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.12095238095238094,
+            "across_symbol": 0.8659259259259258,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "2",
+            "seed": 49
+          },
+          {
+            "across_state": 0.10095238095238097,
+            "across_symbol": 0.8821164021164023,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.11952380952380952,
+            "across_symbol": 0.8688888888888887,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.12523809523809523,
+            "across_symbol": 0.8577777777777776,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 52
+          },
+          {
+            "across_state": 0.12142857142857143,
+            "across_symbol": 0.8604232804232803,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.11047619047619049,
+            "across_symbol": 0.875238095238095,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.14095238095238097,
+            "across_symbol": 0.8431746031746031,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 55
+          },
+          {
+            "across_state": 0.10523809523809526,
+            "across_symbol": 0.8821164021164024,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 56
+          },
+          {
+            "across_state": 0.11523809523809524,
+            "across_symbol": 0.872063492063492,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.12238095238095238,
+            "across_symbol": 0.8619047619047617,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.09380952380952383,
+            "across_symbol": 0.8952380952380954,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.09904761904761908,
+            "across_symbol": 0.8952380952380954,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 60
+          },
+          {
+            "across_state": 0.12571428571428572,
+            "across_symbol": 0.8604232804232802,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 3.0
+      },
+      "constant-s3-p30": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.00770270117944194,
+            "high": 0.11763127260801337,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s3-p30 across-state",
+            "low": 0.10222587024912949,
+            "mean": 0.10992857142857143,
+            "values": [
+              0.11333333333333334,
+              0.10761904761904763,
+              0.09047619047619052,
+              0.12380952380952381,
+              0.07,
+              0.11857142857142856,
+              0.09523809523809526,
+              0.11904761904761904,
+              0.09047619047619052,
+              0.11904761904761904,
+              0.12333333333333332,
+              0.1142857142857143,
+              0.1142857142857143,
+              0.14285714285714285,
+              0.09904761904761908,
+              0.11666666666666667,
+              0.12238095238095238,
+              0.09476190476190478,
+              0.10000000000000003,
+              0.12333333333333332
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.008146947551617923,
+            "high": 0.8879511803558507,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s3-p30 across-symbol",
+            "low": 0.8716572852526149,
+            "mean": 0.8798042328042328,
+            "values": [
+              0.8714285714285712,
+              0.8815873015873019,
+              0.8905820105820104,
+              0.8619047619047617,
+              0.9238095238095239,
+              0.8714285714285717,
+              0.8904761904761908,
+              0.8761904761904765,
+              0.9047619047619048,
+              0.8761904761904765,
+              0.8619047619047617,
+              0.8761904761904761,
+              0.8761904761904761,
+              0.8476190476190475,
+              0.8904761904761908,
+              0.8762962962962966,
+              0.8619047619047617,
+              0.8952380952380954,
+              0.8952380952380954,
+              0.8666666666666665
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 30,
+        "rows": [
+          {
+            "across_state": 0.11333333333333334,
+            "across_symbol": 0.8714285714285712,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 42
+          },
+          {
+            "across_state": 0.10761904761904763,
+            "across_symbol": 0.8815873015873019,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.09047619047619052,
+            "across_symbol": 0.8905820105820104,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 44
+          },
+          {
+            "across_state": 0.12380952380952381,
+            "across_symbol": 0.8619047619047617,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 45
+          },
+          {
+            "across_state": 0.07,
+            "across_symbol": 0.9238095238095239,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.11857142857142856,
+            "across_symbol": 0.8714285714285717,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.09523809523809526,
+            "across_symbol": 0.8904761904761908,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.11904761904761904,
+            "across_symbol": 0.8761904761904765,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 49
+          },
+          {
+            "across_state": 0.09047619047619052,
+            "across_symbol": 0.9047619047619048,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.11904761904761904,
+            "across_symbol": 0.8761904761904765,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.12333333333333332,
+            "across_symbol": 0.8619047619047617,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 52
+          },
+          {
+            "across_state": 0.1142857142857143,
+            "across_symbol": 0.8761904761904761,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.1142857142857143,
+            "across_symbol": 0.8761904761904761,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.14285714285714285,
+            "across_symbol": 0.8476190476190475,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 55
+          },
+          {
+            "across_state": 0.09904761904761908,
+            "across_symbol": 0.8904761904761908,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 56
+          },
+          {
+            "across_state": 0.11666666666666667,
+            "across_symbol": 0.8762962962962966,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.12238095238095238,
+            "across_symbol": 0.8619047619047617,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.09476190476190478,
+            "across_symbol": 0.8952380952380954,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.10000000000000003,
+            "across_symbol": 0.8952380952380954,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 60
+          },
+          {
+            "across_state": 0.12333333333333332,
+            "across_symbol": 0.8666666666666665,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 3.0
+      },
+      "constant-s3-p5": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.00565167792651423,
+            "high": 0.10736596364079995,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s3-p5 across-state",
+            "low": 0.09606260778777148,
+            "mean": 0.10171428571428572,
+            "values": [
+              0.11333333333333331,
+              0.10714285714285715,
+              0.08809523809523809,
+              0.10285714285714284,
+              0.08095238095238091,
+              0.09809523809523811,
+              0.08761904761904764,
+              0.11047619047619049,
+              0.1,
+              0.11666666666666668,
+              0.10904761904761906,
+              0.10619047619047618,
+              0.09571428571428572,
+              0.13,
+              0.08714285714285715,
+              0.10190476190476191,
+              0.1061904761904762,
+              0.08714285714285716,
+              0.09523809523809527,
+              0.11047619047619046
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.01764942735573949,
+            "high": 0.6610409617472739,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s3-p5 across-symbol",
+            "low": 0.6257421070357949,
+            "mean": 0.6433915343915344,
+            "values": [
+              0.656931216931217,
+              0.6397883597883598,
+              0.7308994708994707,
+              0.5993650793650794,
+              0.7160846560846561,
+              0.6405291005291006,
+              0.6302645502645503,
+              0.6132275132275131,
+              0.6220105820105819,
+              0.6585185185185185,
+              0.6089947089947091,
+              0.5900529100529099,
+              0.6173544973544974,
+              0.6074074074074074,
+              0.692169312169312,
+              0.6393650793650796,
+              0.6383068783068784,
+              0.6770370370370371,
+              0.6622222222222222,
+              0.6273015873015872
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 5,
+        "rows": [
+          {
+            "across_state": 0.11333333333333331,
+            "across_symbol": 0.656931216931217,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 42
+          },
+          {
+            "across_state": 0.10714285714285715,
+            "across_symbol": 0.6397883597883598,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "1",
+            "seed": 43
+          },
+          {
+            "across_state": 0.08809523809523809,
+            "across_symbol": 0.7308994708994707,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 44
+          },
+          {
+            "across_state": 0.10285714285714284,
+            "across_symbol": 0.5993650793650794,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 45
+          },
+          {
+            "across_state": 0.08095238095238091,
+            "across_symbol": 0.7160846560846561,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 46
+          },
+          {
+            "across_state": 0.09809523809523811,
+            "across_symbol": 0.6405291005291006,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 47
+          },
+          {
+            "across_state": 0.08761904761904764,
+            "across_symbol": 0.6302645502645503,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.11047619047619049,
+            "across_symbol": 0.6132275132275131,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 49
+          },
+          {
+            "across_state": 0.1,
+            "across_symbol": 0.6220105820105819,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 50
+          },
+          {
+            "across_state": 0.11666666666666668,
+            "across_symbol": 0.6585185185185185,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.10904761904761906,
+            "across_symbol": 0.6089947089947091,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 52
+          },
+          {
+            "across_state": 0.10619047619047618,
+            "across_symbol": 0.5900529100529099,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 53
+          },
+          {
+            "across_state": 0.09571428571428572,
+            "across_symbol": 0.6173544973544974,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 54
+          },
+          {
+            "across_state": 0.13,
+            "across_symbol": 0.6074074074074074,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 55
+          },
+          {
+            "across_state": 0.08714285714285715,
+            "across_symbol": 0.692169312169312,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "2",
+            "seed": 56
+          },
+          {
+            "across_state": 0.10190476190476191,
+            "across_symbol": 0.6393650793650796,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.1061904761904762,
+            "across_symbol": 0.6383068783068784,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.08714285714285716,
+            "across_symbol": 0.6770370370370371,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "0",
+            "seed": 59
+          },
+          {
+            "across_state": 0.09523809523809527,
+            "across_symbol": 0.6622222222222222,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 60
+          },
+          {
+            "across_state": 0.11047619047619046,
+            "across_symbol": 0.6273015873015872,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 3.0
+      },
+      "constant-s30-p15": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.005369941871225291,
+            "high": 0.10963184663313004,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s30-p15 across-state",
+            "low": 0.09889196289067946,
+            "mean": 0.10426190476190475,
+            "values": [
+              0.1238095238095238,
+              0.10285714285714281,
+              0.10714285714285715,
+              0.10952380952380952,
+              0.10809523809523809,
+              0.11047619047619046,
+              0.08666666666666667,
+              0.08666666666666666,
+              0.08666666666666668,
+              0.1157142857142857,
+              0.09714285714285711,
+              0.10523809523809526,
+              0.11761904761904761,
+              0.1157142857142857,
+              0.11,
+              0.08666666666666666,
+              0.10428571428571429,
+              0.10904761904761906,
+              0.09047619047619047,
+              0.11142857142857143
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0038065988623316844,
+            "high": 0.07398120203693485,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s30-p15 across-symbol",
+            "low": 0.06636800431227148,
+            "mean": 0.07017460317460317,
+            "values": [
+              0.0692063492063492,
+              0.08253968253968254,
+              0.07153439153439153,
+              0.06486772486772488,
+              0.07968253968253967,
+              0.06814814814814814,
+              0.068994708994709,
+              0.07841269841269839,
+              0.07894179894179894,
+              0.06984126984126983,
+              0.08306878306878306,
+              0.06613756613756613,
+              0.059365079365079364,
+              0.06899470899470898,
+              0.06306878306878307,
+              0.08211640211640209,
+              0.062116402116402104,
+              0.05989417989417989,
+              0.0693121693121693,
+              0.05724867724867725
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.1238095238095238,
+            "across_symbol": 0.0692063492063492,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 42
+          },
+          {
+            "across_state": 0.10285714285714281,
+            "across_symbol": 0.08253968253968254,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.10714285714285715,
+            "across_symbol": 0.07153439153439153,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "reject",
+            "seed": 44
+          },
+          {
+            "across_state": 0.10952380952380952,
+            "across_symbol": 0.06486772486772488,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "1",
+            "seed": 45
+          },
+          {
+            "across_state": 0.10809523809523809,
+            "across_symbol": 0.07968253968253967,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 46
+          },
+          {
+            "across_state": 0.11047619047619046,
+            "across_symbol": 0.06814814814814814,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 47
+          },
+          {
+            "across_state": 0.08666666666666667,
+            "across_symbol": 0.068994708994709,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 48
+          },
+          {
+            "across_state": 0.08666666666666666,
+            "across_symbol": 0.07841269841269839,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "reject",
+            "seed": 49
+          },
+          {
+            "across_state": 0.08666666666666668,
+            "across_symbol": 0.07894179894179894,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 50
+          },
+          {
+            "across_state": 0.1157142857142857,
+            "across_symbol": 0.06984126984126983,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 51
+          },
+          {
+            "across_state": 0.09714285714285711,
+            "across_symbol": 0.08306878306878306,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 52
+          },
+          {
+            "across_state": 0.10523809523809526,
+            "across_symbol": 0.06613756613756613,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "reject",
+            "seed": 53
+          },
+          {
+            "across_state": 0.11761904761904761,
+            "across_symbol": 0.059365079365079364,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.1157142857142857,
+            "across_symbol": 0.06899470899470898,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 55
+          },
+          {
+            "across_state": 0.11,
+            "across_symbol": 0.06306878306878307,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 56
+          },
+          {
+            "across_state": 0.08666666666666666,
+            "across_symbol": 0.08211640211640209,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 57
+          },
+          {
+            "across_state": 0.10428571428571429,
+            "across_symbol": 0.062116402116402104,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 58
+          },
+          {
+            "across_state": 0.10904761904761906,
+            "across_symbol": 0.05989417989417989,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "1",
+            "seed": 59
+          },
+          {
+            "across_state": 0.09047619047619047,
+            "across_symbol": 0.0693121693121693,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 60
+          },
+          {
+            "across_state": 0.11142857142857143,
+            "across_symbol": 0.05724867724867725,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "reject",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 30.0
+      },
+      "constant-s30-p30": {
+        "decided": 20,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.0017947490360641783,
+            "high": 0.014318558559873702,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s30-p30 across-state",
+            "low": 0.010729060487745346,
+            "mean": 0.012523809523809524,
+            "values": [
+              0.018095238095238095,
+              0.010476190476190476,
+              0.00761904761904762,
+              0.008095238095238096,
+              0.019047619047619046,
+              0.014761904761904763,
+              0.018571428571428572,
+              0.013333333333333334,
+              0.00761904761904762,
+              0.00761904761904762,
+              0.01619047619047619,
+              0.011428571428571429,
+              0.010952380952380955,
+              0.010476190476190476,
+              0.011904761904761906,
+              0.015238095238095242,
+              0.014285714285714287,
+              0.015714285714285715,
+              0.007619047619047619,
+              0.011428571428571429
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0014484160556097498,
+            "high": 0.007395506002699696,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s30-p30 across-symbol",
+            "low": 0.004498673891480197,
+            "mean": 0.005947089947089946,
+            "values": [
+              0.0013756613756613757,
+              0.010687830687830685,
+              0.008253968253968253,
+              0.0062433862433862435,
+              0.005608465608465609,
+              0.0026455026455026454,
+              0.014391534391534393,
+              0.0047619047619047615,
+              0.005502645502645503,
+              0.002433862433862434,
+              0.004021164021164021,
+              0.007619047619047618,
+              0.003703703703703704,
+              0.009312169312169312,
+              0.005820105820105819,
+              0.004338624338624339,
+              0.00804232804232804,
+              0.006031746031746031,
+              0.004232804232804232,
+              0.003915343915343914
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 30,
+        "rows": [
+          {
+            "across_state": 0.018095238095238095,
+            "across_symbol": 0.0013756613756613757,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 42
+          },
+          {
+            "across_state": 0.010476190476190476,
+            "across_symbol": 0.010687830687830685,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 43
+          },
+          {
+            "across_state": 0.00761904761904762,
+            "across_symbol": 0.008253968253968253,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 44
+          },
+          {
+            "across_state": 0.008095238095238096,
+            "across_symbol": 0.0062433862433862435,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.019047619047619046,
+            "across_symbol": 0.005608465608465609,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 46
+          },
+          {
+            "across_state": 0.014761904761904763,
+            "across_symbol": 0.0026455026455026454,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 47
+          },
+          {
+            "across_state": 0.018571428571428572,
+            "across_symbol": 0.014391534391534393,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 48
+          },
+          {
+            "across_state": 0.013333333333333334,
+            "across_symbol": 0.0047619047619047615,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 49
+          },
+          {
+            "across_state": 0.00761904761904762,
+            "across_symbol": 0.005502645502645503,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 50
+          },
+          {
+            "across_state": 0.00761904761904762,
+            "across_symbol": 0.002433862433862434,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 51
+          },
+          {
+            "across_state": 0.01619047619047619,
+            "across_symbol": 0.004021164021164021,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.011428571428571429,
+            "across_symbol": 0.007619047619047618,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.010952380952380955,
+            "across_symbol": 0.003703703703703704,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.010476190476190476,
+            "across_symbol": 0.009312169312169312,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.011904761904761906,
+            "across_symbol": 0.005820105820105819,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 56
+          },
+          {
+            "across_state": 0.015238095238095242,
+            "across_symbol": 0.004338624338624339,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 57
+          },
+          {
+            "across_state": 0.014285714285714287,
+            "across_symbol": 0.00804232804232804,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 58
+          },
+          {
+            "across_state": 0.015714285714285715,
+            "across_symbol": 0.006031746031746031,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 59
+          },
+          {
+            "across_state": 0.007619047619047619,
+            "across_symbol": 0.004232804232804232,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 60
+          },
+          {
+            "across_state": 0.011428571428571429,
+            "across_symbol": 0.003915343915343914,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 30.0
+      },
+      "constant-s30-p5": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.003632841561139608,
+            "high": 0.17070427013256817,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s30-p5 across-state",
+            "low": 0.16343858701028896,
+            "mean": 0.16707142857142857,
+            "values": [
+              0.15571428571428572,
+              0.17714285714285713,
+              0.16714285714285712,
+              0.16619047619047622,
+              0.17190476190476192,
+              0.17714285714285713,
+              0.17714285714285713,
+              0.16523809523809524,
+              0.17238095238095238,
+              0.17142857142857143,
+              0.1619047619047619,
+              0.16809523809523805,
+              0.1747619047619047,
+              0.1638095238095238,
+              0.1761904761904762,
+              0.1519047619047619,
+              0.1538095238095238,
+              0.16142857142857142,
+              0.1642857142857143,
+              0.16380952380952382
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0022747331213926842,
+            "high": 0.05238584423250379,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "constant-s30-p5 across-symbol",
+            "low": 0.047836377989718425,
+            "mean": 0.050111111111111106,
+            "values": [
+              0.055873015873015866,
+              0.0546031746031746,
+              0.04624338624338624,
+              0.04433862433862434,
+              0.047830687830687835,
+              0.042222222222222223,
+              0.045608465608465605,
+              0.05164021164021164,
+              0.05555555555555555,
+              0.05343915343915343,
+              0.05534391534391534,
+              0.049417989417989416,
+              0.05142857142857143,
+              0.057671957671957666,
+              0.04994708994708994,
+              0.04814814814814815,
+              0.05724867724867724,
+              0.04571428571428571,
+              0.04380952380952381,
+              0.04613756613756614
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 5,
+        "rows": [
+          {
+            "across_state": 0.15571428571428572,
+            "across_symbol": 0.055873015873015866,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "accept",
+            "seed": 42
+          },
+          {
+            "across_state": 0.17714285714285713,
+            "across_symbol": 0.0546031746031746,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 43
+          },
+          {
+            "across_state": 0.16714285714285712,
+            "across_symbol": 0.04624338624338624,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 44
+          },
+          {
+            "across_state": 0.16619047619047622,
+            "across_symbol": 0.04433862433862434,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.17190476190476192,
+            "across_symbol": 0.047830687830687835,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 46
+          },
+          {
+            "across_state": 0.17714285714285713,
+            "across_symbol": 0.042222222222222223,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "1",
+            "seed": 47
+          },
+          {
+            "across_state": 0.17714285714285713,
+            "across_symbol": 0.045608465608465605,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "accept",
+            "seed": 48
+          },
+          {
+            "across_state": 0.16523809523809524,
+            "across_symbol": 0.05164021164021164,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 49
+          },
+          {
+            "across_state": 0.17238095238095238,
+            "across_symbol": 0.05555555555555555,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 50
+          },
+          {
+            "across_state": 0.17142857142857143,
+            "across_symbol": 0.05343915343915343,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "accept",
+            "seed": 51
+          },
+          {
+            "across_state": 0.1619047619047619,
+            "across_symbol": 0.05534391534391534,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "reject",
+            "seed": 52
+          },
+          {
+            "across_state": 0.16809523809523805,
+            "across_symbol": 0.049417989417989416,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.1747619047619047,
+            "across_symbol": 0.05142857142857143,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.1638095238095238,
+            "across_symbol": 0.057671957671957666,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.1761904761904762,
+            "across_symbol": 0.04994708994708994,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 56
+          },
+          {
+            "across_state": 0.1519047619047619,
+            "across_symbol": 0.04814814814814815,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 57
+          },
+          {
+            "across_state": 0.1538095238095238,
+            "across_symbol": 0.05724867724867724,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 58
+          },
+          {
+            "across_state": 0.16142857142857142,
+            "across_symbol": 0.04571428571428571,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "accept",
+            "seed": 59
+          },
+          {
+            "across_state": 0.1642857142857143,
+            "across_symbol": 0.04380952380952381,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "0",
+            "seed": 60
+          },
+          {
+            "across_state": 0.16380952380952382,
+            "across_symbol": 0.04613756613756614,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "reject",
+            "seed": 61
+          }
+        ],
+        "rule": "constant",
+        "strength": 30.0
+      },
+      "off-p15": {
+        "decided": 0,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.008508834640215337,
+            "high": 0.1060802632116439,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "off-p15 across-state",
+            "low": 0.08906259393121324,
+            "mean": 0.09757142857142857,
+            "values": [
+              0.10714285714285712,
+              0.0961904761904762,
+              0.13809523809523808,
+              0.09047619047619052,
+              0.12047619047619046,
+              0.07142857142857144,
+              0.10857142857142857,
+              0.06952380952380953,
+              0.12857142857142856,
+              0.08571428571428573,
+              0.08571428571428573,
+              0.09571428571428572,
+              0.09047619047619047,
+              0.09714285714285716,
+              0.10571428571428572,
+              0.1142857142857143,
+              0.0961904761904762,
+              0.0761904761904762,
+              0.09190476190476193,
+              0.08190476190476188
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0032480653314520846,
+            "high": 0.991263938347325,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "off-p15 across-symbol",
+            "low": 0.9847678076844208,
+            "mean": 0.9880158730158729,
+            "values": [
+              0.9821164021164019,
+              0.9860317460317459,
+              0.9863492063492062,
+              1.0,
+              0.9862433862433865,
+              0.9858201058201056,
+              0.9953439153439153,
+              0.9860317460317459,
+              0.9875132275132273,
+              0.9858201058201056,
+              0.9858201058201056,
+              0.9858201058201056,
+              1.0,
+              0.9908994708994707,
+              0.9955555555555554,
+              0.9860317460317457,
+              0.980952380952381,
+              1.0,
+              0.9768253968253968,
+              0.9771428571428571
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.10714285714285712,
+            "across_symbol": 0.9821164021164019,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 42
+          },
+          {
+            "across_state": 0.0961904761904762,
+            "across_symbol": 0.9860317460317459,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.13809523809523808,
+            "across_symbol": 0.9863492063492062,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 44
+          },
+          {
+            "across_state": 0.09047619047619052,
+            "across_symbol": 1.0,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 45
+          },
+          {
+            "across_state": 0.12047619047619046,
+            "across_symbol": 0.9862433862433865,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 46
+          },
+          {
+            "across_state": 0.07142857142857144,
+            "across_symbol": 0.9858201058201056,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 47
+          },
+          {
+            "across_state": 0.10857142857142857,
+            "across_symbol": 0.9953439153439153,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 48
+          },
+          {
+            "across_state": 0.06952380952380953,
+            "across_symbol": 0.9860317460317459,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 49
+          },
+          {
+            "across_state": 0.12857142857142856,
+            "across_symbol": 0.9875132275132273,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 50
+          },
+          {
+            "across_state": 0.08571428571428573,
+            "across_symbol": 0.9858201058201056,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 51
+          },
+          {
+            "across_state": 0.08571428571428573,
+            "across_symbol": 0.9858201058201056,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 52
+          },
+          {
+            "across_state": 0.09571428571428572,
+            "across_symbol": 0.9858201058201056,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 53
+          },
+          {
+            "across_state": 0.09047619047619047,
+            "across_symbol": 1.0,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 54
+          },
+          {
+            "across_state": 0.09714285714285716,
+            "across_symbol": 0.9908994708994707,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 55
+          },
+          {
+            "across_state": 0.10571428571428572,
+            "across_symbol": 0.9955555555555554,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 56
+          },
+          {
+            "across_state": 0.1142857142857143,
+            "across_symbol": 0.9860317460317457,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 57
+          },
+          {
+            "across_state": 0.0961904761904762,
+            "across_symbol": 0.980952380952381,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0761904761904762,
+            "across_symbol": 1.0,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "1",
+            "seed": 59
+          },
+          {
+            "across_state": 0.09190476190476193,
+            "across_symbol": 0.9768253968253968,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 60
+          },
+          {
+            "across_state": 0.08190476190476188,
+            "across_symbol": 0.9771428571428571,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 61
+          }
+        ],
+        "rule": "off",
+        "strength": 0.0
+      },
+      "proportional-p15": {
+        "decided": 18,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.0,
+            "high": 0.0,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "proportional-p15 across-state",
+            "low": 0.0,
+            "mean": 0.0,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0,
+            "high": 0.0,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "proportional-p15 across-symbol",
+            "low": 0.0,
+            "mean": 0.0,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 15,
+        "rows": [
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 42
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 43
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 44
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "1",
+            "seed": 46
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 47
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 48
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 49
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 50
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "0",
+            "seed": 51
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 56
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 57
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 59
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 60
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 61
+          }
+        ],
+        "rule": "proportional",
+        "strength": 0.0
+      },
+      "proportional-p30": {
+        "decided": 20,
+        "ensembles": {
+          "across_state": {
+            "ci": 0.0,
+            "high": 0.0,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "proportional-p30 across-state",
+            "low": 0.0,
+            "mean": 0.0,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "across_symbol": {
+            "ci": 0.0,
+            "high": 0.0,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "proportional-p30 across-symbol",
+            "low": 0.0,
+            "mean": 0.0,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 30,
+        "rows": [
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 42
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 43
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 44
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 46
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 47
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 48
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 49
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 50
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 51
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 54
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 56
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 57
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 59
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 60
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 61
+          }
+        ],
+        "rule": "proportional",
+        "strength": 0.0
+      },
+      "proportional-p5": {
+        "decided": 3,
+        "ensembles": {
+          "across_state": {
+            "ci": 8.164568117611503e-05,
+            "high": 0.00015307425260468647,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "proportional-p5 across-state",
+            "low": -1.02171097475436e-05,
+            "mean": 7.142857142857143e-05,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0004761904761904762,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0004761904761904762,
+              0.0004761904761904762,
+              0.0,
+              0.0,
+              0.0,
+              0.0
+            ]
+          },
+          "across_symbol": {
+            "ci": 2.328494722492996e-05,
+            "high": 5.50309789709617e-05,
+            "keys": [
+              42,
+              43,
+              44,
+              45,
+              46,
+              47,
+              48,
+              49,
+              50,
+              51,
+              52,
+              53,
+              54,
+              55,
+              56,
+              57,
+              58,
+              59,
+              60,
+              61
+            ],
+            "label": "proportional-p5 across-symbol",
+            "low": 8.461084521101783e-06,
+            "mean": 3.1746031746031745e-05,
+            "values": [
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.0,
+              0.00010582010582010581,
+              0.00010582010582010581,
+              0.00010582010582010581,
+              0.0,
+              0.0,
+              0.00010582010582010581,
+              0.00010582010582010581,
+              0.00010582010582010581
+            ]
+          }
+        },
+        "n": 20,
+        "presentations": 5,
+        "rows": [
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "1",
+            "seed": 42
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 43
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "2",
+            "seed": 44
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "2",
+            "positive_label": "accept",
+            "seed": 45
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 46
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "reject",
+            "positive_label": "reject",
+            "seed": 47
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "2",
+            "seed": 48
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 49
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 50
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "reject",
+            "seed": 51
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 52
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "accept",
+            "seed": 53
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.00010582010582010581,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "0",
+            "seed": 54
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.00010582010582010581,
+            "decided": 1,
+            "negative_label": "reject",
+            "positive_label": "accept",
+            "seed": 55
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.00010582010582010581,
+            "decided": 0,
+            "negative_label": "1",
+            "positive_label": "0",
+            "seed": 56
+          },
+          {
+            "across_state": 0.0004761904761904762,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 57
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.0,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "reject",
+            "seed": 58
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.00010582010582010581,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "2",
+            "seed": 59
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.00010582010582010581,
+            "decided": 0,
+            "negative_label": "accept",
+            "positive_label": "accept",
+            "seed": 60
+          },
+          {
+            "across_state": 0.0,
+            "across_symbol": 0.00010582010582010581,
+            "decided": 0,
+            "negative_label": "0",
+            "positive_label": "1",
+            "seed": 61
+          }
+        ],
+        "rule": "proportional",
+        "strength": 0.0
+      }
+    },
+    "bars": {
+      "AR-1 proportional at 15: decided >= 18/20 and both overlaps <= 0.05": true,
+      "AR-2 off at 15: across-symbol >= 0.5 on every seed, decided <= 2/20, across-state mean <= 0.2": true,
+      "AR-3 some constant decides >= 18/20 at 15": true,
+      "AR-4 s*": 10.0,
+      "AR-4 s* = 10: decided <= 2/20 at 30 while proportional >= 18/20 at 30": true
+    },
+    "chance_overlap": 0.014,
+    "scope": "vendored reference arc: refraction ablation and constant-versus-proportional rule",
+    "verdict": "PASS"
+  },
+  "run": {
+    "engine": "reference_nemo_numpy",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {}
+    },
+    "execution_semantics": {
+      "kind": "reference",
+      "profiles": {
+        "default": {
+          "arithmetic": "float64",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-dense-stream-addressed",
+          "default_tie_break": "backend-topk-order",
+          "normalization": "none",
+          "plasticity": "multiplicative-unbounded",
+          "stimulus_drive": "fixed-bernoulli-afferent-count",
+          "weight_ceiling": null
+        }
+      }
+    },
+    "git_commit": "e0d89e1a660c489fe290c717ed4e86d280d34de4",
+    "input_artifacts": {},
+    "mode": "study",
+    "parameters": {
+      "arms": [
+        {
+          "presentations": 5,
+          "rule": "proportional",
+          "strength": 0.0
+        },
+        {
+          "presentations": 15,
+          "rule": "proportional",
+          "strength": 0.0
+        },
+        {
+          "presentations": 30,
+          "rule": "proportional",
+          "strength": 0.0
+        },
+        {
+          "presentations": 15,
+          "rule": "off",
+          "strength": 0.0
+        },
+        {
+          "presentations": 5,
+          "rule": "constant",
+          "strength": 1.0
+        },
+        {
+          "presentations": 15,
+          "rule": "constant",
+          "strength": 1.0
+        },
+        {
+          "presentations": 30,
+          "rule": "constant",
+          "strength": 1.0
+        },
+        {
+          "presentations": 5,
+          "rule": "constant",
+          "strength": 3.0
+        },
+        {
+          "presentations": 15,
+          "rule": "constant",
+          "strength": 3.0
+        },
+        {
+          "presentations": 30,
+          "rule": "constant",
+          "strength": 3.0
+        },
+        {
+          "presentations": 5,
+          "rule": "constant",
+          "strength": 10.0
+        },
+        {
+          "presentations": 15,
+          "rule": "constant",
+          "strength": 10.0
+        },
+        {
+          "presentations": 30,
+          "rule": "constant",
+          "strength": 10.0
+        },
+        {
+          "presentations": 5,
+          "rule": "constant",
+          "strength": 30.0
+        },
+        {
+          "presentations": 15,
+          "rule": "constant",
+          "strength": 30.0
+        },
+        {
+          "presentations": 30,
+          "rule": "constant",
+          "strength": 30.0
+        },
+        {
+          "presentations": 5,
+          "rule": "constant",
+          "strength": 100.0
+        },
+        {
+          "presentations": 15,
+          "rule": "constant",
+          "strength": 100.0
+        },
+        {
+          "presentations": 30,
+          "rule": "constant",
+          "strength": 100.0
+        }
+      ],
+      "cap": 70,
+      "density": 0.2,
+      "n_arc": 5000,
+      "n_state": 500,
+      "n_symbol": 1000,
+      "negative": [
+        6,
+        7,
+        3,
+        10
+      ],
+      "plasticity": 0.1,
+      "positive": [
+        3,
+        0,
+        4,
+        7,
+        1,
+        10
+      ]
+    },
+    "protocol": "sequence.arc-refraction-reference",
+    "protocol_version": "2",
+    "registration": "research/notes/sequence/PREREG_arc_refraction_reference.md",
+    "registration_sha256": "77746e1f7a953c1287261537b430efb5a898b4359a002899319a388922592782",
+    "schema_version": 9,
+    "scientific_status": "UNJUDGED",
+    "script": "research/experiments/seq_arc_refraction_reference.py",
+    "script_sha256": "690cf6002f0d10d3db2b8f468cfaceacdcbb70b590de95fa75301ef5f8519e57",
+    "seeds": [
+      42,
+      43,
+      44,
+      45,
+      46,
+      47,
+      48,
+      49,
+      50,
+      51,
+      52,
+      53,
+      54,
+      55,
+      56,
+      57,
+      58,
+      59,
+      60,
+      61
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "b5463fc119139333b03421ceecac1d14bf2596cfff9d6a19683747a666fb8c95"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "c07d4172e773948709f3ffc1bd1f6e95834e003743b0620bb6c4ec4938a9ab3e",
+    "started_utc": "2026-09-13T02:42:25.587095+00:00",
+    "tag": "arc-ref-study-20260912"
+  },
+  "status": "complete"
+}

@@ -110,13 +110,13 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
     missing = required - record.keys()
     if record.get('schema_version') == 6 and 'model_semantics' not in record:
         missing.add('model_semantics')
-    if record.get('schema_version') in (7, 8, 9) and 'execution_semantics' not in record:
+    if record.get('schema_version') in (7, 8, 9, 10) and 'execution_semantics' not in record:
         missing.add('execution_semantics')
     if missing:
         return [f'missing run fields: {sorted(missing)}']
-    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5, 6, 7, 8, 9):
+    if type(record['schema_version']) is not int or record['schema_version'] not in (1, 2, 3, 4, 5, 6, 7, 8, 9, 10):
         errors.append('unsupported run schema version')
-    if record['schema_version'] in (2, 3, 4, 5, 6, 7, 8, 9) or 'environment' in record:
+    if record['schema_version'] in (2, 3, 4, 5, 6, 7, 8, 9, 10) or 'environment' in record:
         environment = record.get('environment')
         if (not isinstance(environment, dict)
                 or set(environment) != {'policy', 'variables_sha256'}
@@ -150,7 +150,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'invalid model_semantics: {exc}')
         elif semantics is not None:
             errors.append('non-Brain engine cannot claim Brain model_semantics')
-    if record['schema_version'] in (7, 8, 9):
+    if record['schema_version'] in (7, 8, 9, 10):
         semantics = record.get('execution_semantics')
         try:
             normalized = ExecutionSemantics.normalize(semantics)
@@ -185,6 +185,22 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append('execution_semantics names an unknown alignment engine')
         except (TypeError, ValueError) as exc:
             errors.append(f'invalid execution_semantics: {exc}')
+    if record['schema_version'] >= 10:
+        # Specification: neural_assemblies/ir/VERIFICATION.md#contract-observation-policy
+        from neural_assemblies.core.semantics import ObservationPolicy
+
+        policy = record.get('observation_policy', 'MISSING')
+        reads_substrate = (record['engine'] in BRAIN_ENGINE_NAMES
+                           or record['engine'] in REFERENCE_ENGINE_NAMES)
+        if policy == 'MISSING':
+            errors.append('schema 10 records carry observation_policy')
+        elif reads_substrate:
+            try:
+                ObservationPolicy.normalize(policy)
+            except ValueError as exc:
+                errors.append(f'invalid observation_policy: {exc}')
+        elif policy is not None:
+            errors.append('observation_policy must be null for organ, aligner and baseline runs')
     if path.parent.name != record['tag'] or path.parent.parent.name != record['protocol']:
         errors.append('artifact directory does not match protocol and tag')
     for field in ('script', 'registration'):
@@ -204,7 +220,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
                 errors.append(f'dangling input artifact edge: {name}')
             if not re.fullmatch('[a-f0-9]{64}', str(digest)):
                 errors.append(f'invalid input artifact digest: {name}')
-    if record['schema_version'] in (3, 4, 5, 6, 7, 8, 9) or 'source_archive' in record:
+    if record['schema_version'] in (3, 4, 5, 6, 7, 8, 9, 10) or 'source_archive' in record:
         errors.extend(validate_source_archive(path.parent, record))
     seeds = record['seeds']
     if not isinstance(seeds, list) or any(type(s) is not int for s in seeds):
@@ -221,7 +237,7 @@ def validate_artifact(path: Path, *, root: Path = ROOT) -> list[str]:
         errors.append('run mode and scientific status are inconsistent')
     if payload.get('status') != 'complete' or not isinstance(payload.get('observations'), dict):
         errors.append('artifact is not a completed observation record')
-    if record['schema_version'] in (5, 6, 7, 8, 9):
+    if record['schema_version'] in (5, 6, 7, 8, 9, 10):
         errors.extend(_validate_attachments(path, payload.get('attachments')))
     return errors
 

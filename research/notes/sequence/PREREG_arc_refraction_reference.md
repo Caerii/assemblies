@@ -94,3 +94,51 @@ drive-proportional (`REFRACTION-PROPORTIONAL`, `implemented_by`).
 API check only, three seeds, two presentations, three arms:
 `research/results/runs/sequence.arc-refraction-reference/arc-ref-smoke-20260912/results.json`.
 Its numbers are VOID by construction.
+
+## Result (2026-09-12, twenty seeds, all four bars PASS)
+
+Artifact: `research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json`
+(engine `reference_nemo_numpy`, seeds 42 to 61, run from the pinned commit
+e0d89e1a in a worktree reserved for studies; source archive and run record
+retained). Chance arc overlap k/n = 0.014.
+
+| arm | across-state | across-symbol | decided |
+|---|---|---|---|
+| proportional, 5 | 0.000 | 0.000 | 3/20 |
+| proportional, 15 | 0.000 | 0.000 | 18/20 |
+| proportional, 30 | 0.000 | 0.000 | 20/20 |
+| off, 15 | 0.098 | 0.988 | 0/20 |
+| constant 1 (5 / 15 / 30) | 0.042 / 0.034 / 0.034 | 0.945 / 0.963 / 0.966 | 0 / 0 / 0 |
+| constant 3 | 0.102 / 0.113 / 0.110 | 0.643 / 0.873 / 0.880 | 0 / 0 / 0 |
+| constant 10 | 0.116 / 0.001 / 0.131 | 0.046 / 0.000 / 0.369 | 0 / 20 / 0 |
+| constant 30 | 0.167 / 0.104 / 0.013 | 0.050 / 0.070 / 0.006 | 0 / 0 / 20 |
+| constant 100 | 0.167 / 0.410 / 0.419 | 0.050 / 0.407 / 0.237 | 2 / 0 / 0 |
+
+- **AR-1 PASS.** Proportional at 15 decides 18 of 20 (at the bar), both
+  overlaps 0.000. At 5 presentations it decides 3 of 20 (the three-seed log
+  had 0 of 3); at 30 it decides all 20.
+- **AR-2 PASS.** Refraction off: across-symbol overlap 0.977 to 0.997 on
+  every seed (mean 0.988), across-state 0.098, decided 0 of 20. The arc
+  collapses onto the symbol-blind degeneracy on every brain. Retained
+  sensitivity for `ARC-CONJUNCT-EXPOSURE`: across-symbol overlap, `off-p15`
+  against `proportional-p15`, every seed greater by at least 0.5 (the
+  smallest retained effect is 0.977).
+- **AR-3 PASS.** Constant 10 decides 20 of 20 at 15 presentations with
+  overlaps 0.001 and 0.000: at that scale the constant increment matches the
+  proportional rule's operating point.
+- **AR-4 PASS.** s* = 10 decides 0 of 20 at 30 presentations (across-symbol
+  0.369: the arc has begun to collapse onto the symbol-blind degeneracy as
+  potentiation outruns the fixed increment), while proportional decides 20
+  of 20. Constant 30 decides 0 of 20 at 15 and 20 of 20 at 30: the operating
+  point moves with the drive scale, exactly as the three-seed log showed.
+  Retained sensitivity for `REFRACTION-PROPORTIONAL`, chosen after the data
+  among the retained per-seed quantities at 30 presentations: `decided`,
+  `proportional-p30` against `constant-s10-p30`, every seed greater by 1
+  (all twenty flip). The across-symbol contrast at 30 presentations also
+  moves on every seed (0.000 against 0.369 in the mean) but with a smaller
+  minimum effect; `decided` is the quantity the claim is about.
+
+What the run does not say: nothing about this repository's engines, whose
+refraction rule is now drive-proportional; and the constant rule's failure
+at 30 presentations is a scale mismatch, not a proof that no constant
+schedule could work (constant 30 does, at that presentation count).

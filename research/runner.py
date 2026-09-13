@@ -22,8 +22,8 @@ from neural_assemblies.core.semantics import (
     ALIGNER_ENGINE_NAMES, AlignerSemantics, AlignmentStore, BASELINE_ENGINE_NAMES,
     BRAIN_ENGINE_NAMES, BaselineSemantics, ExecutionKind,
     ExecutionSemantics, ModelSemantics, NormalizationMode, ORGAN_ENGINE_KINDS,
-    OrganSemantics, PlasticityRule, REFERENCE_ENGINE_NAMES, REFERENCE_ENGINE_PROFILES,
-    describe_brain_model,
+    ObservationPolicy, OrganSemantics, PlasticityRule, REFERENCE_ENGINE_NAMES,
+    REFERENCE_ENGINE_PROFILES, describe_brain_model,
 )
 from research.json_documents import (
     encode_document, snapshot_document, write_new_document as _write_new,
@@ -194,7 +194,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                    model_semantics: ModelSemantics | Mapping | None = None,
                    organ_semantics: OrganSemantics | Mapping | None = None,
                    aligner_semantics: AlignerSemantics | Mapping | None = None,
-                   baseline_semantics: BaselineSemantics | Mapping | None = None) -> Path:
+                   baseline_semantics: BaselineSemantics | Mapping | None = None,
+                   observation_policy: ObservationPolicy | str | None = None) -> Path:
     """Execute one resolved protocol; return its immutable results file.
 
     `measure(record)` receives a JSON snapshot of the resolved inputs. It must
@@ -325,6 +326,27 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
         schema_version = 9
     else:
         raise ValueError(f'unknown execution engine: {engine}')
+    # Specification: neural_assemblies/ir/VERIFICATION.md#contract-observation-policy
+    # A substrate that is READ by the study (Brain engines, the vendored
+    # reference) must say how: whether the readout learns, recruits, or
+    # leaves a trace. Organ and aligner profiles carry an inference schedule
+    # already; a computed baseline reads nothing. Schema 10 records the field
+    # for every kind (null where it does not apply).
+    if engine in BRAIN_ENGINES or engine in REFERENCE_ENGINES:
+        if observation_policy is None:
+            raise ValueError(
+                f'{engine} runs must declare observation_policy: one of '
+                f'{[policy.value for policy in ObservationPolicy]}'
+            )
+        policy_value = ObservationPolicy.normalize(observation_policy).value
+    else:
+        if observation_policy is not None:
+            raise ValueError(
+                f'{engine} carries its readout in its execution profile; '
+                'observation_policy must be None'
+            )
+        policy_value = None
+    schema_version = 10
     if type(smoke) is not bool or type(minimum_study_seeds) is not int or minimum_study_seeds < 3:
         raise ValueError('smoke must be boolean and minimum_study_seeds an integer of at least three')
     seeds = list(seeds)
@@ -351,7 +373,8 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
                   script_sha256=hashlib.sha256(script_path.read_bytes()).hexdigest(),
                   registration=registration_path.relative_to(ROOT).as_posix(),
                   registration_sha256=hashlib.sha256(registration_path.read_bytes()).hexdigest(),
-                  engine=engine, execution_semantics=execution_document, seeds=seeds,
+                  engine=engine, execution_semantics=execution_document,
+                  observation_policy=policy_value, seeds=seeds,
                   tag=tag, parameters=dict(parameters), input_artifacts=inputs,
                   mode='smoke' if smoke else 'study', scientific_status='VOID' if smoke else 'UNJUDGED',
                   started_utc=datetime.now(timezone.utc).isoformat(), **_source_identity())

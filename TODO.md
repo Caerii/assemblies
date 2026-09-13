@@ -45,26 +45,47 @@ source-linked contract, negative control, and relevant gate are all present.
   accurate for every measured entry, and migrate each entry from prose-only
   caveats to retained treatment/control vectors. Every adopted result needs a
   beta-zero or mechanism-disabled null whose measured number moves.
-  - Progress 2026-09-12: retained checks now on 9 of 15 MEASURED entries
+  - Progress 2026-09-12: retained checks now on 11 of 15 MEASURED entries
     (added SEQ-EXACT-RECOVERY, AC-CAP, SEQ-ORGAN-EMBEDS,
-    REFRACTION-NEEDS-LOAD, SEQ-REGIME-CLIFF). Running: the twenty-seed
-    arc-reference study for ARC-CONJUNCT-EXPOSURE and
-    REFRACTION-PROPORTIONAL. Still prose-only: REFRACTION-CANCELS-CONVERGENCE
-    (needs a registration splitting the wander diagnostic's arms, GPU),
-    KWTA-TIE-FRAGILE (a CPU tie-count experiment with a jittered null, to
-    register), CAP-RATIO and CAP-ANCHOR-RATIO (GPU capacity cells: equal
-    n/k at different n, and anchor 100 against 200).
+    REFRACTION-NEEDS-LOAD, SEQ-REGIME-CLIFF, and, from the twenty-seed
+    arc-reference study with all four registered bars passing,
+    ARC-CONJUNCT-EXPOSURE and REFRACTION-PROPORTIONAL). Still prose-only:
+    REFRACTION-CANCELS-CONVERGENCE (needs a registration splitting the
+    wander diagnostic's arms, GPU), KWTA-TIE-FRAGILE (a CPU tie-count
+    experiment with a jittered null, to register), CAP-RATIO and
+    CAP-ANCHOR-RATIO (GPU capacity cells: equal n/k at different n, and
+    anchor 100 against 200).
 - [ ] **Finish operation semantic cards.** For projection, association,
   reciprocal projection, merge, completion, attention, binding, memory, FSM,
   transducer, and parser operations, diff executable state reads/mutations,
   schedule, learning rule, readout, and failure conditions against the
   docstring and register. Turn each discrepancy into a regression test or
   corrected claim. Keep a constructed true negative for every contract.
+  - Progress 2026-09-12: R2, C3, F1, F2, T1/T2 have regression tests; D1
+    is a claim-scope note (SEMANTIC_CARDS.md, "Card resolutions"). The
+    parser card (E1..E11, training and parse entry points) is written from
+    the executable bodies; its eleven discrepancies and its beta-zero
+    core->role control are the open work under this item. Cards that still
+    lack a discrepancy-by-discrepancy resolution: attention (design target
+    only), binding (cards exist at the plan level).
 - [ ] **Make configuration the single source of truth.** Expand the validated
   immutable semantics envelope so connectome mode, candidate domain, stimulus
   law, tie rule, arithmetic, normalization, plasticity, schedule, and
   observation policy are never inferred from scattered flags. Serialize the
   resolved configuration in every run and reject partial profiles.
+  - Progress 2026-09-12: partial profiles are rejected at construction
+    (missing or unknown fields) for every record type. Observation policy
+    is now a closed enum (`ObservationPolicy`: plastic, frozen, probe,
+    read-only, none), required in the record of every run that reads a
+    substrate (Brain engines, the vendored reference) and refused for
+    organ, aligner and baseline runs; run schema 10; the completion plan
+    spells its modes with the same enum; every migrated Brain-engine entry
+    point declares its policy beside the context manager it uses.
+    Remaining: an explicit schedule document for Brain-engine runs (today
+    the schedule is the immutable operation plans plus `presentations` and
+    `rounds` in the parameters, not a validated field), and a check that
+    the declared policy matches the code path (today a per-experiment
+    reading obligation).
 
 ## Index spaces and runtime composition
 

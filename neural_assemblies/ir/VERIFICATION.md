@@ -1176,6 +1176,37 @@ describer, a schema-7 record carrying a baseline kind, and a Brain run handed
 a baseline profile all fail before any measurement.
 
 
+<a id="contract-observation-policy"></a>
+
+## Observation policy is part of the run record
+
+How a study reads the model it measures used to be a property of whichever
+context manager the script happened to use: `Brain.frozen` (plasticity off,
+recruitment and activity retained), `Brain.probe` (plasticity off and
+recruitment suppressed), `Brain.read_only` (every supported state restored
+on exit), nothing at all (the historical learning-on protocols), or no
+readout projection (weights inspected directly). The choice moves numbers,
+as the probe docstring records, and it was not in the record.
+
+`ObservationPolicy` is the closed enum: `plastic`, `frozen`, `probe`,
+`read-only`, `none`. From run schema 10 every record carries
+`observation_policy`. `run_experiment` requires it for the kinds that read a
+substrate (Brain engines and the vendored reference) and refuses it for
+organ, aligner and baseline runs, whose execution profile carries an
+inference schedule or reads nothing. `CompletionPlan.observation_mode`
+spells its three admissible modes with the same enum, so a completion
+protocol and a run record cannot disagree on what `frozen` means.
+
+The validator requires the field on schema-10 records, checks it against
+the enum where a substrate is read, and requires `null` elsewhere. What it
+does not do: verify that the script's code path matched the declared
+policy. That is a per-experiment obligation, discharged by reading the
+measurement code (each migrated entry point names the context manager it
+uses in a comment beside the declaration). Constructed negatives: a Brain
+run without a policy, a policy outside the enum, and an organ or aligner run
+that declares one all fail before reservation.
+
+
 <a id="contract-homeostasis-config"></a>
 
 ## Shared homeostasis configuration

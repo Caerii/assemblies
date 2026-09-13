@@ -8,7 +8,7 @@ admitted case with a constructed negative that must fail before measurement.
 """
 import json
 from pathlib import Path
-from typing import Any
+from typing import Any, cast
 
 import pytest
 
@@ -78,10 +78,10 @@ def test_baseline_profile_rejects_partial_and_extra_fields():
 
 # --- runner admission ------------------------------------------------------
 
-def test_baseline_run_writes_schema_nine_and_validates(run):
+def test_baseline_run_writes_the_current_schema_and_validates(run):
     path = run()
     record = json.loads(path.read_text())["run"]
-    assert record["schema_version"] == 9
+    assert record["schema_version"] == 10
     assert record["engine"] == "computed_baseline"
     assert record["execution_semantics"] == {
         "kind": "baseline", "profiles": {"default": BASELINE.to_dict()},
@@ -116,9 +116,9 @@ def test_brain_run_refuses_a_baseline_profile(run, tmp_path):
 
 def test_reference_run_requires_the_declared_profile_exactly(run, tmp_path):
     path = run(engine="reference_nemo_numpy", baseline_semantics=None,
-               model_semantics=REFERENCE)
+               model_semantics=REFERENCE, observation_policy="frozen")
     record = json.loads(path.read_text())["run"]
-    assert record["schema_version"] == 9
+    assert record["schema_version"] == 10
     assert record["execution_semantics"]["kind"] == "reference"
     assert record["execution_semantics"]["profiles"]["default"] == REFERENCE.to_dict()
     assert validate_artifact(path) == []
@@ -133,7 +133,7 @@ def test_reference_run_requires_the_declared_profile_exactly(run, tmp_path):
     calls = []
     with pytest.raises(ValueError, match="does not implement requested"):
         run(engine="reference_nemo_numpy", baseline_semantics=None,
-            model_semantics=clipped, tag="clipped",
+            model_semantics=clipped, tag="clipped", observation_policy="frozen",
             measure=lambda record: calls.append(record))
     assert calls == []
     assert not (tmp_path / "audit.kinds" / "clipped").exists()
@@ -156,9 +156,9 @@ def test_envelope_discriminates_the_new_kinds():
     reference = ExecutionSemantics(ExecutionKind.REFERENCE, {"default": REFERENCE})
     assert reference.to_dict()["kind"] == "reference"
     with pytest.raises(ValueError):
-        ExecutionSemantics(ExecutionKind.BASELINE, {"default": REFERENCE.to_dict()})
+        ExecutionSemantics(ExecutionKind.BASELINE, cast(Any, {"default": REFERENCE.to_dict()}))
     with pytest.raises(ValueError):
-        ExecutionSemantics(ExecutionKind.REFERENCE, {"default": BASELINE.to_dict()})
+        ExecutionSemantics(ExecutionKind.REFERENCE, cast(Any, {"default": BASELINE.to_dict()}))
     with pytest.raises(ValueError, match="exactly the default profile"):
         ExecutionSemantics(ExecutionKind.BASELINE, {"a": BASELINE, "b": BASELINE})
 
@@ -191,7 +191,7 @@ def test_validator_rejects_kind_engine_and_schema_disagreement(run):
 
 def test_validator_rechecks_reference_profile_against_the_describer(run):
     path = run(engine="reference_nemo_numpy", baseline_semantics=None,
-               model_semantics=REFERENCE)
+               model_semantics=REFERENCE, observation_policy="frozen")
 
     def drift(record):
         record["execution_semantics"]["profiles"]["default"]["normalization"] = "inverse-indegree"

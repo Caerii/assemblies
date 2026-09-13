@@ -207,6 +207,7 @@ def main(argv=None):
         protocol_version="1", registration=REGISTRATION, engine=args.engine,
         seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         minimum_study_seeds=20,
+        observation_policy="none",  # weights are inspected directly; no readout projection
         model_semantics=describe_brain_model(
             args.engine, p=DEFAULTS["p"], seed=0,
             w_max=DEFAULTS["w_max"], norm_init=False,

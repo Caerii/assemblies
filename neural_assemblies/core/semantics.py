@@ -148,6 +148,30 @@ class BaselineScoring(_SemanticEnum):
     MRR_RANDOM_TIES = "mrr-random-ties"
 
 
+class ObservationPolicy(_SemanticEnum):
+    """How a measurement reads the substrate it measures.
+
+    Specification: neural_assemblies/ir/VERIFICATION.md#contract-observation-policy
+
+    One closed spelling for a choice that used to live in scattered context
+    managers: whether the readout projections learn, whether the area may
+    recruit while being read, and whether the read leaves any trace.
+    Organ and aligner profiles carry their inference schedule instead;
+    computed baselines read no substrate.
+    """
+
+    #: readout projections learn (the historical learning-on protocols)
+    PLASTIC = "plastic"
+    #: plasticity off; activity and recruitment retained (``Brain.frozen``)
+    FROZEN = "frozen"
+    #: plasticity off and recruitment suppressed (``Brain.probe``)
+    PROBE = "probe"
+    #: every supported state restored on exit (``Brain.read_only``)
+    READ_ONLY = "read-only"
+    #: no readout projection: weights or counts inspected directly
+    NONE = "none"
+
+
 class AlignmentStore(_SemanticEnum):
     PRESENT_ONLY = "present-only"
     DENSE_COUNTS = "dense-counts"
@@ -582,10 +606,9 @@ class ExecutionSemantics:
     """A strict, discriminated collection of model profiles used by one run."""
 
     kind: ExecutionKind
-    # Records or their wire mappings; __post_init__ normalizes every profile
-    # to the record type the kind requires and rejects anything else.
-    profiles: Mapping[str, ModelSemantics | OrganSemantics | AlignerSemantics
-                      | BaselineSemantics | Mapping[str, object]]
+    # Records after __post_init__, which also accepts their wire mappings at
+    # construction and normalizes each to the record type the kind requires.
+    profiles: Mapping[str, ModelSemantics | OrganSemantics | AlignerSemantics | BaselineSemantics]
 
     def __post_init__(self):
         object.__setattr__(self, "kind", ExecutionKind.normalize(self.kind))

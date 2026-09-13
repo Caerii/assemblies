@@ -1,0 +1,182 @@
+{
+  "engine": "reference_nemo_numpy",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "execution_semantics": {
+    "kind": "reference",
+    "profiles": {
+      "default": {
+        "arithmetic": "float64",
+        "candidate_domain": "all-neurons",
+        "connectome": "fixed-dense-stream-addressed",
+        "default_tie_break": "backend-topk-order",
+        "normalization": "none",
+        "plasticity": "multiplicative-unbounded",
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "weight_ceiling": null
+      }
+    }
+  },
+  "git_commit": "e0d89e1a660c489fe290c717ed4e86d280d34de4",
+  "input_artifacts": {},
+  "mode": "study",
+  "parameters": {
+    "arms": [
+      {
+        "presentations": 5,
+        "rule": "proportional",
+        "strength": 0.0
+      },
+      {
+        "presentations": 15,
+        "rule": "proportional",
+        "strength": 0.0
+      },
+      {
+        "presentations": 30,
+        "rule": "proportional",
+        "strength": 0.0
+      },
+      {
+        "presentations": 15,
+        "rule": "off",
+        "strength": 0.0
+      },
+      {
+        "presentations": 5,
+        "rule": "constant",
+        "strength": 1.0
+      },
+      {
+        "presentations": 15,
+        "rule": "constant",
+        "strength": 1.0
+      },
+      {
+        "presentations": 30,
+        "rule": "constant",
+        "strength": 1.0
+      },
+      {
+        "presentations": 5,
+        "rule": "constant",
+        "strength": 3.0
+      },
+      {
+        "presentations": 15,
+        "rule": "constant",
+        "strength": 3.0
+      },
+      {
+        "presentations": 30,
+        "rule": "constant",
+        "strength": 3.0
+      },
+      {
+        "presentations": 5,
+        "rule": "constant",
+        "strength": 10.0
+      },
+      {
+        "presentations": 15,
+        "rule": "constant",
+        "strength": 10.0
+      },
+      {
+        "presentations": 30,
+        "rule": "constant",
+        "strength": 10.0
+      },
+      {
+        "presentations": 5,
+        "rule": "constant",
+        "strength": 30.0
+      },
+      {
+        "presentations": 15,
+        "rule": "constant",
+        "strength": 30.0
+      },
+      {
+        "presentations": 30,
+        "rule": "constant",
+        "strength": 30.0
+      },
+      {
+        "presentations": 5,
+        "rule": "constant",
+        "strength": 100.0
+      },
+      {
+        "presentations": 15,
+        "rule": "constant",
+        "strength": 100.0
+      },
+      {
+        "presentations": 30,
+        "rule": "constant",
+        "strength": 100.0
+      }
+    ],
+    "cap": 70,
+    "density": 0.2,
+    "n_arc": 5000,
+    "n_state": 500,
+    "n_symbol": 1000,
+    "negative": [
+      6,
+      7,
+      3,
+      10
+    ],
+    "plasticity": 0.1,
+    "positive": [
+      3,
+      0,
+      4,
+      7,
+      1,
+      10
+    ]
+  },
+  "protocol": "sequence.arc-refraction-reference",
+  "protocol_version": "2",
+  "registration": "research/notes/sequence/PREREG_arc_refraction_reference.md",
+  "registration_sha256": "77746e1f7a953c1287261537b430efb5a898b4359a002899319a388922592782",
+  "schema_version": 9,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_arc_refraction_reference.py",
+  "script_sha256": "690cf6002f0d10d3db2b8f468cfaceacdcbb70b590de95fa75301ef5f8519e57",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "b5463fc119139333b03421ceecac1d14bf2596cfff9d6a19683747a666fb8c95"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "c07d4172e773948709f3ffc1bd1f6e95834e003743b0620bb6c4ec4938a9ab3e",
+  "started_utc": "2026-09-13T02:42:25.587095+00:00",
+  "tag": "arc-ref-study-20260912"
+}

@@ -145,6 +145,7 @@ def main(argv=None):
         protocol_version="3", registration="research/notes/sequence/PREREG_sampler_audit.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         parameters=parameters,
+        observation_policy="probe",  # NemoArcFSM.run reads under Brain.probe
         model_semantics=describe_brain_model("numpy_sparse", p=AMBIENT_P,
                                              norm_init=False),
         measure=experiment,

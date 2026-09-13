@@ -1839,3 +1839,130 @@ claim; the test names are the record.
   remaining migration in TODO.md.
 - **P1, P2, P3, R1, M2, A1, A2, M1, C1, C2, C4** were resolved earlier in
   this document (see "First resolutions" and the plan resolutions above).
+
+
+## E: the emergent parser (training and parsing entry points)
+
+Drafted 2026-09-12 from the executable bodies at 3334876c by a read-only
+pass; IDs E1..E11 (the dialogue card owns Q). Overlaps with existing cards
+are listed at the end and referenced rather than duplicated. Open: each En
+below still needs a regression test or a corrected claim, and the Control
+(the beta-zero core->role arm, plus the noun-swapped sentence) has not been
+run; see TODO.md, item 1.4.
+
+<a id="contract-parser-train"></a>
+
+## Parser training: `EmergentParser.train` / `train_for_agent`
+
+Code: `emergent/parser_mixins/core.py:563-656`, `blocks.py:57-114`, `lexicon.py:118-220`, `training/batch.py:27-51`,
+`roles.py:63-126`, `ops.py:449-567` (`bind`), `phrases.py:104-206`, `gating.py:43-233`, `morphosyntax.py:260-400`,
+`core/corpus_index.py:225-258`.
+
+- **Reads:** `GroundedSentence.words/contexts/roles`; static `VOCABULARY` merged with corpus contexts, static entry
+  wins (`lexicon.py:44-91`); corpus frequency for per-word rounds (`training/compiler.py:152-166`, `perf.py:343-346`);
+  `fast_training` and `norm_init`, which set the round budget and gate the compiled path (`core.py:172-176,347-349`).
+- **Schedule** (`core.py:588-656`): `compile_corpus` writes `_category_cache` from `category_oracle` before any
+  projection (`corpus_index.py:255-258`); `ingest_raw_sentence` registers `phon_*` for unknown words and tallies
+  counts (`distributional.py:127-186`). `train_lexicon`, per word: `clear_activity(core)` (`lexicon.py:112-116`;
+  `brain.py:1661-1689`: winners erased, weights kept), one stimulus-only step of `phon_w` (size `phon_weight*k`,
+  `core.py:536-543`) plus every `{modality}_{feature}` stimulus (size k) into `GROUNDING_TO_CORE[dominant]`
+  (`core/areas.py:182-190`), then rounds-1 steps with core self-recurrence (`batch.py:37-51`); snapshot to
+  `core_lexicons`, cache `CORE_TO_CATEGORY[core]` (`lexicon.py:199-203`). `train_roles`, per annotated word with a
+  label in `ROLE_LABEL_TO_AREA`: replay the stored core snapshot (else phon->core with plasticity), fix core, one
+  step core->role, one step core->role + role->role, unfix (`roles.py:85-123`; `ops.py:537-567`; `_shared.py:80`);
+  then `_learn_gating_patterns` fills Python dicts, no brain call (`gating.py:43-205`). `train_phrases`: phon->subject
+  core and phon->VERB_CORE for `rounds`, `merge(.., VP, rounds=2)`, then `rounds` steps of `{obj_core->VP, VP->VP}`
+  with the object fixed (`phrases.py:104-167`). `train_word_order`: `sequence_memorize` into SEQ (`gating.py:207-233`).
+  Morphology: label stimulus + verb into TENSE/`TENSE_<v>`, MOOD, POLARITY, NUMBER (`morphosyntax.py:293-330,346-400`),
+  labels from word lists (`morphosyntax.py:95-172`). Optional `train_next_token` (`prediction.py:198`).
+  `train_for_agent` concatenates four curricula and calls `train(train_prediction=True)` (`blocks.py:96-110`).
+- **Mutates:** stimuli; winners and weights of the 8 CORE areas, ROLE_AGENT/ACTION/PATIENT/GOAL, VP, SEQ, the morph
+  areas, CONTEXT/PREDICTION when requested; `core_lexicons`, `role_lexicons`, `vp_assemblies`, `_category_cache`,
+  `_bootstrap_categories`, `dist_stats`, `learned_gating`, `learned_word_gating`, `word_order_type`. No stage runs
+  under `frozen()`; only the per-word core clear resets activity; role/VP residue is kept (`phrases.py:169-206`).
+- **Learning:** Brain Hebbian at `beta` per area (`core.py:549`); core->role fibers priced by `role_bind_gain`
+  (`core.py:448-464`); morph afferents by the novelty gain (`morphosyntax.py:305-314`).
+- **Readout:** none. `train` returns None; `train_for_agent` returns `self` (`blocks.py:114`).
+- **Claim/diff E1:** `train_roles` docstring: "(agent/patient)", "project phon -> core", "with recurrence"
+  (`roles.py:64-70`). Code binds agent/action/patient/goal, replays the snapshot with no phon projection when one is
+  stored (`roles.py:106-109`; `ops.py:537-539`), one recurrent tail step; theme/source/location labels drop silently
+  (`roles.py:92-93`; `core/areas.py:139-146`).
+- **E2:** module docstring: a category "is just: which core area holds a stable assembly" (`core.py:22-30`). After
+  `train` every corpus word's category is a dict entry written by `category_oracle` before training
+  (`corpus_index.py:255-258`) or by the routing table at lexicon time (`lexicon.py:202-203`); the neural query
+  serves only words in no cache and no lexicon (`classify.py:55-92`).
+- **E3:** `_setup_areas` says mutual inhibition is now wired (`core.py:546-561`). `add_mutual_inhibition` fires
+  only when one `project()` co-targets two group members (`brain.py:1321-1345,1691-1714`); no training or parse
+  projection does (`roles.py:243-245`; `morphosyntax.py:293-294`). The Brain docstring records it dormant.
+- **E4:** `train_lexicon` promises simultaneous projection "with recurrence" (`lexicon.py:125-138`); step one is
+  stimulus-only (`batch.py:44`), rounds fall with frequency (`perf.py:343-346`), `fast_training` cuts the base to
+  2/3 (`perf.py:120-121`), the compiled path switches `projection_fidelity` (`lexicon.py:186-189`).
+- **E5:** morph stages are teacher-forced by `detect_tense/mood/polarity` word lists (`core.py:641-649`;
+  `morphosyntax.py:95-172`), and `parse` never reads those areas (E8).
+- **Control:** same corpus and seed with `role_bind_gain = 0.0` before `train` (`core.py:448-464`: beta 0 on every
+  core->role fiber). `parse` labels and `gaps` (below) must move; if not, `train_roles` is unmeasured by `parse`.
+
+<a id="contract-parser-parse"></a>
+
+## Parser parse: `EmergentParser.parse`
+
+Code: `emergent/parser_mixins/core.py:666-714`, `classify.py:40-178`, `roles.py:149-348`, `gating.py:249-352`,
+`phrases.py:208-230`, `morphosyntax.py:95-172`, `core/brain.py:1001-1046` (`read_only`).
+
+- **Reads:** `_category_cache`, `_bootstrap_categories`, `_dist_categories`, `dist_stats`, `core_lexicons`
+  (`classify.py:55-92`); `learned_word_gating`, `learned_gating`, `word_order_type` (`gating.py:249-352`);
+  `stim_map`; `probe_target_ready` for core and role areas (`roles.py:225-232`).
+- **Schedule:** step 1 classifies each word through the cache chain (`core.py:690-692`; `classify.py:55-92`); the
+  neural probe (clear core, unfix, `self.rounds` stimulus-only steps, `readout_all` vs the core lexicon,
+  `classify.py:157-168`) runs only for uncached, unlexiconed words. Step 2 (`roles.py:149-348`): re-classify from
+  cache (`roles.py:201`); slot sequence AGENT,PATIENT, reversed when a marker's learned gating has confidence > 0.5
+  (`gating.py:313-352`); inside `read_only()` unfix and clear ROLE_AGENT/ACTION/PATIENT (`roles.py:254-258`;
+  ROLE_GOAL not cleared). RECORD in word order: PREP/MARKER sets a governor filler/goal/skip (`roles.py:283-302`);
+  function-subcategory words skipped; each NOUN/PRON consumes a slot even if untraversable (`roles.py:306-316`);
+  the first VERB traverses into ROLE_ACTION and is labelled on success (`roles.py:317-320`). `_traverse`: activate
+  the stored core snapshot (else phon->core for `self.rounds`), fix core, one step core->role, one step core->role +
+  role->role, unfix (`roles.py:221-248`). Snapshot filled roles (`roles.py:323`). RECALL: every content NOUN/PRON is
+  re-traversed into each filled role and scored by overlap with the snapshot; occupant = argmax, assigned only if
+  strictly above the runner-up (`roles.py:328-347`). Step 3 `_identify_phrases` is a rule over category strings
+  (`phrases.py:208-230`); step 4 `detect_*` are word-list lookups (`morphosyntax.py:95-172`).
+- **Mutates:** no brain state persists: `read_only` restores winners, disables recruitment, freezes plasticity
+  (`brain.py:1030-1046`). Outside it `_category_cache` gains entries (`classify.py:61,66,80,86,91`).
+- **Learning:** none; every projection sits under `frozen()` via `read_only`.
+- **Readout:** `{"categories","roles","role_diagnostics","phrases","tense","mood","polarity"}` (`core.py:689-714`).
+  Roles compare a candidate's re-traversal image with the recorded winners; `role_lexicons` are never read.
+  `role_diagnostics`: `is_passive`, `gaps` (role, occupant, top, runner, top-runner), `winners`,
+  `unavailable_areas` (`roles.py:206-208`).
+- **Claim/diff E6:** "Classify each word via differential readout" (`core.py:669`): every trained, corpus,
+  bootstrapped or distributionally known word is a dict lookup (`classify.py:55-67`); the readout is the last
+  branch (`classify.py:89`).
+- **E7:** "roles via neural readout + mutual inhibition" (`core.py:670`): exclusivity is the Python
+  `sequence`/`slot_idx` (`roles.py:203-204,313-316`) and `inhibit_areas` = `clear_activity` (`brain.py:1689`); the
+  MI group never fires (E3); a tie yields None (`roles.py:346`).
+- **E8:** `phrases/tense/mood/polarity` are rules and word lists (`phrases.py:208-230`; `morphosyntax.py:95-172`);
+  NP/VP/PP, SEQ, TENSE, MOOD, POLARITY, NUMBER trained by `train` are untouched, so `include_word_order` and
+  `include_morphology` cannot change a `parse` result.
+- **E9:** RECORD and RECALL traverse the same word by the same protocol through the same frozen fibers
+  (`roles.py:221-248,328-334`), so the occupant reproduces its own winners by determinism
+  (`tests/test_reconstruction_readout.py:21-23` says so). Only `gap` can carry learned information and nothing in
+  the readout names a trained binding. The docstring's "1.0000 both voices" (`roles.py:173-175`) cites no register ID.
+- **E10:** a noun with no core snapshot and no phon stimulus returns False from `_traverse` and still consumes a
+  slot (`roles.py:233-241,313-316`) with no diagnostic entry. `_traverse` uses `self.rounds`; the margin route uses
+  `inference_rounds` (`roles.py:240,516`).
+- **E11:** `_assign_roles_neural`/`_role_binding_margin` still run under `frozen()` only, which restores nothing
+  (`roles.py:408-414`; `brain.py:913-932`); `parse` skips them, the ERP runner uses them (`core.py:697-704`).
+- **Control:** (a) the trained parser on "the dog chases the cat" and "the cat chases the dog": labels must swap
+  and `winners[ROLE_AGENT]` must differ (only voice reversal is tested, `tests/test_reconstruction_readout.py:122-145`);
+  (b) the beta-zero core->role arm of the training card: mean `gap` must fall from the > 0.5 bar
+  (`tests/test_reconstruction_readout.py:102-110`); a gap surviving beta = 0 shows `parse` measures fixed image
+  separation, not learned role binding.
+
+Overlap with existing cards (reference, do not duplicate):
+- "Q: dialogue training" (line 29): `train_for_agent(include_extra_dialogue)` calls `train_dialogue` (`blocks.py:111-113`).
+- "Context accumulation" / "CONTEXT: construction versus prefix observation" (728-790): own `parse_incremental`
+  (`incremental.py:743-772`) and `train_next_token`; not audited here.
+- "Role reconstruction: availability before observation" (904): availability guard, `read_only` scope, strict
+  margin, ACTION assignment. New here: slot/governor order, record/recall protocol lines, E9-E11, the beta-zero control.
+- "Word classification: neural query without training" (959): `classify_word_evidence`. New here: cache precedence
+  (E2, E6) and the `compile_corpus` oracle write.
+- "Parser forks" (1088) / "Resolved parser cache requests" (1126): ownership only. P and M cards own
+  `train_phrases`' primitives; the sequence-memory card owns `train_word_order`'s.

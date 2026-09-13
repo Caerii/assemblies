@@ -150,6 +150,7 @@ def main(argv=None):
         protocol_version="3", registration="research/notes/sequence/PREREG_sampler_audit.md",
         engine=args.engine, seeds=args.seeds, tag=args.tag, smoke=args.smoke,
         parameters=parameters,
+        observation_policy="probe",  # exact-step recovery read under Brain.probe
         model_semantics=describe_brain_model("numpy_sparse", p=P_VALUES[0], norm_init=False),
         measure=experiment,
     )

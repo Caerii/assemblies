@@ -13,8 +13,8 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is rarely exact (0.22 of steps at kp = 14, arc materialized) and a long run derails at its first non-exact step; above it recovery is exact on every seed (0.98 at kp = 21, 1.00 at kp = 28). |
 | [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
 | [`SEQ-TEMPORAL-CARRY`](#seq-temporal-carry) | MEASURED | hashed transducer / temporal organ (20 brains per cell) | A transducer whose STATE is its previous arc (state_mode='copy') and whose PREDICTED arc neurons win (the lateral ARC -> ARC fiber's top-k above half its maximum get (1 + g) x drive, g = 1) improves next-token prediction on the synthetic agreement chain. |
-| [`ARC-CONJUNCT-EXPOSURE`](#arc-conjunct-exposure) | MEASURED | vendored reference/nemo_numpy (explicit NumPy matrices) | A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present. |
-| [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | vendored reference/nemo_numpy (explicit NumPy matrices) | Refraction must charge in proportion to the winner's raw drive. |
+| [`ARC-CONJUNCT-EXPOSURE`](#arc-conjunct-exposure) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present. |
+| [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
 | [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed substrate (HashedArea with AreaFiber/StimulusFiber) | [RE-MEASURED 2026-09-04 with the selector fixed (1b475fc): the churn above ~0.75 beta stands; the intermediate-strength rows were a selector artefact -- at 0.5 beta the recurrent assembly converges, relocates once when the clip binds (~round 40-60, the registered P2 prediction) and holds; at 0.7 beta most brains no longer converge. |
@@ -222,7 +222,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository; the same law as the role-binding gain result.
 
-**Engine / substrate.** vendored reference/nemo_numpy (explicit NumPy matrices)
+**Engine / substrate.** reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log)
 
 **Claim.** A conjunction area collapses onto whichever conjunct is exposed more often, unless an opposing force (refraction) is present.
 
@@ -231,14 +231,16 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/experiments/seq_arc_refraction_reference.py: ablating refraction takes across-symbol overlap 0.000 -> 0.989 and the task 3/3 -> 0/3
+- arc-ref-study-20260912 (20 seeds, PREREG_arc_refraction_reference.md AR-2): refraction off, across-symbol overlap 0.977-0.997 on every seed (mean 0.988) against 0.000 with the proportional rule; across-state 0.098; decided 0/20 against 18/20
 
 **Evidence files.**
-- [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log)
+- [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log) â€” three seeds, no run record
+- [research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json](../research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json) (artifact)
+- [research/notes/sequence/PREREG_arc_refraction_reference.md](../research/notes/sequence/PREREG_arc_refraction_reference.md) (registration)
 - [research/experiments/seq_arc_refraction_reference.py](../research/experiments/seq_arc_refraction_reference.py) (producer)
 
-**Provenance gap.** legacy log has no structured run, seeds, or source archive
-
-**Sensitivity gap.** The ablation is described in a legacy log but has no structured immutable null artifact.
+**Mechanism sensitivity.**
+- refraction ablated (the arc's bias never accumulates): across-symbol arc overlap at 15 presentations, every seed against the drive-proportional reference: `observations/arms/off-p15/rows/*/across_symbol` all-greater `observations/arms/proportional-p15/rows/*/across_symbol` by at least 0.5, retained in [research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json](../research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json) and paired by `observations/arms/off-p15/rows/*/seed`.
 
 **Caveat.** Task #92 measured one direction, read 0.90-0.99, and concluded a conjunctive arc has no operating point. It has one.
 
@@ -246,20 +248,22 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Status.** MEASURED. **Source.** This repository.
 
-**Engine / substrate.** vendored reference/nemo_numpy (explicit NumPy matrices)
+**Engine / substrate.** reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log)
 
 **Claim.** Refraction must charge in proportion to the winner's raw drive. A constant increment is not an equivalent parameterization: Hebbian growth multiplies drive while a constant grows linearly, so its operating point MOVES with training duration.
 
 **Evidence.**
 - research/experiments/seq_arc_refraction_reference.py: the constant winning at 15 presentations fails at 30, while the proportional rule passes both untouched
+- arc-ref-study-20260912 (20 seeds, AR-3 and AR-4): constant 10 decides 20/20 at 15 presentations and 0/20 at 30 (across-symbol 0.000 -> 0.369); constant 30 decides 0/20 at 15 and 20/20 at 30; proportional decides 18/20 at 15 and 20/20 at 30 with both overlaps 0.000 throughout
 
 **Evidence files.**
-- [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log)
+- [research/results/logs/seq_arc_refraction_reference.log](../research/results/logs/seq_arc_refraction_reference.log) (log) â€” three seeds, no run record
+- [research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json](../research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json) (artifact)
+- [research/notes/sequence/PREREG_arc_refraction_reference.md](../research/notes/sequence/PREREG_arc_refraction_reference.md) (registration)
 - [research/experiments/seq_arc_refraction_reference.py](../research/experiments/seq_arc_refraction_reference.py) (producer)
 
-**Provenance gap.** legacy log has no structured run, seeds, or source archive
-
-**Sensitivity gap.** Constant and proportional charging were retained only in a legacy log, not a machine-checkable null record.
+**Mechanism sensitivity.**
+- the constant increment that decides every seed at 15 presentations (s* = 10) against the proportional rule at 30 presentations: the constant's operating point has moved, the proportional rule's has not: `observations/arms/proportional-p30/rows/*/decided` all-greater `observations/arms/constant-s10-p30/rows/*/decided` by at least 1, retained in [research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json](../research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json) and paired by `observations/arms/proportional-p30/rows/*/seed`.
 
 **Used by.** `neural_assemblies/core/_homeostasis.py`
 

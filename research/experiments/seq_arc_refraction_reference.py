@@ -277,6 +277,7 @@ def main(argv=None):
         registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
         tag=args.tag, smoke=args.smoke, parameters=parameters,
         model_semantics=describe_nemo_numpy_reference(), measure=experiment,
+        observation_policy="frozen",  # the reference reads with update=False; it has no recruitment
     )
     print(path)
 

@@ -98,6 +98,7 @@ def main(argv=None):
     print(run_experiment(script=Path(__file__), protocol='memory.context-noise', protocol_version='1',
                          registration=REGISTRATION, engine=args.engine, seeds=args.seeds, tag=args.tag,
                          smoke=args.smoke, minimum_study_seeds=20,
+                         observation_policy='read-only',  # ContextAttractorChoice.observe reads under Brain.read_only
                          model_semantics=describe_brain_model(
                              args.engine, p=.05, seed=0, norm_init=True,
                          ), parameters=parameters(args.smoke), measure=experiment))

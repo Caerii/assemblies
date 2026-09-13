@@ -41,6 +41,7 @@ _LAZY_EXPORTS = {
         "describe_hashed_aligner",
         "BaselineSemantics", "BaselineScoring", "CorpusFamily",
         "describe_computed_baseline", "describe_nemo_numpy_reference",
+        "ObservationPolicy",
     )
 }
 _LAZY_EXPORTS["cupy_available"] = ".core.backend"
@@ -148,6 +149,7 @@ if TYPE_CHECKING:  # pragma: no cover
         describe_computed_baseline,
         describe_hashed_aligner, describe_hashed_arc_fsm,
         describe_hashed_transducer, describe_nemo_numpy_reference,
+        ObservationPolicy,
         list_engines,
     )
     from .core.backend import cupy_available
@@ -208,6 +210,7 @@ __all__ = [
     'describe_hashed_transducer',
     'BaselineSemantics', 'BaselineScoring', 'CorpusFamily',
     'describe_computed_baseline', 'describe_nemo_numpy_reference',
+    'ObservationPolicy',
 
     # Compute engine API
     'ComputeEngine', 'ProjectionResult', 'create_engine', 'list_engines',

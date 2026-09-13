@@ -474,21 +474,35 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="ARC-CONJUNCT-EXPOSURE",
-        engine="vendored reference/nemo_numpy (explicit NumPy matrices)",
+        engine="reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log)",
         status=Status.MEASURED,
-        sensitivity_gap="The ablation is described in a legacy log but has no "
-                        "structured immutable null artifact.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json",
+            sample_path="observations/arms/off-p15/rows/*/seed",
+            treatment_path="observations/arms/off-p15/rows/*/across_symbol",
+            control_path="observations/arms/proportional-p15/rows/*/across_symbol",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refraction ablated (the arc's bias never accumulates): across-symbol arc overlap at 15 presentations, every seed against the drive-proportional reference",
+        ),),
+        sensitivity_gap="",
         claim="A conjunction area collapses onto whichever conjunct is exposed "
               "more often, unless an opposing force (refraction) is present.",
         source="This repository; the same law as the role-binding gain result.",
         evidence=("research/experiments/seq_arc_refraction_reference.py: "
                   "ablating refraction takes across-symbol overlap 0.000 -> "
-                  "0.989 and the task 3/3 -> 0/3",),
+                  "0.989 and the task 3/3 -> 0/3",
+                  "arc-ref-study-20260912 (20 seeds, PREREG_arc_refraction_reference.md "
+                  "AR-2): refraction off, across-symbol overlap 0.977-0.997 on every "
+                  "seed (mean 0.988) against 0.000 with the proportional rule; "
+                  "across-state 0.098; decided 0/20 against 18/20"),
         evidence_refs=(
-            EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log"),
+            EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log",
+                        "three seeds, no run record"),
+            EvidenceRef("research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json", "artifact"),
+            EvidenceRef("research/notes/sequence/PREREG_arc_refraction_reference.md", "registration"),
             EvidenceRef("research/experiments/seq_arc_refraction_reference.py", "producer"),
         ),
-        provenance_gap="legacy log has no structured run, seeds, or source archive",
+        provenance_gap="",
         preconditions=("BOTH overlap directions measured -- one alone cannot "
                        "distinguish a conjunction from collapse onto the other "
                        "conjunct",),
@@ -497,10 +511,17 @@ _RESULTS: List[Result] = [
     ),
     Result(
         id="REFRACTION-PROPORTIONAL",
-        engine="vendored reference/nemo_numpy (explicit NumPy matrices)",
+        engine="reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log)",
         status=Status.MEASURED,
-        sensitivity_gap="Constant and proportional charging were retained only "
-                        "in a legacy log, not a machine-checkable null record.",
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json",
+            sample_path="observations/arms/proportional-p30/rows/*/seed",
+            treatment_path="observations/arms/proportional-p30/rows/*/decided",
+            control_path="observations/arms/constant-s10-p30/rows/*/decided",
+            relation="all-greater", minimum_effect=1,
+            mechanism="the constant increment that decides every seed at 15 presentations (s* = 10) against the proportional rule at 30 presentations: the constant's operating point has moved, the proportional rule's has not",
+        ),),
+        sensitivity_gap="",
         claim="Refraction must charge in proportion to the winner's raw drive. "
               "A constant increment is not an equivalent parameterization: "
               "Hebbian growth multiplies drive while a constant grows linearly, "
@@ -508,12 +529,20 @@ _RESULTS: List[Result] = [
         source="This repository.",
         evidence=("research/experiments/seq_arc_refraction_reference.py: the "
                   "constant winning at 15 presentations fails at 30, while the "
-                  "proportional rule passes both untouched",),
+                  "proportional rule passes both untouched",
+                  "arc-ref-study-20260912 (20 seeds, AR-3 and AR-4): constant 10 "
+                  "decides 20/20 at 15 presentations and 0/20 at 30 (across-symbol "
+                  "0.000 -> 0.369); constant 30 decides 0/20 at 15 and 20/20 at 30; "
+                  "proportional decides 18/20 at 15 and 20/20 at 30 with both "
+                  "overlaps 0.000 throughout"),
         evidence_refs=(
-            EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log"),
+            EvidenceRef("research/results/logs/seq_arc_refraction_reference.log", "log",
+                        "three seeds, no run record"),
+            EvidenceRef("research/results/runs/sequence.arc-refraction-reference/arc-ref-study-20260912/results.json", "artifact"),
+            EvidenceRef("research/notes/sequence/PREREG_arc_refraction_reference.md", "registration"),
             EvidenceRef("research/experiments/seq_arc_refraction_reference.py", "producer"),
         ),
-        provenance_gap="legacy log has no structured run, seeds, or source archive",
+        provenance_gap="",
         implemented_by=("neural_assemblies/core/_homeostasis.py",),
     ),
     Result(

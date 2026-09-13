@@ -189,6 +189,7 @@ def main(argv=None):
         },
         measure=measure,
         smoke=args.smoke,
+        observation_policy="probe",  # half-cue recall runs frozen under probe(); the engine is driven directly
         model_semantics=describe_brain_model(
             args.engine, p=P, seed=0, w_max=W_MAX, norm_init=True,
             recurrent_projection=True, synaptic_scaling=False,

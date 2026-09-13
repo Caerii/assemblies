@@ -186,6 +186,7 @@ class TestTheoryCitations(unittest.TestCase):
             # 2026-09-12: retained nulls wired from shared-runner artifacts.
             "SEQ-EXACT-RECOVERY", "AC-CAP", "SEQ-ORGAN-EMBEDS",
             "REFRACTION-NEEDS-LOAD", "SEQ-REGIME-CLIFF",
+            "ARC-CONJUNCT-EXPOSURE", "REFRACTION-PROPORTIONAL",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
