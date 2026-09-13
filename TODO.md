@@ -193,6 +193,31 @@ source-linked contract, negative control, and relevant gate are all present.
   transition-organ behavior from 20 through 200 presentations, with both
   retention and new-learning bars. Preserve failed homeostasis attempts and
   identify the mechanism that relocates the arc.
+  - Progress 2026-09-13: the mechanism that relocates is identified and
+    confirmed. A refracted recurrent area relocates on a FIXED PERIOD equal
+    to the clip arithmetic `ln(w_max)/ln(1+beta) + (1-1/w_max)/beta = 40.93`
+    rounds, measured 41.60 and 41.52 on two disjoint blocks of twenty brains,
+    with the first relocation landing on round 42 on all forty
+    (`PREREG_refraction_convergence.md`, Amendment 2). No weight rule is
+    tested yet; what exists is the deadline the rule would have to move.
+- [ ] **Presentation schedule as a control variable.** At a FIXED round budget
+  per item, the arrangement of those rounds moves assembly-memory recall as
+  much as the plasticity rule does, and the two rules want opposite
+  arrangements. Registered and measured in
+  `research/notes/memory/PREREG_presentation_schedule.md`: an unrefracted
+  memory needs ORDER (interleaving holds the hub statistic at chance and takes
+  usable load from below 8 items to between 64 and 128; splitting alone does
+  nothing), and a refracted memory needs SHORT EPISODES (one 16-round episode
+  recalls 0.198 at M = 256 against 0.925 for four 4-round episodes; order adds
+  0.075). Idle spacing is a no-op by construction because the substrate has no
+  decay term, and the registration asserts that bit for bit rather than
+  measuring it. Open: PS-7 failed, so the instrument does not reproduce the
+  capacity line's published cell and every number is internal to its six arms;
+  Amendment 2 registers the candidate cause (the read uses 8 frozen completion
+  rounds where the protocol reads with as many as it writes). Adding a decay
+  constant would make genuine time-mediated spacing possible and would turn the
+  refraction bias into a relative refractory period; that is a substrate change
+  and needs its own registration.
 - [ ] **Derive or qualify the square capacity law.** Relate the measured
   approximately `0.40 (n/k)^2` ceiling and drifting exponents to Willshaw and
   sparse-Hopfield assumptions; state which assumptions hold and which constant
