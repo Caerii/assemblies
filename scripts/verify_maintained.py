@@ -62,11 +62,12 @@ def default_test_workers() -> str:
 def run(
     command: list[str],
     *,
+    root: Path = ROOT,
     capture_output: bool = False,
     display_command: str | None = None,
 ) -> subprocess.CompletedProcess[str]:
     print("$", display_command or " ".join(command), flush=True)
-    return subprocess.run(command, cwd=ROOT, check=False, text=True,
+    return subprocess.run(command, cwd=root, check=False, text=True,
                           capture_output=capture_output)
 
 
@@ -80,7 +81,7 @@ def maintained_sources(root: Path = ROOT) -> list[str]:
                 f"maintained verification scope does not exist: {scope}"
             )
         files.extend(
-            str(path.relative_to(ROOT))
+            str(path.relative_to(root))
             for path in scope_path.rglob("*.py")
             if "\\tests\\" not in str(path).lower()
             and "\\archive\\" not in str(path).lower()
@@ -94,10 +95,11 @@ def maintained_sources(root: Path = ROOT) -> list[str]:
     return sorted(set(files))
 
 
-def check_pyright() -> bool:
-    files = maintained_sources()
+def check_pyright(root: Path = ROOT) -> bool:
+    files = maintained_sources(root)
     result = run(
         ["uv", "run", "pyright", *files, "--outputjson"],
+        root=root,
         capture_output=True,
         display_command=(
             f"uv run pyright <{len(files)} maintained sources> --outputjson"
@@ -111,7 +113,7 @@ def check_pyright() -> bool:
     return result.returncode == 0
 
 
-def check_evidence_graph() -> bool:
+def check_evidence_graph(root: Path = ROOT) -> bool:
     """Validate registered evidence and source-linked specifications.
 
     This is deliberately a separate phase from Pyright: the evidence checker
@@ -121,6 +123,7 @@ def check_evidence_graph() -> bool:
     """
     result = run(
         ["uv", "run", "python", "-m", "research.evidence", "check"],
+        root=root,
         capture_output=True,
         display_command="uv run python -m research.evidence check",
     )
@@ -145,8 +148,8 @@ def main() -> int:
     )
     args = parser.parse_args()
 
-    ok = check_pyright()
-    ok = check_evidence_graph() and ok
+    ok = check_pyright(ROOT)
+    ok = check_evidence_graph(ROOT) and ok
     if not args.skip_tests:
         test_command = ["uv", "run", "pytest", "neural_assemblies/tests", "-q", "-m", "not slow"]
         if not args.serial:
