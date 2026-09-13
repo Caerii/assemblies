@@ -26,7 +26,7 @@ from neural_assemblies.diagnostics import ensemble_from_values
 from research.runner import experiment_parser, run_experiment, validate_registered_seeds
 
 PROTOCOL = "sequence.autonomous-chain"
-VERSION = "1"
+VERSION = "2"          # v2 adds Amendment 1's fixed-grid limit arms
 REGISTRATION = "research/notes/sequence/PREREG_autonomous_chain.md"
 #: Seeds 42-45 were used by the exploratory probe that informed the bars, so
 #: the study runs on a block no probe has touched.
@@ -49,6 +49,28 @@ ARM_SPECS = {
 }
 ARMS = tuple(ARM_SPECS)
 SMOKE_ARMS = ("L32", "L32-no-refraction")
+
+#: Amendment 1. n_state is held FIXED across every limit cell: HashedArcFSM
+#: otherwise sizes it from the chain length, so varying L would redraw the
+#: connectome. The engine caps it at 65536 (topk_select packs a 16-bit index),
+#: which bounds the chain at 65536/k - 1 = 639 here.
+N_STATE_FIXED = 64000
+LIMIT_P = 0.3          # kp = 30 clears 3 ln n in every limit cell
+LIMIT_ARCS = (2000, 3000, 4000, 6000)
+LIMIT_LENGTHS = (160, 256, 384, 512)
+
+
+def limit_arms():
+    """name -> (length, presentations, strength ratio, density, n_arc)."""
+    out = {f"n{n}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, n)
+           for n in LIMIT_ARCS for L in LIMIT_LENGTHS}
+    # the mechanism-disabled null carried over, at the smallest cell
+    out[f"n{LIMIT_ARCS[0]}-L{LIMIT_LENGTHS[0]}-no-refraction"] = (
+        LIMIT_LENGTHS[0], PRESENTATIONS, 0.0, LIMIT_P, LIMIT_ARCS[0])
+    return out
+
+
+LIMIT_SPECS = limit_arms()
 
 
 def profile_for(ratio):
@@ -102,7 +124,8 @@ def arc_collapse(fsm, states, nbrain):
     return (total / max(pairs, 1)).cpu().numpy().tolist()
 
 
-def run_arm(seeds, length, presentations, ratio, density, *, device, organ_semantics):
+def run_arm(seeds, length, presentations, ratio, density, *, device,
+            organ_semantics, n_arc=N_ARC, n_state=None):
     from neural_assemblies.core._torch_ops import torch_ops
     from neural_assemblies.core.semantics import OrganSemantics
     from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
@@ -110,16 +133,23 @@ def run_arm(seeds, length, presentations, ratio, density, *, device, organ_seman
     if OrganSemantics.normalize(organ_semantics).mismatch(profile_for(ratio)):
         raise ValueError("recorded organ profile disagrees with the arm's construction")
     states, table = chain_table(length)
-    fsm = HashedArcFSM(seeds, states, [TICK], table, n_arc=N_ARC, k=K, p=density,
-                       beta=BETA, refracted_strength=ratio * BETA, w_max=W_MAX,
-                       max_potentiations=MAX_POTENTIATIONS, device=device)
+    fsm = HashedArcFSM(seeds, states, [TICK], table, n_arc=n_arc, k=K, p=density,
+                       n_state=n_state, beta=BETA, refracted_strength=ratio * BETA,
+                       w_max=W_MAX, max_potentiations=MAX_POTENTIATIONS,
+                       device=device)
     fsm.train(presentations)
     fsm.check()
     syms = torch_ops.zeros(len(seeds), length, dtype=torch_ops.int64, device=device)
     visited = fsm.run(syms, states[0]).cpu().numpy()
-    rows = [{"seed": int(s), "correct": consecutive_correct(visited[b], length),
-             "visited": visited[b].tolist()}
-            for b, s in enumerate(seeds)]
+    rows = []
+    for b, s in enumerate(seeds):
+        seq = visited[b].tolist()
+        rows.append({
+            "seed": int(s), "correct": consecutive_correct(seq, length),
+            # total correct distinguishes a chain DEATH from a dropped step
+            "total_correct": sum(1 for t_, v in enumerate(seq) if v == t_ + 1),
+            "visited": seq,
+        })
     collapse = arc_collapse(fsm, states, len(seeds))
     for row, value in zip(rows, collapse):
         row["arc_overlap"] = float(value)
@@ -139,17 +169,23 @@ def experiment(record):
     smoke = record["mode"] == "smoke"
     chance = K / N_ARC
     arms = {}
+    limit_mode = bool(p.get("limit_mode"))
+    specs = LIMIT_SPECS if limit_mode else ARM_SPECS
     for name in p["arms"]:
-        length, presentations, ratio, density = ARM_SPECS[name]
+        spec = specs[name]
+        length, presentations, ratio, density = spec[:4]
+        n_arc = spec[4] if len(spec) > 4 else N_ARC
         if smoke:
             length = 8
         rows = run_arm(seeds, length, presentations, ratio, density,
-                       device=p["device"],
+                       device=p["device"], n_arc=n_arc,
+                       n_state=(N_STATE_FIXED if limit_mode else None),
                        organ_semantics=record["execution_semantics"]["profiles"][name])
         correct = [r["correct"] for r in rows]
         arms[name] = {
             "length": length, "presentations": presentations,
-            "strength_ratio": ratio, "density": density, "rows": rows,
+            "strength_ratio": ratio, "density": density, "n_arc": n_arc,
+            "n_state": (N_STATE_FIXED if limit_mode else None), "rows": rows,
             "correct": _ens(correct, f"{name}:correct", seeds),
             "arc_overlap": _ens([r["arc_overlap"] for r in rows], f"{name}:arc", seeds),
             "exact_brains": sum(c == length for c in correct),
@@ -163,7 +199,48 @@ def experiment(record):
               f" ({overlap_mean / chance:.1f}x chance)", flush=True)
 
     bars, comparisons = {}, {}
-    if not smoke:
+    if not smoke and limit_mode:
+        def exact_length(n_arc):
+            """Largest tested length at which EVERY brain recalls every visit.
+            A grid quantity, never interpolated; the top of the grid is censored."""
+            best = 0
+            for L in LIMIT_LENGTHS:
+                a = arms.get(f"n{n_arc}-L{L}")
+                if a and a["exact_brains"] == len(seeds):
+                    best = L
+            return best
+        exact = {n: exact_length(n) for n in LIMIT_ARCS}
+        deaths = [(name, a) for name, a in arms.items()
+                  if "no-refraction" not in name and a["exact_brains"] < len(seeds)]
+        ratio_3x = (exact[LIMIT_ARCS[-1]] / exact[LIMIT_ARCS[0]]
+                    if exact[LIMIT_ARCS[0]] else None)
+        comparisons = {
+            "exact_length_by_arc": exact,
+            "censored": {n: exact[n] == LIMIT_LENGTHS[-1] for n in LIMIT_ARCS},
+            "n_state_identical": len({a["n_state"] for a in arms.values()}) == 1,
+            "exact_length_ratio_6000_over_2000": ratio_3x,
+        }
+        ordered = [exact[n] for n in LIMIT_ARCS]
+        bars = {
+            "AL-1 it breaks, and the break is a chain DEATH not a dropped step":
+                bool(deaths) and all(
+                    r["total_correct"] == r["correct"]
+                    for _, a in deaths for r in a["rows"] if r["correct"] < a["length"]),
+            "AL-2 exact_length is non-decreasing in n_arc":
+                all(x <= y for x, y in zip(ordered, ordered[1:])),
+            "AL-3 superlinear but not square: the 3x arc ratio lands strictly between 3 and 9":
+                ratio_3x is not None and 3.0 < ratio_3x < 9.0,
+            "AL-4 the state area cannot be the cause: n_state identical in every cell":
+                comparisons["n_state_identical"],
+            "AL-5 refraction still carries it: 0 correct with strength 0":
+                all(r["correct"] == 0
+                    for r in arms[f"n{LIMIT_ARCS[0]}-L{LIMIT_LENGTHS[0]}-no-refraction"]["rows"]),
+        }
+        bars = {name: bool(ok) for name, ok in bars.items()}
+        for name, ok in bars.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+        print(f"  exact_length by arc: {exact}; ratio {ratio_3x}")
+    elif not smoke:
         def arm(name):
             return arms[name]
 
@@ -205,15 +282,20 @@ def main(argv=None):
         engines=("hashed_arc_fsm",), default_seeds=REGISTERED_SEEDS,
     )
     parser.add_argument("--device", default="cuda")
+    parser.add_argument("--limit", action="store_true",
+                        help="run Amendment 1's fixed-grid chain-length cells")
     args = parser.parse_args(argv)
     validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    names = list(SMOKE_ARMS if args.smoke else ARMS)
+    specs = LIMIT_SPECS if args.limit else ARM_SPECS
+    names = list(SMOKE_ARMS if args.smoke else specs)
     parameters = {"n_arc": N_ARC, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "strength_ratio": 1.0, "max_potentiations": MAX_POTENTIATIONS,
                   "presentations": PRESENTATIONS, "symbol": TICK, "arms": names,
-                  "arm_specs": {k: list(v) for k, v in ARM_SPECS.items() if k in names},
+                  "arm_specs": {k: list(v) for k, v in specs.items() if k in names},
+                  "limit_mode": bool(args.limit),
+                  "n_state_fixed": (N_STATE_FIXED if args.limit else None),
                   "device": args.device}
-    profiles = {name: profile_for(ARM_SPECS[name][2]) for name in names}
+    profiles = {name: profile_for(specs[name][2]) for name in names}
     path = run_experiment(
         script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
         registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
