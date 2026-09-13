@@ -160,8 +160,6 @@ def gate3(hashed_rows, numpy_rows, p, length=LENGTH):
 
 
 def experiment(record):
-    if record.get("mode", "study") == "study":
-        validate_seed_identities(record["seeds"], REGISTERED_SEEDS)
     """Run the registered horizon measurement from resolved runner inputs."""
     smoke = record['mode'] == 'smoke'
     # Specification: neural_assemblies/ir/VERIFICATION.md#contract-horizon-execution
@@ -174,6 +172,8 @@ def experiment(record):
         numpy_rows = json.load(fh)
     if set(protocol.p_values) - {row["p"] for row in numpy_rows}:
         raise ValueError("historical comparison has no reference for a requested probability")
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(record["seeds"], REGISTERED_SEEDS)
     print(f"=== GATE-3: the horizon at width ({len(seeds)} brains, {length} digits) ===")
     rows, out = [], {"brains": seeds, "length": length, "rows": []}
     for p in protocol.p_values:
