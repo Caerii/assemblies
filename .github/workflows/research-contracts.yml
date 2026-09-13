@@ -110,6 +110,7 @@ jobs:
           neural_assemblies/tests/test_refraction_period_law.py
           neural_assemblies/tests/test_episode_tenure.py
           neural_assemblies/tests/test_ordered_recall_advances.py
+          neural_assemblies/tests/test_autonomous_chain.py
           neural_assemblies/tests/test_organ_count_saturation.py
 
   lean-contracts:
