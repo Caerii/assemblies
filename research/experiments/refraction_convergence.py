@@ -15,6 +15,14 @@ consecutive overlap is below the stability threshold), so the register can
 tell an assembly that is stable between wholesale relocations from one
 that churns every round. Version 1 retained the curve at nine marks only.
 
+Version 3 (Amendment 2) changes no retained quantity -- a version-2 and a
+version-3 artifact are directly comparable -- and only replaces Amendment
+1's bars, which failed for two instrument reasons rather than a mechanism
+one: the initial FORMATION registers as event one (the control has exactly
+one such event, at round 2), and a relocation takes about eight rounds, not
+the two to four the marks suggested. Amendment 2's bars are stated on the
+measured structure and are therefore tested on the FRESH seed block 62..81.
+
 Run:  python -m research.runner refraction-convergence --tag UNIQUE
       (smoke: --smoke --seeds 1 2 3; VOID)
 """
@@ -30,18 +38,23 @@ from neural_assemblies import describe_assembly_memory
 from neural_assemblies.diagnostics import ensemble_from_values
 from research.runner import (
     experiment_parser, run_experiment, validate_registered_seeds,
-    validate_seed_identities,
 )
 
 PROTOCOL = "memory.refraction-convergence"
-VERSION = "2"          # version 1 retained the curve at MARKS only
+VERSION = "3"          # v1 retained the curve at MARKS only; v2 = v3 observations, Amendment 1 bars
 REGISTRATION = "research/notes/memory/PREREG_refraction_convergence.md"
-REGISTERED_SEEDS = tuple(range(42, 62))
+#: Admissible study seed blocks: the Amendment 1 block and Amendment 2's
+#: fresh block, on which the corrected bars are a real test.
+SEED_BLOCKS = (tuple(range(42, 62)), tuple(range(62, 82)))
+REGISTERED_SEEDS = SEED_BLOCKS[0]
+#: The clip arithmetic the relocation period is predicted to equal:
+#: ln(w_max) / ln(1 + beta) + (1 - 1 / w_max) / beta.
 N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
 ROUNDS, REF_ROUND = 240, 10
 MARKS = (10, 20, 30, 40, 60, 100, 150, 200, 240)
 STABLE, RELOCATED = 0.95, 0.5     # consecutive overlap at or above / below
 STABLE_FROM = 20                  # rounds counted by the stable fraction: STABLE_FROM..ROUNDS
+FORMATION_ROUND = 2               # every arm's first event starts here unless it converges instantly
 ARMS = {
     "control": {"refracted": False, "recurrent": True, "ratio": 0.0},
     "feedforward": {"refracted": True, "recurrent": False, "ratio": 1.0},
@@ -57,6 +70,17 @@ SMOKE_ARMS = ("control", "s0.5", "s1.0")
 def _to_i32(value):
     value &= 0xFFFFFFFF
     return value - 0x100000000 if value >= 0x80000000 else value
+
+
+def clip_period(w_max=W_MAX, beta=BETA):
+    """Rounds for a stimulus weight to reach the clip and the bias to catch up.
+
+    ``ln(w_max) / ln(1 + beta) + (1 - 1 / w_max) / beta``: the saturation
+    arithmetic already recorded against [[REFRACTION-CANCELS-CONVERGENCE]].
+    At w_max = 20, beta = 0.10 it is 40.93 rounds.
+    """
+    import math
+    return math.log(w_max) / math.log(1.0 + beta) + (1.0 - 1.0 / w_max) / beta
 
 
 def relocation_events(consecutive, *, stable=STABLE):
@@ -160,8 +184,8 @@ def _ensemble(values, label, seeds):
 def experiment(record):
     p = record["parameters"]
     seeds = list(record["seeds"])
-    if record["mode"] == "study":
-        validate_seed_identities(seeds, REGISTERED_SEEDS)
+    if record["mode"] == "study" and tuple(seeds) not in SEED_BLOCKS:
+        raise ValueError(f"study seeds must be one registered block of {SEED_BLOCKS}, not {seeds}")
     if (p["n"], p["k"], p["p"], p["beta"], p["w_max"]) != (N, K, P, BETA, W_MAX):
         raise ValueError("this protocol version does not implement changed sizes")
     arms = {}
@@ -184,6 +208,7 @@ def experiment(record):
     smoke = record["mode"] == "smoke"
     bars, superseded = {}, {}
     if not smoke:
+        import statistics as stats
         def late(name):
             return [r["late"] for r in arms[name]["rows"]]
 
@@ -200,7 +225,50 @@ def experiment(record):
             "RC-3 s=beta churns: late <= 0.5 on every brain, conv = -1 on >= 18/20":
                 all(v <= 0.5 for v in late("s1.0"))
                 and sum(c == -1 for c in convs("s1.0")) >= 18 * n // 20,
-            # Amendment 1 bars (version 2): stability BETWEEN relocations.
+            # Amendment 1 bars (version 2) that stand.
+            "RC-9 churn is not relocation: s=beta stable_fraction <= 0.1 on every brain":
+                all(r["stable_fraction"] <= 0.1 for r in arm_rows("s1.0")),
+            "RC-10 transition between 0.5 and 0.8: s=0.8 beta stable_fraction <= 0.4 on every brain":
+                all(r["stable_fraction"] <= 0.4 for r in arm_rows("s0.8")),
+        }
+
+        def after_formation(r):
+            """Events excluding the initial formation (an event starting at round 2)."""
+            if r["event_starts"] and r["event_starts"][0] <= FORMATION_ROUND:
+                return r["event_starts"][1:], r["event_lengths"][1:]
+            return r["event_starts"], r["event_lengths"]
+
+        period = clip_period()
+        half = arm_rows("s0.5")
+        relocations = [after_formation(r)[0] for r in half]
+        reloc_lengths = [after_formation(r)[1] for r in half]
+        spacings = [s for r in half for s in r["spacings"]]
+        bars.update({
+            # Amendment 2 bars, stated on the version-2 structure and tested
+            # on the fresh seed block.
+            "RC-11 the first event is the FORMATION: control and s=0.5 start an event at round 2 of length <= 5 on every brain":
+                all(r["event_starts"] and r["event_starts"][0] == FORMATION_ROUND
+                    and r["event_lengths"][0] <= 5
+                    for r in arm_rows("control") + half),
+            "RC-12 s=0.5 beta relocates on a fixed period: exactly 5 relocations after formation, first in 38..46, every spacing in 35..50, on every brain":
+                all(len(starts) == 5 and 38 <= starts[0] <= 46 for starts in relocations)
+                and all(35 <= s <= 50 for s in spacings),
+            "RC-13 the period is the clip arithmetic: mean spacing within 10% of ln(w_max)/ln(1+beta) + (1-1/w_max)/beta":
+                bool(spacings) and abs(stats.mean(spacings) - period) / period <= 0.10,
+            "RC-14 s=0.5 beta is stable between relocations: stable_fraction >= 0.78 on every brain and mean relocation length <= 12 rounds":
+                all(r["stable_fraction"] >= 0.78 for r in half)
+                and stats.mean([x for lengths in reloc_lengths for x in lengths]) <= 12,
+            "RC-15 the feedforward area relocates oftener and never settles: >= 8 events and stable_fraction in 0.70..0.92 on every brain":
+                all(r["n_events"] >= 8 and 0.70 <= r["stable_fraction"] <= 0.92
+                    for r in arm_rows("feedforward")),
+            "RC-16 s=0.7 beta is neither regime: stable_fraction in 0.15..0.40 and a single event of >= 60 rounds on every brain":
+                all(0.15 <= r["stable_fraction"] <= 0.40 and max(r["event_lengths"]) >= 60
+                    for r in arm_rows("s0.7")),
+        })
+        superseded = {
+            # Amendment 1 bars that FAILED on seeds 42..61 for instrument
+            # reasons (formation counted as an event; relocations run ~8
+            # rounds, not 2-4). Kept and reported, never amended in place.
             "RC-6 s=0.5 beta is stable between relocations: stable_fraction >= 0.85 on every brain":
                 all(r["stable_fraction"] >= 0.85 for r in arm_rows("s0.5")),
             "RC-7 s=0.5 beta relocates periodically: 4..9 events, first start in 30..70, every spacing in 20..50, on every brain":
@@ -208,12 +276,6 @@ def experiment(record):
                     and all(20 <= s <= 50 for s in r["spacings"]) for r in arm_rows("s0.5")),
             "RC-8 feedforward at s=beta relocates too: n_events >= 3 and stable_fraction >= 0.8 on every brain":
                 all(r["n_events"] >= 3 and r["stable_fraction"] >= 0.8 for r in arm_rows("feedforward")),
-            "RC-9 churn is not relocation: s=beta stable_fraction <= 0.1 on every brain":
-                all(r["stable_fraction"] <= 0.1 for r in arm_rows("s1.0")),
-            "RC-10 transition between 0.5 and 0.8: s=0.8 beta stable_fraction <= 0.4 on every brain":
-                all(r["stable_fraction"] <= 0.4 for r in arm_rows("s0.8")),
-        }
-        superseded = {
             "RC-2 s=0.5 beta: late >= 0.95 on every brain, conv <= 100 on >= 18/20":
                 all(v >= STABLE for v in late("s0.5"))
                 and sum(0 <= c <= 100 for c in convs("s0.5")) >= 18 * n // 20,
@@ -226,7 +288,7 @@ def experiment(record):
         for name, ok in bars.items():
             print(f"  {'PASS' if ok else 'FAIL'}  {name}")
         for name, ok in superseded.items():
-            print(f"  {'PASS' if ok else 'FAIL'}  (version-1 bar, superseded by Amendment 1) {name}")
+            print(f"  {'PASS' if ok else 'FAIL'}  (superseded bar, reported not judged) {name}")
     verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
     return {"verdict": verdict, "bars": bars, "superseded_bars": superseded, "arms": arms,
             "scope": "refraction strength against convergence of one recurrent assembly, hashed substrate"}
@@ -239,12 +301,16 @@ def main(argv=None):
     )
     parser.add_argument("--device", default="cuda")
     args = parser.parse_args(argv)
-    validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
+        parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
+    if args.smoke:
+        validate_registered_seeds(parser, args, REGISTERED_SEEDS)
     names = list(SMOKE_ARMS if args.smoke else ARMS)
     parameters = {"n": N, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
                   "rounds": 40 if args.smoke else ROUNDS, "reference_round": REF_ROUND,
                   "marks": list(MARKS), "arms": names,
                   "stable": STABLE, "relocated": RELOCATED, "stable_from": STABLE_FROM,
+                  "formation_round": FORMATION_ROUND, "clip_period": clip_period(),
                   "arm_settings": {name: ARMS[name] for name in names},
                   "device": args.device}
     profiles = {name: profile_for(ARMS[name])[0] for name in names}
