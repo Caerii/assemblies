@@ -310,3 +310,35 @@ The interpolated `M* = 310.1`, bracketed by `[256, 320)`, occurs at estimated
 fill 0.955 and is therefore **CENSORED** by the standing 0.95 rule. This run
 reproduces the cliff shape and makes its readout sensitivity executable. It does
 not turn the interpolated ceiling into an uncensored capacity estimate.
+
+## Sensitivity replay (2026-09-12, registered before running)
+
+`CAP-RATIO` is adopted on CS1 and CS2 above and on the maintained replay of
+the (4000, 60) cell; no retained artifact pairs a cell with a
+mechanism-disabled null. The null for "M* is a function of n/k" is a cell at
+a different n/k at the same n: if the ratio controls the ceiling, holding n
+and halving k must move the ceiling by the law's factor and leave a load at
+which one cell recalls everything and the other nothing. This replay
+retains that contrast and re-runs the equal-ratio pair as a consistency
+check, on the maintained protocol (half-cue rank-1, net readout,
+unrefracted, `--arms B`).
+
+Protocol: `python -m research.runner capacity-scaling --tag UNIQUE
+--registration research/notes/memory/PREREG_capacity_nk_law.md
+--nk 4000:60,4000:30,8000:120 --arms B --rounds 8
+--ms 8,16,32,48,64,96,128,192,256,384,512,768`; p = 0.5, beta = 0.10,
+w_max = 20, seeds 42 to 61 (twenty brains).
+
+Bars:
+
+- **NK-S1, the retained contrast.** At M = 128 the (4000, 30) cell's rank-1
+  recall exceeds the (4000, 60) cell's by at least 0.9 on every brain (the
+  law puts the ceilings near 300 and 76; at 128 the first is below its
+  ceiling and the second past it). This is the register's sensitivity
+  check for `CAP-RATIO`.
+- **NK-S2, the law's factor.** M*(4000, 30) / M*(4000, 60) is at least 3
+  (the law says (133.3/66.7)^2 = 4); both ceilings interior to the grid.
+- **NK-S3, equal ratio, equal ceiling.** M*(8000, 120) lies within 25% of
+  M*(4000, 60), as CS1 found.
+
+A bar that fails is recorded with its numbers.

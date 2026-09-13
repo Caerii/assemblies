@@ -1,0 +1,71 @@
+# Registration: refraction strength against convergence of a recurrent assembly, twenty seeds
+
+> **Status (2026-09-12): registered, not yet run.** Bars fixed before the
+> run. `REFRACTION-CANCELS-CONVERGENCE` rests on `seq_refraction_wander.py`,
+> a post hoc diagnostic (16 brains, identities `42 + b`, one mutable
+> procedure mixing recurrent, feedforward and scaling audits) with no run
+> record. This registration splits its arms, gives them runner seed
+> identities, and retains per-brain convergence so the register can check
+> the mechanism-disabled contrast.
+
+## Why
+
+The entry says: at refraction strength s = beta the identity net drive =
+drive - bias cancels the Hebbian convergence force on a recurrent
+assembly, so the winners reshuffle every round (churn), while at s = 0.5
+beta the assembly converges (relocating once when the clip binds) and a
+feedforward area at s = beta holds because its input ranking is fixed.
+The adopted numbers (converge at 0.5 and 0.7 beta, never at 0.8 and
+above; feedforward late stability 0.993) are prose from the diagnostic.
+
+## What runs
+
+`python -m research.runner refraction-convergence --tag UNIQUE`
+
+- Engine `hashed_assembly_memory`: one `HashedArea` (n = 4000, k = 100)
+  written from one stimulus (k rows, p = 0.5, beta = 0.10, w_max = 20,
+  normalized initialization) with recurrence from an `AreaFiber` of the
+  same p, exactly the diagnostic's construction, for 240 one-round
+  episodes so every round's winners are observed. The organ profile
+  declares the inference schedule `training-trajectory`: the observation
+  is the write itself; there is no recall.
+- Seeds 42 to 61 (twenty brains), the runner's identities, paired across
+  arms.
+- Arms: `control` (unrefracted, recurrent); `feedforward` (refracted at
+  s = beta, no recurrence); `recurrent` at s/beta in {0.5, 0.7, 0.8, 0.9,
+  1.0}.
+- Per brain and arm the run retains: the consecutive-round overlap curve;
+  `late` (mean consecutive overlap over rounds 200 to 240); `conv` (the
+  first round after which consecutive overlap stays at least 0.95, or -1);
+  the overlap with the round-10 winners at rounds 10, 20, 30, 40, 60, 100,
+  150, 200, 240; and `fill`.
+
+Smoke (`--smoke --seeds 1 2 3`) runs 40 episodes on the control and the
+0.5 and 1.0 arms and is VOID.
+
+## Bars
+
+Priors: the diagnostic's 16-brain reading (converge 16/16 at 0.5 and 0.7
+with conv rounds 45 to 48; 0 of 16 at 0.8, 0.9, 0.95 and 1.0 with late
+stability at most 0.22; control converges at round 4; feedforward late
+0.993).
+
+- **RC-1, the control converges.** `conv >= 0` and `late >= 0.95` on every
+  brain of the control arm, with median `conv` at most 20.
+- **RC-2, half beta converges.** On the 0.5 arm `late >= 0.95` on every
+  brain and `conv <= 100` on at least 18 of 20.
+- **RC-3, full beta churns.** On the 1.0 arm `late <= 0.5` on every brain
+  and `conv = -1` on at least 18 of 20.
+- **RC-4, feedforward holds.** On the feedforward arm `late >= 0.95` on
+  every brain.
+- **RC-5, the transition sits between 0.7 and 0.8.** The 0.7 arm converges
+  (`late >= 0.95`) on at least 18 of 20 and the 0.8 arm on at most 2 of
+  20. PREDICTION: uncertain at 0.7 (the entry records "at 0.7 beta most
+  brains no longer converge" in one reading and "0.5, 0.7 converge" in
+  another; this bar settles which).
+
+Retained sensitivity for the register: `late`, the 0.5 arm against the
+1.0 arm, every brain greater by at least 0.5.
+
+A bar that fails is recorded with its numbers, and the entry's claim is
+amended to what twenty brains support.

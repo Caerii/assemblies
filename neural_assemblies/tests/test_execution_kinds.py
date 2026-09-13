@@ -198,3 +198,19 @@ def test_validator_rechecks_reference_profile_against_the_describer(run):
     _rewrite(path, drift)
     assert any("disagrees with the declared describer" in error
                for error in validate_artifact(path))
+
+
+def test_assembly_memory_describer_names_the_trajectory_inference():
+    """The convergence protocol observes the write itself; its profile must
+    say so rather than claim a frozen completion it never runs."""
+    from neural_assemblies import InferenceSchedule, describe_assembly_memory
+
+    completion = describe_assembly_memory(strength=0.5)
+    trajectory = describe_assembly_memory(strength=0.5, inference="trajectory")
+    assert completion.inference_schedule is InferenceSchedule.FROZEN_RECURRENT_COMPLETION
+    assert trajectory.inference_schedule is InferenceSchedule.TRAINING_TRAJECTORY
+    assert completion.mismatch(trajectory) == {
+        "inference_schedule": ("frozen-recurrent-completion", "training-trajectory"),
+    }
+    with pytest.raises(ValueError, match="inference"):
+        describe_assembly_memory(inference="recall")

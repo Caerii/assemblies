@@ -1979,8 +1979,12 @@ the reconstruction-readout tests build.
   `CORE_TO_CATEGORY` of the lexicon holding the word. A trained-corpus
   sentence reaches the neural classifier 0 times and issues 0 probes; an
   unregistered form reaches it (twice, once per classification pass) and
-  still issues no probe. The module docstring and the `parse` docstring now
-  say so.
+  still issues no probe. A form that HAS a stimulus but no lexicon entry is
+  the one case that probes: it issues one projection per non-empty core
+  lexicon, is labelled with a core category by chance overlap, and is then
+  cached, so a novel word acquires a category the parser never learned
+  (the fake-perfect shape; E6'). The module docstring and the `parse`
+  docstring now say so.
 - **E3, E7 (mutual inhibition never fires).** Both declared groups are
   registered; of the 2,871 projections `train` issues and the 14 each
   `parse` issues, none co-targets two members, so the inhibition is never

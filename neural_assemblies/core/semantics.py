@@ -126,6 +126,9 @@ class InferenceSchedule(_SemanticEnum):
     FROZEN_RECURRENT_COMPLETION = "frozen-recurrent-completion"
     FROZEN_STATE_ADVANCING_TRANSITION = "frozen-state-advancing-transition"
     FROZEN_STATE_ADVANCING_EMISSION = "frozen-state-advancing-emission"
+    #: no inference pass: the observation is the write trajectory itself
+    #: (winners recorded every round while the item is stored)
+    TRAINING_TRAJECTORY = "training-trajectory"
 
 
 class ExecutionKind(_SemanticEnum):
@@ -660,12 +663,22 @@ def describe_assembly_memory(*, w_max: float | None = 20.0,
                              synaptic_scaling: bool = False,
                              strength: float = 0.5,
                              beta: float = 0.1,
-                             gate: bool = False) -> OrganSemantics:
-    """Describe the transition relation implemented by ``AssemblyMemory``."""
+                             gate: bool = False,
+                             inference: str = "completion") -> OrganSemantics:
+    """Describe the transition relation implemented by ``AssemblyMemory``.
+
+    ``inference`` is ``"completion"`` (frozen half-cue recall, the memory
+    protocol) or ``"trajectory"`` (no recall: the write's own round-by-round
+    winners are the observation, the convergence protocol).
+    """
     for name, value in (("strength", strength), ("beta", beta)):
         if (isinstance(value, bool) or not isinstance(value, numbers.Real)
                 or not math.isfinite(value) or value < 0):
             raise ValueError(f"{name} must be a finite nonnegative number")
+    schedules = {"completion": InferenceSchedule.FROZEN_RECURRENT_COMPLETION,
+                 "trajectory": InferenceSchedule.TRAINING_TRAJECTORY}
+    if inference not in schedules:
+        raise ValueError("inference must be 'completion' or 'trajectory'")
     return OrganSemantics(
         organ=OrganKind.ASSEMBLY_MEMORY,
         substrate=_hashed_substrate(
@@ -674,7 +687,7 @@ def describe_assembly_memory(*, w_max: float | None = 20.0,
         ),
         state_code=StateCode.NONE,
         training_schedule=TrainingSchedule.STIMULUS_PLUS_RECURRENCE,
-        inference_schedule=InferenceSchedule.FROZEN_RECURRENT_COMPLETION,
+        inference_schedule=schedules[inference],
         tie_jitter=0.0,
         arc_refraction_charge=float(strength) * float(beta),
         state_refraction_charge=0.0,

@@ -1,0 +1,204 @@
+"""Refraction strength against convergence of a recurrent assembly. [[REFRACTION-CANCELS-CONVERGENCE]]
+
+Registration: research/notes/memory/PREREG_refraction_convergence.md.
+
+The registered form of `seq_refraction_wander.py`'s recurrent and
+feedforward arms: one hashed area written from one stimulus with
+recurrence, 240 one-round episodes so every round's winners are observed,
+twenty runner seeds paired across arms, and the per-brain convergence
+quantities retained. The organ profile declares `training-trajectory`:
+there is no recall; the write is the observation.
+
+Run:  python -m research.runner refraction-convergence --tag UNIQUE
+      (smoke: --smoke --seeds 1 2 3; VOID)
+"""
+from __future__ import annotations
+
+from dataclasses import asdict
+from pathlib import Path
+from typing import Any, cast
+
+import numpy as np
+
+from neural_assemblies import describe_assembly_memory
+from neural_assemblies.diagnostics import ensemble_from_values
+from research.runner import (
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
+
+PROTOCOL = "memory.refraction-convergence"
+VERSION = "1"
+REGISTRATION = "research/notes/memory/PREREG_refraction_convergence.md"
+REGISTERED_SEEDS = tuple(range(42, 62))
+N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
+ROUNDS, REF_ROUND = 240, 10
+MARKS = (10, 20, 30, 40, 60, 100, 150, 200, 240)
+ARMS = {
+    "control": {"refracted": False, "recurrent": True, "ratio": 0.0},
+    "feedforward": {"refracted": True, "recurrent": False, "ratio": 1.0},
+    "s0.5": {"refracted": True, "recurrent": True, "ratio": 0.5},
+    "s0.7": {"refracted": True, "recurrent": True, "ratio": 0.7},
+    "s0.8": {"refracted": True, "recurrent": True, "ratio": 0.8},
+    "s0.9": {"refracted": True, "recurrent": True, "ratio": 0.9},
+    "s1.0": {"refracted": True, "recurrent": True, "ratio": 1.0},
+}
+SMOKE_ARMS = ("control", "s0.5", "s1.0")
+
+
+def _to_i32(value):
+    value &= 0xFFFFFFFF
+    return value - 0x100000000 if value >= 0x80000000 else value
+
+
+def profile_for(arm):
+    strength = BETA * arm["ratio"] if arm["refracted"] else 0.0
+    # describe_assembly_memory takes strength as a fraction of beta
+    return describe_assembly_memory(w_max=W_MAX, norm_init=True, synaptic_scaling=False,
+                                    strength=(arm["ratio"] if arm["refracted"] else 0.0),
+                                    beta=BETA, gate=False, inference="trajectory"), strength
+
+
+def run_arm(seeds, arm, *, rounds, device, organ_semantics):
+    """One arm on every brain: per-round winners, consecutive overlap, late, conv."""
+    from neural_assemblies.core._torch_ops import torch_ops
+    from neural_assemblies.core.numpy_engine import _seeding
+    from neural_assemblies.core.torch_engine._hashed import (
+        AreaFiber, HashedArea, StimulusFiber)
+    from neural_assemblies.core.semantics import OrganSemantics
+
+    expected, strength = profile_for(arm)
+    if OrganSemantics.normalize(organ_semantics).mismatch(expected):
+        raise ValueError("recorded organ profile disagrees with the arm's construction")
+    nbrain = len(seeds)
+    sd = [_to_i32(_seeding.fnv1a_pair_seed(seed, "A", "A")) for seed in seeds]
+    ss = [_to_i32(_seeding.fnv1a_pair_seed(seed, "s0", "A")) for seed in seeds]
+    area = HashedArea(N, K, sd, device=device, refracted_strength=strength)
+    fiber = AreaFiber(sd, N, N, P, beta=BETA, w_max=W_MAX, norm_init=True,
+                      synaptic_scaling=False, max_rounds=rounds, device=device)
+    stim = StimulusFiber(ss, K, N, P, beta=BETA, w_max=W_MAX, norm_init=True,
+                         max_rounds=rounds, device=device)
+    ref, overlaps, consec, prev = None, [], [], None
+    for r in range(1, rounds + 1):
+        # one-round episodes; project returns the [B, k] winners here
+        w = cast(Any, area.project(1, [fiber, stim] if arm["recurrent"] else [stim]))
+        if r == REF_ROUND:
+            ref = torch_ops.zeros(nbrain, N, dtype=torch_ops.bool, device=device)
+            ref.scatter_(1, w, True)
+        if ref is not None:
+            overlaps.append((torch_ops.gather(ref, 1, w).sum(1).float() / K).cpu().numpy())
+        if prev is not None:
+            pm = torch_ops.zeros(nbrain, N, dtype=torch_ops.bool, device=device)
+            pm.scatter_(1, prev, True)
+            consec.append((torch_ops.gather(pm, 1, w).sum(1).float() / K).cpu().numpy())
+        prev = w
+    ov = np.stack(overlaps)          # [rounds - REF_ROUND + 1, B]
+    cs = np.stack(consec)            # [rounds - 1, B]
+    late_from = max(len(cs) - 40, 0)
+    rows = []
+    for b, seed in enumerate(seeds):
+        conv = -1
+        ok = cs[:, b] >= 0.95
+        for r in range(len(ok)):
+            if ok[r:].all():
+                conv = r + 2          # cs[r] compares rounds r+1 and r+2
+                break
+        rows.append({
+            "seed": seed, "late": float(cs[late_from:, b].mean()), "conv": int(conv),
+            "converged": int(conv >= 0 and cs[late_from:, b].mean() >= 0.95),
+            "vs_round_10": {str(m): float(ov[m - REF_ROUND, b]) for m in MARKS if m - REF_ROUND < len(ov)},
+            "consecutive_at": {str(m): float(cs[m - 2, b]) for m in MARKS if 0 <= m - 2 < len(cs)},
+            "fill": float(area.fill.cpu().numpy()[b]),
+        })
+    del area, fiber, stim
+    torch_ops.cuda.empty_cache()
+    return rows
+
+
+def _ensemble(values, label, seeds):
+    e = ensemble_from_values(list(values), label, keys=list(seeds))
+    return {**asdict(e), "low": e.low, "high": e.high}
+
+
+def experiment(record):
+    p = record["parameters"]
+    seeds = list(record["seeds"])
+    if record["mode"] == "study":
+        validate_seed_identities(seeds, REGISTERED_SEEDS)
+    if (p["n"], p["k"], p["p"], p["beta"], p["w_max"]) != (N, K, P, BETA, W_MAX):
+        raise ValueError("this protocol version does not implement changed sizes")
+    arms = {}
+    for name in p["arms"]:
+        arm = ARMS[name]
+        rows = run_arm(seeds, arm, rounds=int(p["rounds"]), device=p["device"],
+                       organ_semantics=record["execution_semantics"]["profiles"][name])
+        n = len(rows)
+        conv = [r["conv"] for r in rows if r["conv"] >= 0]
+        arms[name] = {
+            **arm, "rows": rows,
+            "converged": sum(r["converged"] for r in rows), "n": n,
+            "median_conv": (float(np.median(conv)) if conv else None),
+            "ensembles": {"late": _ensemble([r["late"] for r in rows], f"{name}:late", seeds),
+                          "fill": _ensemble([r["fill"] for r in rows], f"{name}:fill", seeds)},
+        }
+        print(f"  {name:<12s} converged {arms[name]['converged']}/{n}  late "
+              f"{arms[name]['ensembles']['late']['mean']:.3f}  median conv "
+              f"{arms[name]['median_conv']}", flush=True)
+    smoke = record["mode"] == "smoke"
+    bars = {}
+    if not smoke:
+        def late(name):
+            return [r["late"] for r in arms[name]["rows"]]
+
+        def convs(name):
+            return [r["conv"] for r in arms[name]["rows"]]
+        n = len(seeds)
+        bars = {
+            "RC-1 control converges on every brain, median conv <= 20":
+                all(v >= 0.95 for v in late("control")) and all(c >= 0 for c in convs("control"))
+                and arms["control"]["median_conv"] is not None and arms["control"]["median_conv"] <= 20,
+            "RC-2 s=0.5 beta: late >= 0.95 on every brain, conv <= 100 on >= 18/20":
+                all(v >= 0.95 for v in late("s0.5"))
+                and sum(0 <= c <= 100 for c in convs("s0.5")) >= 18 * n // 20,
+            "RC-3 s=beta churns: late <= 0.5 on every brain, conv = -1 on >= 18/20":
+                all(v <= 0.5 for v in late("s1.0"))
+                and sum(c == -1 for c in convs("s1.0")) >= 18 * n // 20,
+            "RC-4 feedforward at s=beta holds: late >= 0.95 on every brain":
+                all(v >= 0.95 for v in late("feedforward")),
+            "RC-5 transition between 0.7 and 0.8: 0.7 converges >= 18/20, 0.8 <= 2/20":
+                sum(v >= 0.95 for v in late("s0.7")) >= 18 * n // 20
+                and sum(v >= 0.95 for v in late("s0.8")) <= 2 * n // 20,
+        }
+        for name, ok in bars.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
+    return {"verdict": verdict, "bars": bars, "arms": arms,
+            "scope": "refraction strength against convergence of one recurrent assembly, hashed substrate"}
+
+
+def main(argv=None):
+    parser = experiment_parser(
+        "Refraction strength against convergence (registered form of the wander diagnostic)",
+        engines=("hashed_assembly_memory",), default_seeds=REGISTERED_SEEDS,
+    )
+    parser.add_argument("--device", default="cuda")
+    args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    names = list(SMOKE_ARMS if args.smoke else ARMS)
+    parameters = {"n": N, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
+                  "rounds": 40 if args.smoke else ROUNDS, "reference_round": REF_ROUND,
+                  "marks": list(MARKS), "arms": names,
+                  "arm_settings": {name: ARMS[name] for name in names},
+                  "device": args.device}
+    profiles = {name: profile_for(ARMS[name])[0] for name in names}
+    path = run_experiment(
+        script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
+        registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
+        tag=args.tag, smoke=args.smoke, minimum_study_seeds=20,
+        parameters=parameters, organ_semantics=profiles, measure=experiment,
+    )
+    print(path)
+
+
+if __name__ == "__main__":
+    main()

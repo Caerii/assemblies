@@ -556,7 +556,8 @@ EXPERIMENTS = {'historical-merge': 'research.experiments.historical_merge',
                'a3-oracle-ceiling': 'research.experiments.seq_a3_oracle_ceiling',
                'arc-refraction-reference': 'research.experiments.seq_arc_refraction_reference',
                'kwta-tie-fragility': 'research.experiments.kwta_tie_fragility',
-               'a3-transducer': 'research.experiments.seq_a3_transducer'}
+               'a3-transducer': 'research.experiments.seq_a3_transducer',
+               'refraction-convergence': 'research.experiments.refraction_convergence'}
 
 
 def main(argv=None):
