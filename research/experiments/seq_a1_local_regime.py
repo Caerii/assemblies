@@ -41,7 +41,10 @@ from research.experiments.seq_a1_fsm_parity import (
     BETA, K, N_ARC, N_STATE, NEGATIVE, POSITIVE, PRESENTATIONS, SEEDS,
 )
 from research.experiments.seq_a1_drift import true_trajectory
-from research.runner import experiment_parser, run_experiment
+from research.runner import (
+    experiment_parser, run_experiment, validate_registered_seeds,
+    validate_seed_identities,
+)
 
 AMBIENT_P = 0.05
 ORGAN_P = 0.40
@@ -99,6 +102,8 @@ def arm(name, *, organ_p, seeds, materialized=False, presentations=PRESENTATIONS
 
 
 def experiment(record):
+    if record.get("mode", "study") == "study":
+        validate_seed_identities(record["seeds"], SEEDS)
     parameters = record["parameters"]
     seeds = record["seeds"]
     materialized = parameters["materialized"]
@@ -125,6 +130,7 @@ def main(argv=None):
     parser.add_argument("--materialized", action="store_true",
                         help="draw the full arc connectome before training")
     args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, tuple(SEEDS))
     parameters = {"ambient_p": AMBIENT_P, "organ_p": ORGAN_P, "k": K,
                   "n_arc": N_ARC, "n_state": N_STATE, "beta": BETA,
                   "presentations": 2 if args.smoke else PRESENTATIONS,
