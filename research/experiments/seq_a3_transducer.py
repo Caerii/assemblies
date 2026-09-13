@@ -26,8 +26,8 @@ prereg commits to -- it commits to running it only at or above 0.2338.
 from __future__ import annotations
 
 import json
+from pathlib import Path
 import random
-import sys
 import time
 from typing import Any, cast
 
@@ -44,6 +44,7 @@ from neural_assemblies.programs.sequence_transducer import SequenceTransducer
 
 from research.experiments.study4 import ntp, ntp_ctx  # noqa: E402
 from research.experiments._parallel import run_cells  # noqa: E402
+from research.runner import experiment_parser, run_experiment  # noqa: E402
 
 N, K, P, BETA = ntp.N, ntp.K, ntp.P, ntp.BETA
 TRAIN_ROUNDS, GROUND_ROUNDS = ntp.TRAIN_ROUNDS, ntp.GROUND_ROUNDS
@@ -226,8 +227,14 @@ def report_regime(seed, n_arc):
     print(format_report(rows), flush=True)
 
 
-def main():
-    seeds = SEEDS[:int(sys.argv[1])] if len(sys.argv) > 1 else SEEDS
+def legacy_numpy_study(seed_count=None):
+    """The 2026-09 numpy_sparse study, kept runnable for forensic reproduction.
+
+    It ran on the SAMPLED engine, so its sequence numbers are void under
+    PREREG_sampler_audit.md; it is not a runner arm. Its committed result is
+    research/results/sequence/seq_a3_transducer_results.json.
+    """
+    seeds = SEEDS[:seed_count] if seed_count else SEEDS
     out = {"seeds": seeds, "organ_p": ORGAN_P, "n_arc_sweep": N_ARC_SWEEP}
     print("=== A3: transducer with an INDUCED state ===")
     print(f"    seeds {seeds[0]}..{seeds[-1]}  n={N} k={K} p={P} beta={BETA}")
@@ -257,8 +264,7 @@ def main():
     if not h5:
         print("\n  H5 FAILED. The prereg says the study stops and becomes a "
               "bug hunt. Sweep NOT run.")
-        _write(out)
-        return
+        return out
 
     # -- the n_arc curve ---------------------------------------------------
     print("\n  [sweep + CONTEXT] full n_arc curve, reported whole")
@@ -329,13 +335,7 @@ def main():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
     out["best_n_arc"] = best_n
-    _write(out)
-
-
-def _write(out, tag=""):
-    from _results import write_result
-    path = write_result("sequence", f"seq_a3_transducer_results{tag}.json", out)
-    print(f"\nwrote {path}")
+    return out
 
 
 # ---------------------------------------------------------------------------
@@ -376,6 +376,7 @@ def _brains_per_launch(n_arc):
 def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
               tie_seed=0, strength=0.1, collect_margin=False, horizon=0,
               collect_arcs=False):
+    profile = organ_profile(strength=strength, horizon=horizon)
     """MRR per seed (and cross-prefix state overlap per seed when asked)."""
     if collect_arcs:
         raise ValueError("TM-9 mechanism collection is invalid: pooled positions include agreement words; "
@@ -397,7 +398,8 @@ def a3_hashed(seeds, *, n_arc, beta, state_blind=False, collect_state=False,
                              state_mode=STATE_MODE, predict_gain=PREDICT_GAIN,
                              n_state=(n_arc if STATE_MODE == "copy" else None),
                              features=(REGISTER[0] if REGISTER else None),
-                             feature_of=(REGISTER[1] if REGISTER else None))
+                             feature_of=(REGISTER[1] if REGISTER else None),
+                             organ_semantics=profile)
         if REGISTER and REGISTER_BLIND:
             t.reg_blind = True
         margins = [[] for _ in group]
@@ -490,8 +492,7 @@ def main_hashed(seeds, cells=N_ARC_SWEEP, with_context=True):
     print(f"    H5 {'PASS' if h5 else 'FAIL'} (upper {null.high:.4f} vs unigram {UNIGRAM})")
     if not h5:
         print("\n  H5 FAILED: the study stops (bug hunt). Sweep NOT run.")
-        _write(out, "_hashed")
-        return
+        return out
     print("\n  [sweep] the n_arc curve, reported whole")
     cells_e = {}
     for na in cells:
@@ -538,16 +539,16 @@ def main_hashed(seeds, cells=N_ARC_SWEEP, with_context=True):
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
     out["best_n_arc"] = best_n
-    _write(out, "_hashed")
+    return out
 
 
-def main_strength(seeds, strength, n_arc=10000):
+def main_strength(seeds, strength, n_arc=10000, reference_file=None):
     """PREREG_seq_a3_transducer.md Amendment 2: the organ at a strength below
     beta, paired against the recorded beta cell; the state-blind audit and
     the arc's member margin at both."""
     print(f"=== A3 hashed, strength {strength} (Amendment 2) ===")
-    from _results import results_path
-    with open(results_path("sequence", "seq_a3_transducer_results_hashed.json")) as fh:
+    reference_file = reference_file or ROOT / STRENGTH_REFERENCE
+    with open(reference_file, encoding="utf-8") as fh:
         base = json.load(fh)["sweep"][str(n_arc)]["values"]
     m, ov = a3_hashed(seeds, n_arc=n_arc, beta=BETA, strength=strength,
                       collect_state=True, collect_margin=True)
@@ -578,7 +579,7 @@ def main_strength(seeds, strength, n_arc=10000):
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
-    _write(out, f"_hashed_s{strength}")
+    return out
 
 
 def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000, gap=1, gain=1.0):
@@ -632,7 +633,7 @@ def main_successor(seeds, horizons=(0, 1, 2), n_arc=10000, gap=1, gain=1.0):
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
-    _write(out, f"_successor_chain_gap{CHAIN_GAP}_g{SUCCESSOR_GAIN}")
+    return out
 
 
 def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2, mechanism=False, tag=""):
@@ -684,7 +685,7 @@ def main_temporal(seeds, gains=(0.0, 1.0, 4.0), n_arc=10000, gap=2, mechanism=Fa
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
-    _write(out, f"_temporal_chain_gap{CHAIN_GAP}{tag}")
+    return out
 
 
 def _number_of(word):
@@ -777,38 +778,164 @@ def main_register(seeds, n_arc=10000, gap=2):
     for name, ok in verdicts.items():
         print(f"  {'PASS' if ok else 'FAIL'}  {name}")
     out["verdicts"] = verdicts
-    _write(out, f"_register_chain_gap{CHAIN_GAP}")
+    return out
+
+
+ARMS = ("induced", "strength", "successor", "temporal", "register")
+REGISTRATIONS = {
+    "induced": "research/notes/sequence/PREREG_seq_a3_transducer.md",
+    "strength": "research/notes/sequence/PREREG_seq_a3_transducer.md",
+    "successor": "research/notes/sequence/PREREG_successor_state.md",
+    "temporal": "research/notes/sequence/PREREG_temporal_memory.md",
+    "register": "research/notes/sequence/PREREG_feature_register.md",
+}
+#: seed identities each arm was registered on (the temporal arm has two:
+#: cells A on 42..61 and Amendment 2's fresh seeds 62..81)
+REGISTERED_SEEDS = {
+    "induced": (tuple(HASHED_SEEDS),),
+    "strength": (tuple(HASHED_SEEDS),),
+    "successor": (tuple(HASHED_SEEDS),),
+    "temporal": (tuple(HASHED_SEEDS), tuple(range(62, 82))),
+    "register": (tuple(HASHED_SEEDS),),
+}
+STRENGTH_REFERENCE = "research/results/sequence/seq_a3_transducer_results_hashed.json"
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def organ_profile(*, strength=0.1, horizon=0):
+    """The transducer profile the current arm builds, from the module state."""
+    from neural_assemblies import describe_hashed_transducer
+    return describe_hashed_transducer(
+        w_max=20.0, norm_init=True, refracted_strength=strength,
+        horizon=horizon, successor_gain=SUCCESSOR_GAIN, state_mode=STATE_MODE,
+        predict_gain=PREDICT_GAIN, feature_register=bool(REGISTER),
+    )
+
+
+def _set_arm_state(p):
+    """Set the module state an arm's functions read (they predate the runner)."""
+    global CORPUS, CHAIN_GAP, SUCCESSOR_GAIN, STATE_MODE, PREDICT_GAIN, REGISTER, REGISTER_BLIND
+    CORPUS = "chain" if p["corpus"] == "agreement-chain" else "study4"
+    CHAIN_GAP = int(p["gap"] or 1)
+    SUCCESSOR_GAIN, STATE_MODE, PREDICT_GAIN = 1.0, "induced", 0.0
+    REGISTER, REGISTER_BLIND = None, False
+
+
+def arm_profiles(p):
+    """One frozen organ profile per configuration the arm will construct."""
+    global SUCCESSOR_GAIN, STATE_MODE, PREDICT_GAIN, REGISTER
+    _set_arm_state(p)
+    arm = p["arm"]
+    if arm == "induced":
+        return {"default": organ_profile(strength=p["strength"])}
+    if arm == "strength":
+        return {"strength": organ_profile(strength=p["strength"]),
+                "beta": organ_profile(strength=0.1)}
+    if arm == "successor":
+        SUCCESSOR_GAIN = float(p["gain"])
+        return {f"h{int(h)}": organ_profile(horizon=int(h)) for h in p["horizons"]}
+    if arm == "temporal":
+        STATE_MODE = "copy"
+        profiles = {}
+        for g in p["gains"]:
+            PREDICT_GAIN = float(g)
+            profiles[f"g{float(g):g}"] = organ_profile()
+        PREDICT_GAIN = 0.0
+        return profiles
+    if arm == "register":
+        REGISTER = (["sg", "pl"], {})
+        try:
+            return {"register": organ_profile()}
+        finally:
+            REGISTER = None
+    raise ValueError(f"unknown arm {arm!r}")
+
+
+def experiment(record):
+    p = record["parameters"]
+    seeds = list(record["seeds"])
+    if record["mode"] == "study" and tuple(seeds) not in REGISTERED_SEEDS[p["arm"]]:
+        raise ValueError(f"{p['arm']} was registered on {REGISTERED_SEEDS[p['arm']]}, not {seeds}")
+    _set_arm_state(p)
+    arm = p["arm"]
+    if arm == "induced":
+        out = main_hashed(seeds, cells=list(p["cells"]), with_context=bool(p["with_context"]))
+    elif arm == "strength":
+        out = main_strength(seeds, float(p["strength"]), n_arc=int(p["n_arc"]),
+                            reference_file=ROOT / p["reference"])
+    elif arm == "successor":
+        out = main_successor(seeds, horizons=tuple(int(h) for h in p["horizons"]),
+                             n_arc=int(p["n_arc"]), gap=int(p["gap"]), gain=float(p["gain"]))
+    elif arm == "temporal":
+        out = main_temporal(seeds, gains=tuple(float(g) for g in p["gains"]),
+                            n_arc=int(p["n_arc"]), gap=int(p["gap"]))
+    elif arm == "register":
+        out = main_register(seeds, n_arc=int(p["n_arc"]), gap=int(p["gap"]))
+    else:
+        raise ValueError(f"unknown arm {arm!r}")
+    verdicts = out.get("verdicts", {})
+    out["verdict"] = ("VOID" if record["mode"] == "smoke"
+                      else "PASS" if verdicts and all(verdicts.values()) else "FAIL")
+    out["scope"] = f"A3 transducer, arm {arm}, hashed organ"
+    return out
+
+
+def main(argv=None):
+    parser = experiment_parser(
+        "A3 transducer on the hashed organ: induced sweep, strength, successor, temporal, register arms",
+        engines=("hashed_transducer",), default_seeds=tuple(HASHED_SEEDS),
+    )
+    parser.add_argument("--arm", choices=ARMS, required=True)
+    parser.add_argument("--corpus", choices=("study4-template", "agreement-chain"))
+    parser.add_argument("--gap", type=int, help="distractor gap of the agreement chain")
+    parser.add_argument("--n-arc", type=int, default=10000)
+    parser.add_argument("--cells", nargs="+", type=int, help="induced arm: the n_arc sweep")
+    parser.add_argument("--with-context", action="store_true",
+                        help="induced arm: also run the numpy CONTEXT arm (a sampled-engine mixture; recorded)")
+    parser.add_argument("--strength", type=float, help="strength arm: arc refraction strength")
+    parser.add_argument("--horizons", nargs="+", type=int, help="successor arm")
+    parser.add_argument("--gain", type=float, default=1.0, help="successor arm: forcing gain")
+    parser.add_argument("--gains", nargs="+", type=float, help="temporal arm: prediction gains")
+    args = parser.parse_args(argv)
+    arm = args.arm
+    defaults = {
+        "induced": dict(corpus="study4-template", gap=None, strength=0.1,
+                        cells=[2000] if args.smoke else list(N_ARC_SWEEP)),
+        "strength": dict(corpus="study4-template", gap=None, strength=0.05),
+        "successor": dict(corpus="agreement-chain", gap=1, strength=0.1, horizons=[0, 1, 2]),
+        "temporal": dict(corpus="agreement-chain", gap=2, strength=0.1, gains=[0.0, 1.0, 4.0]),
+        "register": dict(corpus="agreement-chain", gap=2, strength=0.1),
+    }[arm]
+    corpus = args.corpus or defaults["corpus"]
+    gap = args.gap if args.gap is not None else defaults.get("gap")
+    parameters = {
+        "arm": arm, "corpus": corpus, "gap": gap, "n_arc": args.n_arc,
+        "n": N, "k": K, "p": P, "beta": BETA, "organ_p": ORGAN_P,
+        "vocab_size": VOCAB_SIZE, "n_train": N_TRAIN, "n_test": N_TEST,
+        "train_rounds": TRAIN_ROUNDS, "ground_rounds": GROUND_ROUNDS,
+        "max_potentiations": 64, "tie_seed": 0,
+        "strength": args.strength if args.strength is not None else defaults["strength"],
+        "cells": args.cells or defaults.get("cells"),
+        "with_context": bool(args.with_context),
+        "horizons": args.horizons or defaults.get("horizons"),
+        "gain": args.gain, "gains": args.gains or defaults.get("gains"),
+        "reference": STRENGTH_REFERENCE if arm == "strength" else None,
+    }
+    admissible = REGISTERED_SEEDS[arm]
+    if not args.smoke and tuple(args.seeds) not in admissible:
+        parser.error(f"{arm} study requires one of the registered seed sets {admissible}")
+    if args.smoke and len(args.seeds) != 3:
+        parser.error("smoke requires exactly 3 explicit seeds")
+    inputs = (STRENGTH_REFERENCE,) if arm == "strength" else ()
+    path = run_experiment(
+        script=__file__, protocol="sequence.a3-transducer", protocol_version="2",
+        registration=REGISTRATIONS[arm], engine=args.engine, seeds=args.seeds,
+        tag=args.tag, smoke=args.smoke, minimum_study_seeds=20,
+        parameters=parameters, input_artifacts=inputs,
+        organ_semantics=arm_profiles(parameters), measure=experiment,
+    )
+    print(path)
 
 
 if __name__ == "__main__":
-    if "--register" in sys.argv:
-        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
-        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 2
-        main_register(HASHED_SEEDS[:n_seeds], gap=gap)
-    elif "--temporal" in sys.argv:
-        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
-        gs = ([float(x) for x in sys.argv[sys.argv.index("--gains") + 1].split(",")]
-              if "--gains" in sys.argv else (0.0, 1.0, 4.0))
-        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 2
-        start = int(sys.argv[sys.argv.index("--seed-start") + 1]) if "--seed-start" in sys.argv else HASHED_SEEDS[0]
-        tag = sys.argv[sys.argv.index("--tag") + 1] if "--tag" in sys.argv else ""
-        main_temporal(list(range(start, start + n_seeds)), gains=tuple(gs), gap=gap,
-                      mechanism="--mechanism" in sys.argv, tag=tag)
-    elif "--successor" in sys.argv:
-        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
-        hs = ([int(x) for x in sys.argv[sys.argv.index("--horizons") + 1].split(",")]
-              if "--horizons" in sys.argv else (0, 1, 2))
-        gap = int(sys.argv[sys.argv.index("--gap") + 1]) if "--gap" in sys.argv else 1
-        gain = float(sys.argv[sys.argv.index("--gain") + 1]) if "--gain" in sys.argv else 1.0
-        main_successor(HASHED_SEEDS[:n_seeds], horizons=tuple(hs), gap=gap, gain=gain)
-    elif "--strength" in sys.argv:
-        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
-        main_strength(HASHED_SEEDS[:n_seeds], float(sys.argv[sys.argv.index("--strength") + 1]))
-    elif "--engine" in sys.argv and sys.argv[sys.argv.index("--engine") + 1] == "hashed":
-        n_seeds = int(sys.argv[sys.argv.index("--seeds") + 1]) if "--seeds" in sys.argv else len(HASHED_SEEDS)
-        cells = ([int(x) for x in sys.argv[sys.argv.index("--cells") + 1].split(",")]
-                 if "--cells" in sys.argv else N_ARC_SWEEP)
-        main_hashed(HASHED_SEEDS[:n_seeds], cells=cells,
-                    with_context="--no-context" not in sys.argv)
-    else:
-        main()
+    main()

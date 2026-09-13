@@ -152,6 +152,34 @@ def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=
             if any(not _equal(a, b) for a, b in zip(column["values"], expected, strict=True)):
                 errors.append(f"{new_name}: per-seed values differ")
             checked += len(expected)
+    elif kind == "a3-temporal":
+        # A migrated temporal-memory arm (sequence.a3-transducer, arm temporal)
+        # against the legacy file the same seeds wrote: per gain g, the
+        # per-seed MRR (`g{g}.mrr.values`), the paired delta over the bigram
+        # and the state-blind delta, plus the bigram and oracle baselines.
+        old_seeds = baseline.get("seeds")
+        if (not isinstance(old_seeds, list) or any(type(s) is not int for s in old_seeds)
+                or len(set(old_seeds)) != len(old_seeds)):
+            raise ValueError("historical A3 file must record unique integer seeds")
+        if list(record["seeds"]) != list(old_seeds):
+            raise ValueError("a3-temporal compares identical seed lists in identical order")
+        if record["parameters"].get("arm") != "temporal":
+            raise ValueError("candidate is not a temporal arm")
+        if baseline.get("gap") != record["parameters"]["gap"]:
+            errors.append("gap differs between candidate and historical file")
+        for name in ("bigram", "oracle"):
+            if not _equal(observations[name]["values"], baseline[name]["values"]):
+                errors.append(f"{name}: per-seed values differ")
+            checked += len(baseline[name]["values"])
+        gains = [f"g{float(g):g}" for g in record["parameters"]["gains"]]
+        for key in gains:
+            if key not in observations or key not in baseline:
+                errors.append(f"{key}: missing candidate or historical cell")
+                continue
+            for field in ("mrr", "delta_bigram", "blind_delta"):
+                if not _equal(observations[key][field]["values"], baseline[key][field]["values"]):
+                    errors.append(f"{key}/{field}: per-seed values differ")
+                checked += len(baseline[key][field]["values"])
     elif kind in {"capacity", "capacity-paired"}:
         if (not reference_seeds or any(type(seed) is not int for seed in reference_seeds)
                 or len(set(reference_seeds)) != len(reference_seeds)):
@@ -207,7 +235,7 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
     # Kinds whose receipts are retained under research/results/comparisons.
     # `capacity-paired` needs a treatment reference; `baseline` compares one
     # candidate against one historical file and records `null` for it.
-    retained_kinds = {"capacity-paired": True, "baseline": False}
+    retained_kinds = {"capacity-paired": True, "baseline": False, "a3-temporal": False}
     if (receipt["comparison_version"] != 4
             or receipt["kind"] not in retained_kinds
             or receipt["numerical_match"] is not True
@@ -269,7 +297,7 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired", "baseline"))
+    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired", "baseline", "a3-temporal"))
     parser.add_argument("candidate", type=Path)
     parser.add_argument("reference", type=Path)
     parser.add_argument("--reference-seeds", nargs="+", type=int)

@@ -28,6 +28,14 @@ source-linked contract, negative control, and relevant gate are all present.
     migration comparison needs a ~45 min GPU replay of seeds 62..81 at
     gap 2), and a written disposition for `seq_s5_arc_drift.py` and
     `seq_s5_arc_clip.py` (post hoc diagnostics).
+  - Later the same day: `seq_a3_transducer.py` is a runner module
+    (`a3-transducer --arm {induced,strength,successor,temporal,register}`,
+    one frozen organ profile per configuration, the strength arm's
+    reference cell a declared input artifact; the numpy study is kept as
+    `legacy_numpy_study`, void under the sampler audit). The two arc
+    diagnostics have their disposition in the experiments README. Open:
+    the temporal-arm replay on seeds 62..81 and its receipt (comparator
+    kind `a3-temporal`).
 - [ ] **Complete the evidence graph.** Require every results artifact to carry
   script, commit/source digest, engine, protocol version, seeds, tag, parameters,
   and semantic profile. Require every register evidence edge and every
@@ -199,6 +207,14 @@ decisions; triage them by role and provenance before tightening the gate.
 - [ ] **Review every tracked `cpp/` and legacy-tree file.** For each item,
   record stay/move/archive/delete, current consumers, build path, specification,
   and replacement. Remove only with a passing replacement and evidence audit.
+  - Progress 2026-09-12: the inventory exists
+    (`docs/reviews/whole-codebase/CPP_LEGACY_INVENTORY.md`: 293 files in 25
+    clusters; STAY 38 files, ARCHIVE 115, DELETE-CANDIDATE 140, every
+    consumer cited). Decisions pending: the universal-brain-simulator stack
+    under cpp/ (~140 files, no consumers, broken includes, superseded by the
+    torch engine), `legacy/artifacts/` (114 MB of GIFs, no consumers), and
+    `cpp/core_cpp/`, whose maintained wrappers import a module no tracked
+    build produces.
 - [ ] **Inventory orphaned results and registrations.** Reconcile the roughly
   1,500-file research tree against register entries, preregistrations, scripts,
   and run records. Mark historical/void artifacts explicitly; never silently

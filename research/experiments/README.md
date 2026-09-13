@@ -54,6 +54,15 @@ captured by a runner execution profile. They remain available for forensic
 reproduction only; migrate them after their backend identity and protocol
 inputs are made explicit.
 
+`seq_s5_arc_drift.py` and `seq_s5_arc_clip.py` are post hoc diagnostics of
+Addendum 5 of `PREREG_s5_cliff_anatomy.md` (four brains of one organ, Z60,
+at 15 and 30 presentations): they draw the arc-drift and clip-relocation
+figures and wrote their data to `research/results/sequence/`. They are
+labelled post hoc in their docstrings, take no seeds or tag, and adopt
+nothing; they stay outside the runner as figure diagnostics. Migrating them
+would mean registering a per-seed protocol for a question the census
+already answered.
+
 `seq_refraction_wander.py` is also intentionally outside the supported runner.
 It is a post-hoc GPU diagnostic rather than a reproducible registered study:
 the committed observation used 16 brains (while hashed study records require
