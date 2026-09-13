@@ -261,7 +261,7 @@ def experiment(record):
                                for report in reports),
         },
         "verdict": "VOID" if record["mode"] == "smoke" else ("PASS" if passed else "FAIL"),
-        "scope": "position-specific subject-number representation in the fixed gap-2 chain",
+        "scope": f"position-specific subject-number representation in the fixed gap-{parameters['gap']} chain",
     }
     return ExperimentOutput(observations, {
         "raw-frames.json.gz": {"format": "temporal-position-frames-v1",
