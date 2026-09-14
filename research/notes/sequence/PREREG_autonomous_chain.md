@@ -1217,3 +1217,176 @@ correction to theirs.
 It cannot say the papers' number is wrong. Their limit is measured in their
 model at their parameters, and matching parameters is a separate study that
 this registration does not attempt.
+
+## Amendment 8 result (2026-09-13): all five bars FAIL, and the capacity surface is not smooth
+
+Run `chain-capacity-20260913`, block 62..81, chain order. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-capacity-20260913/results.json`.
+
+    FAIL AC-1   FAIL AC-2   FAIL AC-3   FAIL AC-4   FAIL AC-5
+
+    mean correct / L
+    n_arc      64     128     192     256     320     384     448     512
+     1000   1.000   1.000   0.995   0.677   1.000   0.784   0.681   0.665
+     2000   1.000   1.000   1.000   0.998   1.000   0.956   0.614   0.373
+     3000   1.000   1.000   1.000   1.000   0.996   0.995   1.000   1.000
+     4000   0.711   1.000   1.000   1.000   1.000   1.000   0.996   0.995
+
+    L* (crossing 0.95):  1000 -> 201,  2000 -> 385,  3000 -> CENSORED,
+                         4000 -> CENSORED
+
+**AC-5 fails as the registration anticipated, and that failure is doing its
+job.** At `n_arc` 3000 and 4000 the curve never crosses 0.95 inside the grid, so
+`L*` is censored and AC-2, AC-3 and AC-4 all read an undefined quantity. Without
+AC-5 they would have silently compared grid EDGES and reported a scaling law.
+This is the trap `exact_length` fell into in Amendment 1, caught this time by a
+bar written for it.
+
+The law therefore **cannot be fitted above `n/k = 20`** from this grid. The
+obstacle is a hard engine cap: `topk_select` packs a 16-bit index, so
+`n_state <= 65536` bounds the chain at `65536/k - 1 = 639` at `k = 100`. Reaching
+the crossing for the larger arcs needs a smaller `k`, which changes `n/k` and is
+a different study rather than a longer run.
+
+### AC-1's failure is the more interesting one: the surface has holes
+
+The curve is NOT monotone in chain length, and not only in exactness -- **in the
+graded measure too**:
+
+- `arc1000` runs 0.995 at L=192, **0.677 at L=256**, then **1.000 at L=320**.
+- `arc4000` runs **0.711 at L=64** and 1.000 at every length from 128 to 384.
+
+`arc4000-L64` is the shortest chain with the largest arc, which ought to be the
+easiest cell in the grid, and **every one of twenty brains fails** -- tightly,
+breaking between 0.59 and 0.80 of L, 19 of 20 classified `wrap`. `arc3000-L64`
+is exact on every brain. The break sits in the MIDDLE of the chain, so it is a
+different failure mode from the end-of-chain artifact of Amendment 7, which
+sits at 0.99-1.00.
+
+### A hypothesis I proposed and the data refutes
+
+The obvious reading was underload: refraction needs load
+([[REFRACTION-NEEDS-LOAD]]), so a large arc holding few assemblies would fail to
+separate them. **The arc overlap does not support it.** Relative to chance, at
+L=64 the four arc sizes give 1.87, 1.35, 1.15 and 2.79 -- `arc4000` is an
+outlier rather than the end of a trend -- and across the grid the failures do
+not track the ratio at all:
+
+    2.24x  arc1000-L320   WORKS
+    2.48x  arc1000-L256   fails
+    2.54x  arc2000-L128   WORKS
+    2.79x  arc4000-L64    fails
+
+There is no threshold in that ordering. Whatever selects the holes, it is not
+relative arc overlap, and the underload story is withdrawn rather than kept as
+a plausible narrative.
+
+### What this establishes
+
+**The capacity surface is not a smooth function of arc size and chain length in
+this construction.** It has reproducible holes: the `n3000` hole at L=384 was
+already shown to replicate across two independent seed blocks, and this grid
+adds `arc1000-L256` and `arc4000-L64` on the graded measure.
+
+That is a real result and it changes the shape of the remaining work. Fitting
+`L*(n_arc)` through this surface would be fitting a curve through a function
+that is not one. **Understanding the holes comes before fitting the law**, and
+nothing here should be cited as an arc-capacity law -- only as the measurement
+showing there is not yet a law to cite.
+
+The obvious next measurement is the one that separates a cell-specific accident
+from a regime: re-run the hole cells on a FRESH seed block. If `arc4000-L64` and
+`arc1000-L256` reproduce on seeds 82..101 as the `n3000` hole did, they are
+structural and the surface genuinely has holes; if they move, they are draws and
+the surface is smooth under noise this grid cannot see with twenty brains.
+
+### The holes are a LOAD WINDOW, and the statistic that finds it is arcs per neuron
+
+Post hoc on this grid, so stated as structure to confirm rather than as a law.
+
+The right variable is **arcs per neuron**, `L k / n_arc`: how many different arc
+assemblies the average arc neuron must belong to. It is dimensionless, and it
+orders the entire grid.
+
+    arcs/neuron   cells   outcome
+    1.6             1     FAILS (arc4000-L64, 0.711)
+    2.1 - 19.2     24     every one WORKS
+    22.4 - 51.2     7     six FAIL; one works
+
+**Inside [2.0, 19.2] all twenty-four cells work. There is no exception.** Both
+failure regions are outside it:
+
+- **A LOWER edge.** At 1.6 arcs per neuron the chain fails on every brain.
+  Refraction is an anti-merging force and it needs something to push against;
+  with the arc nearly empty there is too little accumulated bias to separate
+  assemblies. This is the direction the earlier `arc-needs-a-load-window` result
+  had its lower edge RETRACTED in, as a sampler artifact -- but this grid is the
+  hashed substrate, where that explanation does not apply. It is evidence for
+  re-opening that edge, not yet grounds for reinstating it.
+- **An UPPER edge** near 19 arcs per neuron, where interference wins.
+
+**This is why no monotone capacity law fits.** Capacity is a WINDOW in
+`L k / n_arc`, so sweeping `L` at fixed `n_arc` walks INTO the window from below
+and OUT of it above, and `L*` defined as a single downward crossing presupposes
+a monotonicity the surface does not have. AC-1 was the bar that caught this.
+
+It also means capacity is governed by the RATIO, not by `n_arc` and `L`
+separately -- the same shape as this repository's `CAP-RATIO` family, where
+assembly capacity depends on `n/k` alone.
+
+**Honest limits on the fit.** The window bounds were found by searching
+thresholds against these thirty-two cells, so 24-for-24 inside overstates the
+evidence: the ORDERING is the finding, the bounds are fitted and need
+confirmation on cells this grid did not use. And one cell refuses the window.
+
+### The exception, which is now the sharpest question here
+
+`arc1000-L320` sits at 32.0 arcs per neuron -- deep in the failing region,
+between `arc1000-L256` at 25.6 (0.677) and `arc1000-L384` at 38.4 (0.784) --
+and recalls **all 320 steps on all twenty brains**. A perfect island.
+
+A perfect score surrounded by failures is exactly what this repository's
+backlog item "audit perfect scores" exists for, and it gets that treatment
+rather than a story. Either the window has structure inside it that a single
+upper edge misses, or that cell is not measuring what the others are.
+
+### Diagnostic (2026-09-13): the two edges are two DIFFERENT mechanisms, measured
+
+Four cells, four brains, arc winners recorded at every presentation of eight
+watched transitions. The measurement named twice in this registration and never
+made: does a transition's arc stay put while it is being trained?
+
+    cell           arcs/neuron   outcome   consec overlap   first->last   relocations
+    arc4000-L64            1.6     0.711            0.938         0.489        0/608
+    arc3000-L64            2.1     1.000            0.924         0.712        0/608
+    arc1000-L256          25.6     0.677            0.273         0.536      479/608
+    arc1000-L320          32.0     1.000            0.732         0.479       36/608
+
+**The upper edge is RELOCATION.** At 25.6 arcs per neuron the assembly never
+settles: consecutive presentations of the same transition share only 0.273 of
+their winners and 479 of 608 consecutive pairs are relocations. The synapses
+written early point at an assembly that no longer fires.
+
+**The lower edge is something else: directional DRIFT.** At 1.6 arcs per neuron
+the assembly is stable step to step -- overlap 0.938, not one relocation -- yet
+first-to-last overlap is 0.489 against the working cell's 0.712. Under
+independent jitter, nineteen steps at 0.938 would leave about 0.30; the working
+cell's 0.712 shows it returns to itself and the failing cell's 0.489 shows it
+does not. It creeps away rather than jittering in place.
+
+So the window has two edges for two reasons, and neither is the "more load,
+more interference" story that the outcome table alone suggests.
+
+**And the exception is real in the DYNAMICS too, which rules out a statistical
+fluke of the outcome measure.** `arc1000-L320` at the HIGHER load has far more
+stable arcs than `arc1000-L256` at the lower one: 0.732 against 0.273,
+36 relocations against 479. Stability across the four cells runs 0.938, 0.924,
+0.273, 0.732 -- **non-monotone in load**, collapsing at 25.6 and recovering at
+32.0.
+
+No mechanism is offered for that recovery. A saturation reading is available --
+at high enough load the bias is uniformly large, stops differentiating, and the
+synaptic memory dominates again -- but it predicts stability keeps improving
+above 32, and `arc1000-L384` at 38.4 fails at 0.784, so it is not supported and
+is not adopted. The band is being swept finely on a FRESH seed block before any
+mechanism is proposed.

@@ -401,6 +401,29 @@ source-linked contract, negative control, and relevant gate are all present.
     lengths, graded and interpolated (L* = where mean correct crosses 0.95 of
     L), n_state pinned at 51300, CHAIN order set from Amendment 7's result
     rather than the plan's assumption of shuffled. Not yet run.
+  - RESULT 2026-09-13 (`chain-capacity-20260913`, Amendment 8): **all five AC
+    bars FAIL, and there is not yet a capacity law to cite.** AC-5 fails as
+    anticipated -- at n_arc 3000 and 4000 the curve never crosses 0.95 inside
+    the grid, so L* is CENSORED and AC-2/AC-3/AC-4 read an undefined quantity.
+    Without AC-5 they would have compared grid EDGES and reported a scaling
+    law, which is exactly the trap `exact_length` fell into in Amendment 1.
+    The law cannot be fitted above n/k = 20 here: topk_select packs a 16-bit
+    index, so n_state <= 65536 bounds the chain at 639 at k = 100, and reaching
+    the crossing for larger arcs needs a smaller k -- a different study.
+    AC-1's failure matters more: **the capacity surface is NOT smooth**, and
+    not only in exactness but in the GRADED measure. arc1000 runs 0.995 /
+    0.677 / 1.000 at L = 192/256/320; arc4000-L64 is 0.711 with EVERY brain
+    failing tightly at 0.59-0.80 of L (19/20 wrap) while arc3000-L64 is exact
+    on all twenty. That break sits mid-chain, so it is a different mode from
+    Amendment 7's end-of-chain artifact.
+    An underload reading (refraction needs load) was proposed and WITHDRAWN:
+    failures do not track relative arc overlap (2.24x works, 2.48x fails, 2.54x
+    works, 2.79x fails).
+    NEXT, and it comes before fitting anything: re-run the hole cells on the
+    fresh block 82..101. If arc4000-L64 and arc1000-L256 reproduce as the n3000
+    hole did across two blocks, the surface genuinely has holes; if they move,
+    they are draws. Fitting L*(n_arc) through a surface with holes would be
+    fitting a curve through something that is not a function.
   - Amendment 3 ran on the fresh block 82..101 (`chain-limit-am3-20260913`):
     AL-6 CONFIRMS (median first error at 0.99-1.00 of L in every edge cell),
     AL-8 and AL-9 pass on the corrected instrument, AL-7 FAILED on a two-point
