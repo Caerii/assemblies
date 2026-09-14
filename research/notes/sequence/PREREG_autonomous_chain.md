@@ -1691,3 +1691,65 @@ not. The balance reading explains stability completely and the outcome only
 partly. That gap is the next question, and Amendment 10 -- already registered --
 does not address it: it asks whether the integer effect survives shuffling,
 which separates balance from phase locking but says nothing about the half.
+
+## Amendment 10 result (2026-09-13): PHASE LOCKING dominates, and the mechanism is an INTERACTION
+
+Run `chain-bphase-20260913`, seeds 62..81, `n_arc = 1600`. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-bphase-20260913/results.json`.
+
+    PASS BP-1   FAIL BP-2   PASS BP-3   PASS BP-4
+
+                    chain order          shuffled order
+    load         outcome  stability    outcome  stability
+    21.00 INT      1.000      0.748      0.030      0.111
+    21.50 half     0.991      0.215      0.033      0.032
+    22.00 INT      1.000      0.742      0.026      0.115
+    22.50 half     0.992      0.218      0.027      0.031
+    23.00 INT      1.000      0.735      0.031      0.114
+
+    integer-minus-half stability gap:  chain 0.517   shuffled 0.078
+
+**BP-2 fails, and the OUTCOME half of it fails completely.** Under shuffling an
+integer load buys nothing at all: 0.030 against 0.033 of the chain, with every
+brain stalling inside the first tenth. The advantage worth 1.000 against 0.991
+under a fixed sweep is worth nothing under a shuffled one.
+
+**But it fails NARROWLY on the statistic the bar read, and not to zero.** The
+stability gap survives shuffling at 0.078 against the 0.10 bar -- integer cells
+at 0.111 to 0.115 against half-integer at 0.031 to 0.032, more than threefold.
+A residual static balance effect is present in the DYNAMICS; it simply does not
+reach the outcome. Read together, the effect is about 85 percent schedule and
+15 percent load.
+
+### The mechanism, which is neither reading alone
+
+The 2-by-2 is a clean interaction and neither factor suffices:
+
+    chain + integer     1.000        chain + half       0.991 (never exact)
+    shuffled + integer  0.030        shuffled + half    0.033
+
+**Why the schedule is necessary.** Under a fixed sweep exactly `L` transitions
+fall between consecutive presentations of a given transition, so every arc
+neuron accrues exactly `L k / n_arc` charges in between. When that is an INTEGER
+the bias landscape shifts UNIFORMLY, and a constant offset does not change the
+k-WTA ranking, so the same winners are re-selected and the assembly holds. A
+fractional load tilts the landscape. Shuffling makes the between-presentation
+accrual random per neuron, so the landscape tilts whatever the total is.
+
+Balance is what makes the repeated shift uniform. The fixed schedule is what
+makes there be a repeated shift at all.
+
+### This narrows the implications, and the narrowing is the honest part
+
+The reading sketched while this was pending -- that integer load is a property
+of the PROBLEM, applying to any allocation under refraction and predicting the
+same arithmetic in the memory line -- is **not supported**. The effect requires
+a rigid repeated presentation order, and no system with irregular input has one.
+
+So this is substantially a statement about how these experiments PRESENT data
+rather than about the substrate alone. It stays a real and sharp property of the
+construction, and the caution for the literature is unchanged: a chain-length
+sweep under fixed training order walks through this oscillation, so a reported
+capacity number depends on which lengths were tried. But its reach is smaller
+than the pure-balance reading allowed, and the biological reading is weaker
+still.

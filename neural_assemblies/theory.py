@@ -299,17 +299,25 @@ _RESULTS: List[Result] = [
               "0.250, 0.215 at 0.5, then 0.263, 0.356, 0.583. At integer load "
               "every brain recalls every step; at frac 0.375 and 0.625 recall "
               "falls to 0.62 and 0.53 of the chain. So sequence capacity here is "
-              "not a packing limit but a BALANCE condition: an integer load can "
-              "be shared equally among arc neurons, the refraction bias stays "
-              "uniform and no neuron is preferentially suppressed, while a "
-              "fractional load forces some neurons to carry an extra arc, "
-              "over-accumulate bias and relocate.",
+              "not a packing limit. The mechanism is an INTERACTION between the "
+              "load and the SCHEDULE and neither alone suffices: under a fixed "
+              "sweep exactly L transitions fall between consecutive "
+              "presentations of a transition, so every arc neuron accrues "
+              "exactly L k / n_arc charges in between; at an integer the bias "
+              "landscape shifts UNIFORMLY, a constant offset leaves the k-WTA "
+              "ranking alone, and the same winners are re-selected. Measured "
+              "2-by-2 at n_arc = 1600: chain+integer 1.000, chain+half 0.991, "
+              "shuffled+integer 0.030, shuffled+half 0.033. An integer load "
+              "buys NOTHING under a shuffled schedule.",
         source="This repository.",
         preconditions=(
             "above roughly 19 arcs per neuron; below it the margin absorbs the "
             "imbalance and every fractional part works",
-            "chain-order training; whether the effect survives a shuffled "
-            "schedule is Amendment 10 and unrun",
+            "A FIXED, REPEATED presentation order. Amendment 10 measured it "
+            "and the effect does NOT survive shuffling: the outcome advantage "
+            "vanishes entirely (0.030 against 0.033), though a residual "
+            "stability gap of 0.078 remains against 0.517 under chain order. "
+            "The effect is about 85 percent schedule and 15 percent load",
         ),
         evidence=("chain-iload-20260913 (n_arc=1600, load step 0.125, seeds "
                   "62..81): two complete periods repeat cell for cell, all "
@@ -328,6 +336,8 @@ _RESULTS: List[Result] = [
                         "17 cells at load step 0.125, per-arm arc stability and per-brain recall"),
             EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-capacity-20260913/results.json", "artifact",
                         "the 32-cell grid whose holes this explains"),
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-bphase-20260913/results.json", "artifact",
+                        "the 2-by-2 showing the effect needs the SCHEDULE, not the load alone"),
             EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
             EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
         ),
@@ -339,7 +349,11 @@ _RESULTS: List[Result] = [
                "literature: any chain-length sweep is walking through this "
                "oscillation, so a capacity number depends on which lengths were "
                "tried. That is a reason to re-examine reported sequence limits, "
-               "not a demonstration that any of them is wrong.",
+               "not a demonstration that any of them is wrong. And because the "
+               "effect needs a rigid repeated order, it is substantially a "
+               "statement about how these experiments PRESENT data rather than "
+               "about the substrate alone: no system with irregular input has a "
+               "fixed sweep, so the biological reading is weak.",
     ),
 
     Result(
