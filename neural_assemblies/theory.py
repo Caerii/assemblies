@@ -271,6 +271,78 @@ _RESULTS: List[Result] = [
 
     # ------------------------------------------------- measured in this repo
     Result(
+        id="SEQ-INTEGER-ARC-LOAD",
+        engine="hashed_arc_fsm (HashedArcFSM), 20 brains a cell, chain-order training",
+        status=Status.MEASURED,
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json",
+            sample_path="observations/arms/iload-L336/rows/*/seed",
+            treatment_path="observations/arms/iload-L336/rows/*/correct",
+            control_path="observations/arms/iload-L346/rows/*/correct",
+            relation="all-greater", minimum_effect=50,
+            mechanism="a chain at INTEGER arc load (L=336, 21.00 arcs per neuron) recalls more ABSOLUTE steps on every brain than a chain ten steps LONGER at fractional load (L=346, 21.625): 336 against 178-279, minimum paired margin 57. The longer chain recalling less is the whole content of the law and is not trivially true",
+        ),),
+        sensitivity_gap="Why the OUTCOME recovers at half-integer load while "
+                        "stability does not is unexplained: at frac 0.5 the arcs "
+                        "are the least stable in the sweep (0.215) and recall is "
+                        "still 0.991, better than frac 0.375 and 0.625. Balance "
+                        "accounts for stability completely and for the outcome "
+                        "only partly. Whether the effect is BALANCE (a static "
+                        "property of the load) or PHASE LOCKING (a property of "
+                        "the fixed training sweep) is registered as Amendment 10 "
+                        "and not yet run.",
+        claim="Autonomous chain recall PEAKS WHEN THE ARC LOAD DIVIDES EVENLY. "
+              "With L transitions, k winners and n_arc arc neurons, the mean "
+              "number of arcs per neuron is L k / n_arc, and arc assembly "
+              "stability is a function of that quantity's FRACTIONAL PART alone "
+              "-- a V minimised at the half: 0.748 at frac 0, 0.420, 0.307, "
+              "0.250, 0.215 at 0.5, then 0.263, 0.356, 0.583. At integer load "
+              "every brain recalls every step; at frac 0.375 and 0.625 recall "
+              "falls to 0.62 and 0.53 of the chain. So sequence capacity here is "
+              "not a packing limit but a BALANCE condition: an integer load can "
+              "be shared equally among arc neurons, the refraction bias stays "
+              "uniform and no neuron is preferentially suppressed, while a "
+              "fractional load forces some neurons to carry an extra arc, "
+              "over-accumulate bias and relocate.",
+        source="This repository.",
+        preconditions=(
+            "above roughly 19 arcs per neuron; below it the margin absorbs the "
+            "imbalance and every fractional part works",
+            "chain-order training; whether the effect survives a shuffled "
+            "schedule is Amendment 10 and unrun",
+        ),
+        evidence=("chain-iload-20260913 (n_arc=1600, load step 0.125, seeds "
+                  "62..81): two complete periods repeat cell for cell, all "
+                  "three integer cells exact on all twenty brains, stability "
+                  "within a fractional class agreeing to about 0.005 across "
+                  "chain lengths sixteen apart; IL-1, IL-2, IL-4, IL-5 pass",
+                  "IL-3 FAILS and is recorded: it required the outcome below "
+                  "0.99 at half-integer load and measured 0.991, because its "
+                  "premise that the half is the worst case is false -- the "
+                  "quarter-ish fractions are",
+                  "found on diagnostics at n_arc 1000 and 1500 and confirmed "
+                  "out of sample at 1600 on the block those diagnostics did "
+                  "not use",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json", "artifact",
+                        "17 cells at load step 0.125, per-arm arc stability and per-brain recall"),
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-capacity-20260913/results.json", "artifact",
+                        "the 32-cell grid whose holes this explains"),
+            EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
+            EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
+        ),
+        caveat="BEWARE ALIASING when sampling. Step 8 in L samples the load axis "
+               "at 0.800 (n_arc=1000) and 0.533 (n_arc=1500), and a period-1.0 "
+               "signal aliases there to apparent periods of 40 and 17 in L -- "
+               "both of which were measured and reported before the aliasing was "
+               "noticed. Sample the LOAD axis, not L. A corollary for the "
+               "literature: any chain-length sweep is walking through this "
+               "oscillation, so a capacity number depends on which lengths were "
+               "tried. That is a reason to re-examine reported sequence limits, "
+               "not a demonstration that any of them is wrong.",
+    ),
+
+    Result(
         id="SEQ-STATE-COLLISION-TOLERATED",
         engine="hashed_arc_fsm (HashedArcFSM, membership readout), 20 brains a cell",
         status=Status.MEASURED,

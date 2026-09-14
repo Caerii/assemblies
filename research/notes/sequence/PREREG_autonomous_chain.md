@@ -1624,3 +1624,70 @@ also predict the effect vanishes under any irregular presentation, which is what
 biological input would be.
 
 Both outcomes are worth having, and neither is the one I would bet on.
+
+## Amendment 9 result (2026-09-13): the integer law CONFIRMS, and its one failed bar finds a dissociation
+
+Run `chain-iload-20260913`, seeds 62..81, `n_arc = 1600`, load sampled at 0.125.
+Artifact
+`research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json`.
+
+    PASS IL-1   PASS IL-2   FAIL IL-3   PASS IL-4   PASS IL-5
+
+    frac      outcome                stability
+    0.000     1.000, 1.000, 1.000    0.748, 0.742, 0.735
+    0.125     0.997, 0.998           0.420, 0.420
+    0.250     0.917, 0.878           0.307, 0.300
+    0.375     0.705, 0.620           0.250, 0.239
+    0.500     0.991, 0.992           0.215, 0.218
+    0.625     0.589, 0.534           0.263, 0.262
+    0.750     0.782, 0.654           0.356, 0.349
+    0.875     0.992, 0.991           0.583, 0.586
+
+**The law holds, out of sample, at a third arc size, on seeds the diagnostics
+never used, with the load axis sampled inside Nyquist so no alias is possible.**
+Two complete periods repeat cell for cell. All three integer cells are exact on
+all twenty brains. Stability within a fractional class agrees to about 0.005
+across chain lengths sixteen apart.
+
+**Stability is a clean V in the distance from an integer**: 0.748 at frac 0,
+falling monotonically to 0.215 at frac 0.5, rising back to 0.583 at 0.875. That
+is precisely what the balance reading predicts -- uniform bias when the load
+divides evenly, maximally uneven at the half.
+
+### IL-3 fails, and the failure is a real dissociation rather than a threshold slip
+
+IL-3 required the outcome below 0.99 at half-integer load. It is 0.991 and
+0.992. **At frac 0.5 the arcs are the LEAST stable in the whole sweep and the
+chain still recalls 99.1% of its steps** -- better than frac 0.375 (0.705,
+0.620) or frac 0.625 (0.589, 0.534), where stability is higher.
+
+So stability and outcome, which correlate at r = 0.628 across the coarse sweep,
+come APART at the half. Stability measures how much an assembly moves DURING
+training; the outcome measures the quality of where it finally lands. At
+half-integer load the assemblies move the most and still land well.
+
+**The registration's pre-declared reading of this bar combination is WITHDRAWN.**
+It said "IL-2 passes while IL-3 fails: the band is simply too easy at
+`n_arc = 1600` and the cell choice, not the law, is at fault. The fix is a
+higher load, not a new bar." That is wrong on its own data: the band is not
+easy, since frac 0.625 sits at 0.534 and frac 0.375 at 0.620. The bar failed
+because its premise -- that half-integer load is the worst case -- is false. The
+worst cases are the QUARTER-ish fractions, and the half is a secondary good
+phase on the outcome measure.
+
+As with AL-7 and LM-4, the bar stands FAILED as written and the reading of it is
+withdrawn with the reasoning given, since revising an interpretation after
+seeing data is the move that most deserves scrutiny.
+
+### What is now established and what is not
+
+**Established**: recall in this construction peaks when `L k / n_arc` is an
+integer; arc stability is a function of the fractional part alone and is a V
+minimised at the half; the effect reproduces across three arc sizes, two seed
+blocks, and out of sample.
+
+**NOT established**: why the outcome recovers at the half while stability does
+not. The balance reading explains stability completely and the outcome only
+partly. That gap is the next question, and Amendment 10 -- already registered --
+does not address it: it asks whether the integer effect survives shuffling,
+which separates balance from phase locking but says nothing about the half.

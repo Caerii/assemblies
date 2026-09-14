@@ -10,6 +10,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQ-FSM`](#seq-fsm) | PROVED | Not an empirical entry | A finite-state machine is simulable by three areas: input, state, and a CONJUNCTION arc that fires for (state, symbol) and projects to the next state. |
 | [`SEQ-TRANSDUCER`](#seq-transducer) | PROVED | Not an empirical entry | Prediction/output is an FSM with one more area, fired together with the state update during training -- a transducer. |
 | [`SEQ-TM`](#seq-tm) | PROVED | Not an empirical entry | A Turing machine is simulable by an FSM plus three-area tape cycles, about ten areas in total. |
+| [`SEQ-INTEGER-ARC-LOAD`](#seq-integer-arc-load) | MEASURED | hashed_arc_fsm (HashedArcFSM), 20 brains a cell, chain-order training | Autonomous chain recall PEAKS WHEN THE ARC LOAD DIVIDES EVENLY. |
 | [`SEQ-STATE-COLLISION-TOLERATED`](#seq-state-collision-tolerated) | MEASURED | hashed_arc_fsm (HashedArcFSM, membership readout), 20 brains a cell | The autonomous chain tolerates state collision ONLY WHERE IT HAS MARGIN, and the margin is doing the work. |
 | [`SEQ-REGIME-CLIFF`](#seq-regime-cliff) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the original sweep ran on the sampled arc | Crossing the kp >= 3 ln n floor is a CLIFF, not a slope: below it recovery is rarely exact (0.22 of steps at kp = 14, arc materialized) and a long run derails at its first non-exact step; above it recovery is exact on every seed (0.98 at kp = 21, 1.00 at kp = 28). |
 | [`SEQ-EXACT-RECOVERY`](#seq-exact-recovery) | MEASURED | mixed: vendored nemo_numpy reference, numpy_sparse sampled/materialized, hashed ArcFSM and soft-census organs; see per-evidence caveats | The state area is a DISCRETE attractor: k-WTA maps a whole neighbourhood onto exactly one stored assembly in one step. |
@@ -132,6 +133,36 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Used by.** `neural_assemblies/programs/tm_demo.py`
 
 **Caveat.** Caveat corrected 2026-09-13 by a provenance pass: it read 'NOT BUILT HERE'. A minimal unary-increment demo IS built and tested; the general roughly-ten-area construction is not. [[SEQ-EXACT-RECOVERY]] gives unbounded TIME with fixed memory, which is the control half only -- it does not by itself confer more than finite-automaton power.
+
+## SEQ-INTEGER-ARC-LOAD
+
+**Status.** MEASURED. **Source.** This repository.
+
+**Engine / substrate.** hashed_arc_fsm (HashedArcFSM), 20 brains a cell, chain-order training
+
+**Claim.** Autonomous chain recall PEAKS WHEN THE ARC LOAD DIVIDES EVENLY. With L transitions, k winners and n_arc arc neurons, the mean number of arcs per neuron is L k / n_arc, and arc assembly stability is a function of that quantity's FRACTIONAL PART alone -- a V minimised at the half: 0.748 at frac 0, 0.420, 0.307, 0.250, 0.215 at 0.5, then 0.263, 0.356, 0.583. At integer load every brain recalls every step; at frac 0.375 and 0.625 recall falls to 0.62 and 0.53 of the chain. So sequence capacity here is not a packing limit but a BALANCE condition: an integer load can be shared equally among arc neurons, the refraction bias stays uniform and no neuron is preferentially suppressed, while a fractional load forces some neurons to carry an extra arc, over-accumulate bias and relocate.
+
+**Requires.**
+- above roughly 19 arcs per neuron; below it the margin absorbs the imbalance and every fractional part works
+- chain-order training; whether the effect survives a shuffled schedule is Amendment 10 and unrun
+
+**Evidence.**
+- chain-iload-20260913 (n_arc=1600, load step 0.125, seeds 62..81): two complete periods repeat cell for cell, all three integer cells exact on all twenty brains, stability within a fractional class agreeing to about 0.005 across chain lengths sixteen apart; IL-1, IL-2, IL-4, IL-5 pass
+- IL-3 FAILS and is recorded: it required the outcome below 0.99 at half-integer load and measured 0.991, because its premise that the half is the worst case is false -- the quarter-ish fractions are
+- found on diagnostics at n_arc 1000 and 1500 and confirmed out of sample at 1600 on the block those diagnostics did not use
+
+**Evidence files.**
+- [research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json](../research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json) (artifact) â€” 17 cells at load step 0.125, per-arm arc stability and per-brain recall
+- [research/results/runs/sequence.autonomous-chain/chain-capacity-20260913/results.json](../research/results/runs/sequence.autonomous-chain/chain-capacity-20260913/results.json) (artifact) â€” the 32-cell grid whose holes this explains
+- [research/experiments/autonomous_chain.py](../research/experiments/autonomous_chain.py) (producer)
+- [research/notes/sequence/PREREG_autonomous_chain.md](../research/notes/sequence/PREREG_autonomous_chain.md) (registration)
+
+**Mechanism sensitivity.**
+- a chain at INTEGER arc load (L=336, 21.00 arcs per neuron) recalls more ABSOLUTE steps on every brain than a chain ten steps LONGER at fractional load (L=346, 21.625): 336 against 178-279, minimum paired margin 57. The longer chain recalling less is the whole content of the law and is not trivially true: `observations/arms/iload-L336/rows/*/correct` all-greater `observations/arms/iload-L346/rows/*/correct` by at least 50, retained in [research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json](../research/results/runs/sequence.autonomous-chain/chain-iload-20260913/results.json) and paired by `observations/arms/iload-L336/rows/*/seed`.
+
+**Sensitivity gap.** Why the OUTCOME recovers at half-integer load while stability does not is unexplained: at frac 0.5 the arcs are the least stable in the sweep (0.215) and recall is still 0.991, better than frac 0.375 and 0.625. Balance accounts for stability completely and for the outcome only partly. Whether the effect is BALANCE (a static property of the load) or PHASE LOCKING (a property of the fixed training sweep) is registered as Amendment 10 and not yet run.
+
+**Caveat.** BEWARE ALIASING when sampling. Step 8 in L samples the load axis at 0.800 (n_arc=1000) and 0.533 (n_arc=1500), and a period-1.0 signal aliases there to apparent periods of 40 and 17 in L -- both of which were measured and reported before the aliasing was noticed. Sample the LOAD axis, not L. A corollary for the literature: any chain-length sweep is walking through this oscillation, so a capacity number depends on which lengths were tried. That is a reason to re-examine reported sequence limits, not a demonstration that any of them is wrong.
 
 ## SEQ-STATE-COLLISION-TOLERATED
 

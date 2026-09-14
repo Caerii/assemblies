@@ -193,6 +193,9 @@ class TestTheoryCitations(unittest.TestCase):
             # treatment REACHED the organ (arc overlap moves on every brain)
             # while the outcome did not move at all
             "SEQ-STATE-COLLISION-TOLERATED",
+            # 2026-09-13: integer arc load, whose check shows a SHORTER chain at
+            # integer load beating a longer one at fractional load on every brain
+            "SEQ-INTEGER-ARC-LOAD",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
