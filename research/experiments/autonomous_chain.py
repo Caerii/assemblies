@@ -161,6 +161,22 @@ def arc_bottleneck_arms():
 
 
 ARCB_ARM_SPECS = arc_bottleneck_arms()
+
+#: Amendment 7. The probe says the break is a DEGRADED ARC at the end of the
+#: chain, with the decode margin flat at 96/100 until the last few steps. The
+#: mechanism named for it comes from the training loop: `train` sweeps the
+#: table in chain order and the arc's refraction bias never decays, so by the
+#: end of each sweep the late arcs are recruited from whatever is least
+#: suppressed. If that is right the weakness belongs to being trained LAST, not
+#: to being far along -- and REVERSING the order must move the break to the
+#: START of the chain. Same cell, same dosage, order alone.
+TORD_L, TORD_ARC = 512, 4000
+TORD_ORDERS = ("chain", "reversed", "shuffled")
+TORD_ARM_SPECS = {
+    f"order-{o}": (TORD_L, PRESENTATIONS, 1.0, LIMIT_P, TORD_ARC,
+                   N_STATE_FIXED, "blocks", o)
+    for o in TORD_ORDERS
+}
 #: what the marginal cell did at that load, as a fraction of its chain length
 MARGIN_COLLAPSE_FRACTION = 110.0 / 256
 
@@ -319,7 +335,8 @@ def arc_collapse(fsm, states, nbrain):
 
 
 def run_arm(seeds, length, presentations, ratio, density, *, device,
-            organ_semantics, n_arc=N_ARC, n_state=None, code=None):
+            organ_semantics, n_arc=N_ARC, n_state=None, code=None,
+            order="chain"):
     from neural_assemblies.core._torch_ops import torch_ops
     from neural_assemblies.core.semantics import OrganSemantics
     from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
@@ -331,7 +348,7 @@ def run_arm(seeds, length, presentations, ratio, density, *, device,
                        n_state=n_state, beta=BETA, refracted_strength=ratio * BETA,
                        w_max=W_MAX, max_potentiations=MAX_POTENTIATIONS,
                        device=device, state_code=code)
-    fsm.train(presentations)
+    fsm.train(presentations, order=order)
     fsm.check()
     syms = torch_ops.zeros(len(seeds), length, dtype=torch_ops.int64, device=device)
     visited = fsm.run(syms, states[0]).cpu().numpy()
@@ -385,9 +402,12 @@ def experiment(record):
     margin_mode = bool(p.get("margin_mode"))
     load_mode = bool(p.get("load_mode"))
     arcb_mode = bool(p.get("arc_bottleneck_mode"))
-    states_mode = bool(p.get("states_mode")) or margin_mode or load_mode or arcb_mode
+    tord_mode = bool(p.get("train_order_mode"))
+    states_mode = (bool(p.get("states_mode")) or margin_mode or load_mode
+                   or arcb_mode or tord_mode)
     cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
-    specs = (ARCB_ARM_SPECS if arcb_mode
+    specs = (TORD_ARM_SPECS if tord_mode
+             else ARCB_ARM_SPECS if arcb_mode
              else (LOAD_ARM_SPECS if load_mode
                    else (MARGIN_ARM_SPECS if margin_mode
                          else (STATE_ARM_SPECS if states_mode
@@ -408,6 +428,7 @@ def experiment(record):
         rows, actual_state, state_ov = run_arm(
             seeds, length, presentations, ratio, density,
             device=p["device"], n_arc=n_arc,
+            order=(spec[7] if len(spec) > 7 else "chain"),
             n_state=(n_state_arm if states_mode
                      else (N_STATE_FIXED if limit_mode else None)),
             code=code,
@@ -457,12 +478,26 @@ def experiment(record):
         # would be a KeyError at the end of a GPU run rather than at its start
         random_arms = sorted((n for n in arms if n.startswith("random-")),
                              key=lambda n: arms[n]["n_state"], reverse=True)
-        if not random_arms:
-            raise ValueError("a state-code amendment needs at least one random arm")
-        roomiest, tightest = random_arms[0], random_arms[-1]
-        arc_gap = abs(arm(roomiest)["arc_overlap"]["mean"]
-                      - arm(tightest)["arc_overlap"]["mean"])
-        state_gap = abs(arm(roomiest)["state_overlap"] - arm(tightest)["state_overlap"])
+        # The CROWDING amendments compare a roomiest against a tightest random
+        # arm. The training-order amendment has no random arm at all -- it
+        # varies the schedule under one disjoint code -- so these are optional
+        # and the branches that need them say so.
+        roomiest = random_arms[0] if random_arms else None
+        tightest = random_arms[-1] if random_arms else None
+        arc_gap = state_gap = None
+        if random_arms:
+            arc_gap = abs(arm(roomiest)["arc_overlap"]["mean"]
+                          - arm(tightest)["arc_overlap"]["mean"])
+            state_gap = abs(arm(roomiest)["state_overlap"]
+                            - arm(tightest)["state_overlap"])
+
+        def needs_random(bar):
+            """The crowding gaps, or a clear refusal. Returns them so the
+            caller holds floats rather than optionals."""
+            if arc_gap is None or state_gap is None:
+                raise ValueError(f"{bar} compares random-code arms and this "
+                                 f"amendment has none")
+            return arc_gap, state_gap
         broken = [a for name, a in arms.items() if a["exact_brains"] < len(seeds)]
         comparisons = {
             "exact_by_arm": {k: v["exact_brains"] for k, v in arms.items()},
@@ -481,7 +516,39 @@ def experiment(record):
             "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
                                   for n, a in arms.items()},
         }
-        if arcb_mode:
+        if tord_mode:
+            # Amendment 7. Position statistics, over the FAILING brains.
+            def broke_median(name):
+                a = arm(name)
+                v = sorted(r["first_error_fraction"] for r in a["rows"]
+                           if r["first_error"] is not None)
+                return v[len(v) // 2] if v else None
+
+            def mean_frac(name):
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            chain_m, rev_m = broke_median("order-chain"), broke_median("order-reversed")
+            ovs = [arm(f"order-{o}")["arc_overlap"]["mean"] for o in TORD_ORDERS]
+            bars = {
+                "TO-1 the chain order reproduces the END cliff: it has failures and their median first error is past 0.90 of L":
+                    chain_m is not None and chain_m >= 0.90,
+                "TO-2 DECISIVE -- REVERSING the training order moves the break to the START: median first error at or before 0.30 of L":
+                    rev_m is not None and rev_m <= 0.30,
+                "TO-3 shuffling beats chain order on mean correct":
+                    mean_frac("order-shuffled") > mean_frac("order-chain"),
+                "TO-4 no arm simply has more crowding: arc overlap spread under 0.05":
+                    (max(ovs) - min(ovs)) < 0.05,
+            }
+            comparisons.update({
+                "first_error_median_by_order": {
+                    o: broke_median(f"order-{o}") for o in TORD_ORDERS},
+                "mean_correct_fraction_by_order": {
+                    o: mean_frac(f"order-{o}") for o in TORD_ORDERS},
+                "exact_by_order": {o: arm(f"order-{o}")["exact_brains"]
+                                   for o in TORD_ORDERS},
+            })
+        elif arcb_mode:
+            arc_gap_v, _ = needs_random("AB-5")
             # Amendment 6. Graded measure throughout, as Amendment 5.
             def frac(name):
                 a = arm(name)
@@ -506,6 +573,7 @@ def experiment(record):
                 n: frac(n) for n in (crowded + controls)}
             comparisons["arc_sizes"] = list(ARCB_ARCS)
         elif load_mode:
+            arc_gap_v, _ = needs_random("LM-2")
             # Amendment 5. Every bar here reads MEAN CORRECT, not exact/20.
             # Amendment 4 is the reason: three of its five bars used exact/20,
             # which saturates at 0 the moment a random code is used at all, and
@@ -534,6 +602,7 @@ def experiment(record):
             comparisons["margin_cell_collapse_fraction"] = MARGIN_COLLAPSE_FRACTION
             comparisons["load_matched_arm"] = LOAD_MATCHED
         elif margin_mode:
+            arc_gap_v, _ = needs_random("MC-2")
             # Amendment 4. SC-1..SC-7 are stated for a cell at CEILING and
             # their thresholds are wrong here by construction: the blocks arm
             # is 14/20 by design, so SC-1's "20/20" would fail on the cell
@@ -551,11 +620,12 @@ def experiment(record):
                     all(exact_of(c) <= exact_of(r)
                         for c in crowded_arms for r in roomy_arms),
                 "MC-4 it is the states and not the arc: arc overlap moves < 0.05 across the random arms":
-                    arc_gap < 0.05,
+                    arc_gap_v < 0.05,
                 "MC-5 a roomy random code is still as good as blocks: within 4 brains":
                     abs(exact_of(roomiest) - exact_of(blocks)) <= 4,
             }
         else:
+            arc_gap_v, state_gap_v = needs_random("SC-2")
             # the plain states mode. These name blocks-n64000 and the
             # module's area tuple, which exist only in THIS mode -- the
             # reason the dict has to be a branch and not a default.
@@ -567,7 +637,7 @@ def experiment(record):
                 "SC-3 crowding the states breaks the chain: fewer than 5/20 exact at the smallest area":
                     exact_of(tightest) < 5,
                 "SC-4 it is the states and not the arc: arc overlap moves < 0.05, state overlap moves > 0.05":
-                    arc_gap < 0.05 and state_gap > 0.05,
+                    arc_gap_v < 0.05 and state_gap_v > 0.05,
                 # AS REGISTERED. This is AL-1's statistic and inherits its defect:
                 # it is position-locked, so it cannot tell a wrap from a death and
                 # it fires on a single coincidence. Kept so the registration is
@@ -583,7 +653,7 @@ def experiment(record):
                 # held identical by construction, so if exactness tracks LOAD while
                 # arc overlap does not move, the effect is in the states.
                 "SC-7 it is the states and not the arc, measured on LOAD: arc overlap moves < 0.05 while exactness falls with load":
-                    arc_gap < 0.05
+                    arc_gap_v < 0.05
                     and exact_of(tightest) < exact_of(roomiest),
             }
         bars = {name: bool(ok) for name, ok in bars.items()}
@@ -750,16 +820,19 @@ def main(argv=None):
                         help="run Amendment 5: the ROOMY cell driven past the load that killed the marginal one")
     parser.add_argument("--arc-bottleneck", action="store_true",
                         help="run Amendment 6: is the ARC what makes a cell marginal?")
+    parser.add_argument("--train-order", action="store_true",
+                        help="run Amendment 7: is the end-of-chain break a training ORDER effect?")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
-    modes = (args.limit, args.states, args.margin, args.load, args.arc_bottleneck)
+    modes = (args.limit, args.states, args.margin, args.load,
+             args.arc_bottleneck, args.train_order)
     if sum(map(bool, modes)) > 1:
-        parser.error("--limit, --states, --margin, --load and --arc-bottleneck "
-                     "are different amendments; run one")
-    specs = (ARCB_ARM_SPECS if args.arc_bottleneck
+        parser.error("each flag is a different amendment; run one")
+    specs = (TORD_ARM_SPECS if args.train_order
+             else ARCB_ARM_SPECS if args.arc_bottleneck
              else (LOAD_ARM_SPECS if args.load
                    else (MARGIN_ARM_SPECS if args.margin
                          else (STATE_ARM_SPECS if args.states
@@ -774,6 +847,7 @@ def main(argv=None):
                   "margin_mode": bool(args.margin),
                   "load_mode": bool(args.load),
                   "arc_bottleneck_mode": bool(args.arc_bottleneck),
+                  "train_order_mode": bool(args.train_order),
                   # the arm specs already carry (n_state, kind); recording a
                   # second copy keyed by name is what let the two drift apart
                   "state_specs": None,

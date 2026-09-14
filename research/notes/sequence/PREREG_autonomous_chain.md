@@ -977,3 +977,123 @@ second at desk rather than after a GPU run.
 **The measurements from the voided launch are reported nowhere as a result.**
 They will be reproduced by the re-run under the same registration and the same
 seeds, and only that artifact is cited.
+
+## Amendment 6 result (2026-09-13): the ARC is the bottleneck, and one variable explains all five amendments
+
+Run `chain-arcb-20260913`, block 62..81. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-arcb-20260913/results.json`.
+
+    PASS  AB-1   PASS  AB-2   PASS  AB-3   PASS  AB-4   PASS  AB-5
+
+    arm                     n_arc   mean correct / L   exact
+    random-n4000-arc2000     2000              0.430    0/20
+    random-n4000-arc3000     3000              0.997   12/20
+    random-n4000-arc4000     4000              1.000   20/20
+    random-n4000-arc6000     6000              1.000   20/20
+    blocks-n32000-arc2000    2000              0.998   14/20
+    blocks-n32000-arc4000    4000              1.000   20/20
+
+**Holding the chain and the state crowding fixed and giving the arc 1.5x the
+neurons takes the chain from 0.430 of L to 0.997.** At twice the neurons it is
+exact on every brain. The state code is unchanged throughout -- the same random
+code in the same 4000-neuron area at load 6.42 that destroyed the chain in
+Amendment 4.
+
+AB-4 rules out the obvious alternative: the blocks control is at 0.998 and
+1.000 at both arc sizes, so the arc is not simply helping everything. The
+rescue is specific to the crowded code.
+
+### The synthesis
+
+One variable accounts for every amendment in this registration:
+
+- **Amendment 2**, no cost at the roomy cell: `n_arc = 3000` for 160 arcs.
+  The arc had room, so crowding the states cost nothing.
+- **Amendment 4**, catastrophic cost at the marginal cell: `n_arc = 2000` for
+  256 arcs. The arc had none.
+- **Amendment 5**, load is not the variable: the roomy cell absorbed load 13.42
+  because its arc still had room at that chain length.
+- **Amendment 6**: give the marginal cell's arc room and the cost disappears.
+
+**State collision is not a failure mode of the state area. It is a way of
+spending arc capacity, and it is free until the arc has none left.** That also
+explains the effect noticed and left unexplained in three runs -- crowding the
+states MOVES the arc overlap -- because the two were never independent.
+
+### What this says about the papers' limit, carefully
+
+`dabagia2025sequences` reports a 20-to-40 assembly limit that "varies with the
+parameters of the Nemo model". This says the limit to look for is an ARC
+capacity limit, not a state one, and that experiments varying the state
+representation will find effects that are really arc effects wearing a
+disguise.
+
+It does NOT establish the papers' number. That needs the limit measured as a
+function of arc capacity at their parameters, and this registration's
+`exact_length` grid is the wrong instrument for it (Amendment 1: non-monotone,
+tie-fragile). A graded arc-capacity curve is the study, and it has not run.
+
+### Still open, and not closed by this
+
+1. **Why a roomy RANDOM code costs 3.7 steps of 256 against a contiguous block
+   code** at pairwise overlap 0.0016 (Amendment 4, MC-5). Unexplained.
+2. **Correlated collision.** Random `k`-subsets are uncorrelated; projection
+   makes assembly overlap track input similarity. Unmeasured on every branch.
+3. **Why the arc degrades at the END of the chain** (the probe above).
+   Amendment 7 tests the training-order mechanism for that, and it is a
+   different question from arc capacity: capacity says how many arcs fit,
+   order says which of them end up weak.
+
+## Amendment 7 (2026-09-13, registered before running): is the end-of-chain break a training ORDER effect?
+
+The probe above eliminated margin decay and competing-arc capture, and left the
+arc degraded to about half its trained assembly at the end of the chain. The
+mechanism named for it comes from the training loop rather than from the
+dynamics: `train` sweeps the table in chain order, `q0 -> q1` through
+`q511 -> q512`, and the arc is REFRACTED with a bias that never decays. So by
+the end of each sweep nearly every arc neuron already carries fresh bias from
+that same sweep, and the late arcs are recruited from whatever is least
+suppressed.
+
+**If that is right, the weakness belongs to being trained LAST, not to being
+far along the chain.** Which makes a prediction that cannot be fudged:
+**reverse the sweep and the break must move to the START.**
+
+`HashedArcFSM.train` now takes `order` in {chain, reversed, shuffled}. Every
+order presents every transition exactly `presentations` times, pinned by a test
+that counts them, so the arms differ in ORDER alone and never in dosage. A
+second test confirms the orders train genuinely different organs -- if they did
+not, refraction would not be accumulating across the sweep and there would be
+no treatment here at all.
+
+Cell: `n_arc = 4000, L = 512`, where the cliff was measured. Disjoint block
+code, so state crowding is out of the picture and this is about the arc alone.
+
+- **TO-1, the chain order reproduces the END cliff.** It has failing brains and
+  their median first error is at or past 0.90 of L.
+- **TO-2, DECISIVE.** Reversing the training order moves the break to the
+  START: median first error at or before 0.30 of L.
+- **TO-3, shuffling beats chain order** on mean correct. Across many sweeps a
+  shuffled schedule gives no transition a systematically late slot, so the
+  disadvantage should average out.
+- **TO-4, no arm simply has more crowding**: arc overlap spread under 0.05
+  across the three orders.
+
+### What each outcome means, stated in advance
+
+**TO-2 passes:** the end-of-chain break is an artifact of the training
+SCHEDULE, not a property of long chains. Every sequence result in this
+repository was trained in chain order, so every one of them has been measured
+with its last transitions systematically disadvantaged -- and the fix is one
+argument. It would also mean the arc-capacity curve must be measured under a
+shuffled schedule or it will be contaminated by an order effect.
+
+**TO-2 fails while TO-1 passes:** the break is genuinely positional in the
+chain rather than in the schedule, refraction-across-the-sweep is the wrong
+mechanism, and the next candidate is something about the chain's terminal
+state -- which is the only state with no outgoing arc.
+
+**TO-2 fails because the reversed arm has NO failures:** reversing repaired the
+chain outright. That is a stronger result than TO-2 passing and would be
+recorded as such rather than as a bar failure, since the bar reads a median
+over failing brains and there would be none to take.

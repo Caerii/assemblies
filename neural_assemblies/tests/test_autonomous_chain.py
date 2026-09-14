@@ -228,7 +228,8 @@ def _stub_run_arm(monkeypatch, correct):
     import research.experiments.autonomous_chain as ac
 
     def fake(seeds, length, presentations, ratio, density, *, device,
-             organ_semantics, n_arc=None, n_state=None, code=None):
+             organ_semantics, n_arc=None, n_state=None, code=None,
+             order="chain"):
         rows = [{"seed": int(s), "correct": correct(length), "total_correct": correct(length),
                  "first_error": None if correct(length) >= length else correct(length),
                  "first_error_fraction": (None if correct(length) >= length
@@ -238,6 +239,13 @@ def _stub_run_arm(monkeypatch, correct):
                  "arc_overlap": 0.05, "visited": list(range(1, length + 1))}
                 for s in seeds]
         return rows, int(n_state or 64000), 0.01
+    # a stub whose signature has drifted from run_arm tests nothing: it would
+    # fail on the call rather than on the bars, which is how this very stub
+    # broke when run_arm gained `order`
+    import inspect
+    real = set(inspect.signature(ac.run_arm).parameters)
+    stub = set(inspect.signature(fake).parameters)
+    assert real == stub, f"stub signature has drifted from run_arm: {real ^ stub}"
     monkeypatch.setattr(ac, "run_arm", fake)
 
 
@@ -246,6 +254,7 @@ def _stub_run_arm(monkeypatch, correct):
     ("margin_mode", "MARGIN_ARM_SPECS"),
     ("load_mode", "LOAD_ARM_SPECS"),
     ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
+    ("train_order_mode", "TORD_ARM_SPECS"),
 ])
 def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
         monkeypatch, mode_key, specs_name):
@@ -271,6 +280,7 @@ def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
     ("margin_mode", "MARGIN_ARM_SPECS"),
     ("load_mode", "LOAD_ARM_SPECS"),
     ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
+    ("train_order_mode", "TORD_ARM_SPECS"),
 ])
 def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
     """The failing path reaches different code: edge cells, medians, kinds."""
@@ -279,3 +289,14 @@ def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
     _stub_run_arm(monkeypatch, correct=lambda L: L // 2)
     out = ac.experiment(_fake_record(mode_key, specs))
     assert out["bars"]
+
+
+def test_the_training_order_arms_differ_in_order_alone():
+    """Amendment 7 is only interpretable if nothing else varies across arms."""
+    from research.experiments.autonomous_chain import TORD_ARM_SPECS, TORD_ORDERS
+    specs = list(TORD_ARM_SPECS.values())
+    assert len(specs) == len(TORD_ORDERS)
+    # everything but the order field must be identical across the three arms
+    assert len({spec[:7] for spec in specs}) == 1, (
+        "the order arms differ in something other than order")
+    assert {spec[7] for spec in specs} == set(TORD_ORDERS)

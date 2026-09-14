@@ -26,6 +26,7 @@ bias charged -- so one step cannot alter the next through refraction.
 """
 from __future__ import annotations
 
+import random
 from typing import Any, Dict, Sequence, Tuple
 
 from ._torch_ops import torch_ops
@@ -159,9 +160,32 @@ class HashedArcFSM:
         # teacher-forced: ARC -> STATE onto the pinned target block
         self.core.teach(self.blocks[self._idx(to_state, self.state_index)])
 
-    def train(self, presentations: int = 1) -> None:
-        for _ in range(presentations):
-            for (fr, sym), to in self.table.items():
+    def train(self, presentations: int = 1, order: str = "chain",
+              order_seed: int = 0) -> None:
+        """Present every transition `presentations` times.
+
+        THE ORDER IS NOT NEUTRAL, because the arc is refracted and its bias
+        never decays. Within one sweep in `chain` order, by the time the last
+        transitions are presented nearly every arc neuron already carries fresh
+        bias from that same sweep, so the late arcs are recruited from whatever
+        is least suppressed. `reversed` puts that disadvantage at the START of
+        the chain and `shuffled` redraws it every sweep, which is how the
+        positional effect is told apart from a positional coincidence.
+
+        Every order presents every transition exactly `presentations` times, so
+        the arms differ in ORDER alone and not in dosage.
+        """
+        if order not in ("chain", "reversed", "shuffled"):
+            raise ValueError(f"order must be chain, reversed or shuffled, not {order!r}")
+        items = list(self.table.items())
+        if order == "reversed":
+            items = items[::-1]
+        rng = random.Random(order_seed)
+        for sweep in range(presentations):
+            if order == "shuffled":
+                items = list(self.table.items())
+                rng.shuffle(items)
+            for (fr, sym), to in items:
                 self.train_transition(sym, fr, to)
 
     # -- running ------------------------------------------------------------------

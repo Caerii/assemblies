@@ -108,3 +108,59 @@ def test_a_malformed_code_is_refused(fused):
     dup[0, 1] = dup[0, 0]
     with pytest.raises(ValueError, match="DISTINCT"):
         _fsm(state_code=dup)
+
+
+# --- training ORDER, which is not neutral under refraction --------------------
+
+def test_every_order_presents_every_transition_the_same_number_of_times():
+    """The arms must differ in ORDER alone, never in dosage.
+
+    Checked without a device: this is a property of the loop, and if the counts
+    differ then a positional result is really a dosage result.
+    """
+    import random
+    from collections import Counter
+    table = {(f"q{i}", TICK): f"q{i+1}" for i in range(20)}
+    for order in ("chain", "reversed", "shuffled"):
+        seen = Counter()
+        items = list(table.items())
+        if order == "reversed":
+            items = items[::-1]
+        rng = random.Random(0)
+        for _ in range(7):
+            if order == "shuffled":
+                items = list(table.items())
+                rng.shuffle(items)
+            for (fr, sym), to in items:
+                seen[(fr, sym, to)] += 1
+        assert set(seen.values()) == {7}, f"{order} does not present evenly"
+        assert len(seen) == len(table)
+
+
+def test_an_unknown_training_order_is_refused(fused):
+    from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
+    fsm = HashedArcFSM(SEEDS, STATES, [TICK], TABLE, n_arc=N_ARC, k=K, p=P,
+                       n_state=N_STATE, beta=0.1, refracted_strength=0.1,
+                       max_potentiations=32, device="cuda")
+    with pytest.raises(ValueError, match="chain, reversed or shuffled"):
+        fsm.train(2, order="backwards")
+
+
+def test_reversed_order_trains_a_different_organ(fused):
+    """If order were neutral the two organs would be identical; they are not."""
+    from neural_assemblies.core._torch_ops import torch_ops
+    from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
+
+    got = []
+    for order in ("chain", "reversed"):
+        fsm = HashedArcFSM(SEEDS, STATES, [TICK], TABLE, n_arc=N_ARC, k=K, p=P,
+                           n_state=N_STATE, beta=0.1, refracted_strength=0.1,
+                           max_potentiations=32, device="cuda")
+        fsm.train(8, order=order)
+        fsm.arc.inhibit()
+        fsm.cue_state(STATES[0])
+        fsm.step(TICK)
+        got.append(torch_ops.sort(fsm.arc.winners, dim=1).values.clone())
+    assert not torch_ops.equal(got[0], got[1]), (
+        "the training order left the arc unchanged, so refraction is not "
+        "accumulating across the sweep and the amendment has no treatment")

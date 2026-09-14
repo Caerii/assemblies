@@ -282,15 +282,13 @@ _RESULTS: List[Result] = [
             relation="all-less", minimum_effect=0.03,
             mechanism="the collidable code demonstrably reaches the organ: arc overlap falls on EVERY brain (0.034 to 0.068) between the disjoint code and the 4000-neuron random code, while consecutive-correct stays at 160 on every brain in both -- the knob turns and the outcome does not, which is what makes this null a measurement rather than a saturation",
         ),),
-        sensitivity_gap="The cost at the marginal cell is NOT attributed to "
-                        "state collision specifically: MC-4 failed, the arc "
-                        "overlap moving 0.0868 across the random arms against a "
-                        "0.05 bar, so crowding the state area changes the arc "
-                        "too. What 'margin' IS remains unmeasured -- the two "
-                        "cells differ in chain length and arc size jointly, and "
-                        "nothing separates them. The named hypothesis, not yet "
-                        "run: the ARC is the bottleneck, so state crowding is "
-                        "costly exactly when the arc has no room.",
+        sensitivity_gap="What remains unexplained is narrower than the "
+                        "headline: why a ROOMY random code still costs 3.7 "
+                        "steps of 256 against a contiguous block code at "
+                        "pairwise overlap 0.0016, and whether CORRELATED "
+                        "collision behaves like the uncorrelated kind measured "
+                        "here -- projection makes assembly overlap track input "
+                        "similarity and random k-subsets do not.",
         claim="The autonomous chain tolerates state collision ONLY WHERE IT HAS "
               "MARGIN, and the margin is doing the work. At a cell with room "
               "(L = 160, n_arc = 3000, 20/20 exact) all six arms stay 20/20 "
@@ -306,7 +304,15 @@ _RESULTS: List[Result] = [
               "more than twice the killing load, 161 states in 1200 neurons at "
               "pairwise overlap 0.083. So state collision costs nothing until "
               "the chain is already marginal and then costs enormously: an "
-              "AMPLIFIER of an existing limit, not a limit of its own. "
+              "AMPLIFIER of an existing limit, not a limit of its own. AND "
+              "THE LIMIT IT AMPLIFIES IS THE ARC: holding the chain and the "
+              "state crowding fixed at the combination that collapsed to 0.430 "
+              "of L and giving the arc 1.5x the neurons restores 0.997, and 2x "
+              "restores every brain, while a disjoint control sits at 0.998 to "
+              "1.000 at both arc sizes. State collision is not a failure mode "
+              "of the state area; it is a way of SPENDING ARC CAPACITY, free "
+              "until the arc has none left -- which is also why crowding the "
+              "states moved the arc overlap in every run. "
               "Separately and much smaller, a random code costs 3.7 steps of "
               "256 against the contiguous block code even when roomy, which is "
               "unexplained.",
@@ -340,6 +346,8 @@ _RESULTS: List[Result] = [
                         "marginal cell: the same six arms, where the dose-response appears"),
             EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-load-20260913/results.json", "artifact",
                         "the roomy cell driven to load 13.42, which separates margin from load"),
+            EvidenceRef("research/results/runs/sequence.autonomous-chain/chain-arcb-20260913/results.json", "artifact",
+                        "arc size swept at fixed chain and fixed state crowding: the rescue"),
             EvidenceRef("research/experiments/autonomous_chain.py", "producer"),
             EvidenceRef("research/notes/sequence/PREREG_autonomous_chain.md", "registration"),
         ),
