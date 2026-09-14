@@ -258,6 +258,7 @@ def _stub_run_arm(monkeypatch, correct):
     ("arc_capacity_mode", "ACAP_ARM_SPECS"),
     ("integer_load_mode", "ILOAD_ARM_SPECS"),
     ("balance_phase_mode", "BP_ARM_SPECS"),
+    ("threshold_mode", "THRESH_ARM_SPECS"),
 ])
 def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
         monkeypatch, mode_key, specs_name):
@@ -287,6 +288,7 @@ def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
     ("arc_capacity_mode", "ACAP_ARM_SPECS"),
     ("integer_load_mode", "ILOAD_ARM_SPECS"),
     ("balance_phase_mode", "BP_ARM_SPECS"),
+    ("threshold_mode", "THRESH_ARM_SPECS"),
 ])
 def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
     """The failing path reaches different code: edge cells, medians, kinds."""
@@ -306,3 +308,29 @@ def test_the_training_order_arms_differ_in_order_alone():
     assert len({spec[:7] for spec in specs}) == 1, (
         "the order arms differ in something other than order")
     assert {spec[7] for spec in specs} == set(TORD_ORDERS)
+
+
+def test_a_censored_threshold_is_reported_as_None_not_as_the_grid_edge():
+    """AC-5's lesson, applied to the presentation grid.
+
+    A crossing that falls outside the grid must be CENSORED, never reported as
+    the nearest edge -- that is how `exact_length` produced a scaling law out of
+    grid boundaries in Amendment 1.
+    """
+    from research.experiments.autonomous_chain import crossing_presentations
+    grid = range(11, 21)
+    assert crossing_presentations(lambda P: 1.0 if P >= 15 else 0.0, grid) == 15
+    assert crossing_presentations(lambda P: 0.1, grid) is None, "never crosses"
+    assert crossing_presentations(lambda P: 1.0, grid) is None, (
+        "already above at the smallest P: the threshold is BELOW the grid and "
+        "reporting the edge would invent one")
+
+
+def test_the_threshold_grids_bracket_what_each_cell_is_known_to_do():
+    """Each grid must straddle its cell's crossing or TH-1 fails by design."""
+    from research.experiments.autonomous_chain import THRESH_CELLS
+    known = {1: (10, 20), 2: (10, 20), 4: (20, None), 8: (20, None)}
+    for _tag, _L, _frac, period, grid in THRESH_CELLS:
+        lo, hi = known[period]
+        assert min(grid) <= lo or min(grid) < hi, f"b={period} grid starts too high"
+        assert max(grid) >= (hi or max(grid)), f"b={period} grid ends too low"

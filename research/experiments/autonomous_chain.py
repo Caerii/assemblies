@@ -396,6 +396,51 @@ BP_ARM_SPECS = {
 }
 
 
+#: Amendment 11. The prediction this replaces -- that the training threshold
+#: scales with the orbit period b -- was REFUTED by its own pre-check: frac 0.0
+#: (b=1) and frac 0.5 (b=2) both cross between P=10 and P=20, not 2x apart. And
+#: reinforcement-per-orbit-point is not the currency either, since 10 rounds on
+#: ONE assembly fails (frac 0 at P=10, 0.004) while 10 rounds on EACH of two
+#: succeeds (frac 0.5 at P=20, 0.993). No mechanism here accounts for that, so
+#: this amendment assumes none: it measures where the threshold IS as a function
+#: of b, finely enough to see whether it moves at all.
+THRESH_ARC = 1600
+#: (arm prefix, L, frac, orbit period b, presentation grid)
+THRESH_CELLS = (
+    ("b1", 336, 0.000, 1, tuple(range(11, 21))),
+    ("b2", 344, 0.500, 2, tuple(range(11, 21))),
+    ("b4", 340, 0.250, 4, (14, 16, 18, 20, 24, 28, 32, 40)),
+    ("b8", 342, 0.375, 8, (20, 24, 28, 34, 40, 48, 56, 64)),
+)
+THRESH_CROSS = 0.95        # mean correct / L that counts as recalling
+
+
+def threshold_arms():
+    out = {}
+    for tag, L, frac, b, grid in THRESH_CELLS:
+        for P in grid:
+            out[f"{tag}-P{P}"] = (L, P, 1.0, LIMIT_P, THRESH_ARC, (L + 1) * K,
+                                  "blocks", "chain")
+    return out
+
+
+THRESH_ARM_SPECS = threshold_arms()
+
+
+def crossing_presentations(frac_of, grid, cross=THRESH_CROSS):
+    """Smallest P in the grid whose outcome reaches `cross`, or None.
+
+    A grid quantity, never interpolated, and None when the grid does not
+    bracket the crossing -- reported as CENSORED rather than as the grid edge,
+    which is the trap AC-5 was written to catch.
+    """
+    below = any(frac_of(P) < cross for P in grid)
+    for P in sorted(grid):
+        if frac_of(P) >= cross:
+            return P if below else None
+    return None
+
+
 def arc_capacity_arms():
     return {f"arc{a}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, a, ACAP_N_STATE,
                              "blocks", ACAP_ORDER)
@@ -530,11 +575,13 @@ def experiment(record):
     acap_mode = bool(p.get("arc_capacity_mode"))
     iload_mode = bool(p.get("integer_load_mode"))
     bphase_mode = bool(p.get("balance_phase_mode"))
+    thresh_mode = bool(p.get("threshold_mode"))
     states_mode = (bool(p.get("states_mode")) or margin_mode or load_mode
                    or arcb_mode or tord_mode or acap_mode or iload_mode
-                   or bphase_mode)
+                   or bphase_mode or thresh_mode)
     cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
-    specs = (BP_ARM_SPECS if bphase_mode
+    specs = (THRESH_ARM_SPECS if thresh_mode
+             else BP_ARM_SPECS if bphase_mode
              else ILOAD_ARM_SPECS if iload_mode
              else ACAP_ARM_SPECS if acap_mode
              else TORD_ARM_SPECS if tord_mode
@@ -648,7 +695,41 @@ def experiment(record):
             "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
                                   for n, a in arms.items()},
         }
-        if bphase_mode:
+        if thresh_mode:
+            def frac_at(cell_tag):
+                """Mean correct / L for one cell as a function of presentations."""
+                def read(P):
+                    a = arm(f"{cell_tag}-P{P}")
+                    return a["correct"]["mean"] / a["length"]
+                return read
+            th, curves = {}, {}
+            # `_frac` and `_L` are unpacked but unused here; naming them apart
+            # from the closure keeps pyright from unifying the two
+            for cell_tag, _L, _frac, period, grid in THRESH_CELLS:
+                reader = frac_at(cell_tag)
+                th[period] = crossing_presentations(reader, grid)
+                curves[cell_tag] = {P: reader(P) for P in grid}
+            defined = {b: v for b, v in th.items() if v is not None}
+            bars = {
+                "TH-1 every threshold is RESOLVED inside its grid, none censored":
+                    len(defined) == len(th),
+                "TH-2 the threshold RISES with the orbit period: b=8 above b=1":
+                    (th[8] is not None and th[1] is not None and th[8] > th[1]),
+                "TH-3 but NOT in proportion: b=2 is below 1.5x b=1, refuting the scaling I planned to register":
+                    (th[2] is not None and th[1] is not None
+                     and th[2] < 1.5 * th[1]),
+                "TH-4 the threshold is non-decreasing in b":
+                    all(defined[x] <= defined[y]
+                        for x, y in zip(sorted(defined), sorted(defined)[1:])),
+                "TH-5 the b=1 cell reproduces the pre-check: it crosses inside 11..20":
+                    th[1] is not None,
+            }
+            comparisons.update({
+                "threshold_by_period": {str(k): v for k, v in th.items()},
+                "curve_by_cell": curves,
+                "crossing": THRESH_CROSS,
+            })
+        elif bphase_mode:
             def st(order, L):
                 return arm(f"bp-{order}-L{L}")["arc_stability"]
 
@@ -1054,6 +1135,8 @@ def main(argv=None):
                         help="run Amendment 9: does recall peak at INTEGER L*k/n_arc?")
     parser.add_argument("--balance-phase", action="store_true",
                         help="run Amendment 10: is the integer effect BALANCE or PHASE LOCKING?")
+    parser.add_argument("--threshold", action="store_true",
+                        help="run Amendment 11: does the training threshold move with the orbit period?")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
@@ -1061,10 +1144,11 @@ def main(argv=None):
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
     modes = (args.limit, args.states, args.margin, args.load,
              args.arc_bottleneck, args.train_order, args.arc_capacity,
-             args.integer_load, args.balance_phase)
+             args.integer_load, args.balance_phase, args.threshold)
     if sum(map(bool, modes)) > 1:
         parser.error("each flag is a different amendment; run one")
-    specs = (BP_ARM_SPECS if args.balance_phase
+    specs = (THRESH_ARM_SPECS if args.threshold
+             else BP_ARM_SPECS if args.balance_phase
              else ILOAD_ARM_SPECS if args.integer_load
              else ACAP_ARM_SPECS if args.arc_capacity
              else TORD_ARM_SPECS if args.train_order
@@ -1087,6 +1171,7 @@ def main(argv=None):
                   "arc_capacity_mode": bool(args.arc_capacity),
                   "integer_load_mode": bool(args.integer_load),
                   "balance_phase_mode": bool(args.balance_phase),
+                  "threshold_mode": bool(args.threshold),
                   "arc_capacity_order": (ACAP_ORDER if args.arc_capacity else None),
                   # the arm specs already carry (n_state, kind); recording a
                   # second copy keyed by name is what let the two drift apart

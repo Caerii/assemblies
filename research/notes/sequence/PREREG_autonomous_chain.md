@@ -1823,3 +1823,103 @@ presentations should cure fractional load in proportion to the orbit period --
 frac 0.5 needing twice the rounds to match integer load, frac 0.375 needing
 about eight times -- while integer load is unaffected. That differential is hard
 to obtain by accident and has not been run.
+
+### Pre-check (2026-09-13): the study I was about to register FAILED its own validity checks
+
+Two checks before designing the presentations study, on seeds 42..45 -- the
+block this registration designates as exploratory -- at `n_arc = 1600`.
+
+**Check 1, RANGE.** frac 0.000 is a STEP, not a curve:
+
+    P          5      10      20      40      60
+    mean/L   0.004   0.004   1.000   1.000   1.000
+
+Floor at P <= 10, ceiling at P >= 20, with the whole transition hidden inside
+(10, 20). A grid spanning 5 to 60 samples floor, floor, ceiling, ceiling,
+ceiling -- **zero points inside the transition**. Any study must resolve there.
+
+**Check 2, RATE: passes.** The lag-2 peak at frac 0.500 holds at every P from 5
+to 60, so the orbit period is a genuine constant of the cell and scaling by it
+is well posed:
+
+    P      outcome   lag1    lag2    lag3    lag4   peak
+    5       0.001   0.166   0.502   0.208   0.284      2
+    10      0.004   0.090   0.645   0.095   0.518      2
+    20      0.993   0.215   0.699   0.239   0.612      2
+    40      1.000   0.571   0.814   0.597   0.768      2
+    60      1.000   0.712   0.873   0.733   0.845      2
+
+**Unplanned: the orbit CONTRACTS.** Separation is sharpest at P = 10, where the
+two assemblies share 0.090, and then they steadily merge -- 0.215, 0.571, 0.712.
+Constant period, shrinking radius. Training does not merely reinforce the orbit
+points, it pulls them together.
+
+### What the pre-check REFUTES, which is the study itself
+
+The design was to show the training threshold scales with the orbit period `b`,
+at b = 1, 2 and 4. **Both measured thresholds sit in the SAME interval:**
+
+    frac    b    P=10    P=20
+    0.000   1   0.004   1.000
+    0.500   2   0.004   0.993
+
+Not 2x apart. And the failure is sharper than a wrong ratio: at frac 0, P = 10
+puts **ten presentations on ONE assembly and fails** (0.004); at frac 0.5,
+P = 20 puts **ten on EACH of two and succeeds** (0.993). The same per-assembly
+reinforcement, opposite outcomes -- so reinforcement-per-orbit-point is not the
+currency.
+
+The contraction reading does not rescue it either: recall reaches 0.993 at
+P = 20 while the two assemblies are still 78% DISTINCT, so they plainly do not
+need to merge first.
+
+**No mechanism here accounts for that, and none is offered.** Three explanations
+in an hour is the point at which a fourth is worth less than a measurement.
+
+## Amendment 11 (2026-09-13, registered before running): where the threshold IS, as a function of the orbit period
+
+Assume no mechanism. Measure the observable that every candidate disagrees
+about: does the training threshold move with `b` at all, and if so how?
+
+`n_arc = 1600`, four cells, each with a grid chosen to straddle what that cell
+is already known to do, thirty-six cells in all, every one far below the clip
+at 67 presentations:
+
+    tag   L     frac    b   presentations
+    b1    336   0.000   1   11..20
+    b2    344   0.500   2   11..20
+    b4    340   0.250   4   14,16,18,20,24,28,32,40
+    b8    342   0.375   8   20,24,28,34,40,48,56,64
+
+The threshold is the SMALLEST P in the grid whose mean correct reaches 0.95 of
+L. It is a grid quantity, never interpolated, and **a grid that does not
+straddle the crossing reports CENSORED rather than its edge** -- the trap AC-5
+was written for and `exact_length` fell into in Amendment 1. Pinned by a test.
+
+- **TH-1, every threshold is RESOLVED**, none censored. Without it TH-2 and TH-4
+  would compare grid edges.
+- **TH-2, the threshold RISES with the period**: b = 8 above b = 1.
+- **TH-3, but NOT in proportion**: b = 2 is below 1.5x b = 1. PREDICTION: passes,
+  refuting the scaling this amendment replaces. It is stated as a bar rather
+  than dropped because a refutation I expect should still be able to surprise
+  me.
+- **TH-4, the threshold is non-decreasing in b.**
+- **TH-5, the b = 1 cell reproduces the pre-check**, crossing inside 11..20 on
+  seeds the pre-check did not use.
+
+### What each outcome means, stated in advance
+
+**TH-2 passes and TH-3 passes**: the period matters but sub-proportionally, so
+the orbit divides the training budget only partly -- consistent with orbit
+points sharing neurons and reinforcement transferring between them, which is
+measurable and would be the next study.
+
+**TH-2 fails**: the threshold does not move with b at all, the orbit period is
+irrelevant to how much training is needed, and what b changes is only where the
+chain lands at read-out. That would be a cleaner result than the one I expect.
+
+**TH-3 fails**: proportionality survives on fresh seeds and the pre-check's
+coarse grid misled me, which would be the pre-check failing rather than the
+prediction.
+
+Runs on seeds 62..81. The pre-check used 42..45.
