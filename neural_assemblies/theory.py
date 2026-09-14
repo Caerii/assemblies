@@ -290,10 +290,14 @@ _RESULTS: List[Result] = [
                         "lags 0.216-0.252, even lags 0.525-0.694 -- two assemblies "
                         "each as well formed as the single one at integer load, ten "
                         "presentations each. The stability metric was measuring "
-                        "alternation and calling it instability. UNTESTED: the "
-                        "prediction that more presentations cure fractional load in "
-                        "proportion to the orbit period while integer load is "
-                        "unaffected.",
+                        "alternation and calling it instability. The proportional "
+                        "prediction was then TESTED AND REFUTED: thresholds are 16, "
+                        "20, 24, 24 at b = 1, 2, 4, 8 where proportional predicts "
+                        "16, 32, 64, 128. The currency is the RECRUITMENT UNION -- "
+                        "the neurons a transition ever recruits, 3.40 k at b = 1 "
+                        "from DRIFT alone and only 4.81 k at b = 8 -- which predicts "
+                        "the threshold at r = 0.993 against b's 0.815 and saturates "
+                        "where it does. What sets the drift envelope is unmeasured.",
         claim="Autonomous chain recall PEAKS WHEN THE ARC LOAD DIVIDES EVENLY. "
               "With L transitions, k winners and n_arc arc neurons, the mean "
               "number of arcs per neuron is L k / n_arc, and arc assembly "

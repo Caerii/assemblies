@@ -142,6 +142,29 @@ source-linked contract, negative control, and relevant gate are all present.
   supports, multihead composition, causality, refinement, and separate
   compatibility/value readouts. Add no-compatibility, value-shuffle, and future
   token leakage controls before making sequence claims.
+  - Progress 2026-09-13: the REFERENCE construction is now ported and proven
+    against the clone itself. `assembly_calculus/attention_area.py` is
+    mdabagia/nemo's `AttentionArea`, and
+    `test_attention_area_parity.py` loads `.reference/mdabagia-nemo/brain.py`
+    and checks the port bit for bit: the set rule, the undo, and the recurrent
+    read all match exactly on a shared connectome.
+    It carries two properties nothing else here has. Potentiation ASSIGNS
+    `1 + plasticity` to positive weights rather than scaling them, so it
+    SATURATES and needs no clip -- weights are binary. And `decay_weights`
+    REVERSES the last update exactly, so a link can be bound, read and
+    released, which is what attention needs and what permanent compounding
+    plasticity cannot express.
+    ONE DELIBERATE DIVERGENCE, recorded rather than hidden: `change` is
+    assigned and not accumulated, so a second bind without a release makes the
+    undo over-subtract and leave `1 - plasticity**2` where `1` was. The
+    reference permits that; this port REFUSES it, and a test demonstrates the
+    reference really does corrupt its baseline there, so the guard is justified
+    rather than arbitrary.
+    The pure snapshot readout in `attention.py` is untouched and stays what its
+    docstring says it is. What remains under this item is the measurement --
+    the port is infrastructure and has no registration and no register entry,
+    so nothing here claims attention DOES anything yet. The scientific question
+    it opens is what TRANSIENT binding buys that permanent binding does not.
 - [ ] **Consolidate duplicate state and parser paths.** After cards exist,
   merge repeated context resets, training schedules, synchronization logic, and
   parallel configuration adapters. Delete only after all consumers and evidence

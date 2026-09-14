@@ -989,6 +989,36 @@ class HashedArea:
         self.refracted_strength = float(refracted_strength or 0.0)
         self.bias = (torch_ops.zeros(self.B, n, dtype=torch_ops.float32, device=device)
                      if self.refracted_strength > 0 else None)
+
+        #: LONG RANGE INHIBITION. PROVENANCE, checked against the clones and
+        #: NOT what I first wrote here: neither reference implements a
+        #: refractory period. In `mdabagia-nemo/brain.py` `inhibit()` is a
+        #: RESET (`clear_input(); activations = []`), and in
+        #: `dmitropolsky-assemblies` "inhibit" is AREA GATING for control flow.
+        #: Grepping both clones for refractory/steps_ago/recently-fired returns
+        #: nothing. So LRI-with-decay is THIS REPOSITORY'S OWN construction,
+        #: the same status as `ordered_recall` and `sequence_memorize`, and
+        #: porting it is not parity work. It is kept because RECOVERY is the
+        #: one ingredient the substrate lacks -- without it there is no decay
+        #: term anywhere, so idle spacing is a no-op by construction and the
+        #: refraction bias is not a relative refractory period in the
+        #: biological sense.
+        #:
+        #: It is NOT the refraction bias with a decay bolted on -- the two are
+        #: orthogonal and compose:
+        #:
+        #:   refraction   charges per WIN, in proportion to the raw drive,
+        #:                never recovers, and is gated on plasticity
+        #:   LRI          charges per STEP at a FIXED strength, recovers
+        #:                linearly over `period` steps, and applies on frozen
+        #:                reads too, exactly as the reference does
+        #:
+        #: A ring buffer of the last `period` winner sets; the penalty a neuron
+        #: carries is `strength * (1 - (age - 1) / period)` summed over every
+        #: slot it appears in, subtracted from drive before k-WTA.
+        self.lri_period, self.lri_strength = 0, 0.0
+        self._lri_hist = None
+        self._lri_pos, self._lri_filled = 0, 0
         #: MASKED READOUT, the engine's `masked_readout`: a frozen projection
         #: ranks the raw drive. `project(mask_bias=...)` overrides per call.
         self.masked_readout = False
@@ -1035,6 +1065,51 @@ class HashedArea:
     def apply_bias(self, raw):
         """Net drive the k-WTA ranks: raw minus the accumulated bias."""
         return raw if self.bias is None else raw - self.bias
+
+    def set_lri(self, refractory_period: int, inhibition_strength: float) -> None:
+        """Configure long range inhibition, or switch it off with a zero.
+
+        Mirrors `Brain.set_lri`, including its validation, so the two paths
+        cannot drift in what they accept.
+        """
+        from .._homeostasis import validate_lri_parameters
+        period, strength = validate_lri_parameters(refractory_period,
+                                                   inhibition_strength)
+        self.lri_period, self.lri_strength = period, strength
+        self._lri_pos, self._lri_filled = 0, 0
+        self._lri_hist = (
+            torch_ops.zeros(self.B, period, self.k, dtype=torch_ops.int64,
+                            device=self.device)
+            if period > 0 and strength > 0 else None)
+
+    def apply_lri(self, drive):
+        """Subtract the linearly decaying penalty of recently fired neurons.
+
+        Age 1 is the most recent step and pays the full strength; age `period`
+        pays `1 / period` of it; older is forgotten entirely. A neuron that
+        fired on several of those steps pays for EACH, which is what the
+        reference's per-slot loop does.
+        """
+        if self._lri_hist is None or self._lri_filled == 0:
+            return drive
+        penalty = torch_ops.zeros_like(drive)
+        for age in range(1, self._lri_filled + 1):
+            slot = (self._lri_pos - age) % self.lri_period
+            decay = 1.0 - (age - 1) / self.lri_period
+            penalty.scatter_add_(
+                1, self._lri_hist[:, slot],
+                torch_ops.full_like(penalty[:, :self.k],
+                                    self.lri_strength * decay))
+        return drive - penalty
+
+    def _push_lri(self, winners) -> None:
+        """Record this step's winners. Not gated on `freeze`: the reference
+        appends its history on every step, so a frozen read still inhibits."""
+        if self._lri_hist is None:
+            return
+        self._lri_hist[:, self._lri_pos] = winners
+        self._lri_pos = (self._lri_pos + 1) % self.lri_period
+        self._lri_filled = min(self._lri_filled + 1, self.lri_period)
 
     def charge(self, raw, new):
         """Charge the winners `raw * strength`, as `refraction_increment` does
@@ -1112,6 +1187,10 @@ class HashedArea:
             if stim_drive is not None:
                 raw = raw + stim_drive
             drive = raw if mask_bias else self.apply_bias(raw)
+            # LRI is not the refraction bias and `mask_bias` does not lift it:
+            # that option probes what the SYNAPSES hold with the intrinsic veto
+            # removed, and long range inhibition is extrinsic.
+            drive = self.apply_lri(drive)
             ranked = (drive + self._jitter(fibers) if self.tie_jitter > 0
                       else drive)
             sel, ovf = self.mod.topk_select(ranked, min(self.k, self.n))
@@ -1143,6 +1222,7 @@ class HashedArea:
                 self.ever.scatter_(1, new, True)
                 self.rounds_seen += 1
             self.winners = new
+            self._push_lri(new)
             if active is not None:
                 if prev.shape[1] == new.shape[1]:
                     same = (torch_ops.sort(new, dim=1).values

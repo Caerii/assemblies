@@ -191,6 +191,40 @@ device allocation. These tests establish that the boundary detects mismatch;
 they do not prove the CUDA implementation refines the profile. CUDA parity,
 mechanism-disabling nulls and observation contracts remain separate obligations.
 
+<a id="contract-attention-area"></a>
+
+## Attention area: saturating, reversible binding
+
+`AttentionArea` (`assembly_calculus/attention_area.py`) ports mdabagia/nemo's
+construction of the same name, and it is the only plasticity in this repository
+that neither compounds nor persists. Both properties are the reference's:
+
+    update:  change[pre, post] = plasticity * w[pre, post]
+             w[pre, post]      = (1 + plasticity) * (w[pre, post] > 0)
+    decay:   w -= change;  change = 0
+
+**Saturating.** Potentiation ASSIGNS `1 + plasticity` to a positive weight
+rather than scaling it, so repeated binding of a pair is idempotent and every
+live weight is exactly `0` or `1 + plasticity`. No `w_max` and no clip
+arithmetic apply, because nothing compounds. This differs from `FFArea.update`,
+the multiply rule that `FSMNetwork` and every sequence result here rest on;
+the divergence is specific to attention and is recorded in
+`research/literature/CONFORMANCE.md`.
+
+**Reversible, exactly once.** `change` is assigned and not accumulated, so
+`decay_weights` reverses the MOST RECENT update and restores the baseline
+exactly. A second bind without an intervening release makes the rollback
+over-subtract, leaving `1 - plasticity**2` where `1` was. The reference permits
+that; this port raises instead, and
+`tests/test_attention_area_parity.py::test_the_reference_would_corrupt_its_baseline_there`
+demonstrates the hazard is real rather than hypothetical, which is what
+justifies diverging.
+
+Parity against the clone is checked on a shared connectome for the set rule,
+the undo and the recurrent read. The consequences measured from the two
+properties -- exact composition at any depth, and exact frequency blindness --
+belong to a registration, not to this contract.
+
 <a id="contract-organ-count-saturation"></a>
 
 ## Organ count saturation

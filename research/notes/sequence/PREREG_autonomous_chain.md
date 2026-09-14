@@ -1923,3 +1923,125 @@ coarse grid misled me, which would be the pre-check failing rather than the
 prediction.
 
 Runs on seeds 62..81. The pre-check used 42..45.
+
+## Amendment 11 result (2026-09-13): the orbit period is NEARLY FREE, and my log law died on its own prediction
+
+Run `chain-thresh-20260913`, seeds 62..81, `n_arc = 1600`. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-thresh-20260913/results.json`.
+
+    PASS TH-1   PASS TH-2   PASS TH-3   PASS TH-4   PASS TH-5
+
+    orbit period b      1     2     4     8
+    threshold          16    20    24    24
+    proportional       16    32    64   128
+
+**An EIGHTFOLD increase in orbit period costs at most 16 -> 24 presentations**,
+a factor of 1.5 where splitting the training budget across b points predicts 8.
+TH-3 passes emphatically rather than marginally.
+
+### A prediction I made and the data refused
+
+With three points in hand (16, 20, 24 at b = 1, 2, 4) I fitted
+`threshold = 16 + 4 log2(b)` and predicted **b = 8 would cross at 28**. It
+crosses at 24. Even at the coarse grid there, 28 would have required P = 24 to
+fail, and it did not. The fit was two parameters through three points, which is
+nearly free, and stating the prediction before the arm landed is the only
+reason it cost nothing.
+
+### A design flaw that bounds what can be read
+
+The grids were chosen to STRADDLE each crossing but not at a common
+resolution: step 1 near the crossing for b = 1 and b = 2, step 4 for b = 4 and
+b = 8.
+
+    cell   threshold   nearest point below   resolution
+    b1            16                    15            1
+    b2            20                    19            1
+    b4            24                    20            4
+    b8            24                    20            4
+
+So b = 4 and b = 8 are each only resolved to `(20, 24]` and are
+**indistinguishable from one another**. The reported equality of 24 and 24 is a
+statement about the grid, not about the system. Whether the threshold saturates
+or keeps creeping is not decided here, and the cleanup is P in 21..24 at both.
+
+### What this says, and the puzzle it retires
+
+The orbit points are **not b independent assemblies competing for a fixed
+training budget**. If they were, the threshold would scale with b. They are b
+nearby points on a slowly rotating orbit that share most of their neurons, so
+the UNION of arc neurons ever recruited for one transition is far smaller than
+`b k` and most reinforcement lands on the same cells whatever b is.
+
+That also retires the puzzle recorded in the pre-check, which no mechanism
+there accounted for: ten presentations on ONE assembly fails while ten on EACH
+of two succeeds. If the two share a common core, the core received twenty.
+
+### The measurement that decides it, and why it is binary
+
+The size of the union of arc neurons ever recruited for a single transition, as
+a function of b. The snapshots are already recorded.
+
+- Union ~ `k (1 + epsilon)`: the orbit is a tight wobble, b is close to
+  cosmetic, and the near-flat threshold follows directly.
+- Union ~ `b k`: the points are genuinely distinct and the flat threshold needs
+  a different explanation entirely.
+
+This is deliberately the first question asked rather than a fourth curve fitted
+to four points.
+
+### Diagnostic (2026-09-13): it is the RECRUITMENT UNION, not the orbit period
+
+Union of arc neurons ever recruited by ONE transition over 24 presentations,
+four brains, `n_arc = 1600`, in units of `k`:
+
+    b    union (all 24)   union (last 12)   if the points were DISTINCT
+    1              3.40              1.81                             1
+    2              3.94              2.25                             2
+    4              4.78              2.53                             4
+    8              4.81              2.54                             8
+
+**Neither reading offered was right, which is the useful part.** The union is
+not `k (1 + epsilon)` and not `b k`. At **b = 1, with no orbit at all**, a
+single transition already recruits **3.40 k** distinct neurons -- that is pure
+DRIFT, and it dwarfs the orbit. Going from b = 1 to b = 8 adds 41 per cent
+(3.40 to 4.81) while b grows eightfold.
+
+So the orbit points fall INSIDE the drift envelope. Adding points stops adding
+neurons once the orbit is no wider than the drift, which is why the union
+saturates.
+
+**The union predicts the threshold; the orbit period does not.**
+
+    threshold vs orbit period b     r = 0.815
+    threshold vs union size         r = 0.993
+
+and the two saturate together: b = 4 and b = 8 have equal unions (4.78, 4.81)
+AND equal thresholds (24, 24). The tie flagged in Amendment 11 as possibly a
+grid-resolution artifact is now independently predicted by the union, so it is
+likely real -- though the thresholds there remain resolved only to `(20, 24]`
+and the finer grid is still owed.
+
+### The account, with every term measured
+
+A transition needs enough presentations to reinforce every neuron in its
+RECRUITMENT UNION. The union is set mostly by drift, plus a modest and
+saturating orbit contribution. The orbit period matters only through how much
+it widens the union, and past b = 4 it stops widening it.
+
+This retires the reinforcement-per-orbit-point currency for good: the currency
+is per-NEURON reinforcement over a union whose size is dominated by something
+the orbit does not control.
+
+**The last-half column confirms the contraction the pre-check found.** The union
+over the final twelve presentations is roughly half the union over all
+twenty-four (1.81 against 3.40 at b = 1), so the wobble TIGHTENS rather than
+having always been tight. A single union number could not have separated those.
+
+### What is still open
+
+Why the drift envelope is about 3.4 k wide at these parameters, and what sets
+it. It is the dominant term in the account above and nothing here measures its
+dependence on anything -- `n_arc`, `k`, the refraction strength, or the clip.
+That is the next question in this line, and it is a question about REFRACTION
+rather than about sequences.
