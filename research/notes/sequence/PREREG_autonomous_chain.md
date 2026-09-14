@@ -1390,3 +1390,55 @@ synaptic memory dominates again -- but it predicts stability keeps improving
 above 32, and `arc1000-L384` at 38.4 fails at 0.784, so it is not supported and
 is not adopted. The band is being swept finely on a FRESH seed block before any
 mechanism is proposed.
+
+### Diagnostic (2026-09-13): the island is a reproducible RESONANCE, and the surface oscillates
+
+Nine lengths at `n_arc = 1000`, eight brains, on the FRESH block 82..89 -- the
+grid used 62..81 -- with outcome and arc stability measured together.
+
+    L    arcs/neuron   mean/L   arc stability
+    224        22.4    0.619           0.273
+    256        25.6    0.495           0.276
+    272        27.2    0.996           0.381
+    288        28.8    0.893           0.451
+    304        30.4    0.786           0.255
+    320        32.0    1.000           0.733
+    336        33.6    0.840           0.268
+    352        35.2    0.946           0.371
+    384        38.4    0.729           0.260
+
+**`L = 320` reproduces on an independent seed block, and so does its arc
+stability to three digits.** Seeds 62..65 gave stability 0.732 and a perfect
+outcome; seeds 82..89 give 0.733 and a perfect outcome, with immediate
+neighbours at 30.4 and 33.6 arcs per neuron sitting at 0.255 and 0.268 and
+failing. **That is a sharp resonance, not a draw.**
+
+**And the surface OSCILLATES.** Outcome runs 0.62, 0.50, 1.00, 0.89, 0.79,
+1.00, 0.84, 0.95, 0.73 across a monotone increase in load. Arc stability
+correlates with it at `r = 0.628` over the nine cells, so the outcome is
+tracking whether the assemblies settle, not how crowded the area is.
+
+**This retires my own window as an over-simplification.** The fitted
+`[2.0, 19.2]` window described the coarse grid because that grid sampled the
+oscillating region at only three points. The lower edge stands -- one cell, one
+mechanism, drift -- but "an upper edge near 19" is wrong: above it the surface
+does not decline monotonically, it rings.
+
+**No mechanism is offered, and the obvious arithmetic does not supply one.**
+`L = 320` at `n_arc = 1000, k = 100` is 32.0 arcs per neuron, 640 charges over
+twenty sweeps, `L/n_arc = 0.32`. Nothing in the clip arithmetic
+(`c* = 67` potentiations) or the measured relocation period (~40 charges)
+singles out 32.0 over 30.4 or 33.6. A resonance between the per-sweep charge
+accrual and the relocation period is the natural shape of explanation and it is
+NOT adopted: the candidate ratios at the neighbouring cells are 1.32, 1.25 and
+1.19 relocation periods per sweep, and nothing distinguishes 1.25.
+
+**What this means for the capacity question.** There is no capacity law of the
+form `L*(n_arc)` to fit, because at fixed `n_arc` the recall quality is not
+monotone in `L` -- it oscillates with reproducible peaks. Any study that samples
+`L` coarsely will read whichever phase of the oscillation it happens to land
+on, which is exactly what Amendment 1's `exact_length` grid and Amendment 8's
+`L*` both did. **The next measurement is the period**: sweep `L` at a step of 8
+or less across two full oscillations at two arc sizes, and ask whether the
+peaks sit at fixed arcs-per-neuron or at fixed `L`. Those two answers mean
+different things, and this data cannot separate them.
