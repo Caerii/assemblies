@@ -379,6 +379,23 @@ ILOAD_ARM_SPECS = {
 }
 
 
+#: Amendment 10. Two readings of the integer effect are indistinguishable in the
+#: data so far and they mean different things. BALANCE says it is a static
+#: property of the load -- an integer divides evenly across arc neurons, so the
+#: bias is uniform however the transitions are ordered. PHASE LOCKING says it is
+#: a property of the SCHEDULE -- with a fixed sweep each transition meets the
+#: same bias state every time, and an integer load makes that state repeat.
+#: Amendment 7 showed a fixed order is what lets an assembly consolidate at all,
+#: so shuffling is the knob that separates them: balance survives it, phase
+#: locking does not.
+BP_LENGTHS = (336, 344, 352, 360, 368)      # integers 21/22/23, halves 21.5/22.5
+BP_ARM_SPECS = {
+    f"bp-{order}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, ILOAD_ARC, (L + 1) * K,
+                         "blocks", order)
+    for order in ("chain", "shuffled") for L in BP_LENGTHS
+}
+
+
 def arc_capacity_arms():
     return {f"arc{a}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, a, ACAP_N_STATE,
                              "blocks", ACAP_ORDER)
@@ -512,10 +529,13 @@ def experiment(record):
     tord_mode = bool(p.get("train_order_mode"))
     acap_mode = bool(p.get("arc_capacity_mode"))
     iload_mode = bool(p.get("integer_load_mode"))
+    bphase_mode = bool(p.get("balance_phase_mode"))
     states_mode = (bool(p.get("states_mode")) or margin_mode or load_mode
-                   or arcb_mode or tord_mode or acap_mode or iload_mode)
+                   or arcb_mode or tord_mode or acap_mode or iload_mode
+                   or bphase_mode)
     cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
-    specs = (ILOAD_ARM_SPECS if iload_mode
+    specs = (BP_ARM_SPECS if bphase_mode
+             else ILOAD_ARM_SPECS if iload_mode
              else ACAP_ARM_SPECS if acap_mode
              else TORD_ARM_SPECS if tord_mode
              else ARCB_ARM_SPECS if arcb_mode
@@ -540,7 +560,7 @@ def experiment(record):
             seeds, length, presentations, ratio, density,
             device=p["device"], n_arc=n_arc,
             order=(spec[7] if len(spec) > 7 else "chain"),
-            watch=(STABILITY_WATCH if iload_mode else 0),
+            watch=(STABILITY_WATCH if (iload_mode or bphase_mode) else 0),
             n_state=(n_state_arm if states_mode
                      else (N_STATE_FIXED if limit_mode else None)),
             code=code,
@@ -628,7 +648,37 @@ def experiment(record):
             "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
                                   for n, a in arms.items()},
         }
-        if iload_mode:
+        if bphase_mode:
+            def st(order, L):
+                return arm(f"bp-{order}-L{L}")["arc_stability"]
+
+            def mc(order, L):
+                a = arm(f"bp-{order}-L{L}")
+                return a["correct"]["mean"] / a["length"]
+            gap = {o: (min(st(o, L) for L in ILOAD_INTEGER)
+                       - max(st(o, L) for L in ILOAD_HALF))
+                   for o in ("chain", "shuffled")}
+            bars = {
+                "BP-1 chain order reproduces the integer effect: integer stability beats half-integer by 0.20":
+                    gap["chain"] >= 0.20,
+                "BP-2 DECISIVE -- the integer effect SURVIVES shuffling (BALANCE), rather than vanishing (PHASE LOCKING)":
+                    gap["shuffled"] >= 0.10,
+                "BP-3 shuffling still costs, as Amendment 7: lower mean correct at every length":
+                    all(mc("shuffled", L) < mc("chain", L) for L in BP_LENGTHS),
+                "BP-4 the treatment reaches the organ: stability differs by order at some length":
+                    any(abs(st("chain", L) - st("shuffled", L)) > 0.05
+                        for L in BP_LENGTHS),
+            }
+            comparisons.update({
+                "integer_gap_by_order": gap,
+                "stability_by_order_length": {
+                    o: {L: st(o, L) for L in BP_LENGTHS}
+                    for o in ("chain", "shuffled")},
+                "mean_correct_by_order_length": {
+                    o: {L: mc(o, L) for L in BP_LENGTHS}
+                    for o in ("chain", "shuffled")},
+            })
+        elif iload_mode:
             def frac_of(L):
                 ap = L * K / ILOAD_ARC
                 return round(ap - int(ap), 3)
@@ -1002,6 +1052,8 @@ def main(argv=None):
                         help="run Amendment 8: the arc-capacity curve, graded and interpolated")
     parser.add_argument("--integer-load", action="store_true",
                         help="run Amendment 9: does recall peak at INTEGER L*k/n_arc?")
+    parser.add_argument("--balance-phase", action="store_true",
+                        help="run Amendment 10: is the integer effect BALANCE or PHASE LOCKING?")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
@@ -1009,10 +1061,11 @@ def main(argv=None):
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
     modes = (args.limit, args.states, args.margin, args.load,
              args.arc_bottleneck, args.train_order, args.arc_capacity,
-             args.integer_load)
+             args.integer_load, args.balance_phase)
     if sum(map(bool, modes)) > 1:
         parser.error("each flag is a different amendment; run one")
-    specs = (ILOAD_ARM_SPECS if args.integer_load
+    specs = (BP_ARM_SPECS if args.balance_phase
+             else ILOAD_ARM_SPECS if args.integer_load
              else ACAP_ARM_SPECS if args.arc_capacity
              else TORD_ARM_SPECS if args.train_order
              else ARCB_ARM_SPECS if args.arc_bottleneck
@@ -1033,6 +1086,7 @@ def main(argv=None):
                   "train_order_mode": bool(args.train_order),
                   "arc_capacity_mode": bool(args.arc_capacity),
                   "integer_load_mode": bool(args.integer_load),
+                  "balance_phase_mode": bool(args.balance_phase),
                   "arc_capacity_order": (ACAP_ORDER if args.arc_capacity else None),
                   # the arm specs already carry (n_state, kind); recording a
                   # second copy keyed by name is what let the two drift apart

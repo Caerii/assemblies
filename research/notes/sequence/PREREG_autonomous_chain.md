@@ -1572,3 +1572,55 @@ the surface oscillates for a reason not yet identified.
 **IL-2 passes while IL-3 fails:** the band is simply too easy at `n_arc = 1600`
 and the cell choice, not the law, is at fault. The fix is a higher load, not a
 new bar.
+
+## Amendment 10 (2026-09-13, registered before running): is the integer effect BALANCE or PHASE LOCKING?
+
+Two readings of the integer law are indistinguishable in the data so far and
+they mean different things.
+
+**BALANCE.** The effect is a static property of the LOAD. An integer
+`L k / n_arc` divides evenly across arc neurons, so each carries the same number
+of arcs and the accumulated refraction bias is uniform -- however the
+transitions are ordered.
+
+**PHASE LOCKING.** The effect is a property of the SCHEDULE. With a fixed sweep
+each transition meets the same bias state on every presentation, and an integer
+load is what makes that state repeat exactly. The balance is incidental; the
+repetition is the point.
+
+Amendment 7 supplies the knob that separates them. A fixed order is what lets an
+assembly consolidate at all -- shuffling collapses recall from 0.995 to 0.403 of
+`L` -- and shuffling destroys any fixed phase relationship while leaving the
+load untouched. **Balance survives shuffling. Phase locking does not.**
+
+Five lengths at `n_arc = 1600` -- integers 336, 352, 368 and half-integers 344,
+360 -- crossed with chain and shuffled order. Ten arms. Arc stability recorded
+per arm.
+
+- **BP-1, chain order reproduces the integer effect**: the worst integer cell
+  beats the best half-integer cell in stability by at least 0.20. If this fails
+  the cell choice is wrong and BP-2 is not interpretable.
+- **BP-2, DECISIVE.** Under SHUFFLED order the integer advantage SURVIVES, at
+  least 0.10. Pass means BALANCE; fail means PHASE LOCKING.
+- **BP-3, shuffling still costs**, lower mean correct at every length, as
+  Amendment 7 found. This confirms the order treatment is doing what it did
+  there rather than something new at this cell.
+- **BP-4, the treatment reaches the organ**: stability differs by order at some
+  length by more than 0.05. Without it, BP-2 could "pass" because shuffling
+  changed nothing at all.
+
+### What each outcome means, stated in advance
+
+**BP-2 passes (BALANCE):** the integer law is about how evenly a load divides,
+which is a property of the problem rather than of how it is presented. It would
+apply to any allocation under refraction, not only to chains trained in order,
+and it would predict the same arithmetic in the memory line.
+
+**BP-2 fails (PHASE LOCKING):** the law is about the training schedule, and the
+integer condition matters only because a fixed sweep repeats. It would mean the
+resonance is an artifact of how these experiments present data rather than a
+property of the substrate -- narrower, and a caution rather than a law. It would
+also predict the effect vanishes under any irregular presentation, which is what
+biological input would be.
+
+Both outcomes are worth having, and neither is the one I would bet on.

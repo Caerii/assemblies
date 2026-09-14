@@ -257,6 +257,7 @@ def _stub_run_arm(monkeypatch, correct):
     ("train_order_mode", "TORD_ARM_SPECS"),
     ("arc_capacity_mode", "ACAP_ARM_SPECS"),
     ("integer_load_mode", "ILOAD_ARM_SPECS"),
+    ("balance_phase_mode", "BP_ARM_SPECS"),
 ])
 def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
         monkeypatch, mode_key, specs_name):
@@ -285,6 +286,7 @@ def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
     ("train_order_mode", "TORD_ARM_SPECS"),
     ("arc_capacity_mode", "ACAP_ARM_SPECS"),
     ("integer_load_mode", "ILOAD_ARM_SPECS"),
+    ("balance_phase_mode", "BP_ARM_SPECS"),
 ])
 def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
     """The failing path reaches different code: edge cells, medians, kinds."""
