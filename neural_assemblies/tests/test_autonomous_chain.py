@@ -229,7 +229,7 @@ def _stub_run_arm(monkeypatch, correct):
 
     def fake(seeds, length, presentations, ratio, density, *, device,
              organ_semantics, n_arc=None, n_state=None, code=None,
-             order="chain"):
+             order="chain", watch=0):
         rows = [{"seed": int(s), "correct": correct(length), "total_correct": correct(length),
                  "first_error": None if correct(length) >= length else correct(length),
                  "first_error_fraction": (None if correct(length) >= length
@@ -238,7 +238,7 @@ def _stub_run_arm(monkeypatch, correct):
                  "follow_after": None, "kind": "exact" if correct(length) >= length else "stall",
                  "arc_overlap": 0.05, "visited": list(range(1, length + 1))}
                 for s in seeds]
-        return rows, int(n_state or 64000), 0.01
+        return rows, int(n_state or 64000), 0.01, (0.7 if watch else None)
     # a stub whose signature has drifted from run_arm tests nothing: it would
     # fail on the call rather than on the bars, which is how this very stub
     # broke when run_arm gained `order`
@@ -256,6 +256,7 @@ def _stub_run_arm(monkeypatch, correct):
     ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
     ("train_order_mode", "TORD_ARM_SPECS"),
     ("arc_capacity_mode", "ACAP_ARM_SPECS"),
+    ("integer_load_mode", "ILOAD_ARM_SPECS"),
 ])
 def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
         monkeypatch, mode_key, specs_name):
@@ -283,6 +284,7 @@ def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
     ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
     ("train_order_mode", "TORD_ARM_SPECS"),
     ("arc_capacity_mode", "ACAP_ARM_SPECS"),
+    ("integer_load_mode", "ILOAD_ARM_SPECS"),
 ])
 def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
     """The failing path reaches different code: edge cells, medians, kinds."""

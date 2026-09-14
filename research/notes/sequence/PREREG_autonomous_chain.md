@@ -1442,3 +1442,133 @@ on, which is exactly what Amendment 1's `exact_length` grid and Amendment 8's
 or less across two full oscillations at two arc sizes, and ask whether the
 peaks sit at fixed arcs-per-neuron or at fixed `L`. Those two answers mean
 different things, and this data cannot separate them.
+
+### Diagnostic (2026-09-13): the resonance is INTEGER ARC LOAD, and it explains the whole surface
+
+Two sweeps at step 8, eight brains, fresh seeds 82..89: seventeen lengths at
+`n_arc = 1000` and fourteen at `n_arc = 1500`, outcome and arc stability
+together.
+
+**Arc stability is a function of the FRACTIONAL PART of `L k / n_arc` alone.**
+At `n_arc = 1000`, grouping the seventeen cells by fractional part:
+
+    frac 0.0   stability 0.754, 0.726, 0.733      outcome 1.000, 1.000, 1.000
+    frac 0.2   stability 0.384, 0.364, 0.379
+    frac 0.4   stability 0.255, 0.254, 0.252, 0.260
+    frac 0.6   stability 0.275, 0.263, 0.265, 0.277
+    frac 0.8   stability 0.453, 0.447, 0.445
+
+Within each group the values agree to about 0.01, across chain lengths differing
+by up to 80. At fractional part ZERO the outcome is perfect on every cell.
+
+**Confirmed at a second arc size.** At `n_arc = 1500`, stability is high exactly
+at the near-integer cells and low away from them:
+
+    frac    0.93   0.00   0.07  |  0.40   0.47   0.53   0.60
+    stab   0.751  0.697  0.503  | 0.215  0.202  0.231  0.228
+
+**Both apparent "periods" were ALIASES of one true period of 1.0.** Sampling a
+period-1.0 signal at spacing `d` aliases to period `1/|1 - 1/d|`:
+
+    n_arc=1000   step 8 in L = 0.800 arcs/neuron   predicts 40 in L   observed 40
+    n_arc=1500   step 8 in L = 0.533 arcs/neuron   predicts 17 in L   observed ~16
+
+So the earlier "period 40 in L" was an artifact of the sampling interval, and
+the successful prediction of a peak at `L = 360` was a correct prediction of the
+alias. The underlying period is **1.0 arcs per neuron**, at both arc sizes.
+
+### The mechanism
+
+`L k / n_arc` is the mean number of arcs each arc neuron must belong to. **When
+it is an INTEGER the load can be balanced exactly** -- every neuron used the same
+number of times -- so the accumulated refraction bias is uniform and no neuron is
+preferentially suppressed. When it is fractional, some neurons must carry one
+more arc than the rest, accumulate more bias, and lose their place: which is the
+relocation the consolidation probe measured directly (0.273 consecutive overlap,
+479 of 608 pairs relocating).
+
+### It explains the entire surface, including the anomaly that started this
+
+Above the load edge in the original thirty-two-cell grid there is **exactly one
+near-integer cell**, and it is the perfect island:
+
+    above 19 arcs/neuron, near-integer:  arc1000-L320 (32.00, frac 0.00)  1.000
+    above 19 arcs/neuron, fractional:    eight cells, 0.373 to 0.995
+
+So the complete account of the capacity surface is three regimes:
+
+1. **Below ~2 arcs per neuron**: fails by directional DRIFT (measured: stable
+   step to step at 0.938 with zero relocations, yet first-to-last 0.489).
+2. **Between ~2 and ~19**: works at any fractional part. The margin absorbs the
+   imbalance.
+3. **Above ~19**: works only when `L k / n_arc` is near an integer. The margin
+   is gone and the imbalance decides.
+
+It also explains the `n3000` hole that reproduced across two seed blocks:
+`L = 384` is frac 0.8 and fails, `L = 512` is frac 0.07 -- near integer -- and
+works, which is why the LONGER chain was the better one.
+
+**Status.** Diagnostic, on one seed block, at two arc sizes, with the fractional
+grouping found post hoc on the `n_arc = 1000` sweep and then holding at
+`n_arc = 1500`. It is not a registered result and is not cited as one. The
+registered study it calls for is stated below.
+
+## Amendment 9 (2026-09-13, registered before running): does recall peak at INTEGER arc load?
+
+The diagnostics above found that arc stability -- and with it recall -- appears
+to be a function of the FRACTIONAL PART of `L k / n_arc` alone, peaking when
+that load is an integer. This confirms or refutes it at a THIRD arc size, on
+the seed block THE DIAGNOSTICS DID NOT USE, with the sampling defect that
+produced the earlier "periods" removed.
+
+**Seeds 62..81, not 82..101.** The diagnostics that produced this hypothesis ran
+on 82..89, which is inside the 82..101 block, so confirming there would share
+seeds with the data that generated the claim. Block 62..81 carried the capacity
+grid but at arc sizes 1000 to 4000; `n_arc = 1600` is new to both blocks, and
+62..81 is the one the fractional-part grouping has never been fitted on.
+
+**Sampling the LOAD axis, not `L`.** Both earlier apparent periods were aliases:
+step 8 in `L` samples load at 0.800 (`n_arc = 1000`) and 0.533
+(`n_arc = 1500`), and a period-1.0 signal sampled there aliases to 40 and 17 in
+`L`, which is what was seen. Here `n_arc = 1600` makes arcs per neuron exactly
+`L / 16`, and step 2 in `L` samples load at **0.125** -- eight samples per
+period, well inside Nyquist, so the period is resolved rather than inferred.
+
+`L` from 336 to 368 in steps of 2: load 21.00 to 23.00, covering two full
+periods with **exact integers at 336, 352 and 368** and **exact half-integers at
+344 and 360**. The band sits above the ~19 edge where the fractional part is
+predicted to decide.
+
+Arc stability is recorded per arm: the mean overlap between a transition's arc
+winners on consecutive presentations, over six watched transitions. It is
+opt-in, and no other amendment pays for it.
+
+- **IL-1, integer beats half-integer.** Every integer cell exceeds every
+  half-integer cell in stability by at least 0.20.
+- **IL-2, the outcome is perfect at integer load.** Mean correct at or above
+  0.99 of `L` at 336, 352 and 368.
+- **IL-3, and NOT perfect at half-integer load.** Below 0.99 at 344 and 360.
+  Without this, IL-2 could pass in a band where everything works.
+- **IL-4, stability is a function of the FRACTIONAL PART.** Cells sharing a
+  fractional part agree within 0.06, across chain lengths differing by 16.
+- **IL-5, the period is 1.0 in load and is RESOLVED.** The three highest
+  stabilities in the sweep are the three integer cells. At 0.125 sampling this
+  cannot be an alias.
+
+### What each outcome means, stated in advance
+
+**All five pass:** recall in this construction is governed by whether the arc
+load divides evenly, which is a statement about BALANCE rather than capacity,
+and it explains the holes, the non-monotonicity and the perfect island with one
+variable. It would also mean every chain-length sweep in the sequence
+literature is sampling an oscillation, and that a reported limit depends on
+which lengths happened to be tried.
+
+**IL-1 or IL-5 fails:** the integer reading is wrong. The fractional grouping
+was found post hoc on `n_arc = 1000` and held at 1500; failing at 1600 would
+say it is a coincidence of those two sizes, and the honest conclusion is that
+the surface oscillates for a reason not yet identified.
+
+**IL-2 passes while IL-3 fails:** the band is simply too easy at `n_arc = 1600`
+and the cell choice, not the law, is at fault. The fix is a higher load, not a
+new bar.

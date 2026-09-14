@@ -356,6 +356,29 @@ ACAP_THRESHOLD = 0.95           # the fraction of L that counts as reliable
 ACAP_ORDER = "chain"
 
 
+#: Amendment 9. The diagnostics found that arc stability -- and with it recall
+#: -- is a function of the FRACTIONAL PART of L k / n_arc alone, peaking when
+#: that load is an INTEGER, where it can be balanced exactly across arc neurons.
+#: Both "periods" seen earlier (40 in L at n_arc 1000, ~16 at 1500) were ALIASES
+#: of one true period of 1.0 in load, since step 8 in L samples the load axis at
+#: 0.800 and 0.533. This confirms it at a THIRD arc size, sampling the LOAD axis
+#: at 0.125 so the period is resolved directly rather than aliased.
+#: n_arc = 1600 makes arcs/neuron exactly L/16: integers at 336, 352, 368 and
+#: half-integers at 344, 360. The band sits above the ~19 edge where the
+#: fractional part decides.
+#: transitions watched when arc stability is measured
+STABILITY_WATCH = 6
+ILOAD_ARC = 1600
+ILOAD_LENGTHS = tuple(range(336, 370, 2))
+ILOAD_INTEGER = (336, 352, 368)          # load 21.0, 22.0, 23.0
+ILOAD_HALF = (344, 360)                  # load 21.5, 22.5
+ILOAD_ARM_SPECS = {
+    f"iload-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, ILOAD_ARC, (L + 1) * K,
+                    "blocks", "chain")
+    for L in ILOAD_LENGTHS
+}
+
+
 def arc_capacity_arms():
     return {f"arc{a}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, a, ACAP_N_STATE,
                              "blocks", ACAP_ORDER)
@@ -381,9 +404,41 @@ def crossing_length(points, threshold=ACAP_THRESHOLD):
     return None
 
 
+def arc_stability(fsm, presentations, order, watch):
+    """Mean overlap between an arc's winners on consecutive presentations.
+
+    The measurement the diagnostics showed the outcome actually follows: does a
+    transition's arc STAY PUT while it is being trained? Costs one clone per
+    watched transition per presentation, so it is opt-in and off everywhere
+    else.
+    """
+    from neural_assemblies.core._torch_ops import torch_ops
+    import random
+    items = list(fsm.table.items())
+    step = max(1, len(items) // watch)
+    snaps = {i: [] for i in range(0, len(items), step)}
+    rng = random.Random(0)
+    if order == "reversed":
+        items = items[::-1]
+    for _ in range(presentations):
+        if order == "shuffled":
+            items = list(fsm.table.items())
+            rng.shuffle(items)
+        for i, ((fr, sym), to) in enumerate(items):
+            fsm.train_transition(sym, fr, to)
+            if i in snaps:
+                snaps[i].append(torch_ops.sort(fsm.arc.winners, dim=1).values.clone())
+    got = []
+    for seq in snaps.values():
+        for a, b in zip(seq, seq[1:]):
+            hit = (a.unsqueeze(2) == b.unsqueeze(1)).any(2).sum(1).float()
+            got.append(float((hit / a.shape[1]).mean()))
+    return sum(got) / max(len(got), 1)
+
+
 def run_arm(seeds, length, presentations, ratio, density, *, device,
             organ_semantics, n_arc=N_ARC, n_state=None, code=None,
-            order="chain"):
+            order="chain", watch=0):
     from neural_assemblies.core._torch_ops import torch_ops
     from neural_assemblies.core.semantics import OrganSemantics
     from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
@@ -395,7 +450,12 @@ def run_arm(seeds, length, presentations, ratio, density, *, device,
                        n_state=n_state, beta=BETA, refracted_strength=ratio * BETA,
                        w_max=W_MAX, max_potentiations=MAX_POTENTIATIONS,
                        device=device, state_code=code)
-    fsm.train(presentations, order=order)
+    stability = None
+    if watch:
+        # the watched loop TRAINS as it measures; it must not also be trained
+        stability = arc_stability(fsm, presentations, order, watch)
+    else:
+        fsm.train(presentations, order=order)
     fsm.check()
     syms = torch_ops.zeros(len(seeds), length, dtype=torch_ops.int64, device=device)
     visited = fsm.run(syms, states[0]).cpu().numpy()
@@ -428,7 +488,7 @@ def run_arm(seeds, length, presentations, ratio, density, *, device,
     state_ov = code_overlap(fsm.blocks, K)
     del fsm
     torch_ops.cuda.empty_cache()
-    return rows, actual_state, state_ov
+    return rows, actual_state, state_ov, stability
 
 
 def _ens(values, label, seeds):
@@ -451,10 +511,12 @@ def experiment(record):
     arcb_mode = bool(p.get("arc_bottleneck_mode"))
     tord_mode = bool(p.get("train_order_mode"))
     acap_mode = bool(p.get("arc_capacity_mode"))
+    iload_mode = bool(p.get("integer_load_mode"))
     states_mode = (bool(p.get("states_mode")) or margin_mode or load_mode
-                   or arcb_mode or tord_mode or acap_mode)
+                   or arcb_mode or tord_mode or acap_mode or iload_mode)
     cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
-    specs = (ACAP_ARM_SPECS if acap_mode
+    specs = (ILOAD_ARM_SPECS if iload_mode
+             else ACAP_ARM_SPECS if acap_mode
              else TORD_ARM_SPECS if tord_mode
              else ARCB_ARM_SPECS if arcb_mode
              else (LOAD_ARM_SPECS if load_mode
@@ -474,10 +536,11 @@ def experiment(record):
             # both are read out by membership and the comparison is on one
             # instrument rather than two (SC-1)
             code = state_code(seeds, n_state_arm, kind, length + 1, K, p["device"])
-        rows, actual_state, state_ov = run_arm(
+        rows, actual_state, state_ov, stability = run_arm(
             seeds, length, presentations, ratio, density,
             device=p["device"], n_arc=n_arc,
             order=(spec[7] if len(spec) > 7 else "chain"),
+            watch=(STABILITY_WATCH if iload_mode else 0),
             n_state=(n_state_arm if states_mode
                      else (N_STATE_FIXED if limit_mode else None)),
             code=code,
@@ -496,7 +559,7 @@ def experiment(record):
             "strength_ratio": ratio, "density": density, "n_arc": n_arc,
             "n_state_requested": (N_STATE_FIXED if limit_mode else None),
             "n_state": actual_state, "chance_overlap": chance, "rows": rows,
-            "state_overlap": state_ov,
+            "state_overlap": state_ov, "arc_stability": stability,
             "state_code_kind": kind,
             "correct": _ens(correct, f"{name}:correct", seeds),
             "arc_overlap": _ens([r["arc_overlap"] for r in rows], f"{name}:arc", seeds),
@@ -565,7 +628,43 @@ def experiment(record):
             "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
                                   for n, a in arms.items()},
         }
-        if acap_mode:
+        if iload_mode:
+            def frac_of(L):
+                ap = L * K / ILOAD_ARC
+                return round(ap - int(ap), 3)
+
+            def stab(L):
+                return arm(f"iload-L{L}")["arc_stability"]
+
+            def out(L):
+                a = arm(f"iload-L{L}")
+                return a["correct"]["mean"] / a["length"]
+            ints = [stab(L) for L in ILOAD_INTEGER]
+            halves = [stab(L) for L in ILOAD_HALF]
+            groups = {}
+            for L in ILOAD_LENGTHS:
+                groups.setdefault(frac_of(L), []).append(stab(L))
+            shared = [v for v in groups.values() if len(v) > 1]
+            bars = {
+                "IL-1 INTEGER load beats half-integer: every integer cell exceeds every half-integer cell by 0.20":
+                    all(i - h >= 0.20 for i in ints for h in halves),
+                "IL-2 the outcome is perfect at integer load: mean correct >= 0.99 at every integer cell":
+                    all(out(L) >= 0.99 for L in ILOAD_INTEGER),
+                "IL-3 the outcome is NOT perfect at half-integer load: below 0.99 at every half-integer cell":
+                    all(out(L) < 0.99 for L in ILOAD_HALF),
+                "IL-4 stability is a function of the FRACTIONAL PART: cells sharing a frac agree within 0.06":
+                    bool(shared) and all(max(v) - min(v) <= 0.06 for v in shared),
+                "IL-5 the period is 1.0 in LOAD, resolved not aliased: the three stability maxima are the three integer cells":
+                    sorted(ILOAD_LENGTHS, key=stab, reverse=True)[:3] ==
+                    sorted(ILOAD_INTEGER, key=stab, reverse=True),
+            }
+            comparisons.update({
+                "stability_by_length": {L: stab(L) for L in ILOAD_LENGTHS},
+                "outcome_by_length": {L: out(L) for L in ILOAD_LENGTHS},
+                "frac_by_length": {L: frac_of(L) for L in ILOAD_LENGTHS},
+                "load_step": 2 * K / ILOAD_ARC,
+            })
+        elif acap_mode:
             def frac(name):
                 a = arm(name)
                 return a["correct"]["mean"] / a["length"]
@@ -901,16 +1000,20 @@ def main(argv=None):
                         help="run Amendment 7: is the end-of-chain break a training ORDER effect?")
     parser.add_argument("--arc-capacity", action="store_true",
                         help="run Amendment 8: the arc-capacity curve, graded and interpolated")
+    parser.add_argument("--integer-load", action="store_true",
+                        help="run Amendment 9: does recall peak at INTEGER L*k/n_arc?")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
     modes = (args.limit, args.states, args.margin, args.load,
-             args.arc_bottleneck, args.train_order, args.arc_capacity)
+             args.arc_bottleneck, args.train_order, args.arc_capacity,
+             args.integer_load)
     if sum(map(bool, modes)) > 1:
         parser.error("each flag is a different amendment; run one")
-    specs = (ACAP_ARM_SPECS if args.arc_capacity
+    specs = (ILOAD_ARM_SPECS if args.integer_load
+             else ACAP_ARM_SPECS if args.arc_capacity
              else TORD_ARM_SPECS if args.train_order
              else ARCB_ARM_SPECS if args.arc_bottleneck
              else (LOAD_ARM_SPECS if args.load
@@ -929,6 +1032,7 @@ def main(argv=None):
                   "arc_bottleneck_mode": bool(args.arc_bottleneck),
                   "train_order_mode": bool(args.train_order),
                   "arc_capacity_mode": bool(args.arc_capacity),
+                  "integer_load_mode": bool(args.integer_load),
                   "arc_capacity_order": (ACAP_ORDER if args.arc_capacity else None),
                   # the arm specs already carry (n_state, kind); recording a
                   # second copy keyed by name is what let the two drift apart
