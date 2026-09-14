@@ -142,6 +142,13 @@ source-linked contract, negative control, and relevant gate are all present.
   supports, multihead composition, causality, refinement, and separate
   compatibility/value readouts. Add no-compatibility, value-shuffle, and future
   token leakage controls before making sequence claims.
+  - DEBT 2026-09-13: `PREREG_attention_binding.md` records its result INLINE
+    because no execution kind fits it. The runner admits BRAIN, ORGAN,
+    ALIGNMENT, BASELINE and REFERENCE; a plasticity-RULE study on a bare area
+    with random supports is none of them -- a substrate runs, so it is not a
+    substrate-free baseline, and the port is ours, not vendored. Admitting a
+    sixth kind is a schema migration; forcing a bad fit would put a false
+    semantic profile in a stored record, so it was refused.
   - Progress 2026-09-13: the REFERENCE construction is now ported and proven
     against the clone itself. `assembly_calculus/attention_area.py` is
     mdabagia/nemo's `AttentionArea`, and
