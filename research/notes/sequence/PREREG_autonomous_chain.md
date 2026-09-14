@@ -1097,3 +1097,123 @@ state -- which is the only state with no outgoing arc.
 chain outright. That is a stronger result than TO-2 passing and would be
 recorded as such rather than as a bar failure, since the bar reads a median
 over failing brains and there would be none to take.
+
+## Amendment 7 result (2026-09-13): the break follows the TRAINING position, and shuffling is far worse, not better
+
+Run `chain-order-20260913`, block 62..81, `n_arc = 4000, L = 512`, disjoint code
+throughout. Artifact
+`research/results/runs/sequence.autonomous-chain/chain-order-20260913/results.json`.
+
+    PASS  TO-1   PASS  TO-2   FAIL  TO-3   PASS  TO-4
+
+    order       min   q1  med   q3  max   mean/L   median first error
+    chain       505  509  510  511  512    0.995            0.996 of L
+    reversed      3    4    5    6   11    0.010            0.010 of L
+    shuffled     15   93  163  315  512    0.403            0.312 of L
+
+**TO-2 confirms the mechanism, and the correspondence is exact.** In chain
+order `q0 -> q1` is trained first and `q511 -> q512` last, and the chain runs
+505 to 512 steps before breaking at the END. Reversed, `q511 -> q512` is
+trained first and `q0 -> q1` last, and the chain breaks after 3 to 11 steps, at
+the START. **The weakness follows the TRAINING position, not the chain
+position.** Arc overlap is 0.1295, 0.1315, 0.1297 across the three arms, so no
+arm is simply more crowded (TO-4).
+
+So the end-of-chain break is not a property of long chains. It is where the
+sweep happens to put the transitions that are trained into a maximally
+biased arc.
+
+### TO-3 fails, and it fails the OPPOSITE way round to the prediction
+
+The registration predicted shuffling would beat chain order, on the reasoning
+that "a shuffled schedule gives no transition a systematically late slot, so
+the disadvantage should average out". It does not average out. Shuffled is
+**far worse**: 0.403 of L against 0.995.
+
+**And the variance is the tell.** Chain and reversed are both extremely TIGHT
+(505-512 and 3-11). Shuffled is spread across the whole range, 15 to 512. If
+shuffling merely redistributed a fixed amount of damage, the outcome would sit
+tight around an intermediate value. Spreading from 15 to 512 is the signature
+of something else.
+
+**The hypothesis this suggests, stated as a hypothesis.** With a FIXED order,
+every presentation of a given transition happens in the same place in the sweep
+and therefore against the same accumulated bias, so all `presentations` rounds
+reinforce the SAME arc assembly and it consolidates. Under shuffling each
+presentation of that transition meets a different bias landscape, so different
+neurons win each time and the rounds never consolidate onto one assembly.
+**Consistency of the training context would then matter more than its average
+quality** -- which is why a consistently disadvantaged schedule beats a fairly
+randomised one.
+
+This is consistent with the variance signature and with the tightness of both
+fixed orders, but assembly stability across successive presentations has NOT
+been measured here. The direct test is the overlap between the arc winners on
+presentation `i` and `i + 1` of the same transition, under each order. Not run.
+
+### Consequence for the arc-capacity curve
+
+**Do not measure capacity under a shuffled schedule.** The plan going in was
+that shuffling would be the clean order; it is the worst of the three, and
+using it would have measured a consolidation failure and called it capacity.
+
+The capacity curve uses CHAIN order, chosen for consistency rather than
+fairness, with the end-of-chain artifact handled by the estimand instead: the
+crossing is taken at mean correct 0.95 of L, and losing the last four steps of
+512 leaves 0.992, well above it. The graded estimand absorbs the artifact that
+`exact_length` would have been dominated by -- a cell can be 2/20 exact and
+0.995 of L at the same time, as `order-chain` is here.
+
+## Amendment 8 (2026-09-13, registered before running): the arc-capacity curve
+
+Amendment 6 showed the arc is the bottleneck. This measures the law, and it is
+the study that engages `dabagia2025sequences`'s reported 20-to-40 assembly limit
+directly.
+
+**The estimand is GRADED and INTERPOLATED**, and that is not a detail. This
+registration has now lost three bars to `exact_length` and its relatives: a
+non-monotone grid whose scalar hid a hole (Amendment 1), a median taken over two
+failing brains (AL-7), and a comparison saturated at zero the moment a random
+code was used (Amendment 4). Amendment 7 supplies the sharpest case: `order-chain`
+is 2 of 20 EXACT and 0.995 of L at the same time. A capacity law built on
+exactness would be reading the last four steps of a 512-step chain.
+
+`L*` is the chain length at which mean correct first falls below 0.95 of L,
+linearly interpolated between the bracketing grid points. A curve that never
+crosses inside the grid is CENSORED and reported as such, never as the grid
+edge.
+
+**Grid.** `n_arc` of 1000, 2000, 3000, 4000 (`n/k` = 10, 20, 30, 40) crossed
+with `L` of 64, 128, 192, 256, 320, 384, 448, 512. Thirty-two cells, twenty
+brains each. `n_state` is pinned at `(L_max + 1) k = 51300` for every cell so
+varying `L` cannot redraw the connectome -- the defect Amendment 1 shipped with.
+`n_arc` stops at 4000 because `4000 x 51300` is 205 M cell-products, the largest
+that has run; 6000 would be 307 M and the device refused 384 M.
+
+**Training order is CHAIN**, set from Amendment 7's result rather than from the
+plan, which had assumed shuffled. Chain order is chosen for consistency, and the
+end-of-chain artifact is absorbed by the 0.95 threshold.
+
+- **AC-1, the curve falls with length**: mean correct at `L_max` is at most that
+  at `L_min`, for every arc size. The sanity check; if it fails the instrument
+  is wrong, not the law.
+- **AC-2, capacity RISES with arc size**: `L*` at 4000 exceeds `L*` at 1000.
+- **AC-3, the scaling is SUBLINEAR**: a fourfold arc buys less than fourfold the
+  length. The limit grid suggested 2.4x on a bad instrument and a confounded
+  training order; this is the same claim measured properly.
+- **AC-4, every arc size exceeds the reported band**: `L* >= 40`.
+- **AC-5, the estimand is DEFINED**: every curve crosses inside the grid, so no
+  `L*` is censored. Without this, AC-2 and AC-3 could be comparing grid edges
+  rather than capacities -- which is exactly how `exact_length` misled.
+
+### What this can and cannot say about the paper
+
+It can say how chain capacity scales with arc size in this construction, on a
+graded estimand, with the training-order artifact understood rather than
+ignored. If AC-4 passes, this construction exceeds the reported band at every
+arc size tested, which is a statement about OUR construction and not a
+correction to theirs.
+
+It cannot say the papers' number is wrong. Their limit is measured in their
+model at their parameters, and matching parameters is a separate study that
+this registration does not attempt.

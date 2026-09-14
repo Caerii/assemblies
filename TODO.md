@@ -377,6 +377,30 @@ source-linked contract, negative control, and relevant gate are all present.
     the bottleneck, so state crowding is costly exactly when the arc has no
     room -- consistent with MC-4 failing and LM-5 confirming that crowding the
     STATES moves the ARC in every run.
+  - ANSWERED 2026-09-13 (`chain-arcb-20260913`, Amendment 6): **the ARC is the
+    bottleneck.** Holding the chain and the state crowding fixed at the
+    combination that collapsed to 0.430 of L and giving the arc 1.5x the
+    neurons restores 0.997; 2x restores every brain; the disjoint control is at
+    0.998-1.000 at both arc sizes, so the rescue is specific to the crowded
+    code. State collision is a way of SPENDING ARC CAPACITY, free until the arc
+    has none left -- which also accounts for the effect flagged unexplained in
+    three runs, that crowding the STATES moves the ARC overlap.
+  - MECHANISM 2026-09-13 (`chain-order-20260913`, Amendment 7): the
+    end-of-chain break follows the TRAINING position, not the chain position.
+    Chain order breaks at 0.996 of L; REVERSING the sweep breaks at 0.010 of L.
+    Arc overlap is 0.1295/0.1315/0.1297 across arms, so no arm is more crowded.
+    TO-3 FAILED in the OPPOSITE direction to its prediction: shuffling is far
+    worse (0.403 of L against 0.995), and both fixed orders are TIGHT while
+    shuffled spreads 15 to 512. Hypothesis, not yet measured: a fixed order
+    trains each transition against the same accumulated bias every sweep so its
+    assembly consolidates, while shuffling gives it a different landscape each
+    time and it never settles -- CONSISTENCY of the training context mattering
+    more than its average quality. The direct test is arc-winner overlap
+    between successive presentations of one transition, per order. Not run.
+  - Amendment 8 registered and wired: the arc-capacity curve, 4 arc sizes x 8
+    lengths, graded and interpolated (L* = where mean correct crosses 0.95 of
+    L), n_state pinned at 51300, CHAIN order set from Amendment 7's result
+    rather than the plan's assumption of shuffled. Not yet run.
   - Amendment 3 ran on the fresh block 82..101 (`chain-limit-am3-20260913`):
     AL-6 CONFIRMS (median first error at 0.99-1.00 of L in every edge cell),
     AL-8 and AL-9 pass on the corrected instrument, AL-7 FAILED on a two-point

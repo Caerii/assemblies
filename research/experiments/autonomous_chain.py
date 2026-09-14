@@ -334,6 +334,53 @@ def arc_collapse(fsm, states, nbrain):
     return hit.mean(0).cpu().numpy().tolist()
 
 
+#: Amendment 8, the arc-capacity curve. Amendment 6 showed the arc is the
+#: bottleneck; this measures the law. The estimand is GRADED and interpolated,
+#: never `exact_length`, which cost this registration three bars: a non-monotone
+#: grid (Amendment 1), a two-point median (AL-7) and a saturated comparison
+#: (Amendment 4). n_state is pinned at (L_max + 1) k for every cell so varying L
+#: cannot redraw the connectome, and n_arc stops at 4000 because 4000 x 51300 is
+#: 205 M cell-products, the largest that has run; 6000 would be 307 M.
+ACAP_ARCS = (1000, 2000, 3000, 4000)
+ACAP_LENGTHS = (64, 128, 192, 256, 320, 384, 448, 512)
+ACAP_N_STATE = (max(ACAP_LENGTHS) + 1) * K
+ACAP_THRESHOLD = 0.95           # the fraction of L that counts as reliable
+#: Set from Amendment 7's RESULT, not from the plan. The plan was to measure
+#: capacity under a shuffled schedule, on the reasoning that shuffling averages
+#: out the late-slot disadvantage. It does not: shuffled reaches 0.403 of L
+#: against chain order's 0.995, with the outcome spread from 15 to 512 where
+#: both fixed orders are tight. Measuring capacity there would have measured a
+#: consolidation failure and called it capacity. Chain order is used for its
+#: CONSISTENCY, and the end-of-chain artifact is absorbed by the estimand:
+#: losing the last four steps of 512 leaves 0.992, above the 0.95 crossing.
+ACAP_ORDER = "chain"
+
+
+def arc_capacity_arms():
+    return {f"arc{a}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, a, ACAP_N_STATE,
+                             "blocks", ACAP_ORDER)
+            for a in ACAP_ARCS for L in ACAP_LENGTHS}
+
+
+ACAP_ARM_SPECS = arc_capacity_arms()
+
+
+def crossing_length(points, threshold=ACAP_THRESHOLD):
+    """The chain length where mean correct/L first falls below `threshold`.
+
+    Linear interpolation between the bracketing grid points, so the answer is a
+    CURVE quantity rather than a grid one. Returns None when the curve never
+    crosses -- censored, and said so rather than reported as the grid edge,
+    which is the trap `exact_length` fell into.
+    """
+    ordered = sorted(points)
+    for (l0, v0), (l1, v1) in zip(ordered, ordered[1:]):
+        if v0 >= threshold > v1:
+            span = v0 - v1
+            return l0 + (l1 - l0) * ((v0 - threshold) / span if span else 0.0)
+    return None
+
+
 def run_arm(seeds, length, presentations, ratio, density, *, device,
             organ_semantics, n_arc=N_ARC, n_state=None, code=None,
             order="chain"):
@@ -403,10 +450,12 @@ def experiment(record):
     load_mode = bool(p.get("load_mode"))
     arcb_mode = bool(p.get("arc_bottleneck_mode"))
     tord_mode = bool(p.get("train_order_mode"))
+    acap_mode = bool(p.get("arc_capacity_mode"))
     states_mode = (bool(p.get("states_mode")) or margin_mode or load_mode
-                   or arcb_mode or tord_mode)
+                   or arcb_mode or tord_mode or acap_mode)
     cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
-    specs = (TORD_ARM_SPECS if tord_mode
+    specs = (ACAP_ARM_SPECS if acap_mode
+             else TORD_ARM_SPECS if tord_mode
              else ARCB_ARM_SPECS if arcb_mode
              else (LOAD_ARM_SPECS if load_mode
                    else (MARGIN_ARM_SPECS if margin_mode
@@ -516,7 +565,35 @@ def experiment(record):
             "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
                                   for n, a in arms.items()},
         }
-        if tord_mode:
+        if acap_mode:
+            def frac(name):
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            curves = {a: [(L, frac(f"arc{a}-L{L}")) for L in ACAP_LENGTHS]
+                      for a in ACAP_ARCS}
+            star = {a: crossing_length(pts) for a, pts in curves.items()}
+            defined = {a: v for a, v in star.items() if v is not None}
+            big, small = star[ACAP_ARCS[-1]], star[ACAP_ARCS[0]]
+            ratio = (big / small) if (big and small) else None
+            bars = {
+                "AC-1 the curve falls with length: mean correct at L_max is at most at L_min, for every arc size":
+                    all(curves[a][-1][1] <= curves[a][0][1] for a in ACAP_ARCS),
+                "AC-2 capacity RISES with arc size: L* at the largest arc exceeds L* at the smallest":
+                    ratio is not None and ratio > 1.0,
+                "AC-3 the scaling is SUBLINEAR: a 4x arc buys less than 4x the length":
+                    ratio is not None and ratio < 4.0,
+                "AC-4 every arc size exceeds the reported 20-to-40 band: L* >= 40":
+                    len(defined) == len(ACAP_ARCS) and all(v >= 40 for v in defined.values()),
+                "AC-5 the estimand is DEFINED, not censored: every curve crosses the threshold inside the grid":
+                    len(defined) == len(ACAP_ARCS),
+            }
+            comparisons.update({
+                "capacity_curve_by_arc": {a: [[L, v] for L, v in pts]
+                                          for a, pts in curves.items()},
+                "L_star_by_arc": star, "L_star_ratio": ratio,
+                "threshold": ACAP_THRESHOLD, "training_order": ACAP_ORDER,
+            })
+        elif tord_mode:
             # Amendment 7. Position statistics, over the FAILING brains.
             def broke_median(name):
                 a = arm(name)
@@ -822,16 +899,19 @@ def main(argv=None):
                         help="run Amendment 6: is the ARC what makes a cell marginal?")
     parser.add_argument("--train-order", action="store_true",
                         help="run Amendment 7: is the end-of-chain break a training ORDER effect?")
+    parser.add_argument("--arc-capacity", action="store_true",
+                        help="run Amendment 8: the arc-capacity curve, graded and interpolated")
     args = parser.parse_args(argv)
     if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
         parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
     if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
         validate_registered_seeds(parser, args, REGISTERED_SEEDS)
     modes = (args.limit, args.states, args.margin, args.load,
-             args.arc_bottleneck, args.train_order)
+             args.arc_bottleneck, args.train_order, args.arc_capacity)
     if sum(map(bool, modes)) > 1:
         parser.error("each flag is a different amendment; run one")
-    specs = (TORD_ARM_SPECS if args.train_order
+    specs = (ACAP_ARM_SPECS if args.arc_capacity
+             else TORD_ARM_SPECS if args.train_order
              else ARCB_ARM_SPECS if args.arc_bottleneck
              else (LOAD_ARM_SPECS if args.load
                    else (MARGIN_ARM_SPECS if args.margin
@@ -848,6 +928,8 @@ def main(argv=None):
                   "load_mode": bool(args.load),
                   "arc_bottleneck_mode": bool(args.arc_bottleneck),
                   "train_order_mode": bool(args.train_order),
+                  "arc_capacity_mode": bool(args.arc_capacity),
+                  "arc_capacity_order": (ACAP_ORDER if args.arc_capacity else None),
                   # the arm specs already carry (n_state, kind); recording a
                   # second copy keyed by name is what let the two drift apart
                   "state_specs": None,
