@@ -424,6 +424,51 @@ source-linked contract, negative control, and relevant gate are all present.
     hole did across two blocks, the surface genuinely has holes; if they move,
     they are draws. Fitting L*(n_arc) through a surface with holes would be
     fitting a curve through something that is not a function.
+  - ANSWERED and ADOPTED 2026-09-13 as `SEQ-INTEGER-ARC-LOAD`
+    (`chain-iload-20260913`): **recall peaks when the arc load DIVIDES
+    EVENLY.** Arc stability is a function of the FRACTIONAL PART of L*k/n_arc
+    alone -- a V minimised at the half (0.748 at frac 0; 0.420, 0.303, 0.245,
+    0.216, 0.262, 0.352, 0.584) -- and at integer load every brain recalls
+    every step while frac 0.375 and 0.625 fall to 0.66 and 0.53. Confirmed out
+    of sample at a THIRD arc size on seeds the diagnostics never used, with the
+    load axis sampled inside Nyquist: two complete periods repeat cell for
+    cell. IL-1/2/4/5 pass; IL-3 FAILS and is kept, its premise (that the half
+    is the worst case) being false -- the quarter-ish fractions are.
+    BOTH earlier "periods" (40 in L at n_arc=1000, ~16 at 1500) were ALIASES of
+    one true period of 1.0 in LOAD, measured and reported before I noticed.
+    SAMPLE THE LOAD AXIS, NOT L.
+  - SETTLED 2026-09-13 (`chain-bphase-20260913`, Amendment 10): **PHASE LOCKING
+    dominates; the mechanism is an INTERACTION.** chain+integer 1.000,
+    chain+half 0.991, shuffled+integer 0.030, shuffled+half 0.033 -- an integer
+    load buys NOTHING under a shuffled schedule. BP-2 fails narrowly on the
+    statistic it read and not to zero: the stability gap survives shuffling at
+    0.078 against the 0.10 bar, against 0.517 under chain order. About 85
+    percent schedule, 15 percent load. `SEQ-INTEGER-ARC-LOAD` was CORRECTED,
+    its claim having stated a balance mechanism this refutes for the outcome,
+    and the broader reading -- that integer load is a property of the PROBLEM,
+    predicting the same arithmetic in the memory line -- is WITHDRAWN. Because
+    it needs a rigid repeated order it is substantially a statement about how
+    these experiments PRESENT data, so the biological reading is weak.
+  - EXPLAINED 2026-09-13 by the lag diagnostic: **the arc ROTATES** by about
+    frac(L*k/n_arc) per presentation, and overlap at lag l peaks when l*frac is
+    near a whole turn (r = -0.816 over 35 points). At frac 0.5 that is
+    ALTERNATION -- odd lags 0.216-0.252, even lags 0.525-0.694 -- so the cell
+    with the LOWEST consecutive stability holds TWO well-formed assemblies and
+    recalls 0.991. Consecutive-overlap "stability" was measuring alternation
+    and calling it instability. Two ways to succeed: a slow rotation whose
+    neighbours overlap (frac 0.125), or a fast one that CLOSES at a short lag
+    (frac 0.5). Even at integer load there is no fixed point -- it drifts to a
+    plateau near 0.58 against chance 0.0625.
+    A threshold defect came first and is recorded: the preceding probe's
+    same-assembly cutoff of 0.8 sat ABOVE the best cell's consecutive overlap
+    of 0.748, so its distinct-assembly count saturated at 19.8 and nearly
+    produced a false refutation. Fourth instance in this registration of a
+    statistic set by my own choice rather than by the system, after
+    `exact_length`, the tautological AL-4, and the two-point median.
+    NOT RUN, and the sharpest prediction the rotation makes: more presentations
+    should cure fractional load in proportion to the ORBIT PERIOD -- twice the
+    rounds at frac 0.5, about eight times at frac 0.375 -- while integer load
+    is unaffected. That differential is hard to obtain by accident.
   - Amendment 3 ran on the fresh block 82..101 (`chain-limit-am3-20260913`):
     AL-6 CONFIRMS (median first error at 0.99-1.00 of L in every edge cell),
     AL-8 and AL-9 pass on the corrected instrument, AL-7 FAILED on a two-point

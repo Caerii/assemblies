@@ -1753,3 +1753,73 @@ sweep under fixed training order walks through this oscillation, so a reported
 capacity number depends on which lengths were tried. But its reach is smaller
 than the pure-balance reading allowed, and the biological reading is weaker
 still.
+
+### Diagnostic (2026-09-13): the arc ROTATES, and the lag profile measures it
+
+Threshold-free. For each watched transition, the mean overlap between the arc
+winners at presentation `p` and `p + lag`, four brains, `n_arc = 1600`.
+
+    L    frac   outcome   lag1   lag2   lag3   lag4   lag5   lag6   lag8
+    336  0.000    1.000  0.757  0.665  0.617  0.588  0.577  0.569  0.593
+    352  0.000    1.000  0.746  0.655  0.602  0.569  0.557  0.547  0.574
+    344  0.500    0.991  0.216  0.694  0.243  0.606  0.252  0.561  0.525
+    342  0.375    0.705  0.242  0.376  0.443  0.320  0.398  0.391  0.321
+    346  0.625    0.589  0.261  0.332  0.467  0.317  0.372  0.407  0.327
+
+**An instrument defect came first and is recorded because it nearly produced a
+false refutation.** The preceding probe counted DISTINCT assemblies using a
+same-assembly threshold of 0.8. Consecutive overlap at the BEST cell is 0.748,
+below that threshold, so every consecutive snapshot counted as a new assembly
+and the count saturated at 19.8 in three of four cells. It was measuring the
+threshold, not the orbit. This is the fourth time in this registration that a
+statistic set by my own choice rather than by the system has misled --
+`exact_length`, the tautological AL-4, the two-point median, and now this -- and
+it appears to be the characteristic failure of this work rather than bad luck.
+
+**The arc ROTATES by about `frac(L k / n_arc)` of an assembly per presentation.**
+Overlap at lag `l` is high exactly when `l * frac` is near a whole turn.
+Correlation of overlap against the distance of `l * frac` from an integer, over
+all 35 measured points: **r = -0.816**.
+
+At frac 0.500 this is textbook alternation -- odd lags 0.216 to 0.252, even lags
+0.525 to 0.694 -- and it RESOLVES the dissociation IL-3 exposed. The cell with
+the LOWEST consecutive stability in the sweep holds two assemblies, each about
+as well formed as the single assembly at integer load (lag-2 0.694 against
+lag-1 0.757), each receiving ten of the twenty presentations. Both are written,
+either decodes correctly, and recall is 0.991. The stability metric was
+measuring alternation and calling it instability.
+
+At frac 0.375 the profile peaks at lag 3 AND lag 5, which are exactly the two
+lags whose distance from a whole turn is 0.125, with a dip at lag 4 whose
+distance is 0.500. Nothing about that ordering is available from the outcome
+alone.
+
+**Return strength is orbit closure TIMES drift decay**, and both terms are
+visible. Lag 8 at frac 0.375 closes exactly (distance 0.000) yet reaches only
+0.321, because by eight presentations the slow drift has eroded it -- the same
+drift that takes the integer cell from 0.757 at lag 1 to 0.593 at lag 8.
+
+**So the strict "period-1 orbit" reading is wrong even at integer load.** The
+integer cell does not sit at a fixed point; it drifts monotonically to a plateau
+near 0.58 against a chance overlap of 0.0625. About three fifths of the assembly
+is permanent and the rest churns.
+
+### Two ways to succeed, which is why the outcome is W-shaped
+
+- **Small frac (0.125, outcome 0.998)**: slow rotation, so neighbouring points
+  on the orbit overlap heavily. Effectively one blurred assembly.
+- **frac exactly 0.5 (0.991)**: fast rotation that CLOSES at lag 2. Two crisp
+  assemblies, ten presentations each.
+- **frac 0.375 and 0.625 (0.705, 0.589)**: rotation that neither stays put nor
+  closes quickly. Many assemblies, none well reinforced.
+
+The earlier denominator reading was half right for the right reason: small
+denominators are exactly the fractions whose orbits close at a SHORT lag.
+
+**Status.** Diagnostic, five cells, four brains, one arc size. The rotation is
+now OBSERVED rather than inferred, which the abduction explicitly said it was
+not. What remains untested is the sharpest prediction it makes: more
+presentations should cure fractional load in proportion to the orbit period --
+frac 0.5 needing twice the rounds to match integer load, frac 0.375 needing
+about eight times -- while integer load is unaffected. That differential is hard
+to obtain by accident and has not been run.

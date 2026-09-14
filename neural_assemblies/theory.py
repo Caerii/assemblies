@@ -282,15 +282,18 @@ _RESULTS: List[Result] = [
             relation="all-greater", minimum_effect=50,
             mechanism="a chain at INTEGER arc load (L=336, 21.00 arcs per neuron) recalls more ABSOLUTE steps on every brain than a chain ten steps LONGER at fractional load (L=346, 21.625): 336 against 178-279, minimum paired margin 57. The longer chain recalling less is the whole content of the law and is not trivially true",
         ),),
-        sensitivity_gap="Why the OUTCOME recovers at half-integer load while "
-                        "stability does not is unexplained: at frac 0.5 the arcs "
-                        "are the least stable in the sweep (0.215) and recall is "
-                        "still 0.991, better than frac 0.375 and 0.625. Balance "
-                        "accounts for stability completely and for the outcome "
-                        "only partly. Whether the effect is BALANCE (a static "
-                        "property of the load) or PHASE LOCKING (a property of "
-                        "the fixed training sweep) is registered as Amendment 10 "
-                        "and not yet run.",
+        sensitivity_gap="The half-integer recovery is now explained by a "
+                        "diagnostic and not by a retained arm: the arc ROTATES by "
+                        "about frac(L k / n_arc) per presentation, so overlap at "
+                        "lag l peaks when l * frac is near a whole turn (r = -0.816 "
+                        "over 35 points). At frac 0.5 that is ALTERNATION -- odd "
+                        "lags 0.216-0.252, even lags 0.525-0.694 -- two assemblies "
+                        "each as well formed as the single one at integer load, ten "
+                        "presentations each. The stability metric was measuring "
+                        "alternation and calling it instability. UNTESTED: the "
+                        "prediction that more presentations cure fractional load in "
+                        "proportion to the orbit period while integer load is "
+                        "unaffected.",
         claim="Autonomous chain recall PEAKS WHEN THE ARC LOAD DIVIDES EVENLY. "
               "With L transitions, k winners and n_arc arc neurons, the mean "
               "number of arcs per neuron is L k / n_arc, and arc assembly "
