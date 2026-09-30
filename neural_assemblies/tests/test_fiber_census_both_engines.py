@@ -21,15 +21,7 @@ from neural_assemblies.core.brain import Brain
 from neural_assemblies.diagnostics import fiber_census
 
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-
-ENGINES = ["numpy_sparse"] + (["torch_sparse"] if _has_torch_cuda() else [])
+ENGINES = ["numpy_sparse", pytest.param("torch_sparse", marks=pytest.mark.requires_cuda)]
 
 N, K, P, BETA = 1000, 50, 0.05, 0.1
 

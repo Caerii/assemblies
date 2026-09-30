@@ -23,9 +23,10 @@ from __future__ import annotations
 
 import pytest
 
-torch = pytest.importorskip("torch")
-pytestmark = pytest.mark.skipif(
-    not torch.cuda.is_available(), reason="torch CUDA required")
+from neural_assemblies.tests import _devices                 # noqa: E402
+
+torch = _devices.import_torch()
+pytestmark = pytest.mark.requires_cuda
 
 from neural_assemblies.core.brain import Brain  # noqa: E402
 

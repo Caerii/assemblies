@@ -4,6 +4,7 @@ import pytest
 
 from neural_assemblies import Brain
 from neural_assemblies.core.engine import create_engine
+from neural_assemblies.tests import _devices
 
 
 @pytest.mark.parametrize("value", [0, 1, None, "false", "true"])
@@ -75,7 +76,7 @@ def test_direct_engine_constructors_apply_the_same_boundary():
 
 
 def test_direct_torch_constructor_requires_a_boolean_before_device_setup():
-    pytest.importorskip("torch")
+    _devices.import_torch()
     from neural_assemblies.core.torch_engine import TorchSparseEngine
 
     with pytest.raises(ValueError, match="deterministic must be a bool"):

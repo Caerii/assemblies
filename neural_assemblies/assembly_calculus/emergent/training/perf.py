@@ -36,7 +36,7 @@ def resolve_engine(requested: str = "auto", n_hint: int = 0) -> str:
     3. ``detect_best_engine(n_hint)`` — torch at n >= 1M neurons/area
     4. First registered among torch_sparse, cuda_implicit, cupy_sparse, numpy_sparse
 
-    Install GPU stack: ``uv sync --extra gpu`` (CUDA torch on Linux/Windows).
+    Install GPU stack: ``uv sync`` (the ``gpu`` group is a default group; CUDA torch on Linux/Windows).
   """
     if requested and requested != "auto":
         return requested

@@ -26,13 +26,7 @@ import pytest
 from neural_assemblies.assembly_calculus.ops import _compact_index
 from neural_assemblies.core.brain import Brain
 
-ENGINES = ["numpy_sparse"]
-try:  # pragma: no cover - environment dependent
-    import torch
-    if torch.cuda.is_available():
-        ENGINES.append("torch_sparse")
-except ImportError:  # pragma: no cover
-    pass
+ENGINES = ["numpy_sparse", pytest.param("torch_sparse", marks=pytest.mark.requires_cuda)]
 
 
 def _truth(engine, area):

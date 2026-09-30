@@ -60,7 +60,7 @@ def check() -> dict:
             if os.name == "nt" else "c++ is missing from PATH; install a supported C++ compiler."
         )
     if importlib.util.find_spec("torch") is None:
-        issues.append("torch is missing from this Python environment; run uv sync --extra gpu.")
+        issues.append("torch is missing from this Python environment; run uv sync (the gpu group installs CUDA torch by default).")
     return {
         "ready_to_attempt_build": not issues,
         "python": sys.executable,

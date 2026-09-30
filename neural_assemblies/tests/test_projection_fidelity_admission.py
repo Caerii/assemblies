@@ -4,6 +4,7 @@ import pytest
 
 from neural_assemblies import Brain
 from neural_assemblies.core.engine import create_engine
+from neural_assemblies.tests import _devices
 
 
 @pytest.mark.parametrize("engine", ["numpy_exact", "numpy_explicit"])
@@ -50,7 +51,7 @@ def test_direct_exact_constructor_rejects_compiled_but_accepts_exact_alias():
 
 
 def test_direct_torch_constructor_rejects_compiled_before_device_setup():
-    pytest.importorskip("torch")
+    _devices.import_torch()
     from neural_assemblies.core.torch_engine import TorchSparseEngine
 
     with pytest.raises(ValueError, match="does not support compiled projection"):

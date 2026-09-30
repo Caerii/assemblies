@@ -249,6 +249,7 @@ def _stub_run_arm(monkeypatch, correct):
     monkeypatch.setattr(ac, "run_arm", fake)
 
 
+@pytest.mark.requires_torch  # experiment() builds its state codes as CPU tensors
 @pytest.mark.parametrize("mode_key,specs_name", [
     ("states_mode", "STATE_ARM_SPECS"),
     ("margin_mode", "MARGIN_ARM_SPECS"),
@@ -280,6 +281,7 @@ def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
     assert set(out["arms"]) == set(specs)
 
 
+@pytest.mark.requires_torch  # experiment() builds its state codes as CPU tensors
 @pytest.mark.parametrize("mode_key,specs_name", [
     ("margin_mode", "MARGIN_ARM_SPECS"),
     ("load_mode", "LOAD_ARM_SPECS"),

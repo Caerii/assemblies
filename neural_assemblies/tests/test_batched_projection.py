@@ -6,16 +6,7 @@ docs/gpu_scale_design.md.
 import pytest
 
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-
-pytestmark = pytest.mark.skipif(
-    not _has_torch_cuda(), reason="batched projection requires PyTorch + CUDA")
+pytestmark = pytest.mark.requires_cuda  # batched projection requires PyTorch + CUDA
 
 
 def _rand_csr(n, p, seed):

@@ -12,6 +12,7 @@ from neural_assemblies.assembly_calculus import (
     Assembly, AttractorConfig, RecoveryObservation, replace_neurons, observe_recovery,
 )
 from neural_assemblies.core.index_spaces import NeuronIds
+from neural_assemblies.tests import _devices
 
 
 def ids(values):
@@ -20,9 +21,7 @@ def ids(values):
 
 def build(seed, beta, engine):
     if engine == 'torch_sparse':
-        torch = pytest.importorskip('torch')
-        if not torch.cuda.is_available():
-            pytest.skip('CUDA unavailable')
+        _devices.require('cuda')
     brain = Brain(p=.05, seed=seed, engine=engine)
     attractors = AttractorConfig(2000, 200, beta, rounds_train=10).build(brain, prefix='recovery')
     return brain, attractors.asm0
@@ -119,9 +118,7 @@ def test_partial_population_refuses_before_activating_cue():
 @pytest.mark.parametrize('engine', ['numpy_sparse', 'torch_sparse'])
 def test_materialization_accessor_distinguishes_cold_from_full(engine):
     if engine == 'torch_sparse':
-        torch = pytest.importorskip('torch')
-        if not torch.cuda.is_available():
-            pytest.skip('CUDA unavailable')
+        _devices.require('cuda')
     brain = Brain(engine=engine, seed=1)
     brain.add_area('A', 100, 10, .1)
     assert brain._engine.materialized_count('A') == 0

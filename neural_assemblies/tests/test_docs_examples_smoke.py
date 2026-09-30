@@ -10,6 +10,7 @@ from pathlib import Path
 import pytest
 
 from neural_assemblies.core.brain import Brain
+from neural_assemblies.tests import _devices
 
 
 REPO_ROOT = Path(__file__).resolve().parents[2]
@@ -24,7 +25,7 @@ def test_readme_core_api_smoke() -> None:
 
 
 def test_readme_nemo_imports_smoke() -> None:
-    pytest.importorskip("torch")
+    _devices.import_torch()
     pytest.importorskip("cupy")
 
     from neural_assemblies.nemo.language import LanguageLearner, SentenceGenerator

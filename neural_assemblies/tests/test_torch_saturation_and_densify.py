@@ -19,9 +19,10 @@ import random
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
-pytestmark = pytest.mark.skipif(not torch.cuda.is_available(),
-                                reason="needs CUDA")
+from neural_assemblies.tests import _devices                 # noqa: E402
+
+torch = _devices.import_torch()
+pytestmark = pytest.mark.requires_cuda
 
 from neural_assemblies.core.brain import Brain              # noqa: E402
 

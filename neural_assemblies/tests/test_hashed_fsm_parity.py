@@ -21,21 +21,20 @@ import random
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
+from neural_assemblies.tests import _devices                 # noqa: E402
+
+torch = _devices.import_torch()
 
 from neural_assemblies.core.brain import Brain                             # noqa: E402
-from neural_assemblies.core.torch_engine import _fused_cuda                # noqa: E402
 from neural_assemblies.programs.mod3_fsm import (                          # noqa: E402
     ALL_STATES, ALL_SYMBOLS, build_mod3_fsm, mod3_transition_table)
 from neural_assemblies.tests import _parity_dump
 
 
 @pytest.fixture(scope="module")
-def mod():
-    m = _fused_cuda.load()
-    if m is None:
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
-    return m
+def mod(fused_kernels):
+    """The shared device gate's fused module (tests/_devices.py)."""
+    return fused_kernels
 
 
 N_ARC, N_STATE, K, P, BETA, REFR, SEED = 512, 128, 20, 0.3, 0.1, 0.1, 7

@@ -19,7 +19,6 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = pytest.mark.gpu
 
 SEEDS = [42, 43]
 K, N_ARC, N_STATE, P = 8, 256, 512, 0.3
@@ -29,10 +28,9 @@ TABLE = [(STATES[i], TICK, STATES[i + 1]) for i in range(len(STATES) - 1)]
 
 
 @pytest.fixture
-def fused():
-    from neural_assemblies.core.torch_engine import _fused_cuda
-    if not _fused_cuda.available():
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
+def fused(fused_kernels):
+    """The shared device gate (tests/_devices.py)."""
+    return fused_kernels
 
 
 def _fsm(state_code=None):

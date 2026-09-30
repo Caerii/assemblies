@@ -3,7 +3,7 @@
 
 Usage::
 
-    uv sync --extra gpu
+    uv sync
     uv run python scripts/check_gpu_engines.py
 """
 
@@ -27,7 +27,7 @@ def main() -> int:
             print(f"device memory:   {props.total_memory / (1024**3):.1f} GiB")
     except ImportError:
         print("torch:           NOT INSTALLED")
-        print("  Fix: uv sync --extra gpu")
+        print("  Fix: uv sync")
 
     print()
     from neural_assemblies.core.engine import list_engines
@@ -48,7 +48,7 @@ def main() -> int:
         print("ASSEMBLIES_FORCE_GPU=1 is set")
 
     if "torch_sparse" not in engines:
-        print("\n[!] torch_sparse not registered — install CUDA torch: uv sync --extra gpu")
+        print("\n[!] torch_sparse not registered — install CUDA torch: uv sync")
         return 1
 
     print("\n[ok] torch_sparse is available")

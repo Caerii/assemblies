@@ -19,9 +19,10 @@ from __future__ import annotations
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
-pytestmark = pytest.mark.skipif(not torch.cuda.is_available(),
-                                reason="needs CUDA")
+from neural_assemblies.tests import _devices                 # noqa: E402
+
+torch = _devices.import_torch()
+pytestmark = pytest.mark.requires_cuda
 
 from neural_assemblies.core.torch_engine import _fused_cuda        # noqa: E402
 from neural_assemblies.core.torch_engine import _hash as t_hash    # noqa: E402
@@ -36,11 +37,9 @@ SEED = 0x5EED1234
 
 
 @pytest.fixture(scope="module")
-def mod():
-    m = _fused_cuda.load()
-    if m is None:
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
-    return m
+def mod(fused_kernels):
+    """The shared device gate's fused module (tests/_devices.py)."""
+    return fused_kernels
 
 
 # -- the hash --------------------------------------------------------------

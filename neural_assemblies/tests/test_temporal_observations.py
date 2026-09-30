@@ -4,6 +4,7 @@ from typing import Any, cast
 
 import pytest
 from research.experiments.temporal_observations import chain_observation_manifest, chain_arc_contrasts
+from neural_assemblies.tests import _devices
 
 SENTENCES = [
     ['does','dog','sees','cat','it','bird','doesnt'],
@@ -16,7 +17,7 @@ SENTENCES = [
 def fake_transducer(mutation=None):
     """A clock that refuses a tick unless the preceding emit advanced carry."""
     from types import SimpleNamespace
-    torch = pytest.importorskip('torch')
+    torch = _devices.import_torch()
 
     class Clock:
         B, seeds, n_arc, k, device = 2, [11, 17], 64, 3, 'cpu'
@@ -114,18 +115,9 @@ def test_capture_preflight_rejects_before_any_tick(invalid):
     assert clock.calls == []
 
 
-@pytest.mark.gpu
+@pytest.mark.requires_fused
 @pytest.mark.parametrize('state_mode', ['copy', 'induced'])
 def test_cuda_capture_matches_manual_frozen_sentence_schedule(state_mode):
-    torch = pytest.importorskip('torch')
-    if not torch.cuda.is_available():
-        pytest.skip('CUDA required for real transducer capture')
-    from neural_assemblies.core.torch_engine import _fused_cuda
-    if _fused_cuda.load() is None:
-        pytest.skip(
-            'fused extension unavailable; load/build prerequisite failed: '
-            f'{_fused_cuda.last_error()}'
-        )
     from neural_assemblies.core.torch_engine._hashed_transducer import HashedTransducer
     from research.experiments.temporal_observations import capture_chain_arcs
     vocab = sorted(set(sum(SENTENCES, [])))

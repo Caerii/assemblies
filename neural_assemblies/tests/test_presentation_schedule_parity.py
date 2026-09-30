@@ -21,8 +21,8 @@ from __future__ import annotations
 
 import numpy as np
 import pytest
+from neural_assemblies.tests import _devices
 
-pytestmark = pytest.mark.gpu
 
 
 @pytest.fixture
@@ -35,9 +35,7 @@ def fused():
     two tests that construct a hashed area request this one. The third needs
     no device and runs everywhere.
     """
-    from neural_assemblies.core.torch_engine import _fused_cuda
-    if not _fused_cuda.available():
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
+    return _devices.fused_kernels()
 
 
 SEEDS = list(range(42, 46))

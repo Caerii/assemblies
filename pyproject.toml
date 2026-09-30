@@ -106,6 +106,12 @@ notebooks = [
 ]
 
 [tool.uv]
+# The development environment is a GPU environment: `uv sync` installs the
+# `gpu` group by default, so the venv has the CUDA build of torch (cu130 on
+# Linux and Windows, from the index below) without anyone remembering a flag.
+# The published package is unaffected; pip users opt in with the `gpu` extra.
+# To build a CPU-only environment on purpose: `uv sync --no-group gpu`.
+default-groups = ["dev", "gpu"]
 # CUDA builds for Linux + Windows (RTX etc.). macOS falls back to PyPI CPU torch.
 [[tool.uv.index]]
 name = "pytorch-cu130"
@@ -160,7 +166,11 @@ norecursedirs = [".worktrees"]
 # pools and make teardown unreliable.
 markers = [
     "legacy: repo-root compatibility and historical experiment tests",
-    "gpu: optional CUDA/C++/accelerator tests",
+    "gpu: needs an accelerator; added automatically to every requires_cuda/requires_fused/requires_cupy test",
+    "requires_torch: needs PyTorch (a CPU build suffices); see neural_assemblies/tests/_devices.py",
+    "requires_cuda: needs PyTorch with a CUDA device",
+    "requires_fused: needs the fused CUDA kernels to build (run scripts/cuda-dev.cmd first on Windows)",
+    "requires_cupy: needs CuPy",
     "research: research experiment validation tests",
     "slow: long-running literature or curriculum tests",
 ]

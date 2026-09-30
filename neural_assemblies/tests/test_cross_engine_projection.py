@@ -11,17 +11,7 @@ SEED = 42
 P = 0.1
 
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-
-ENGINES = ["numpy_sparse"]
-if _has_torch_cuda():
-    ENGINES.append("torch_sparse")
+ENGINES = ["numpy_sparse", pytest.param("torch_sparse", marks=pytest.mark.requires_cuda)]
 
 
 def _brain(engine="numpy_sparse", **kwargs):
@@ -103,7 +93,7 @@ class TestCrossEngineProjection:
 
     def test_readout_sparse_to_lex_word_retrieval(self, engine):
         from neural_assemblies.language import EnglishParserBrain, LEXEME_DICT
-        from neural_assemblies.language.language_areas import LEX, SUBJ
+        from neural_assemblies.language.language_areas import LEX, SUBJ
 
         brain = EnglishParserBrain(
             p=0.1, LEX_k=20, non_LEX_n=5000, verbose=False, engine=engine,

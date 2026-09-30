@@ -33,16 +33,7 @@ from neural_assemblies.assembly_calculus.ops import _snap
 # Skip if torch+CUDA not available
 # ---------------------------------------------------------------------------
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-pytestmark = pytest.mark.skipif(
-    not _has_torch_cuda(),
-    reason="torch_sparse requires PyTorch + CUDA")
+pytestmark = pytest.mark.requires_cuda
 
 
 # ---------------------------------------------------------------------------

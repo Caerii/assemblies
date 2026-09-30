@@ -5,13 +5,12 @@ import numpy as np
 import pytest
 
 from neural_assemblies import Brain
+from neural_assemblies.tests import _devices
 
 
 def make(engine='numpy_sparse', materialized=True):
     if engine == 'torch_sparse':
-        torch = pytest.importorskip('torch')
-        if not torch.cuda.is_available():
-            pytest.skip('torch_sparse requires CUDA')
+        _devices.require('cuda')
     brain = Brain(p=.1, seed=12, engine=engine)
     brain.add_area('A', 100, 10, .1)
     brain.add_stimulus('zero', 0)

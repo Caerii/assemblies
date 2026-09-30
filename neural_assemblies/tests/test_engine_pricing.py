@@ -27,15 +27,7 @@ from neural_assemblies.core import _pricing
 from neural_assemblies.core.brain import Brain
 
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-
-ENGINES = ["numpy_sparse"] + (["torch_sparse"] if _has_torch_cuda() else [])
+ENGINES = ["numpy_sparse", pytest.param("torch_sparse", marks=pytest.mark.requires_cuda)]
 
 K = 100
 P = 0.05

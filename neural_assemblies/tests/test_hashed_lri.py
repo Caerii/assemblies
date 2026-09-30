@@ -30,17 +30,15 @@ from __future__ import annotations
 
 import pytest
 
-pytestmark = pytest.mark.gpu
 
 SEEDS = [42, 43]
 N, K, P = 512, 8, 0.3
 
 
 @pytest.fixture
-def fused():
-    from neural_assemblies.core.torch_engine import _fused_cuda
-    if not _fused_cuda.available():
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
+def fused(fused_kernels):
+    """The shared device gate (tests/_devices.py)."""
+    return fused_kernels
 
 
 def _area(refracted=0.0):

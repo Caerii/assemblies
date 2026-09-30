@@ -28,9 +28,10 @@ import random
 import numpy as np
 import pytest
 
-torch = pytest.importorskip("torch")
-pytestmark = pytest.mark.skipif(not torch.cuda.is_available(),
-                                reason="needs CUDA")
+from neural_assemblies.tests import _devices                 # noqa: E402
+
+torch = _devices.import_torch()
+pytestmark = pytest.mark.requires_cuda
 
 from neural_assemblies.core.brain import Brain                  # noqa: E402
 from neural_assemblies.core.numpy_engine import _seeding        # noqa: E402
@@ -44,11 +45,9 @@ DEV = "cuda"
 
 
 @pytest.fixture(scope="module")
-def mod():
-    m = _fused_cuda.load()
-    if m is None:
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
-    return m
+def mod(fused_kernels):
+    """The shared device gate's fused module (tests/_devices.py)."""
+    return fused_kernels
 
 
 def _to_i32(v: int) -> int:

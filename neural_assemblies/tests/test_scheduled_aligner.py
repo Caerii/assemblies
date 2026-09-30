@@ -13,21 +13,19 @@ import sys
 
 import pytest
 
-torch = pytest.importorskip("torch", reason="scheduled aligner requires the optional GPU dependencies")
-pytestmark = pytest.mark.gpu
+from neural_assemblies.tests import _devices                 # noqa: E402
 
-from neural_assemblies.core.torch_engine import _fused_cuda
+torch = _devices.import_torch()
+
 
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), "..", "..",
                                 "research", "experiments"))
 
 
 @pytest.fixture(scope="module")
-def mod():
-    m = _fused_cuda.load()
-    if m is None:
-        pytest.skip(f"fused kernels unavailable: {_fused_cuda.last_error()}")
-    return m
+def mod(fused_kernels):
+    """The shared device gate's fused module (tests/_devices.py)."""
+    return fused_kernels
 
 
 def _corpus():

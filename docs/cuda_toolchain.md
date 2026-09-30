@@ -7,7 +7,7 @@ under `cpp/` target other prototypes and are not its setup procedure.
 From the repository root on Windows:
 
 ```powershell
-uv sync --extra gpu
+uv sync
 cmd /k scripts\cuda-dev.cmd
 ```
 
@@ -49,16 +49,33 @@ Exit code 1 means a prerequisite is missing. Exit code 0 means the tools were
 found; it does not establish compiler compatibility, a working device, successful
 compilation, or numerical parity.
 
-After all active GPU studies have finished, run the extension tests in the
-prepared shell:
+## The GPU gate
+
+After all active GPU studies have finished, from cmd.exe at the repository
+root:
 
 ```cmd
-uv run python -c "from neural_assemblies.core.torch_engine import _fused_cuda as f; assert f.load() is not None, f.last_error()"
-uv run pytest neural_assemblies/tests/test_fused_cuda.py neural_assemblies/tests/test_hashed_substrate_parity.py -q
+scripts\gpu-gate.cmd
 ```
 
-The first command must succeed before treating the tests as a GPU gate: the
-test fixtures otherwise skip when the extension cannot compile. These commands
-may compile the extension. Do not rebuild it while a process holds it,
-and do not run these tests beside a GPU study. Hardware parity is a separate
-gate from the fast CPU research-contract tests.
+It enters the developer environment through `cuda-dev.cmd`, then runs every
+test that needs CUDA or the fused kernels (`-m "gpu and not slow"`; pass
+`-m gpu` to include the slow ones, or any other pytest arguments). It sets
+`ASSEMBLIES_REQUIRE_DEVICE=fused`, and that is what makes it a gate: a test
+whose kernels did not build FAILS instead of skipping. Without the setting a
+broken toolchain turns every parity test into a skip and the run reads green.
+
+Every device requirement in the test suite goes through one module,
+`neural_assemblies/tests/_devices.py`, as a marker (`requires_torch`,
+`requires_cuda`, `requires_fused`, `requires_cupy`) or the `fused_kernels`
+fixture. On an ordinary machine a missing level skips with its reason (the
+compiler error, the missing import); `ASSEMBLIES_REQUIRE_DEVICE` names the
+levels that must be present (`torch`, `cuda`, `fused`, `cupy`, or `all`; a
+level implies the ones below it). The CPU job in CI installs the CPU build of
+the locked torch and sets `ASSEMBLIES_REQUIRE_DEVICE=torch`.
+`test_device_gate.py` holds the true negative and refuses any test module
+that asks the device question in its own way.
+
+The gate may compile the extension. Do not rebuild it while a process holds
+it, and do not run it beside a GPU study. Hardware parity is a separate gate
+from the fast CPU research-contract tests.

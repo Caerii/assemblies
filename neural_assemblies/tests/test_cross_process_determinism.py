@@ -32,15 +32,7 @@ import textwrap
 import pytest
 
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-
-ENGINES = ["numpy_sparse"] + (["torch_sparse"] if _has_torch_cuda() else [])
+ENGINES = ["numpy_sparse", pytest.param("torch_sparse", marks=pytest.mark.requires_cuda)]
 
 # Deliberately a configuration where candidates compete closely with incumbents
 # and land right at the k-WTA cut -- that is where a stray draw changes the

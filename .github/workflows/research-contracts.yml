@@ -18,10 +18,23 @@ jobs:
         with:
           python-version: "3.12"
       - uses: astral-sh/setup-uv@v4
-      - run: uv sync --frozen
+      # The development environment installs the `gpu` group (CUDA torch, and
+      # CuPy on Linux) by default. This runner has no GPU, so it opts out and
+      # installs the CPU build of the SAME locked torch instead: research
+      # contracts build CPU tensors (state codes, chain tables), so the torch
+      # level runs here; CUDA and the fused kernels do not, and their tests
+      # skip with the reason. That also keeps the job off the 3 GB CUDA stack.
+      - run: uv sync --frozen --no-group gpu
+      # The strict setting below makes a failed install FAIL the torch tests
+      # instead of skipping them (neural_assemblies/tests/_devices.py).
+      - name: Install the CPU build of the locked torch
+        run: uv pip install "torch==2.12.1" --index-url https://download.pytorch.org/whl/cpu
       - name: Reject unsafe research invocations and dead verification
+        env:
+          ASSEMBLIES_REQUIRE_DEVICE: torch
         run: >-
-          uv run --with pyright pytest -q
+          uv run --no-sync --with pyright pytest -q
+          neural_assemblies/tests/test_device_gate.py
           neural_assemblies/tests/test_research_contracts.py
           neural_assemblies/tests/test_exact_engine_ladder.py
           neural_assemblies/tests/test_sampled_fiber_learning.py

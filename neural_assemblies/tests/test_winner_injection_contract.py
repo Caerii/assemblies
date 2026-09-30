@@ -5,6 +5,7 @@ import pytest
 from neural_assemblies import Brain
 from neural_assemblies.core.index_spaces import NeuronIds
 from neural_assemblies.core.index_spaces import CompactIdx
+from neural_assemblies.tests import _devices
 
 
 @pytest.fixture(params=["numpy_sparse", "numpy_exact", "numpy_explicit"])
@@ -56,9 +57,7 @@ def test_valid_injection_and_clear(brain):
 
 
 def test_torch_set_winners_validates_before_device_conversion():
-    torch = pytest.importorskip("torch")
-    if not torch.cuda.is_available():
-        pytest.skip("TorchSparseEngine requires CUDA")
+    _devices.require('cuda')
     from neural_assemblies.core.torch_engine import TorchSparseEngine
     engine = TorchSparseEngine(p=.1)
     engine.add_area("A", 8, 2, .1)

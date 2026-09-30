@@ -4,6 +4,7 @@ import pytest
 
 from neural_assemblies.core.engine import create_engine
 from neural_assemblies.core.numpy_engine import NumpyExactEngine
+from neural_assemblies.tests import _devices
 
 
 @pytest.mark.parametrize("surface", ["direct", "factory"])
@@ -24,7 +25,7 @@ def test_exact_area_rejects_unknown_option_before_registration():
 
 
 def test_torch_engine_rejects_unknown_option_before_device_setup():
-    pytest.importorskip("torch")
+    _devices.import_torch()
     from neural_assemblies.core.torch_engine import TorchSparseEngine
 
     with pytest.raises(TypeError, match="unsupported constructor options: dense_driv"):
@@ -32,7 +33,7 @@ def test_torch_engine_rejects_unknown_option_before_device_setup():
 
 
 def test_torch_recognized_options_are_removed_from_remainder(monkeypatch):
-    pytest.importorskip("torch")
+    _devices.import_torch()
     from neural_assemblies.core.torch_engine import TorchSparseEngine
 
     class StopAfterAdmission(RuntimeError):

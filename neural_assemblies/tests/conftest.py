@@ -6,6 +6,8 @@ import os
 
 import pytest
 
+from neural_assemblies.tests import _devices
+
 # xdist parallelizes at the test-process level, so native thread-pool tuning
 # is machine-dependent.  Leave library defaults untouched unless a benchmark
 # explicitly supplies ASSEMBLIES_TEST_NATIVE_THREADS; then apply that value
@@ -109,15 +111,40 @@ _SLOW_NODEID_SUBSTRINGS = (
 )
 
 
+_DEVICE_MARKERS = tuple(f"requires_{level}" for level in _devices.LEVELS)
+_ACCELERATOR_MARKERS = ("requires_cuda", "requires_fused", "requires_cupy")
+
+
 def pytest_collection_modifyitems(config, items):
-    """Mark heavy CI-tier files slow so `-m "not slow"` stays a fast dev loop."""
+    """Mark heavy CI-tier files slow so `-m "not slow"` stays a fast dev loop,
+    and mark every test that needs an accelerator `gpu`, so `-m gpu` selects
+    exactly the tests the device gate decides (tests/_devices.py)."""
     for item in items:
+        if (any(item.get_closest_marker(m) for m in _ACCELERATOR_MARKERS)
+                or "fused_kernels" in getattr(item, "fixturenames", ())):
+            item.add_marker(pytest.mark.gpu)
         if getattr(item.path, "stem", None) in _SLOW_FILE_STEMS:
             item.add_marker(pytest.mark.slow)
             continue
         nodeid = item.nodeid.lower()
         if any(s.lower() in nodeid for s in _SLOW_NODEID_SUBSTRINGS):
             item.add_marker(pytest.mark.slow)
+
+
+def pytest_runtest_setup(item):
+    """The one place a test's device requirement is checked (tests/_devices.py):
+    skip with the reason on an ordinary machine, fail under
+    ASSEMBLIES_REQUIRE_DEVICE."""
+    for marker in _DEVICE_MARKERS:
+        if item.get_closest_marker(marker):
+            _devices.require(marker[len("requires_"):])
+
+
+@pytest.fixture(scope="session")
+def fused_kernels():
+    """The loaded fused CUDA module; skips, or fails under the strict gate,
+    with the build error when the kernels are unavailable."""
+    return _devices.fused_kernels()
 
 
 @pytest.fixture(autouse=True)

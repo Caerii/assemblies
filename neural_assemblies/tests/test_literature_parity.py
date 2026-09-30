@@ -319,15 +319,7 @@ class TestLiteratureParity:
         assert min_ov < 0.5
 
 
-def _has_torch_cuda():
-    try:
-        import torch
-        return torch.cuda.is_available()
-    except ImportError:
-        return False
-
-
-@pytest.mark.skipif(not _has_torch_cuda(), reason="torch_sparse requires CUDA")
+@pytest.mark.requires_cuda
 class TestLiteratureParityGPU:
     def test_sequence_memorize_ordered_recall_torch(self):
         b = _brain(engine="torch_sparse")

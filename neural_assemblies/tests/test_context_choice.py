@@ -9,6 +9,7 @@ from neural_assemblies import Brain
 from neural_assemblies.assembly_calculus import (
     AttractorConfig, ContextAttractorChoice, ContextChoiceProtocol, SeedMixtureChoice, SoftmaxContextCoin,
 )
+from neural_assemblies.tests import _devices
 
 PROTOCOL = ContextChoiceProtocol(400, 100, ('left', 'right'), ((4, 0), (0, 4)),
                                  AttractorConfig(2000, 200, 3., rounds_train=10), 1., 3, 0.)
@@ -16,9 +17,7 @@ PROTOCOL = ContextChoiceProtocol(400, 100, ('left', 'right'), ((4, 0), (0, 4)),
 
 def build(seed, noise=0., engine='numpy_sparse', **changes):
     if engine == 'torch_sparse':
-        torch = pytest.importorskip('torch')
-        if not torch.cuda.is_available():
-            pytest.skip('torch_sparse requires CUDA')
+        _devices.require('cuda')
     brain = Brain(p=.05, seed=seed, engine=engine)
     return ContextAttractorChoice(brain, protocol=replace(PROTOCOL, noise_std=noise, **changes))
 

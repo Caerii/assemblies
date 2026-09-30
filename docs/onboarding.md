@@ -143,7 +143,7 @@ Each of these has data in hand and a registration to extend.
   commit and voided a run; the shared runner now voids a run itself if any
   source file in its checkout changes while it runs. Edit in one worktree
   and run studies from another pinned at a commit
-  (`git worktree add --detach <path> <commit>`, `uv sync --extra gpu`
+  (`git worktree add --detach <path> <commit>`, `uv sync`
   there; a worktree's own `.venv` imports itself). Copy the finished run
   directory back, validate it, link it from its registration, then add.
 - **One GPU job at a time.** Studies contend for the card and the memory
@@ -172,7 +172,7 @@ use [cuda_toolchain.md](cuda_toolchain.md); it includes a checker that does not
 compile or use the GPU.
 
 ```bash
-uv sync --extra gpu
+uv sync
 uv run pytest neural_assemblies/tests -q -m "not slow"
 ```
 

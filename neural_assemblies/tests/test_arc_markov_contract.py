@@ -169,11 +169,9 @@ def test_step_exception_preserves_decoded_feedback(trained, monkeypatch):
 
 
 
+@pytest.mark.requires_cuda
 @pytest.mark.parametrize('seed', [1, 2, 3])
 def test_torch_transition_readout_has_its_own_initialized_null(seed):
-    torch = pytest.importorskip('torch')
-    if not torch.cuda.is_available():
-        pytest.skip('torch_sparse arc composition requires CUDA')
     null_network = build(seed, 0, engine='torch_sparse')
     assert null_network.brain._engine._device.type == 'cuda'
     null, expected = probe_branches(null_network)
