@@ -143,6 +143,21 @@ def _ab_drive(e, pattern, norm_init):
     return d
 
 
+#: A source pattern whose k-th A->B drive is strictly separated from the
+#: (k+1)-th in every one of six plastic rounds (smallest gap 0.0024, five
+#: orders of magnitude above float32 rounding), so winner parity does not
+#: depend on how either engine breaks ties. Found by search, not assumed.
+_TIE_FREE_PATTERN = (np.arange(K, dtype=np.uint32) * 3 + 1).astype(np.uint32)
+
+
+def _assert_tie_free_boundary(drive, k, label):
+    """Exact parity is only a well-posed claim when nothing ties at the bar."""
+    ordered = np.sort(drive)
+    assert ordered[-k] > ordered[-k - 1], (
+        f"{label}: the k-th and (k+1)-th drives tie at {ordered[-k]!r}; winner "
+        "parity would then test the engines' tie-break conventions, not the model")
+
+
 def _assert_same_drive_modulo_ties(got, mine, drive, k, label):
     """The precise claim: the DRIVE agrees; only the tied band may differ.
 
@@ -190,14 +205,50 @@ class TestL1Drive:
                                        f"norm_init={norm_init}")
 
     def test_normalised_drive_gives_EXACT_winner_parity(self):
-        """No tied band under norm_init, so nothing is left to convention."""
+        """Where the boundary is tie-free, the winners match EXACTLY.
+
+        This used to claim that norm_init leaves no tied band. It does not:
+        the drive is count / in-degree, and different ratios can be equal
+        (with the pattern `arange(K) * 3`, three neurons sit at exactly 3/31
+        for the last two slots). Which two win is then a tie-break, and the
+        sparse engine's selector (argpartition) breaks ties in an order that
+        depends on the CPU's vector instructions: this test passed on two CI
+        runners and failed on a third with identical code. The claim is now
+        stated where it holds, on a pattern whose boundary is tie-free, and
+        that precondition is asserted rather than assumed. The tied case is
+        `test_area_projection_agrees_on_the_drive`; the tie rule itself is
+        `test_exact_engine_breaks_ties_by_lowest_index`.
+        """
         b, e = _explicit(True), _exact(True)
-        pattern = np.arange(K, dtype=np.uint32) * 3
+        pattern = _TIE_FREE_PATTERN
         _seed_source(b, e, pattern)
+        _assert_tie_free_boundary(_ab_drive(e, pattern, True), K, "round 0")
         b.project({}, {"A": ["B"]})
         got = np.sort(np.array(b.areas["B"].winners, dtype=np.int64))
         mine = np.sort(e.project_into("B", [], ["A"]).winners.astype(np.int64))
         assert np.array_equal(got, mine)
+
+    def test_exact_engine_breaks_ties_by_lowest_index(self):
+        """The declared tie rule, `value_then_index`, on the tied pattern.
+
+        The sparse engine does NOT yet honor it on its fast path: its
+        `heapq_select_top_k` is argpartition + argsort, both unstable. Making
+        that canonical changes which neurons fire in every sparse-engine
+        study, so this repository treats it as a science-affecting change
+        that needs its own registration (see `_kwta_prune.py` and the note in
+        `torch_engine/_fused_cuda.py`); it is therefore not asserted here.
+        """
+        e = _exact(True)
+        pattern = np.arange(K, dtype=np.uint32) * 3
+        e.set_winners("A", pattern)
+        drive = _ab_drive(e, pattern, True)
+        boundary = np.sort(drive)[-K]
+        above = np.flatnonzero(drive > boundary)
+        tied = np.flatnonzero(drive == boundary)
+        assert tied.size > K - above.size, "the pattern no longer has a tied boundary"
+        winners = set(e.project_into("B", [], ["A"]).winners.astype(np.int64).tolist())
+        expected = set(above.tolist()) | set(tied[:K - above.size].tolist())
+        assert winners == expected
 
 
 # -- L2 -- same dynamics ----------------------------------------------------
@@ -210,12 +261,16 @@ class TestL2Dynamics:
 
         This is the rung that would catch a `w_max` clamp applied on the wrong
         scale, or a potentiation exponent that drifts -- both compound, so a
-        single-round test has no power against them.
+        single-round test has no power against them. It runs on a pattern
+        whose boundary is tie-free in every round (asserted), because a tie
+        broken differently in round 0 would legitimately diverge every round
+        after it; see `test_normalised_drive_gives_EXACT_winner_parity`.
         """
         b, e = _explicit(True), _exact(True)
-        pattern = np.arange(K, dtype=np.uint32) * 3
+        pattern = _TIE_FREE_PATTERN
         for rnd in range(6):
             _seed_source(b, e, pattern)          # hold the source fixed
+            _assert_tie_free_boundary(_ab_drive(e, pattern, True), K, f"round {rnd}")
             b.project({}, {"A": ["B"]})
             e.project_into("B", [], ["A"])
             got = np.sort(np.array(b.areas["B"].winners, dtype=np.int64))
