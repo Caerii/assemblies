@@ -1,6 +1,7 @@
 # Registration: refraction in the vendored reference arc, twenty seeds
 
-> **Status (2026-09-12): registered, not yet run.** The bars below were
+> **Status (2026-09-12): run on twenty seeds; ALL FOUR BARS PASS** (Result
+> below; this line said "not yet run" until 2026-09-30). The bars below were
 > fixed before the twenty-seed run. The only prior data are the three-seed
 > legacy log (`research/results/logs/seq_arc_refraction_reference.log`,
 > seeds 42, 7, 13) whose numbers the register entries `ARC-CONJUNCT-EXPOSURE`

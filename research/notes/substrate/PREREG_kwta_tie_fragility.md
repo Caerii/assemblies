@@ -1,6 +1,7 @@
 # Registration: how often the k-WTA bar is tied, and what a last bit does to it
 
-> **Status (2026-09-12): registered, not yet run.** Bars fixed before the
+> **Status (2026-09-12): run on twenty seeds; KT-1 and KT-3 PASS, KT-2 FAIL as
+> registered** (Result below; this line said "not yet run" until 2026-09-30). Bars fixed before the
 > twenty-seed run. The register entry `KWTA-TIE-FRAGILE` rests on a GPU
 > selector prototype with no retained artifact; this registration retains
 > the tie census on the explicit CPU engine with a constructed

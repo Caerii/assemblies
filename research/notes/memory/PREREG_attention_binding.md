@@ -151,3 +151,86 @@ and nothing here shows attention DOES anything useful. Whether transient
 binding composes with `project`, `associate` and `merge` as the calculus's other
 operations do is untouched, and so is the reference's own attention protocol.
 Those are the next questions, and they need a task before they mean anything.
+
+## The TASK, and what the release is worth on it (2026-09-14)
+
+> **Recovered 2026-09-29.** This section was written on 2026-09-14 and never
+> committed; it survived as the one uncommitted edit in a %TEMP% worktree that
+> Windows Storage Sense was emptying, and was saved from there verbatim. The
+> script that produced the table below was not retained, so these numbers
+> cannot be reproduced from anything in this repository: they are a
+> diagnostic record, not evidence. Rerun under the shared runner before
+> citing any of them.
+
+The registration above measured properties of a RULE and said plainly that no
+task was involved. The reference supplies one. `nemo-demo.ipynb` uses two
+`AttentionArea`s to solve "a is to b as c is to ?" by binding the relation
+a -> b TRANSIENTLY, applying it to c, and releasing:
+
+    feed a       binds a's category and property
+    feed b       binds the RELATION a -> b
+    silence      inhibit both areas
+    feed c       the transient link drives c's category toward b's
+    read         predict category and property, map back to a word
+    release      decay_weights, so the next analogy starts clean
+
+So the reference's attention is IN-CONTEXT LEARNING: a relation learned from the
+prompt, applied once, and discarded. That is why reversibility is load-bearing
+and not tidiness -- each analogy is its own context.
+
+Measured on the reference's own implementation, with our port nowhere in the
+loop, 26 words over 8 categories and 13 properties, five seeds, 120 problems:
+
+    release                      category   property   overall
+    full (complete restore)          1.00       0.99       1.00
+    partial (the reference's own)    0.79       0.81       0.80
+    none                             0.18       0.24       0.21
+
+Chance is 1/26 = 0.038.
+
+**The release is worth 0.79.** And the REFERENCE'S OWN release leaves 0.20 on
+the table, because its protocol calls `forward` twice before releasing once
+while `change` is ASSIGNED rather than accumulated -- so `decay_weights`
+reverses only the second binding and the first persists forever. That is
+exactly the hazard `AttentionArea.update` refuses in our port, identified from
+the arithmetic before it was measured. The guard is worth twenty accuracy
+points on the reference's own task, not defensive tidiness.
+
+### THREE DEFECTS OF MINE, and two conclusions they reversed
+
+Recorded because the intermediate numbers were reported before they were found.
+
+1. **An ill-posed problem generator.** The first version never required `c` to
+   lie in the block the relation belongs to, so it emitted `hand:foot::eye:?`
+   -- ARM -> LEG applied to an ORGAN, which has no answer. It scored the
+   network at 0.33 on "property analogies" and I read that as a real asymmetry,
+   then spent a sweep over attribute counts and block structures chasing it.
+   With well-posed problems the network scores 0.99 on exactly those. **There
+   is no asymmetry and there was no capacity threshold.**
+
+2. **An unseeded global RNG.** `.reference/mdabagia-nemo/brain.py` line 2 is
+   `rng = np.random.default_rng()`, and every `reset()` draws its connectome
+   from it, so the seeds I passed controlled only my own assembly draws. A row
+   moved from 0.90 to 0.92 between two runs that should have been identical,
+   which is how it surfaced. This repository already carries
+   `global-rng-leak-nondeterminism` as a memory note.
+
+3. **A reversal that was itself an artifact.** Having predicted the reference's
+   partial release would leak meaningfully, I measured it at 0.03 and withdrew
+   the prediction. That measurement used the ill-posed set. On well-posed
+   problems the leak is worth 0.20, so the original prediction was right and
+   the withdrawal was wrong.
+
+The pattern is the one this registration has hit repeatedly: a number whose
+value was set by my own choice -- a threshold, a grid edge, a sampling rate, a
+cutoff, and now a problem generator -- reporting my choices back to me.
+
+### Status
+
+Diagnostic, on the reference implementation. Our port cannot yet run this task:
+it implements `fire`, `update`, `decay_weights` and the recurrent read, but not
+the `FFArea` feedforward machinery (`set_input_weights`, `forward`, `step`) the
+protocol needs. Completing it, and then showing our port scores 1.00 where the
+reference scores 0.80, is the next piece of work and is what would make the
+guard's value a claim about OUR construction rather than an observation about
+theirs.
