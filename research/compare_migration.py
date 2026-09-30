@@ -136,6 +136,11 @@ def _compare_capacity(candidate, baseline, reference_seeds, *, condition=None,
     return errors, checked
 
 
+#: Comparison kinds that check ONE named condition of a paired capacity run
+#: against a single legacy file (the other condition's file did not survive).
+_ONE_CONDITION = {"capacity-control": "control", "capacity-refracted": "refracted"}
+
+
 def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=None):
     # Specification: neural_assemblies/ir/VERIFICATION.md#contract-migration-identity
     errors, checked = [], 0
@@ -215,12 +220,22 @@ def compare(candidate, baseline, kind, reference_seeds=None, treatment_baseline=
                 if not _equal(observations[key][field]["values"], baseline[key][field]["values"]):
                     errors.append(f"{key}/{field}: per-seed values differ")
                 checked += len(baseline[key][field]["values"])
-    elif kind in {"capacity", "capacity-paired"}:
+    elif kind in {"capacity", "capacity-paired", *_ONE_CONDITION}:
         if (not reference_seeds or any(type(seed) is not int for seed in reference_seeds)
                 or len(set(reference_seeds)) != len(reference_seeds)):
             raise ValueError("capacity requires independently verified, unique reference seed order")
         if kind == "capacity":
             errors, checked = _compare_capacity(candidate, baseline, reference_seeds)
+        elif kind in _ONE_CONDITION:
+            # A paired run (protocol 3) whose legacy evidence survives for
+            # ONE condition only: compare that condition, per seed, exactly.
+            condition = _ONE_CONDITION[kind]
+            if condition not in observations.get("conditions", {}):
+                errors.append(f"candidate has no {condition} condition")
+            else:
+                found, checked = _compare_capacity(candidate, baseline, reference_seeds,
+                                                   condition=condition)
+                errors.extend(f"{condition}: {error}" for error in found)
         else:
             if treatment_baseline is None:
                 raise ValueError("capacity-paired requires a treatment reference")
@@ -270,7 +285,8 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
     # Kinds whose receipts are retained under research/results/comparisons.
     # `capacity-paired` needs a treatment reference; `baseline` compares one
     # candidate against one historical file and records `null` for it.
-    retained_kinds = {"capacity-paired": True, "baseline": False, "a3-temporal": False}
+    retained_kinds = {"capacity-paired": True, "capacity-control": False,
+                      "capacity-refracted": False, "baseline": False, "a3-temporal": False}
     if (receipt["comparison_version"] != 4
             or receipt["kind"] not in retained_kinds
             or receipt["numerical_match"] is not True
@@ -331,7 +347,8 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
 
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired", "baseline", "a3-temporal"))
+    parser.add_argument("kind", choices=("a1", "capacity", "capacity-paired", "capacity-control",
+                                         "capacity-refracted", "baseline", "a3-temporal"))
     parser.add_argument("candidate", type=Path)
     parser.add_argument("reference", type=Path)
     parser.add_argument("--reference-seeds", nargs="+", type=int)

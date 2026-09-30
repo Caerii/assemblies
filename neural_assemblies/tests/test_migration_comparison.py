@@ -157,3 +157,26 @@ def test_receipt_digests_bind_content_not_the_checkout_line_endings():
     assert content_sha256(binary) == hashlib.sha256(binary).hexdigest()
     assert not content_digest_matches(binary.replace(b"\r\n", b"\n"),
                                       hashlib.sha256(binary).hexdigest())
+
+
+@pytest.mark.parametrize("kind,condition", [("capacity-control", "control"),
+                                            ("capacity-refracted", "refracted")])
+def test_one_condition_of_a_paired_run_is_compared_exactly(kind, condition):
+    """When only one condition's legacy file survives, that condition is still
+    compared per seed, and a changed value still fails."""
+    reference = {"B/100": {"8": {"rank1": [.1, .2, .3]}, "16": {"rank1": [.4, .5, .6]}},
+                 "B/100/ceiling": {"k": 10}}
+    cell = {"arm": "B", "n": 100, "k": 10,
+            "checkpoints": {"8": {"rank1": [.2, .1, .3]}, "16": {"rank1": [.5, .4, .6]}}}
+    other = {"arm": "B", "n": 100, "k": 10,
+             "checkpoints": {"8": {"rank1": [.9, .9, .9]}, "16": {"rank1": [.9, .9, .9]}}}
+    conditions = {"control": {"checkpoints": [8, 16]}, "refracted": {"checkpoints": [8, 16]}}
+    cells = {c: {"cells": {"B/100/10": cell if c == condition else other}}
+             for c in ("control", "refracted")}
+    candidate = {"run": {"seeds": [13, 7, 19], "parameters": {
+        "arms": ["B"], "nk": [[100, 10]], "conditions": conditions}},
+        "observations": {"conditions": cells}}
+    result = compare(candidate, reference, kind, [7, 13, 19])
+    assert result["numerical_match"] and result["comparisons"] == 6
+    cell["checkpoints"]["16"]["rank1"][2] = 0.0
+    assert not compare(candidate, reference, kind, [7, 13, 19])["numerical_match"]

@@ -718,3 +718,85 @@ adopted verdict. Current summaries and the register use 1961; earlier dated resu
 paragraphs retain 1978 as the historical report corrected here. Against the
 corrected ungated value, the gated 2645 result is about +35%, still inside G6's
 registered interval.
+
+## Amendment 8 (2026-09-30, before running): the law's cells replayed with provenance
+
+Registered before any run of this amendment. The register records the gap
+this closes: `REFRACTION-ANTI-MERGING` states the ~0.40 (n/k)^2 law, but the
+capacity grids it is fitted to predate the shared runner. Their files record
+no seeds, no k, no readout and no refraction strength, and they key cells by
+n alone, so two cells at one n overwrote each other: the per-seed data of
+seven of the law's reported ceilings does not exist (the refracted k sweep
+was never written at all). Amendment 7 replayed one cell, (4000, 60), and
+reproduced 2,090 retained values exactly, which establishes that the hashed
+substrate is deterministic and that the legacy seeds are 42 to 61. This
+amendment replays the remaining six cells the same way.
+
+It is a provenance and reproduction check, not a new claim. Nothing is
+adopted from it; its outcome decides whether the numbers the register cites
+are reproducible, and the register is corrected if they are not.
+
+### Protocol
+
+Protocol version 3 through the shared runner (`--compare-refraction`): the
+Hebbian control and the refracted memory (strength 0.5 beta, masked
+readout) in one record, same ordered seeds 42 to 61, arm B (norm_init, no
+column scaling), T = 8, p = 0.5, beta = 0.1, w_max = 20, the runner's
+default measurement sampling. Three runs, shaped by what evidence survives,
+because the comparator checks a run against a legacy file only when both
+hold the same cells:
+
+    L1  (2000, 30), (4000, 120), (8000, 120)
+        M grid 8,16,32,64,128,192,256,384,512,768,1024,1536,2048,3072,4096
+        (Amendment 2's grid). Control survives in
+        capacity_scaling_results_ksweep_ctl.json; refracted does not.
+    L2  (8000, 60), (4000, 30)
+        M grid as L1 plus 6144,8192,12288,16384 (Amendment 4's grid).
+        Refracted survives in capacity_scaling_results_amend4_ref133.json;
+        the control (reported 306.8 and 262.8 in Amendment 2) does not.
+    L3  (2000, 60)
+        M grid as L1. Neither condition survives (reported 11.3 and 431).
+
+Each run from a worktree pinned at the commit that registers this
+amendment, one GPU job at a time.
+
+### Bars
+
+    RP-1  EXACT REPRODUCTION where legacy data survives. Every retained
+          per-seed metric at every common checkpoint equals the legacy
+          file: L1's control against ksweep_ctl (comparison kind
+          capacity-control), L2's refracted memory against amend4_ref133
+          (kind capacity-refracted), with the ceiling fields. Receipts are
+          retained under research/results/comparisons/. Any differing value
+          fails, and that cell's legacy number is then not reproducible.
+    RP-2  REPORTED CEILINGS where legacy data was lost. Each replayed M*
+          lies inside the bracket this registration reported:
+              control   (2000, 60) [8, 16)       (8000, 60) [256, 384)
+                        (4000, 30) [256, 384)
+              refracted (2000, 60) [384, 512)    (4000, 120) [256, 384)
+                        (2000, 30) [1536, 2048)  (8000, 120) [2048, 3072)
+          The point values are reported beside the reported ones
+          (11.3, 306.8, 262.8; 431, 383, 1589, 2230). A point value
+          outside 1% but inside its bracket is a transcription discrepancy,
+          corrected in the text and the register, not a failure; Amendment
+          7 found one such (1978 against 1961).
+    RP-3  THE LAW AS CITED. From the replayed values, M*/(n/k)^2 of the
+          refracted memory at the in-regime cells (2000, 60), (4000, 120),
+          (8000, 120) and (8000, 60) lies in [0.35, 0.50], with (4000, 60)
+          taken from Amendment 7. The out-of-regime cells, (2000, 30) and
+          (4000, 30), are reported and not judged, as in Amendment 4.
+    RP-4  A LIVE CONTRAST AT EVERY CELL. At M_s, the first grid point at or
+          above four times the reported control ceiling, every one of the
+          twenty paired brains has rank1(refracted) - rank1(control)
+          >= 0.50:
+              (2000, 60) and (4000, 120): M_s = 64
+              (2000, 30) and (8000, 120): M_s = 384
+              (8000, 60) and (4000, 30):  M_s = 1536
+          Four times the control's ceiling is past its cliff
+          ([[CAP-CLIFF]]) and below every refracted ceiling, so this asks
+          whether the treatment still moves the organ at each cell, the
+          question A7-S1 asked at one cell.
+    RP-0  TRUE NEGATIVE. Substituting each cell's control vector for its
+          refracted vector must fail RP-4.
+
+The run is UNJUDGED until RP-1 to RP-4 are evaluated and recorded below.
