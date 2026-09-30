@@ -135,3 +135,25 @@ def test_paired_capacity_receipt_is_recomputed_and_digest_bound(tmp_path):
     tampered.write_text(json.dumps(document), encoding="utf-8")
     assert any("candidate digest differs" in error
                for error in validate_receipt(tampered))
+
+
+def test_receipt_digests_bind_content_not_the_checkout_line_endings():
+    """A receipt written on a Windows checkout (CRLF) must verify on a Linux
+    checkout (LF) of the same commit, and a real content change must not."""
+    from research.compare_migration import content_digest_matches, content_sha256
+
+    lf = b'{\n  "a": 1\n}\n'
+    crlf = lf.replace(b"\n", b"\r\n")
+    assert content_sha256(lf) == content_sha256(crlf)
+    import hashlib
+    old_windows_receipt = hashlib.sha256(crlf).hexdigest()   # how receipts were written
+    for checkout in (lf, crlf):
+        assert content_digest_matches(checkout, content_sha256(lf))
+        assert content_digest_matches(checkout, old_windows_receipt)
+    changed = b'{\n  "a": 2\n}\n'
+    assert not content_digest_matches(changed, content_sha256(lf))
+    assert not content_digest_matches(changed.replace(b"\n", b"\r\n"), old_windows_receipt)
+    binary = b"\x1f\x8b\x08\r\n\xff"                           # gzip-like, not UTF-8
+    assert content_sha256(binary) == hashlib.sha256(binary).hexdigest()
+    assert not content_digest_matches(binary.replace(b"\r\n", b"\n"),
+                                      hashlib.sha256(binary).hexdigest())

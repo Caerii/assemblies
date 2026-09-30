@@ -135,7 +135,13 @@ jobs:
         with:
           lake-package-directory: formal
           use-mathlib-cache: "false"
-          leanchecker: "true"
+          # The action's own leanchecker step names the PACKAGE
+          # (assembly-contracts) as a module and finds nothing; the library
+          # is AssemblyIR, checked explicitly below.
+          leanchecker: "false"
+      - name: Re-check the built AssemblyIR environment with leanchecker
+        working-directory: formal
+        run: lake env leanchecker AssemblyIR
       - name: Validate the shared explicit-round corpus in Lean
         working-directory: formal
         run: >-

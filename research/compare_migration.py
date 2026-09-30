@@ -21,6 +21,40 @@ from research.json_documents import (
 ROOT = Path(__file__).resolve().parents[1]
 
 
+def content_sha256(data: bytes) -> str:
+    """Digest of an artifact's CONTENT, independent of its checkout's line endings.
+
+    Git stores text with LF, and a Windows checkout (core.autocrlf) rewrites it
+    to CRLF, so hashing checked-out bytes gave a receipt that verified on the
+    machine that wrote it and failed on every Linux checkout, CI included.
+    UTF-8 text is hashed in its LF form, which is the committed form; anything
+    else is hashed as is.
+    """
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError:
+        return hashlib.sha256(data).hexdigest()
+    return hashlib.sha256(data.replace(b"\r\n", b"\n")).hexdigest()
+
+
+def content_digest_matches(data: bytes, recorded: str) -> bool:
+    """Whether ``recorded`` is this content's digest under either line-ending form.
+
+    New receipts record `content_sha256` (the LF form). Receipts written before
+    2026-09-30 hashed a Windows checkout, i.e. the CRLF form; they stay valid,
+    since a line-ending convention is not a change of content. Any other byte
+    difference still fails.
+    """
+    if hashlib.sha256(data).hexdigest() == recorded or content_sha256(data) == recorded:
+        return True
+    try:
+        data.decode("utf-8")
+    except UnicodeDecodeError:
+        return False
+    crlf = data.replace(b"\r\n", b"\n").replace(b"\n", b"\r\n")
+    return hashlib.sha256(crlf).hexdigest() == recorded
+
+
 def _equal(actual, expected):
     if isinstance(expected, bool) or expected is None:
         return actual is expected
@@ -260,8 +294,7 @@ def validate_receipt(path: Path, root: Path = ROOT) -> list[str]:
             errors.append(f"comparison receipt has unsafe or missing {field}")
         else:
             paths[field] = target
-            digest = hashlib.sha256(target.read_bytes()).hexdigest()
-            if digest != receipt[f"{field}_sha256"]:
+            if not content_digest_matches(target.read_bytes(), receipt[f"{field}_sha256"]):
                 errors.append(f"comparison receipt {field} digest differs")
     source = receipt["comparator_source"]
     if (not isinstance(source, dict)
@@ -335,11 +368,11 @@ def main():
         cwd=ROOT,
     )
     result["comparator_sha256"] = hashlib.sha256(comparator_blob).hexdigest()
-    result["candidate_sha256"] = hashlib.sha256(args.candidate.read_bytes()).hexdigest()
-    result["reference_sha256"] = hashlib.sha256(args.reference.read_bytes()).hexdigest()
+    result["candidate_sha256"] = content_sha256(args.candidate.read_bytes())
+    result["reference_sha256"] = content_sha256(args.reference.read_bytes())
     if args.treatment_reference is not None:
-        result["treatment_reference_sha256"] = hashlib.sha256(
-            args.treatment_reference.read_bytes()).hexdigest()
+        result["treatment_reference_sha256"] = content_sha256(
+            args.treatment_reference.read_bytes())
     if args.treatment_reference is None:
         result["treatment_reference_sha256"] = None
     if args.output is None:
