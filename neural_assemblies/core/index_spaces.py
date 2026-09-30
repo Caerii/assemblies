@@ -37,20 +37,27 @@ CONVERTING. `to_neuron_ids` is the one direction that is ever correct. There is
 deliberately no `to_compact`: compact indices are engine-internal and change
 whenever an area grows, so a stored one is a bug waiting to be dereferenced.
 """
-from typing import List
+from typing import List, TypeVar, cast
 
 import numpy as np
+
+_Brand = TypeVar("_Brand", bound="_BrandedIndices")
+
 
 class _BrandedIndices(np.ndarray):
     """Zero-copy runtime brand for one semantic index space."""
 
-    def __new__(cls, values):
+    def __new__(cls: type[_Brand], values) -> _Brand:
+        # The return annotation IS the static brand: without it the checker
+        # infers "the argument, or an ndarray", every `CompactIdx(...)` reads
+        # as a plain array, and the `overlap` overloads reject same-space
+        # calls (test_index_space_types.py pins both halves).
         # CuPy arrays cannot be passed through ``np.asarray`` without an
         # explicit host transfer. Preserve them on their native backend; the
         # runtime brand is available for NumPy values, where ndarray subclassing
-        # is zero-copy.
+        # is zero-copy. The static brand still describes what the caller meant.
         if hasattr(values, "__cuda_array_interface__"):
-            return values
+            return cast(_Brand, values)
         return np.asarray(values).view(cls)
 
     def __array_finalize__(self, _obj):
