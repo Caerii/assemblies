@@ -1,0 +1,108 @@
+"""Source-to-spec navigation is checked independently of semantic correctness."""
+from pathlib import Path
+import re
+
+import pytest
+
+from research.evidence import specification_links
+
+ROOT = Path(__file__).resolve().parents[2]
+
+
+def test_calculus_and_programs_do_not_bypass_brain_owner_facades():
+    """Keep area mutations on Brain's owner-aware public boundary."""
+    forbidden = re.compile(
+        r"(?:brain|self\.brain)\._engine\.(?:reset_area_connections|set_beta|"
+        r"add_connectivity|is_fixed|fix_assembly|unfix_assembly)"
+    )
+    roots = (ROOT / "neural_assemblies" / "assembly_calculus",
+             ROOT / "neural_assemblies" / "programs")
+    violations = []
+    for base in roots:
+        for path in base.rglob("*.py"):
+            for line_number, line in enumerate(path.read_text(encoding="utf-8").splitlines(), 1):
+                if forbidden.search(line):
+                    violations.append(f"{path.relative_to(ROOT)}:{line_number}: {line.strip()}")
+    assert not violations, "owner facade bypasses:\n" + "\n".join(violations)
+
+
+def test_reviewed_operations_keep_their_specification_links():
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    linked = {edge["from"].rsplit(":", 1)[-1] for edge in edges}
+    assert {"project", "reciprocal_project", "associate", "merge", "pattern_complete",
+            "sequence_memorize", "ordered_recall", "SequenceMemorizePlan",
+            "OrderedRecallPlan",
+            "read_only", "project_rounds", "parse_roles_by_reconstruction", "classify_word",
+            "classify_word_evidence", "ClassificationEvidence",
+            "clone", "ExplicitRound", "execute_on_brain",
+            "fork_parser_instance", "_pristine_copy", "_calibrate",
+            "resolve_holdout_set",
+            "ExperimentOutput",
+            "SensitivityCheck", "evidence_reference_errors",
+            "load_backbone_cache", "save_backbone_cache",
+            "_sparse_sources_drive_to_explicit", "_project_impl", "set_winners", "_validated_winner_inputs", "_source_neuron_ids", "reinforce_connectome", "suppress_fiber_learning", "update_plasticity", "validate_plasticity_rate",
+            "_reset_context_for_bridge", "AssemblyMemory", "HashedArcFSM", "HashedTransducer",
+            "AlignerSemantics", "HashedAligner", "ScheduledAligner"} <= linked
+
+
+@pytest.mark.parametrize("reference", ["missing.md#contract-test", "spec.md#missing", "../outside.md#x"])
+def test_dangling_specifications_are_rejected(tmp_path, reference):
+    package = tmp_path / "neural_assemblies"
+    package.mkdir()
+    (package / "operation.py").write_text(
+        f'def operation():\n    """Specification: {reference}"""\n', encoding="utf-8")
+    (tmp_path / "spec.md").write_text('<a id="contract-test"></a>', encoding="utf-8")
+    edges, errors = specification_links(tmp_path)
+    assert len(edges) == len(errors) == 1
+
+
+def test_rust_ir_source_links_its_wire_contract():
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    assert any(edge["from"] == "neural_assemblies/ir/rust/lib.rs:<module>"
+               and edge["to"].endswith("#contract-protocol-wire") for edge in edges)
+
+
+def test_capacity_comparison_links_its_ir_contract():
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    assert {"from": "research/experiments/seq_capacity_scaling.py:<module>",
+            "to": "neural_assemblies/ir/VERIFICATION.md#contract-capacity-comparison"} in edges
+
+
+@pytest.mark.parametrize("module, anchor", [
+    ("Domain", "contract-checked-domain"), ("Learning", "contract-learning-frame"),
+])
+def test_lean_module_links_its_contract(module, anchor):
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    assert {"from": f"formal/AssemblyIR/{module}.lean:<module>",
+            "to": f"neural_assemblies/ir/VERIFICATION.md#{anchor}"} in edges
+
+
+def test_every_lean_leaf_module_is_source_linked():
+    """Prevent proof files from becoming an untracked parallel specification.
+
+    ``AssemblyIR.lean`` is only the package import barrel; every leaf module
+    must name the executable contract it is intended to discharge.  This is
+    deliberately structural: a valid theorem in an unlinked file is still a
+    review and maintenance blind spot.
+    """
+    edges, errors = specification_links(ROOT)
+    assert not errors, errors
+    linked = {edge["from"] for edge in edges}
+    leaves = sorted((ROOT / "formal" / "AssemblyIR").glob("*.lean"))
+    expected = {f"formal/AssemblyIR/{path.name}:<module>" for path in leaves}
+    missing = sorted(expected - linked)
+    assert not missing, "unlinked Lean specification modules:\n" + "\n".join(missing)
+
+
+def test_dangling_lean_contract_is_rejected(tmp_path):
+    formal = tmp_path / "formal" / "AssemblyIR"
+    formal.mkdir(parents=True)
+    (formal / "Domain.lean").write_text(
+        "/-!\nSpecification: missing.md#contract-domain\n-/\n", encoding="utf-8")
+    edges, errors = specification_links(tmp_path)
+    assert len(edges) == len(errors) == 1
+    assert "dangling specification file" in errors[0]

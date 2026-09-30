@@ -1,0 +1,623 @@
+"""
+Literature parity tests — pinned seeds and protocol metrics.
+
+Golden values use seed=42, n=5000, k=80 unless noted.
+See research/literature/parity/PROTOCOLS.md for full protocols.
+"""
+
+import pytest
+
+from neural_assemblies.core.brain import Brain
+from neural_assemblies.compute import EPercentPolicy
+from neural_assemblies.assembly_calculus import (
+    chance_overlap,
+    learn_assembly,
+    merge,
+    overlap,
+    project,
+    separate,
+    sequence_memorize,
+    ordered_recall,
+)
+from neural_assemblies.assembly_calculus.ops import _snap
+from neural_assemblies.programs import (
+    RuleParser,
+    build_fsm_from_traces,
+    learn_fsm_from_sequences,
+    learn_separable_classes,
+    CoinFlipModel,
+    direct_bind,
+    MinimalTMDemo,
+    train_markov_from_sequences,
+    BlocksWorldPlanner,
+    make_toy_problem,
+    make_three_block_problem,
+    apply_strips_plan,
+)
+
+
+SEED = 42
+N = 5000
+K = 80
+P = 0.05
+BETA = 0.1
+ROUNDS = 10
+
+
+def _brain(**kwargs):
+    defaults = dict(p=P, save_winners=True, seed=SEED, engine="numpy_sparse")
+    defaults.update(kwargs)
+    return Brain(**defaults)
+
+
+class TestLiteratureParity:
+    """Mechanism and protocol parity against published Assembly Calculus results."""
+
+    def test_project_stability_seed42(self):
+        b = _brain()
+        b.add_stimulus("s", K)
+        b.add_area("A", N, K, BETA)
+        asm1 = project(b, "s", "A", rounds=ROUNDS)
+        asm2 = project(b, "s", "A", rounds=ROUNDS)
+        pers = overlap(asm1, asm2)
+        assert pers > 0.85, f"Project persistence {pers:.3f} below 0.85"
+
+    def test_separate_near_chance_seed42(self):
+        b = _brain()
+        b.add_stimulus("s1", K)
+        b.add_stimulus("s2", K)
+        b.add_area("A", N, K, BETA)
+        _, _, ov = separate(b, "s1", "s2", "A", rounds=ROUNDS)
+        chance = chance_overlap(K, N)
+        assert ov < chance * 3, f"Separate overlap {ov:.3f} too high vs chance {chance:.3f}"
+
+    def test_merge_responds_above_chance(self):
+        b = _brain()
+        b.add_stimulus("a", K)
+        b.add_stimulus("b", K)
+        b.add_area("X", N, K, BETA)
+        b.add_area("Y", N, K, BETA)
+        b.add_area("C", N, K, BETA)
+        project(b, "a", "X", rounds=ROUNDS)
+        project(b, "b", "Y", rounds=ROUNDS)
+        merged = merge(b, "X", "Y", "C", stim_a="a", stim_b="b", rounds=ROUNDS)
+        b.project({"a": ["X"]}, {"X": ["C"], "C": ["C"]})
+        for _ in range(ROUNDS - 1):
+            b.project({"a": ["X"]}, {"X": ["C"], "C": ["C"]})
+        ov = overlap(_snap(b, "C"), merged)
+        assert ov > chance_overlap(K, N) * 2
+
+    def test_learn_assembly_converges(self):
+        b = _brain()
+        b.add_stimulus("s", K)
+        b.add_area("A", N, K, BETA)
+        asm, epochs, pers = learn_assembly(
+            b, "s", "A", max_epochs=12, project_rounds=6, convergence=0.85,
+        )
+        assert epochs <= 12
+        assert pers >= 0.85 or overlap(asm, project(b, "s", "A", rounds=3)) >= 0.8
+
+    def test_epercent_policy_on_area(self):
+        b = _brain()
+        policy = EPercentPolicy(fraction_of_max=0.4, min_winners=10, e_fraction=0.02)
+        b.add_area("A", N, K, BETA, winner_policy=policy)
+        assert b.areas["A"].winner_policy == policy
+        b.set_competition_policy("A", EPercentPolicy(fraction_of_max=0.5))
+        assert b.areas["A"].winner_policy.fraction_of_max == 0.5
+
+    def test_rule_parser_cats_chase_mice(self):
+        result = RuleParser(
+            language="English", p=0.1, lex_k=20, non_LEX_n=5000,
+        ).parse("cats chase mice")
+        assert isinstance(result, list)
+        assert len(result) >= 1
+
+    def test_fsm_learn_from_traces(self):
+        traces = [("q0", "a", "q1"), ("q1", "a", "q0")]
+        states, symbols, transitions = learn_fsm_from_sequences(traces)
+        assert states == ["q0", "q1"]
+        assert symbols == ["a"]
+        assert ("q0", "a", "q1") in transitions
+
+        b = _brain()
+        fsm = build_fsm_from_traces(b, traces, "q0", n=N, k=K, beta=0.05, rounds=8)
+        assert fsm.step("a") == "q1"
+
+    def test_tm_demo_unary_increment(self):
+        b = _brain()
+        tm = MinimalTMDemo(b, n=N, k=K, rounds=6)
+        traj = tm.run("11_")
+        assert traj[-1] == "q_halt"
+
+    def test_coin_flip_markov_protocol(self):
+        """Trace frequencies cannot silently become neural probabilities."""
+        traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
+        b = _brain()
+        before = set(b.areas)
+        with pytest.raises(ValueError, match="SeedMixtureChoice"):
+            CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6)
+        assert set(b.areas) == before
+
+    def test_markov_transition_frequencies_from_traces(self):
+        """Dabagia 2024: empirical trace frequencies become transition probs."""
+        traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
+        transitions = train_markov_from_sequences(traces)
+        probs = {
+            (fr, sym, to): p for fr, sym, to, p in transitions
+        }
+        assert ("q0", "flip", "q0") in probs
+        assert ("q0", "flip", "q1") in probs
+        assert abs(probs[("q0", "flip", "q0")] - 0.5) < 1e-9
+        assert abs(probs[("q0", "flip", "q1")] - 0.5) < 1e-9
+
+    def test_center_embedding_dep_verb_readout(self):
+        """Mitropolsky et al. 2022: embedded clause yields DEP-VERB dependencies."""
+        simple = RuleParser(
+            language="English", p=0.1, lex_k=20, non_LEX_n=5000,
+        ).parse("cats chase mice")
+        embedded = RuleParser(
+            language="English", p=0.1, lex_k=20, non_LEX_n=5000,
+        ).parse("cats chase mice that dogs chase cats , love mice")
+        assert len(embedded) > len(simple)
+        roles = {role for _, _, role in embedded}
+        assert "DEP-VERB" in roles
+
+    def test_epwta_variable_size_cap(self):
+        """Hoff et al. 2026: winner count bounded by e_fraction of population."""
+        e_frac = 0.02
+        policy = EPercentPolicy(fraction_of_max=0.35, min_winners=5, e_fraction=e_frac)
+        b = _brain()
+        b.add_area("A", N, K, BETA, winner_policy=policy)
+        b.add_stimulus("s", K)
+        asm = project(b, "s", "A", rounds=ROUNDS)
+        cap = max(5, int(round(e_frac * N)))
+        assert 5 <= len(asm) <= cap
+
+    def test_direct_binding_rejects_the_retired_instrument(self):
+        from neural_assemblies.exceptions import RetractedProtocol
+
+        b = _brain()
+        b.add_stimulus("cause_s", K)
+        b.add_stimulus("effect_s", K)
+        b.add_area("CAUSE", N, K, BETA)
+        b.add_area("EFFECT", N, K, BETA)
+        b.add_area("BIND", N, K, BETA)
+        before = {name: tuple(area.winners) for name, area in b.areas.items()}
+        with pytest.raises(RetractedProtocol, match="wipe negative control"):
+            direct_bind(
+                b, "CAUSE", "EFFECT", "BIND",
+                cause_stim="cause_s", effect_stim="effect_s", rounds=8,
+            )
+        assert {name: tuple(area.winners) for name, area in b.areas.items()} == before
+
+    def test_coin_ambient_noise_epwta_wiring(self):
+        """Noise configuration does not make an implicit selector valid."""
+        traces = [("q0", "flip", "q0")] * 3 + [("q0", "flip", "q1")] * 3
+        b = _brain()
+        with pytest.raises(ValueError, match="SeedMixtureChoice"):
+            CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6,
+                          input_noise_std=0.02)
+        assert not b.areas
+
+    def test_coin_empirical_fair_and_biased(self):
+        """The retracted bias claim cannot run through an implicit choice."""
+        traces = [("q0", "flip", "q0")] * 5 + [("q0", "flip", "q1")] * 5
+        b = _brain()
+        with pytest.raises(ValueError, match="not calibrated"):
+            CoinFlipModel(b, traces, "q0", n=N, k=K, rounds=6)
+        assert not b.areas
+
+    def test_pfa_stochastic_both_targets(self):
+        """A branching PFA must declare its uncalibrated selector."""
+        from neural_assemblies.assembly_calculus.pfa import PFANetwork
+
+        b = _brain()
+        transitions = [("q0", "flip", "q0", 0.5), ("q0", "flip", "q1", 0.5)]
+        with pytest.raises(ValueError, match="SeedMixtureChoice"):
+            PFANetwork(b, ["q0", "q1"], ["flip"], transitions, "q0",
+                       n=N, k=K, beta=0.05, rounds=6)
+        assert not b.areas
+
+    def test_sequence_memorize_ordered_recall(self):
+        """Dabagia 2025: LRI enables multi-step ordered recall after memorization."""
+        b = _brain()
+        for i in range(3):
+            b.add_stimulus(f"s{i}", K)
+        b.add_area("A", N, K, BETA)
+        memorized = sequence_memorize(
+            b, ["s0", "s1", "s2"], "A",
+            rounds_per_step=ROUNDS, repetitions=3,
+        )
+        b.set_lri("A", refractory_period=3, inhibition_strength=100.0)
+        recalled = ordered_recall(
+            b, "A", "s0", max_steps=10, known_assemblies=list(memorized),
+        )
+        assert len(memorized) == 3
+        assert len(recalled) >= 1
+        assert overlap(recalled[0], memorized[0]) > 0.3
+
+    def test_phase_b_ratio_advances_recall_only_with_repetitions(self):
+        """[SEQ25] #56: the bridge needs BOTH phase_b_ratio and repetitions>=3.
+
+        The legacy split never writes the inter-assembly bridge at all -- the
+        x_i -> x_i+1 transition happens during Phase A, which carries no
+        target->target fiber, so the one moment the two assemblies co-occur is
+        the moment the fiber is closed.  ``phase_b_ratio`` opens it across the
+        transition.
+
+        This test exists because the parameter was previously recorded as
+        having NO effect.  That measurement was taken at the default
+        ``repetitions=1``, where nothing helps; the effect is entirely in the
+        interaction.  Measured over seeds 1-3 (steps recalled of 3):
+
+            phase_b_ratio   reps=1   reps=3   reps=5
+            legacy (None)     1.00     1.00     1.00
+            1.0               1.00     2.00     2.00
+
+        Asserted on the two cells that differ by a whole step, so this cannot
+        pass on a threshold that a dead parameter would also clear.
+        """
+        def steps(ratio, reps, seed):
+            b = _brain(seed=seed)
+            for i in range(3):
+                b.add_stimulus(f"s{i}", K)
+            b.add_area("A", N, K, BETA)
+            b.set_lri("A", refractory_period=3, inhibition_strength=100.0)
+            mem = sequence_memorize(
+                b, ["s0", "s1", "s2"], "A", rounds_per_step=ROUNDS,
+                repetitions=reps, phase_b_ratio=ratio,
+            )
+            return len(ordered_recall(
+                b, "A", "s0", max_steps=3, known_assemblies=list(mem)))
+
+        seeds = (1, 2, 3)
+        legacy = [steps(None, 3, s) for s in seeds]
+        opened = [steps(1.0, 3, s) for s in seeds]
+        reps1 = [steps(1.0, 1, s) for s in seeds]
+
+        assert min(opened) >= 2, (
+            f"phase_b_ratio=1.0 with repetitions=3 should advance past the "
+            f"first assembly on every seed, got {opened}")
+        assert max(legacy) < min(opened), (
+            f"the legacy split should be strictly worse: legacy {legacy} vs "
+            f"opened {opened}")
+        assert max(reps1) <= 1, (
+            f"the control must hold: at repetitions=1 the parameter should do "
+            f"nothing, got {reps1}. If this fires, the interaction claim in "
+            f"sequence_memorize's docstring needs re-deriving.")
+
+    def test_tm_demo_longer_unary_tape(self):
+        """Sequences paper: unary increment TM halts on multi-symbol input."""
+        b = _brain()
+        tm = MinimalTMDemo(b, n=N, k=K, rounds=6)
+        traj = tm.run("111_")
+        assert traj[-1] == "q_halt"
+        assert len(traj) == 4
+
+    def test_colt_separable_classes(self):
+        b = _brain()
+        b.add_stimulus("c1", K)
+        b.add_stimulus("c2", K)
+        b.add_area("CLS", N, K, BETA)
+        lex, min_ov = learn_separable_classes(
+            b, {"class_a": "c1", "class_b": "c2"}, "CLS", rounds=6,
+        )
+        assert "class_a" in lex
+        assert "class_b" in lex
+        assert min_ov < 0.5
+
+
+def _has_torch_cuda():
+    try:
+        import torch
+        return torch.cuda.is_available()
+    except ImportError:
+        return False
+
+
+@pytest.mark.skipif(not _has_torch_cuda(), reason="torch_sparse requires CUDA")
+class TestLiteratureParityGPU:
+    def test_sequence_memorize_ordered_recall_torch(self):
+        b = _brain(engine="torch_sparse")
+        for i in range(3):
+            b.add_stimulus(f"s{i}", K)
+        b.add_area("A", N, K, BETA)
+        memorized = sequence_memorize(
+            b, ["s0", "s1", "s2"], "A",
+            rounds_per_step=ROUNDS, repetitions=3,
+        )
+        b.set_lri("A", refractory_period=3, inhibition_strength=100.0)
+        recalled = ordered_recall(
+            b, "A", "s0", max_steps=10, known_assemblies=list(memorized),
+        )
+        assert len(recalled) >= 1
+        assert overlap(recalled[0], memorized[0]) > 0.3
+
+
+class TestBlocksPlanning:
+    def test_bfs_toy_blocks_plan(self):
+        start, goal = make_toy_problem()
+        planner = BlocksWorldPlanner(blocks=["A", "B"], n=N, k=K, rounds=6)
+        plan = planner.plan(start, goal)
+        assert plan is not None
+        assert len(plan) >= 1
+        assert planner.verify_plan(start, goal, plan)
+        end = apply_strips_plan(start, plan)
+        assert end.on == goal.on
+
+        b = _brain()
+        plan2, traj, final = planner.solve_and_run(b, start, goal)
+        assert plan2 is not None
+        assert len(traj) >= 2
+        assert final is not None
+        assert final.on == goal.on
+
+    def test_three_block_plan(self):
+        start, goal = make_three_block_problem()
+        planner = BlocksWorldPlanner(blocks=["A", "B", "C"], n=N, k=K, rounds=5)
+        plan = planner.plan(start, goal)
+        assert plan is not None
+        assert planner.verify_plan(start, goal, plan)
+        end = apply_strips_plan(start, plan)
+        assert end.on == goal.on
+
+    def test_three_block_neural_execution(self):
+        """AAAI 2022: neural FSM scaffold executes a valid 3-block plan."""
+        start, goal = make_three_block_problem()
+        planner = BlocksWorldPlanner(blocks=["A", "B", "C"], n=N, k=K, rounds=5)
+        b = _brain()
+        plan, traj, final = planner.solve_and_run(b, start, goal)
+        assert plan is not None
+        assert planner.verify_plan(start, goal, plan)
+        assert len(traj) >= len(plan) + 1
+        assert traj[0] == "search"
+        assert final is not None
+        assert final.on == goal.on
+
+    def test_four_block_plan_and_neural_run(self):
+        from neural_assemblies.programs import make_four_block_problem
+
+        start, goal = make_four_block_problem()
+        planner = BlocksWorldPlanner(blocks=["A", "B", "C", "D"], n=N, k=K, rounds=5)
+        plan = planner.plan(start, goal)
+        assert plan is not None
+        assert planner.verify_plan(start, goal, plan)
+        b = _brain()
+        _, traj, final = planner.solve_and_run(b, start, goal)
+        assert final is not None
+        assert final.on == goal.on
+        assert len(traj) >= 2
+
+
+@pytest.fixture(scope="module")
+def nemo_parser():
+    """Train emergent NEMO parser once (mitropolsky2025simulated protocol)."""
+    from neural_assemblies.assembly_calculus.emergent import EmergentParser
+
+    parser = EmergentParser(
+        n=N, k=K, p=P, beta=BETA, seed=SEED, rounds=ROUNDS,
+    )
+    parser.train()
+    return parser
+
+
+class TestLiteratureParityNEMO2025:
+    """mitropolsky2025simulated — grounded emergent parser curriculum."""
+
+    _MODALITY_TO_POS = {
+        "visual": "NOUN",
+        "motor": "VERB",
+        "properties": "ADJ",
+        "spatial": "PREP",
+        "social": "PRON",
+        "temporal": "ADV",
+        "none": "DET",
+    }
+
+    _PINNED_ROLES = [
+        (["the", "dog", "runs"], {"dog": "AGENT"}),
+        (["the", "cat", "chases", "the", "bird"], {"cat": "AGENT", "bird": "PATIENT"}),
+        (["she", "sees", "the", "bird"], {"she": "AGENT", "bird": "PATIENT"}),
+    ]
+
+    def test_pos_classification_at_least_80_percent(self, nemo_parser):
+        from neural_assemblies.assembly_calculus.emergent.core.grounding import VOCABULARY
+
+        correct = 0
+        for word, ctx in VOCABULARY.items():
+            expected = self._MODALITY_TO_POS[ctx.dominant_modality]
+            actual, _ = nemo_parser.classify_word(word)
+            if actual == expected:
+                correct += 1
+        accuracy = correct / len(VOCABULARY)
+        assert accuracy >= 0.80, f"POS accuracy {accuracy:.0%} < 80%"
+
+    @pytest.mark.parametrize("words,expected_roles", _PINNED_ROLES)
+    def test_pinned_role_binding(self, nemo_parser, words, expected_roles):
+        roles = nemo_parser.parse(words)["roles"]
+        for word, role in expected_roles.items():
+            assert roles.get(word) == role, f"{word}: got {roles.get(word)!r}, want {role!r}"
+
+    def test_novel_generalization_bird_chases_boy(self, nemo_parser):
+        roles = nemo_parser.parse(["the", "bird", "chases", "the", "boy"])["roles"]
+        assert roles.get("bird") == "AGENT"
+        assert roles.get("boy") == "PATIENT"
+        assert roles.get("chases") == "ACTION"
+
+    def test_word_order_svo(self, nemo_parser):
+        from neural_assemblies.assembly_calculus.emergent.parser import EvaluationSuite
+
+        result = EvaluationSuite(nemo_parser).evaluate_word_order(target="SVO")
+        assert result["correct"] is True
+        assert result["inferred"] == "SVO"
+
+
+class TestColt2022Halfspace:
+    """[COLT22] Theorem 6 (Learning Linear Thresholds), the paper's own protocol.
+
+    Ported from ``.reference/mdabagia-learning-with-assemblies/Halfspace.ipynb``.
+    Asserts the theorem's OWN bounds -- a fresh D+ sample's cap overlaps at
+    least 3k/4 of A*, a D- sample's at most k/4 -- which hold here with wide
+    margin (measured ~99 and ~10 against 75 and 25), so this tests the effect
+    rather than the seed set.
+
+    This replaces nothing: the older ``test_colt_separable_classes`` asserts
+    ``min_ov < 0.5``, which is satisfiable without any generalisation at all.
+    """
+
+    @pytest.fixture(scope="class")
+    def result(self):
+        from neural_assemblies.programs.colt_halfspace_numpy import (
+            run_colt_halfspace,
+        )
+        return run_colt_halfspace()
+
+    def test_positive_cap_overlaps_at_least_three_quarters_k(self, result):
+        k = result.parameters["cap_size"]
+        assert result.pos_overlap >= 0.75 * k, (
+            f"D+ cap overlaps A* in {result.pos_overlap:.2f} neurons, "
+            f"below the theorem's 3k/4 = {0.75 * k:.0f}"
+        )
+
+    def test_negative_cap_overlaps_at_most_a_quarter_k(self, result):
+        k = result.parameters["cap_size"]
+        assert result.neg_overlap <= 0.25 * k, (
+            f"D- cap overlaps A* in {result.neg_overlap:.2f} neurons, "
+            f"above the theorem's k/4 = {0.25 * k:.0f}"
+        )
+
+    def test_every_seed_separates_not_just_the_mean(self, result):
+        k = result.parameters["cap_size"]
+        for i, (p, n) in enumerate(zip(result.per_seed_pos, result.per_seed_neg)):
+            assert p >= 0.75 * k and n <= 0.25 * k, (
+                f"seed index {i} does not separate: D+ {p:.2f}, D- {n:.2f}"
+            )
+
+    def test_classes_share_support(self, result):
+        """The claim is non-trivial only because the supports overlap.
+
+        Both distributions draw Bernoulli(k/n) over the coordinates outside the
+        halfspace block, so a positive-looking example can be drawn from D-.
+        If negatives carried their own disjoint block this would be trivial.
+        """
+        assert result.n_on_neg == 0
+        assert result.n_on_pos > 0
+
+    def test_golden_matches_recorded(self, result):
+        import json
+        from pathlib import Path
+
+        golden_path = (Path(__file__).resolve().parents[2] / "research"
+                       / "literature" / "parity" / "golden"
+                       / "colt2022_halfspace.json")
+        golden = json.loads(golden_path.read_text(encoding="utf-8"))
+        assert result.pos_overlap == pytest.approx(
+            golden["metrics"]["pos_overlap"], abs=0.01)
+        assert result.neg_overlap == pytest.approx(
+            golden["metrics"]["neg_overlap"], abs=0.01)
+
+
+class TestColtMultiAssembly:
+    # NOT marked slow: measured 4.1s for the whole class, so it runs in the
+    # default `-m "not slow"` selection. A parity check that only runs in the
+    # slow tier is a parity check that does not run.
+    """[COLT22] Theorems 1/3/4 -- creation, recall, and MULTIPLE assemblies.
+
+    The point of this class is that it does THREE DIFFERENT THINGS with three
+    theorems, and says which is which:
+
+      * Theorem 3 (Recall) is ASSERTED. It holds with wide margin.
+      * Theorem 1's support bound is asserted to be VACUOUS -- because it is,
+        at every beta anyone runs, and a bound nothing can violate must not be
+        mistaken for a passing check.
+      * Theorem 4 (overlap preservation) is PINNED AS A DIVERGENCE. It does not
+        hold here, and a test that merely asserted it would be red forever
+        while a test that ignored it would let the gap drift silently.
+    """
+
+    @pytest.fixture(scope="class")
+    def result(self):
+        from neural_assemblies.programs.colt_multiassembly_numpy import (
+            run_colt_multiassembly,
+        )
+        return run_colt_multiassembly()
+
+    def test_recall_meets_theorem_3_bound(self, result):
+        """Theorem 3: a fresh sample's cap overlaps A* by >= 1 - e^{-kpr}.
+
+        This also VALIDATES THE HARNESS. If recall fails, the assemblies never
+        formed and no Theorem 4 number from the same run means anything -- so
+        this assertion has to pass before the others are readable.
+        """
+        assert result.recall >= result.recall_floor, (
+            f"recall {result.recall:.4f} is below the theorem's floor "
+            f"{result.recall_floor:.4f}; the class assemblies did not form, so "
+            f"every other number in this class is uninterpretable")
+
+    def test_theorem_1_support_bound_is_vacuous_here(self, result):
+        """The support bound cannot fail at our beta, so it is not a check.
+
+        `beta0` is a LOWER bound on plasticity and we run two orders of
+        magnitude under it -- as do the papers' own simulations (beta=0.06
+        against beta0=1.349). The support bound k/(1-exp(-(b/b0)^2)) then
+        exceeds 100k, which no real run approaches. Asserting it would be a
+        test that passes for a reason unrelated to the model being right.
+        """
+        from neural_assemblies.programs.colt_multiassembly_numpy import (
+            support_bound,
+        )
+        k = int(result.parameters["k"])
+        beta = float(result.parameters["beta"])
+        bound = support_bound(k, beta, result.beta0)
+        assert bound > 50 * k, (
+            f"support bound is {bound / k:.1f}k, which is tight enough to be "
+            f"worth asserting -- the regime changed and this test should "
+            f"become a real check instead of documenting vacuity")
+        assert max(result.supports) < 3.0, (
+            "support inflation grew beyond 3k; that is a real change in "
+            "assembly formation even though the theorem cannot see it")
+
+    def test_theorem_4_overlap_preservation_does_not_hold(self, result):
+        """PINNED DIVERGENCE: |A* n B*| <= alpha*k is violated by amplification.
+
+        Measured at beta=0.10: alpha 0.25 -> ~0.50, alpha 0.50 -> ~0.90. Raising
+        beta to and past beta0 does NOT restore preservation.
+
+        IF THIS TEST FAILS, overlap preservation started holding -- which is a
+        fix worth knowing about, not a regression. Update the golden and
+        research/notes/substrate/kwta_amplifies_input_overlap.md rather than silencing it.
+        """
+        offenders = [
+            (a, o) for a, o, c in zip(result.alphas, result.overlaps,
+                                      result.chance)
+            if a >= 0.25 and (o - c) > a
+        ]
+        assert offenders, (
+            "Theorem 4's bound now HOLDS at alpha >= 0.25. That is a change in "
+            "the substrate, not a test failure -- re-record the golden and "
+            "update the note that documents the divergence.")
+
+    def test_alpha_zero_overlap_is_at_chance(self, result):
+        """CONTROL. Disjoint classes must not share more than the floor.
+
+        Without this, "overlap grows with alpha" would be consistent with the
+        area simply collapsing everything together regardless of input.
+        """
+        i = result.alphas.index(0.0)
+        assert result.overlaps[i] <= result.chance[i] + 0.02, (
+            f"disjoint stimulus classes overlap {result.overlaps[i]:.4f} "
+            f"against a chance floor of {result.chance[i]:.4f} -- the area is "
+            f"merging assemblies that share NO input")
+
+    def test_golden_matches_recorded(self, result):
+        import json
+        from pathlib import Path
+
+        golden_path = (Path(__file__).resolve().parents[2] / "research"
+                       / "literature" / "parity" / "golden"
+                       / "colt2022_multiassembly.json")
+        golden = json.loads(golden_path.read_text(encoding="utf-8"))
+        assert result.recall == pytest.approx(
+            golden["metrics"]["recall"], abs=0.02)
+        for got, want in zip(result.overlaps, golden["metrics"]["overlaps"]):
+            assert got == pytest.approx(want, abs=0.05)

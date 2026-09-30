@@ -40,8 +40,13 @@ _ATTACHMENT_NAME = re.compile(r'[A-Za-z0-9][A-Za-z0-9_.-]*\.json\.gz\Z')
 def _validate_attachments(path: Path, references) -> list[str]:
     if not isinstance(references, dict):
         return ['attachments must map safe sibling names to digests']
-    errors, expected_files = [], {'run.json', 'results.json', 'source.zip', *references}
     actual_files = {item.name for item in path.parent.iterdir() if item.is_file()}
+    # The run's source is kept as a zip or as a manifest into the
+    # content-addressed store (research/source_store.py); exactly one.
+    source_form = {'source.zip', 'source.manifest.json'} & actual_files
+    errors = [] if len(source_form) == 1 else [
+        'a completed run keeps exactly one of source.zip and source.manifest.json']
+    expected_files = {'run.json', 'results.json', *source_form, *references}
     if actual_files != expected_files:
         errors.append('completed artifact file inventory differs from attachment manifest')
     fields = {'media_type', 'content_encoding', 'sha256', 'decoded_sha256',

@@ -1,0 +1,306 @@
+"""The autonomous-chain design (PREREG_autonomous_chain.md).
+
+The chain is driven by ONE constant symbol, so the symbol carries no
+information and every advance comes from the state through the arc. For that
+to be a test rather than a demonstration, the arms must isolate one thing each,
+and the score must be able to fail.
+"""
+from __future__ import annotations
+
+import unittest
+
+import pytest
+
+from research.experiments.autonomous_chain import (
+    ARM_SPECS, ARMS, BETA, K, N_ARC, P, PRESENTATIONS, TICK,
+    chain_table, consecutive_correct,
+)
+
+
+class TheChainIsAPath(unittest.TestCase):
+    def test_one_symbol_carries_every_transition(self):
+        states, table = chain_table(8)
+        self.assertEqual(len(states), 9)
+        self.assertEqual({sym for _, sym, _ in table}, {TICK})
+        # the symbol appears in EVERY transition and each state in one, which
+        # is what makes this the extreme case of conjunct exposure
+        self.assertEqual(len(table), 8)
+        self.assertEqual(len({fr for fr, _, _ in table}), 8)
+
+    def test_it_is_a_simple_path_with_no_revisits(self):
+        _, table = chain_table(16)
+        for i, (fr, _, to) in enumerate(table):
+            self.assertEqual(fr, f"q{i}")
+            self.assertEqual(to, f"q{i + 1}")
+
+    def test_scoring_stops_at_the_first_wrong_visit(self):
+        self.assertEqual(consecutive_correct([1, 2, 3, 4], 4), 4)
+        self.assertEqual(consecutive_correct([1, 2, 9, 4], 4), 2)
+        self.assertEqual(consecutive_correct([0, 2, 3, 4], 4), 0)
+
+    def test_a_chain_that_sat_still_would_score_zero(self):
+        # the failure mode refraction prevents: every step reads the same state
+        self.assertEqual(consecutive_correct([1, 1, 1, 1], 4), 1)
+        self.assertEqual(consecutive_correct([0, 0, 0, 0], 4), 0)
+
+
+class TheArmsCanFail(unittest.TestCase):
+    def test_every_arm_varies_exactly_one_thing_from_the_baseline(self):
+        base = ARM_SPECS["L32"]
+        for name, spec in ARM_SPECS.items():
+            if name in ("L32", "L128"):
+                continue
+            differing = [i for i in range(4) if spec[i] != base[i]]
+            self.assertEqual(len(differing), 1, (name, spec, base))
+
+    def test_the_mechanism_disabled_arm_is_present_and_is_zero_strength(self):
+        self.assertEqual(ARM_SPECS["L32-no-refraction"][2], 0.0)
+        self.assertGreater(ARM_SPECS["L32"][2], 0.0)
+
+    def test_the_length_arm_reaches_past_the_reported_band(self):
+        # the paper reports difficulty beyond 20 to 40 assemblies
+        self.assertGreaterEqual(ARM_SPECS["L32"][0], 32)
+        self.assertGreaterEqual(ARM_SPECS["L128"][0], 4 * 32)
+
+    def test_undertrained_and_sparse_arms_exist_so_a_perfect_score_can_move(self):
+        trained = [s[1] for n, s in ARM_SPECS.items() if n.startswith("L32-pres")]
+        self.assertTrue(all(t < PRESENTATIONS for t in trained), trained)
+        sparse = [s[3] for n, s in ARM_SPECS.items() if "-p0." in n]
+        self.assertTrue(all(d < P for d in sparse), sparse)
+
+    def test_the_arms_cover_the_five_bars(self):
+        for name in ("L32", "L128", "L32-no-refraction", "L32-pres5",
+                     "L32-pres10", "L32-p0.05", "L32-p0.02"):
+            self.assertIn(name, ARMS)
+
+
+class TheCollapseMeasurementHasAScale(unittest.TestCase):
+    def test_chance_overlap_is_far_below_the_collapse_bar(self):
+        chance = K / N_ARC
+        self.assertLess(3 * chance, 0.5, "the CL-5 bars must not overlap")
+        self.assertAlmostEqual(chance, 0.01, places=6)
+
+    def test_the_gain_table_must_be_sized_to_the_episode(self):
+        # the engine refuses the default 4096 at this beta; the registration
+        # records the size and why
+        self.assertGreater((1 + BETA) ** 931, 3.4e38)
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+# --- Amendment 3: the instrument defects the first limit grid exposed ---------
+# Each of these pins a defect that shipped in chain-limit-v3-20260913 and was
+# only visible because the per-brain traces were retained.
+
+
+def test_state_area_holds_every_chain_in_the_grid():
+    """The state area must fit (L_max + 1) k, not L_max k.
+
+    HashedArcFSM silently takes max(n_state, n_states * k). At 51200 the
+    L = 512 column was widened to 51300 and ran on a different area from every
+    other column -- the one control the constant exists to enforce.
+    """
+    from research.experiments.autonomous_chain import (K, LIMIT_LENGTHS,
+                                                       N_STATE_FIXED)
+    for length in LIMIT_LENGTHS:
+        states = length + 1                      # q0 .. qL
+        assert states * K <= N_STATE_FIXED, (
+            f"L={length} needs {states * K} and the grid pins {N_STATE_FIXED}; "
+            "the organ would widen this cell and redraw its connectome")
+
+
+def test_chance_overlap_is_per_cell_not_the_module_constant():
+    """Chance arc overlap is k / n_arc IN THE CELL.
+
+    The first grid divided every limit cell by the module-level N_ARC = 10000,
+    inflating the reported multiple by 10000 / n_arc: 20.9x down to 8.2x when
+    the true figures are 2.1x up to 3.3x -- which reverses the trend in n_arc.
+    """
+    from research.experiments.autonomous_chain import K, LIMIT_ARCS, N_ARC
+    for n_arc in LIMIT_ARCS:
+        assert n_arc != N_ARC, "a limit cell that matched N_ARC would hide this"
+        assert K / n_arc != K / N_ARC
+
+
+def test_a_wrap_is_not_a_death():
+    """A chain that falls back and keeps stepping is following the table.
+
+    `correct` and `total_correct` both ask whether visit t reads q_{t+1}, a
+    question about PHASE. This trace ran 380 steps, fell back to q2 and stepped
+    3, 4, 5 correctly; both position-locked statistics call it dead.
+    """
+    from research.experiments.autonomous_chain import failure_kind, follows_table
+    visited = [i + 1 for i in range(380)] + [2, 3, 4, 5]
+    length = len(visited)
+    assert failure_kind(visited, length, 380) == "wrap"
+    assert follows_table(visited, 380) == 1.0
+
+
+def test_a_stalled_chain_is_not_a_wrap():
+    from research.experiments.autonomous_chain import failure_kind
+    visited = [i + 1 for i in range(10)] + [140] * 10
+    assert failure_kind(visited, len(visited), 10) == "stall"
+
+
+def test_total_correct_cannot_tell_a_wrap_from_a_death():
+    """The defect itself, pinned: AL-1's statistic is blind here.
+
+    Both traces below are indistinguishable to `total_correct == correct`, and
+    the classifier separates them.
+    """
+    from research.experiments.autonomous_chain import consecutive_correct, failure_kind
+    wrap = [i + 1 for i in range(20)] + [2, 3, 4, 5, 6, 7, 8, 9]
+    dead = [i + 1 for i in range(20)] + [7, 7, 7, 7, 7, 7, 7, 7]
+    for seq in (wrap, dead):
+        first = consecutive_correct(seq, len(seq))
+        assert first == 20
+        assert sum(1 for t, v in enumerate(seq) if v == t + 1) == first
+    assert failure_kind(wrap, len(wrap), 20) == "wrap"
+    assert failure_kind(dead, len(dead), 20) == "stall"
+
+
+def test_al1_fires_on_a_single_coincidence():
+    """AL-1 is a coincidence detector, which is why its FAIL carries no news.
+
+    All three brains that failed it were thrashing chains that landed on t + 1
+    exactly once in hundreds of visits.
+    """
+    from research.experiments.autonomous_chain import consecutive_correct
+    thrash = [i + 1 for i in range(20)] + [101, 102, 286, 326, 101, 286, 1]
+    thrash[24] = 25                                   # one coincidental hit
+    first = consecutive_correct(thrash, len(thrash))
+    total = sum(1 for t, v in enumerate(thrash) if v == t + 1)
+    assert first == 20 and total == 21, "one coincidence flips AL-1's premise"
+
+
+def test_every_state_mode_arm_carries_its_own_code():
+    """The spec carries (n_state, kind); nothing is looked up by arm NAME.
+
+    The name lookup this replaces was a KeyError waiting at the END of a run:
+    the load sweep drops an area the lookup still expected, so the failure
+    would have landed after minutes of training on the device rather than at
+    import. Carrying the code in the spec makes that unspellable.
+    """
+    from research.experiments.autonomous_chain import (LOAD_ARM_SPECS,
+                                                       MARGIN_ARM_SPECS,
+                                                       STATE_ARM_SPECS)
+    for specs in (STATE_ARM_SPECS, MARGIN_ARM_SPECS, LOAD_ARM_SPECS):
+        for name, spec in specs.items():
+            assert len(spec) == 7, f"{name} carries no state code: {spec}"
+            n_state, kind = spec[5], spec[6]
+            assert isinstance(n_state, int) and n_state > 0, name
+            assert kind in ("blocks", "random"), name
+            assert name.startswith(kind), f"{name} disagrees with its kind {kind}"
+
+
+def test_the_load_sweep_brackets_the_load_that_killed_the_marginal_cell():
+    """Amendment 5 is only decisive if it reaches the marginal cell's load."""
+    from research.experiments.autonomous_chain import (K, LOAD_ARM_SPECS,
+                                                       LOAD_AREAS,
+                                                       LOAD_MATCHED, STATE_L)
+    need = (STATE_L + 1) * K
+    loads = [need / n for n in LOAD_AREAS]
+    assert min(loads) < 6.42 < max(loads), "the sweep must bracket load 6.42"
+    matched = need / LOAD_ARM_SPECS[LOAD_MATCHED][5]
+    assert abs(matched - 6.42) < 0.05, (
+        f"{LOAD_MATCHED} is load {matched:.2f}, not the marginal cell's 6.42")
+
+
+# --- every mode must evaluate its bars without touching an absent arm --------
+
+def _fake_record(mode_key, specs, seeds=tuple(range(62, 82))):
+    """A runner record for one amendment, with no device in sight."""
+    from research.experiments.autonomous_chain import profile_for
+    names = list(specs)
+    return {
+        "mode": "study",
+        "seeds": list(seeds),
+        "parameters": {"arms": names, "device": "cpu", mode_key: True},
+        "execution_semantics": {"profiles": {n: profile_for(specs[n][2])
+                                             for n in names}},
+    }
+
+
+def _stub_run_arm(monkeypatch, correct):
+    """Replace the device call with rows that carry every field the bars read."""
+    import research.experiments.autonomous_chain as ac
+
+    def fake(seeds, length, presentations, ratio, density, *, device,
+             organ_semantics, n_arc=None, n_state=None, code=None,
+             order="chain", watch=0):
+        rows = [{"seed": int(s), "correct": correct(length), "total_correct": correct(length),
+                 "first_error": None if correct(length) >= length else correct(length),
+                 "first_error_fraction": (None if correct(length) >= length
+                                          else correct(length) / length),
+                 "landed_on": None if correct(length) >= length else 1,
+                 "follow_after": None, "kind": "exact" if correct(length) >= length else "stall",
+                 "arc_overlap": 0.05, "visited": list(range(1, length + 1))}
+                for s in seeds]
+        return rows, int(n_state or 64000), 0.01, (0.7 if watch else None)
+    # a stub whose signature has drifted from run_arm tests nothing: it would
+    # fail on the call rather than on the bars, which is how this very stub
+    # broke when run_arm gained `order`
+    import inspect
+    real = set(inspect.signature(ac.run_arm).parameters)
+    stub = set(inspect.signature(fake).parameters)
+    assert real == stub, f"stub signature has drifted from run_arm: {real ^ stub}"
+    monkeypatch.setattr(ac, "run_arm", fake)
+
+
+@pytest.mark.parametrize("mode_key,specs_name", [
+    ("states_mode", "STATE_ARM_SPECS"),
+    ("margin_mode", "MARGIN_ARM_SPECS"),
+    ("load_mode", "LOAD_ARM_SPECS"),
+    ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
+    ("train_order_mode", "TORD_ARM_SPECS"),
+    ("arc_capacity_mode", "ACAP_ARM_SPECS"),
+    ("integer_load_mode", "ILOAD_ARM_SPECS"),
+])
+def test_each_amendment_evaluates_its_bars_without_a_missing_arm(
+        monkeypatch, mode_key, specs_name):
+    """The defect this pins cost a full GPU run.
+
+    Amendment 6 measured all six arms and then died with KeyError
+    'blocks-n64000' because the SC bar dict was built EAGERLY before the mode
+    branches overrode it, and SC-1 names an arm only the plain states mode has.
+    The arm-spec test did not catch it: the specs were fine, the BARS were not.
+    This calls experiment() for every mode with the device stubbed out, which
+    is the only thing that would have.
+    """
+    import research.experiments.autonomous_chain as ac
+    specs = getattr(ac, specs_name)
+    _stub_run_arm(monkeypatch, correct=lambda L: L)
+    out = ac.experiment(_fake_record(mode_key, specs))
+    assert out["bars"], f"{specs_name} produced no bars"
+    assert all(isinstance(v, bool) for v in out["bars"].values())
+    assert set(out["arms"]) == set(specs)
+
+
+@pytest.mark.parametrize("mode_key,specs_name", [
+    ("margin_mode", "MARGIN_ARM_SPECS"),
+    ("load_mode", "LOAD_ARM_SPECS"),
+    ("arc_bottleneck_mode", "ARCB_ARM_SPECS"),
+    ("train_order_mode", "TORD_ARM_SPECS"),
+    ("arc_capacity_mode", "ACAP_ARM_SPECS"),
+    ("integer_load_mode", "ILOAD_ARM_SPECS"),
+])
+def test_bars_also_evaluate_when_arms_FAIL(monkeypatch, mode_key, specs_name):
+    """The failing path reaches different code: edge cells, medians, kinds."""
+    import research.experiments.autonomous_chain as ac
+    specs = getattr(ac, specs_name)
+    _stub_run_arm(monkeypatch, correct=lambda L: L // 2)
+    out = ac.experiment(_fake_record(mode_key, specs))
+    assert out["bars"]
+
+
+def test_the_training_order_arms_differ_in_order_alone():
+    """Amendment 7 is only interpretable if nothing else varies across arms."""
+    from research.experiments.autonomous_chain import TORD_ARM_SPECS, TORD_ORDERS
+    specs = list(TORD_ARM_SPECS.values())
+    assert len(specs) == len(TORD_ORDERS)
+    # everything but the order field must be identical across the three arms
+    assert len({spec[:7] for spec in specs}) == 1, (
+        "the order arms differ in something other than order")
+    assert {spec[7] for spec in specs} == set(TORD_ORDERS)

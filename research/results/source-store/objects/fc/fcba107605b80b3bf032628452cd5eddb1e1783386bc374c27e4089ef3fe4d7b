@@ -1,0 +1,2052 @@
+"""Inspectable contracts and immutable schedules for calculus operations.
+
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-operation-objects
+"""
+
+from dataclasses import dataclass, is_dataclass
+from contextlib import nullcontext
+import math
+from numbers import Integral, Real
+import random
+from types import MappingProxyType
+from typing import Callable, Mapping, ParamSpec, Protocol, TypeVar, cast
+
+import numpy as np
+
+from .assembly import Assembly
+from ..core.index_spaces import NeuronIds
+from ..core.semantics import ObservationPolicy
+
+_P = ParamSpec("_P")
+_R_co = TypeVar("_R_co", covariant=True)
+
+
+def _require_name(label: str, value: object) -> None:
+    if not isinstance(value, str) or not value:
+        raise ValueError(f"{label} must be a nonempty name")
+
+
+def _positive_rounds(value: object) -> int:
+    if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+        raise ValueError("rounds must be a positive integer")
+    return int(value)
+
+
+def _explicit_bool(label: str, value: object) -> None:
+    if type(value) is not bool:
+        raise ValueError(f"{label} must be an explicit boolean")
+
+
+@dataclass(frozen=True)
+class ProjectionStep:
+    """One simultaneous projection step in immutable tuple form."""
+
+    stimuli: tuple[tuple[str, tuple[str, ...]], ...]
+    fibers: tuple[tuple[str, tuple[str, ...]], ...]
+
+    def __post_init__(self) -> None:
+        for label, edges in (("stimuli", self.stimuli), ("fibers", self.fibers)):
+            if not isinstance(edges, tuple):
+                raise TypeError(f"{label} must be a tuple of edges")
+            seen: set[str] = set()
+            for edge in edges:
+                if (not isinstance(edge, tuple) or len(edge) != 2
+                        or not isinstance(edge[0], str) or not edge[0]
+                        or not isinstance(edge[1], tuple)
+                        or not edge[1]
+                        or any(not isinstance(target, str) or not target for target in edge[1])):
+                    raise ValueError(f"{label} edges must be (name, nonempty target tuple)")
+                if edge[0] in seen:
+                    raise ValueError(f"{label} cannot contain duplicate source names")
+                if len(set(edge[1])) != len(edge[1]):
+                    raise ValueError(f"{label} cannot contain duplicate target names")
+                seen.add(edge[0])
+
+    def stimuli_dict(self) -> dict[str, list[str]]:
+        return {source: list(targets) for source, targets in self.stimuli}
+
+    def fibers_dict(self) -> dict[str, list[str]]:
+        return {source: list(targets) for source, targets in self.fibers}
+
+
+def _schedule(first: ProjectionStep, tail: ProjectionStep, rounds: int) -> tuple[ProjectionStep, ...]:
+    """Build a finite immutable schedule with one distinguished entry step."""
+    return (first,) + (tail,) * (rounds - 1)
+
+
+def _execute_schedule(steps: tuple[ProjectionStep, ...], brain) -> None:
+    """Interpret a validated schedule through the brain projection boundary."""
+    for step in steps:
+        brain.project(step.stimuli_dict(), step.fibers_dict())
+
+
+@dataclass(frozen=True)
+class ActivationPlan:
+    """Validated injection of a stable-neuron Assembly snapshot."""
+
+    assembly: Assembly
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.assembly, Assembly):
+            raise TypeError("assembly must be an Assembly snapshot")
+
+    def preflight(self, brain) -> None:
+        area_name = self.assembly.area
+        if area_name not in brain.areas:
+            raise ValueError(f"Unknown area {area_name!r}")
+        area = brain.areas[area_name]
+        ids = np.asarray(self.assembly.winners)
+        if ids.ndim != 1 or not np.issubdtype(ids.dtype, np.integer):
+            raise ValueError("assembly neuron IDs must be a one-dimensional integer array")
+        if np.any(ids < 0) or np.any(ids >= area.n):
+            raise ValueError("assembly neuron IDs must be within the area")
+
+
+@dataclass(frozen=True)
+class ReadoutPlan:
+    """Validated pure decoder query over immutable Assembly snapshots."""
+
+    assembly: Assembly
+    lexicon: Mapping[str, Assembly]
+    threshold: float = 0.7
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.assembly, Assembly):
+            raise TypeError("readout assembly must be an Assembly snapshot")
+        if not isinstance(self.lexicon, Mapping):
+            raise TypeError("readout lexicon must be a mapping")
+        if any(not isinstance(word, str) or not word for word in self.lexicon):
+            raise ValueError("readout lexicon labels must be nonempty strings")
+        if any(not isinstance(reference, Assembly) for reference in self.lexicon.values()):
+            raise TypeError("readout lexicon values must be Assembly snapshots")
+        if (isinstance(self.threshold, bool) or not isinstance(self.threshold, Real)
+                or not math.isfinite(float(self.threshold))
+                or not 0.0 <= float(self.threshold) <= 1.0):
+            raise ValueError("readout threshold must be a finite real number in [0, 1]")
+        object.__setattr__(self, "threshold", float(self.threshold))
+
+
+@dataclass(frozen=True)
+class FiberMaterializationPlan:
+    """Validated allocation of a source-to-target fiber."""
+
+    src_area: str
+    dst_area: str
+    src_assembly: Assembly | None = None
+
+    def __post_init__(self) -> None:
+        _require_name("src_area", self.src_area)
+        _require_name("dst_area", self.dst_area)
+        if self.src_assembly is not None:
+            if not isinstance(self.src_assembly, Assembly):
+                raise TypeError("src_assembly must be an Assembly snapshot or None")
+            if self.src_assembly.area != self.src_area:
+                raise ValueError("src_assembly belongs to another source area")
+
+    def preflight(self, brain) -> None:
+        if self.src_area not in brain.areas:
+            raise KeyError(f"materialize_fiber source area is unknown: {self.src_area!r}")
+        if self.dst_area not in brain.areas:
+            raise KeyError(f"materialize_fiber target area is unknown: {self.dst_area!r}")
+
+
+@dataclass(frozen=True)
+class NextTokenTrainingPlan:
+    """Validated ordered corpus schedule for Hebbian next-token training."""
+
+    area: str
+    corpus: tuple[tuple[str, ...], ...]
+    stimuli_map: Mapping[str, str]
+    rounds_per_token: int = 5
+    repetitions: int = 1
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if not isinstance(self.corpus, tuple) or not self.corpus or any(
+            not isinstance(sentence, tuple) or not sentence
+            or any(not isinstance(word, str) or not word for word in sentence)
+            for sentence in self.corpus
+        ):
+            raise ValueError("training corpus must be a nonempty tuple of nonempty word tuples")
+        if not isinstance(self.stimuli_map, Mapping):
+            raise TypeError("training stimuli_map must be a mapping")
+        words = {word for sentence in self.corpus for word in sentence}
+        if any(word not in self.stimuli_map for word in words):
+            raise KeyError("training corpus contains a word missing from stimuli_map")
+        if any(not isinstance(self.stimuli_map[word], str) or not self.stimuli_map[word] for word in words):
+            raise ValueError("training stimuli must be nonempty names")
+        if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be a positive integer")
+        if isinstance(self.repetitions, bool) or not isinstance(self.repetitions, Integral) or self.repetitions < 1:
+            raise ValueError("repetitions must be a positive integer")
+        object.__setattr__(self, "rounds_per_token", int(self.rounds_per_token))
+        object.__setattr__(self, "repetitions", int(self.repetitions))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise KeyError(f"training area is unknown: {self.area!r}")
+        words = {word for sentence in self.corpus for word in sentence}
+        missing = [self.stimuli_map[word] for word in words if self.stimuli_map[word] not in brain.stimuli]
+        if missing:
+            raise KeyError(f"training stimuli are unknown: {sorted(set(missing))}")
+
+
+@dataclass(frozen=True)
+class NextTokenScorePlan:
+    """Validated corpus observation schedule for next-token metrics."""
+
+    area: str
+    corpus: tuple[tuple[str, ...], ...]
+    stimuli_map: Mapping[str, str]
+    lexicon: Mapping[str, Assembly]
+    rounds_per_token: int = 5
+
+    def __post_init__(self) -> None:
+        training = NextTokenTrainingPlan(
+            self.area, self.corpus, self.stimuli_map,
+            self.rounds_per_token, repetitions=1,
+        )
+        object.__setattr__(self, "area", training.area)
+        object.__setattr__(self, "corpus", training.corpus)
+        object.__setattr__(self, "stimuli_map", training.stimuli_map)
+        object.__setattr__(self, "rounds_per_token", training.rounds_per_token)
+        if not isinstance(self.lexicon, Mapping):
+            raise TypeError("score lexicon must map labels to Assembly snapshots")
+        if not self.lexicon:
+            raise ValueError("score lexicon must be nonempty")
+        if any(not isinstance(value, Assembly) for value in self.lexicon.values()):
+            raise TypeError("score lexicon must map labels to Assembly snapshots")
+        if any(value.area != self.area for value in self.lexicon.values()):
+            raise ValueError("score lexicon snapshots must belong to the scoring area")
+
+    def preflight(self, brain) -> None:
+        NextTokenTrainingPlan(
+            self.area, self.corpus, self.stimuli_map,
+            self.rounds_per_token, repetitions=1,
+            ).preflight(brain)
+
+
+@dataclass(frozen=True)
+class RecoveryPlan:
+    """Validated state-preserving cue-recovery observation."""
+
+    reference: Assembly
+    cue: Assembly
+    rounds: int
+    seed: int | None = None
+    recurrence_enabled: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reference, Assembly) or not len(self.reference):
+            raise ValueError("recovery requires a nonempty Assembly reference")
+        if not isinstance(self.cue, Assembly) or self.cue.area != self.reference.area:
+            raise ValueError("cue must be an Assembly in the reference area")
+        if len(self.cue) > len(self.reference):
+            raise ValueError("cue winner count exceeds reference size")
+        if isinstance(self.rounds, bool) or not isinstance(self.rounds, Integral) or self.rounds < 1:
+            raise ValueError("recovery rounds must be a positive integer")
+        if self.seed is not None and (isinstance(self.seed, bool) or not isinstance(self.seed, Integral) or self.seed < 0):
+            raise ValueError("recovery seed must be a nonnegative integer or None")
+        _explicit_bool("recurrence_enabled", self.recurrence_enabled)
+        object.__setattr__(self, "rounds", int(self.rounds))
+        if self.seed is not None:
+            object.__setattr__(self, "seed", int(self.seed))
+
+    def preflight(self, brain) -> None:
+        if self.reference.area not in brain.areas:
+            raise KeyError(f"recovery area is unknown: {self.reference.area!r}")
+        area = brain.areas[self.reference.area]
+        for assembly in (self.reference, self.cue):
+            if np.any(np.asarray(assembly.neuron_ids) >= area.n):
+                raise ValueError("recovery neuron IDs exceed area population")
+        owner = brain.engine_for(self.reference.area)
+        count = owner.materialized_count(self.reference.area)
+        if count is not None and count != area.n:
+            raise ValueError("recovery observation requires a fully materialized population")
+
+
+@dataclass(frozen=True)
+class CueReplacementPlan:
+    """Validated deterministic replacement cue construction."""
+
+    reference: Assembly
+    population: NeuronIds
+    count: int
+    seed: int
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.reference, Assembly) or not len(self.reference):
+            raise ValueError("cue replacement requires a nonempty Assembly reference")
+        if isinstance(self.count, bool) or not isinstance(self.count, Integral) or self.count < 0:
+            raise ValueError("count must be a nonnegative integer")
+        if isinstance(self.seed, bool) or not isinstance(self.seed, Integral) or self.seed < 0:
+            raise ValueError("seed must be a nonnegative integer")
+        universe = np.asarray(self.population)
+        if universe.ndim != 1 or not np.issubdtype(universe.dtype, np.integer):
+            raise ValueError("population must be a one-dimensional integer array")
+        if len(np.unique(universe)) != len(universe):
+            raise ValueError("population must contain unique neuron IDs")
+        if not np.isin(self.reference.neuron_ids, universe).all():
+            raise ValueError("reference must be contained in population")
+        alternatives = len(universe) - len(self.reference)
+        if self.count > min(len(self.reference), alternatives):
+            raise ValueError("population cannot deliver the requested replacement count")
+        object.__setattr__(self, "count", int(self.count))
+        object.__setattr__(self, "seed", int(self.seed))
+
+
+@dataclass(frozen=True)
+class LexiconBuildPlan:
+    """Validated independent stimulus-to-Assembly lexicon schedule."""
+
+    area: str
+    words: tuple[str, ...]
+    stimuli_map: Mapping[str, str]
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if not isinstance(self.words, tuple) or any(not isinstance(word, str) or not word for word in self.words):
+            raise ValueError("lexicon words must be nonempty strings")
+        if len(set(self.words)) != len(self.words):
+            raise ValueError("lexicon words must be unique")
+        if not isinstance(self.stimuli_map, Mapping):
+            raise TypeError("stimuli_map must be a mapping from words to stimuli")
+        if set(self.stimuli_map) != set(self.words):
+            raise ValueError("stimuli_map keys must exactly match the lexicon words")
+        if any(not isinstance(stimulus, str) or not stimulus for stimulus in self.stimuli_map.values()):
+            raise ValueError("lexicon stimuli must be nonempty strings")
+        object.__setattr__(self, "stimuli_map", MappingProxyType(dict(self.stimuli_map)))
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise ValueError(f"unknown lexicon area {self.area!r}")
+        missing = [stimulus for stimulus in self.stimuli_map.values() if stimulus not in brain.stimuli]
+        if missing:
+            raise ValueError(f"unknown lexicon stimuli: {sorted(set(missing))}")
+
+
+@dataclass(frozen=True)
+class NextTokenPredictionPlan:
+    """Validated frozen or adapting next-token prediction query."""
+
+    area: str
+    context: tuple[str, ...]
+    stimuli_map: Mapping[str, str]
+    lexicon: Mapping[str, Assembly]
+    rounds_per_token: int = 5
+    adapt: bool = False
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if not isinstance(self.context, tuple) or not self.context or any(not isinstance(word, str) or not word for word in self.context):
+            raise ValueError("prediction context must be a nonempty tuple of words")
+        if not isinstance(self.stimuli_map, Mapping):
+            raise TypeError("prediction stimuli_map must be a mapping")
+        if any(word not in self.stimuli_map for word in self.context):
+            raise KeyError("prediction context contains a word missing from stimuli_map")
+        if any(not isinstance(self.stimuli_map[word], str) or not self.stimuli_map[word]
+               for word in self.context):
+            raise ValueError("prediction stimuli must be nonempty names")
+        if isinstance(self.rounds_per_token, bool) or not isinstance(self.rounds_per_token, Integral) or self.rounds_per_token < 1:
+            raise ValueError("rounds_per_token must be a positive integer")
+        if not isinstance(self.lexicon, Mapping):
+            raise TypeError("prediction lexicon must map labels to Assembly snapshots")
+        if not self.lexicon:
+            raise ValueError("prediction lexicon must be nonempty")
+        if any(not isinstance(value, Assembly) for value in self.lexicon.values()):
+            raise TypeError("prediction lexicon must map labels to Assembly snapshots")
+        if any(value.area != self.area for value in self.lexicon.values()):
+            raise ValueError("prediction lexicon snapshots must belong to the prediction area")
+        _explicit_bool("adapt", self.adapt)
+        object.__setattr__(self, "rounds_per_token", int(self.rounds_per_token))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise KeyError(f"prediction area is unknown: {self.area!r}")
+        missing = [self.stimuli_map[word] for word in self.context if self.stimuli_map[word] not in brain.stimuli]
+        if missing:
+            raise KeyError(f"prediction stimuli are unknown: {sorted(set(missing))}")
+
+
+@dataclass(frozen=True)
+class ProjectionPlan:
+    """Validated schedule for the named stimulus-to-area operation.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection
+    """
+
+    stimulus: str
+    target: str
+    rounds: int = 10
+    recurrent: bool = False
+
+    def __post_init__(self) -> None:
+        for label, value in (("stimulus", self.stimulus), ("target", self.target)):
+            _require_name(label, value)
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        _explicit_bool("recurrent", self.recurrent)
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        stimulus = ((self.stimulus, (self.target,)),)
+        first = ProjectionStep(stimuli=stimulus, fibers=())
+        tail = ProjectionStep(
+            stimuli=stimulus,
+            fibers=((self.target, (self.target,)),) if self.recurrent else (),
+        )
+        return _schedule(first, tail, self.rounds)
+
+    def execute(self, brain) -> None:
+        """Preflight the named topology, then execute the declared steps."""
+        if self.stimulus not in brain.stimuli:
+            raise IndexError(f"Not in brain.stimuli: {self.stimulus}")
+        if self.target not in brain.areas:
+            raise IndexError(f"Not in brain.areas: {self.target}")
+        _execute_schedule(self.steps, brain)
+
+
+@dataclass(frozen=True)
+class ReciprocalProjectionPlan:
+    """Validated two-area copy and return-edge schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-reciprocal-projection
+    """
+
+    source: str
+    target: str
+    rounds: int = 10
+    fix_source: bool = True
+
+    def __post_init__(self) -> None:
+        for label, value in (("source", self.source), ("target", self.target)):
+            _require_name(label, value)
+        if self.source == self.target:
+            raise ValueError("reciprocal projection requires distinct source and target")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        _explicit_bool("fix_source", self.fix_source)
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        first = ProjectionStep(stimuli=(), fibers=((self.source, (self.target,)),))
+        tail = ProjectionStep(
+            stimuli=(),
+            fibers=(
+                (self.source, (self.target,)),
+                (self.target, (self.target, self.source)),
+            ),
+        )
+        return _schedule(first, tail, self.rounds)
+
+    def preflight(self, brain) -> None:
+        for name in (self.source, self.target):
+            if name not in brain.areas:
+                raise IndexError(f"Not in brain.areas: {name}")
+        if len(brain.areas[self.source].winners) == 0:
+            raise ValueError("reciprocal projection requires an active source assembly")
+
+    def execute_steps(self, brain) -> None:
+        self.preflight(brain)
+        _execute_schedule(self.steps, brain)
+
+
+@dataclass(frozen=True)
+class AssociationPlan:
+    """Validated sequential-pathway and joint-coactivation schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-association
+    """
+
+    source_a: str
+    source_b: str
+    target: str
+    stim_a: str | None = None
+    stim_b: str | None = None
+    rounds: int = 10
+    cofire_rounds: int | None = None
+
+    def __post_init__(self) -> None:
+        names = (
+            ("source_a", self.source_a),
+            ("source_b", self.source_b),
+            ("target", self.target),
+        )
+        for label, value in names:
+            _require_name(label, value)
+        if len({value for _, value in names}) != len(names):
+            raise ValueError("association requires three distinct areas")
+        if (self.stim_a is None) != (self.stim_b is None):
+            raise ValueError("association stimuli must be both present or both absent")
+        for label, value in (("stim_a", self.stim_a), ("stim_b", self.stim_b)):
+            if value is not None:
+                _require_name(label, value)
+        if self.stim_a is not None and self.stim_a == self.stim_b:
+            raise ValueError("association requires distinct source stimuli")
+        rounds = _positive_rounds(self.rounds)
+        cofire = rounds if self.cofire_rounds is None else self.cofire_rounds
+        if (
+            isinstance(cofire, bool)
+            or not isinstance(cofire, Integral)
+            or cofire < 0
+        ):
+            raise ValueError("cofire_rounds must be a nonnegative integer or None")
+        object.__setattr__(self, "rounds", rounds)
+        object.__setattr__(self, "cofire_rounds", int(cofire))
+
+    @property
+    def fix_sources(self) -> bool:
+        return self.stim_a is None
+
+    def _single_source_steps(
+        self, source: str, stimulus: str | None,
+    ) -> tuple[ProjectionStep, ...]:
+        stimuli = ((stimulus, (source,)),) if stimulus is not None else ()
+        source_targets = (self.target,) if self.fix_sources else (source, self.target)
+        steps = []
+        for index in range(self.rounds):
+            fibers = ((source, source_targets),)
+            if index:
+                fibers += ((self.target, (self.target,)),)
+            steps.append(ProjectionStep(stimuli=stimuli, fibers=fibers))
+        return tuple(steps)
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        joint_stimuli = () if self.fix_sources else (
+            (cast(str, self.stim_a), (self.source_a,)),
+            (cast(str, self.stim_b), (self.source_b,)),
+        )
+        source_a_targets = (
+            (self.target,) if self.fix_sources else (self.source_a, self.target)
+        )
+        source_b_targets = (
+            (self.target,) if self.fix_sources else (self.source_b, self.target)
+        )
+        joint = ProjectionStep(
+            stimuli=joint_stimuli,
+            fibers=(
+                (self.source_a, source_a_targets),
+                (self.source_b, source_b_targets),
+                (self.target, (self.target,)),
+            ),
+        )
+        return (
+            self._single_source_steps(self.source_a, self.stim_a)
+            + self._single_source_steps(self.source_b, self.stim_b)
+            + (joint,) * self.cofire_count
+        )
+
+    @property
+    def cofire_count(self) -> int:
+        """Normalized cofire count after validation."""
+        return int(self.cofire_rounds or 0)
+
+    def preflight(self, brain) -> None:
+        for name in (self.source_a, self.source_b, self.target):
+            if name not in brain.areas:
+                raise IndexError(f"Not in brain.areas: {name}")
+        for stimulus in (self.stim_a, self.stim_b):
+            if stimulus is not None and stimulus not in brain.stimuli:
+                raise IndexError(f"Not in brain.stimuli: {stimulus}")
+        if self.fix_sources:
+            empty = [
+                name for name in (self.source_a, self.source_b)
+                if len(brain.areas[name].winners) == 0
+            ]
+            if empty:
+                raise ValueError(f"association requires active fixed sources: {empty}")
+
+    def execute_steps(self, brain) -> None:
+        self.preflight(brain)
+        _execute_schedule(self.steps, brain)
+
+
+_UNSTIMULATED_SOURCE_MODES = frozenset({"require-fixed", "fix-current", "evolving"})
+
+
+@dataclass(frozen=True)
+class MergePlan:
+    """Validated simultaneous two-parent merge schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge
+    """
+
+    source_a: str
+    source_b: str
+    target: str
+    stim_a: str | None = None
+    stim_b: str | None = None
+    rounds: int = 10
+    parent_self: bool = True
+    target_self: bool = True
+    back_project: bool = True
+    unstimulated_source_mode: str | None = None
+
+    def __post_init__(self) -> None:
+        names = (
+            ("source_a", self.source_a),
+            ("source_b", self.source_b),
+            ("target", self.target),
+        )
+        for label, value in names:
+            _require_name(label, value)
+        if len({value for _, value in names}) != len(names):
+            raise ValueError("merge requires three distinct areas")
+        for label, value in (("stim_a", self.stim_a), ("stim_b", self.stim_b)):
+            if value is not None:
+                _require_name(label, value)
+        if self.stim_a is not None and self.stim_a == self.stim_b:
+            raise ValueError("merge requires distinct parent stimuli")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        for label in ("parent_self", "target_self", "back_project"):
+            _explicit_bool(label, getattr(self, label))
+
+        partial = (self.stim_a is None) != (self.stim_b is None)
+        mode = self.unstimulated_source_mode
+        if partial:
+            if mode not in _UNSTIMULATED_SOURCE_MODES:
+                raise ValueError(
+                    "partial-stimulus merge requires unstimulated_source_mode "
+                    "'require-fixed', 'fix-current', or 'evolving'"
+                )
+        elif mode is not None:
+            raise ValueError(
+                "unstimulated_source_mode is only valid for a partial-stimulus merge"
+            )
+
+    @property
+    def unstimulated_source(self) -> str | None:
+        if self.stim_a is None and self.stim_b is not None:
+            return self.source_a
+        if self.stim_b is None and self.stim_a is not None:
+            return self.source_b
+        return None
+
+    @property
+    def fixed_sources(self) -> tuple[str, ...]:
+        if self.stim_a is None and self.stim_b is None:
+            return (self.source_a, self.source_b)
+        source = self.unstimulated_source
+        if self.unstimulated_source_mode == "fix-current" and source is not None:
+            return (source,)
+        return ()
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        stimuli = tuple(
+            (stimulus, (source,))
+            for source, stimulus in (
+                (self.source_a, self.stim_a),
+                (self.source_b, self.stim_b),
+            )
+            if stimulus is not None
+        )
+        def parent_targets(source: str) -> tuple[str, ...]:
+            return (source, self.target) if self.parent_self else (self.target,)
+        parents = (
+            (self.source_a, parent_targets(self.source_a)),
+            (self.source_b, parent_targets(self.source_b)),
+        )
+        target_targets = (
+            ((self.target,) if self.target_self else ())
+            + ((self.source_a, self.source_b) if self.back_project else ())
+        )
+        first = ProjectionStep(stimuli=stimuli, fibers=parents)
+        tail_fibers = parents + (
+            ((self.target, target_targets),) if target_targets else ()
+        )
+        tail = ProjectionStep(stimuli=stimuli, fibers=tail_fibers)
+        return _schedule(first, tail, self.rounds)
+
+    def preflight(self, brain) -> None:
+        for name in (self.source_a, self.source_b, self.target):
+            if name not in brain.areas:
+                raise IndexError(f"Not in brain.areas: {name}")
+        for stimulus in (self.stim_a, self.stim_b):
+            if stimulus is not None and stimulus not in brain.stimuli:
+                raise IndexError(f"Not in brain.stimuli: {stimulus}")
+        unstimulated = [
+            source for source, stimulus in (
+                (self.source_a, self.stim_a),
+                (self.source_b, self.stim_b),
+            )
+            if stimulus is None
+        ]
+        empty = [name for name in unstimulated if len(brain.areas[name].winners) == 0]
+        if empty:
+            raise ValueError(f"merge requires active unstimulated sources: {empty}")
+        source = self.unstimulated_source
+        if source is not None and self.unstimulated_source_mode == "require-fixed":
+            if not brain.areas[source].fixed_assembly:
+                raise ValueError(f"merge requires source {source!r} to be fixed")
+        if source is not None and self.unstimulated_source_mode == "evolving":
+            if brain.areas[source].fixed_assembly:
+                raise ValueError(f"merge requires source {source!r} to be evolving")
+
+    def execute_steps(self, brain) -> None:
+        self.preflight(brain)
+        _execute_schedule(self.steps, brain)
+
+
+@dataclass(frozen=True)
+class SeparationPlan:
+    """Validated two-stimulus separation measurement schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-separation
+    """
+
+    stim_a: str
+    stim_b: str
+    target: str
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        for label, value in (("stim_a", self.stim_a),
+                             ("stim_b", self.stim_b),
+                             ("target", self.target)):
+            _require_name(label, value)
+        if self.stim_a == self.stim_b:
+            raise ValueError("separate requires distinct stimuli")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        for stimulus in (self.stim_a, self.stim_b):
+            if stimulus not in brain.stimuli:
+                raise KeyError(f"separate stimulus is unknown: {stimulus!r}")
+        if self.target not in brain.areas:
+            raise KeyError(f"separate target area is unknown: {self.target!r}")
+
+
+@dataclass(frozen=True)
+class BindingPlan:
+    """Immutable schedule for storing one source assembly in a shared area."""
+
+    source_area: str
+    target_area: str
+    project_rounds: int = 10
+    tail_rounds: int = 1
+    fix_source: bool = True
+
+    def __post_init__(self) -> None:
+        _require_name("source_area", self.source_area)
+        _require_name("target_area", self.target_area)
+        if self.source_area == self.target_area:
+            raise ValueError("bind requires distinct source and target areas")
+        if isinstance(self.project_rounds, bool) or not isinstance(self.project_rounds, Integral) or self.project_rounds < 1:
+            raise ValueError("bind project_rounds must be a positive integer")
+        if isinstance(self.tail_rounds, bool) or not isinstance(self.tail_rounds, Integral) or self.tail_rounds < 0:
+            raise ValueError("bind tail_rounds must be a nonnegative integer")
+        _explicit_bool("fix_source", self.fix_source)
+        object.__setattr__(self, "project_rounds", int(self.project_rounds))
+        object.__setattr__(self, "tail_rounds", int(self.tail_rounds))
+
+    def preflight(self, brain) -> None:
+        for label, area in (("source_area", self.source_area), ("target_area", self.target_area)):
+            if area not in brain.areas:
+                raise KeyError(f"bind {label} is unknown: {area!r}")
+
+
+@dataclass(frozen=True)
+class BindingReadPlan:
+    """Immutable read-only traversal schedule for one stored binding."""
+
+    source_area: str
+    target_area: str
+    tail_rounds: int = 1
+
+    def __post_init__(self) -> None:
+        _require_name("source_area", self.source_area)
+        _require_name("target_area", self.target_area)
+        if self.source_area == self.target_area:
+            raise ValueError("binding read requires distinct source and target areas")
+        if isinstance(self.tail_rounds, bool) or not isinstance(self.tail_rounds, Integral) or self.tail_rounds < 0:
+            raise ValueError("binding read tail_rounds must be a nonnegative integer")
+        object.__setattr__(self, "tail_rounds", int(self.tail_rounds))
+
+    def preflight(self, brain) -> None:
+        for label, area in (("source", self.source_area), ("target", self.target_area)):
+            if area not in brain.areas:
+                raise KeyError(f"binding read {label} area is unknown: {area!r}")
+
+
+@dataclass(frozen=True)
+class InputDrivePlan:
+    """Immutable multi-target drive observation schedule."""
+
+    sources: tuple[str, ...]
+    target_areas: tuple[str, ...]
+    metric: str = "pre_kwta"
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("input drive requires at least one source area")
+        if not isinstance(self.target_areas, tuple) or not self.target_areas:
+            raise ValueError("input drive requires at least one target area")
+        for label, values in (("sources", self.sources), ("target_areas", self.target_areas)):
+            if any(not isinstance(name, str) or not name for name in values):
+                raise ValueError(f"input drive {label} must contain nonempty names")
+            if len(set(values)) != len(values):
+                raise ValueError(f"input drive {label} must be distinct")
+        if self.metric not in {"pre_kwta", "winners"}:
+            raise ValueError("input drive metric must be 'pre_kwta' or 'winners'")
+
+    def preflight(self, brain) -> None:
+        unknown_sources = [name for name in self.sources if name not in brain.areas]
+        unknown_targets = [name for name in self.target_areas if name not in brain.areas]
+        if unknown_sources:
+            raise KeyError(f"input_drive source area(s) are unknown: {unknown_sources!r}")
+        if unknown_targets:
+            raise KeyError(f"input_drive target area(s) are unknown: {unknown_targets!r}")
+
+
+@dataclass(frozen=True)
+class BindingStrengthPlan:
+    """Immutable overlap readout against a stored target assembly."""
+
+    sources: tuple[str, ...]
+    target_area: str
+    target_assembly: Assembly
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("binding strength requires at least one source area")
+        if any(not isinstance(name, str) or not name for name in self.sources):
+            raise ValueError("binding strength sources must be nonempty names")
+        if len(set(self.sources)) != len(self.sources):
+            raise ValueError("binding strength sources must be distinct")
+        _require_name("target_area", self.target_area)
+        if not isinstance(self.target_assembly, Assembly):
+            raise TypeError("binding strength target_assembly must be an Assembly")
+        if self.target_assembly.area != self.target_area:
+            raise ValueError("binding strength target_assembly belongs to another area")
+
+    def preflight(self, brain) -> None:
+        unknown = [name for name in (*self.sources, self.target_area)
+                   if name not in brain.areas]
+        if unknown:
+            raise KeyError(f"binding strength area name(s) are unknown: {unknown!r}")
+
+
+@dataclass(frozen=True)
+class SourceBindingPlan:
+    """Immutable schedule for multi-source teacher-driven binding."""
+
+    sources: tuple[str, ...]
+    target_area: str
+    teachers: tuple[str, ...] = ()
+    rounds: int = 2
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("source binding requires at least one source area")
+        if any(not isinstance(name, str) or not name for name in self.sources):
+            raise ValueError("source binding sources must be nonempty names")
+        if len(set(self.sources)) != len(self.sources):
+            raise ValueError("source binding sources must be distinct")
+        _require_name("target_area", self.target_area)
+        if not isinstance(self.teachers, tuple):
+            raise ValueError("source binding teachers must be a tuple")
+        if any(not isinstance(name, str) or not name for name in self.teachers):
+            raise ValueError("source binding teachers must be nonempty names")
+        if len(set(self.teachers)) != len(self.teachers):
+            raise ValueError("source binding teachers must be distinct")
+        if self.target_area in self.sources or self.target_area in self.teachers:
+            raise ValueError("source binding target must be distinct from sources and teachers")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        unknown = [name for name in (*self.sources, *self.teachers, self.target_area)
+                   if name not in brain.areas]
+        if unknown:
+            raise KeyError(f"source binding area name(s) are unknown: {unknown!r}")
+
+
+@dataclass(frozen=True)
+class BindingRecallPlan:
+    """Immutable readout schedule for a multi-source binding."""
+
+    sources: tuple[str, ...]
+    target_area: str
+    clear_target: bool = True
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.sources, tuple) or not self.sources:
+            raise ValueError("binding recall requires at least one source area")
+        if any(not isinstance(name, str) or not name for name in self.sources):
+            raise ValueError("binding recall sources must be nonempty names")
+        if len(set(self.sources)) != len(self.sources):
+            raise ValueError("binding recall sources must be distinct")
+        _require_name("target_area", self.target_area)
+        _explicit_bool("clear_target", self.clear_target)
+
+    def preflight(self, brain) -> None:
+        unknown_sources = [name for name in self.sources if name not in brain.areas]
+        if unknown_sources:
+            raise KeyError(f"binding recall source area(s) are unknown: {unknown_sources!r}")
+        if self.target_area not in brain.areas:
+            raise KeyError(f"binding recall target area is unknown: {self.target_area!r}")
+
+
+@dataclass(frozen=True)
+class ConvergencePlan:
+    """Immutable stopping schedule shared by convergent learning helpers."""
+
+    max_epochs: int = 12
+    project_rounds: int = 6
+    stability_window: int = 2
+    threshold: float = 0.90
+    recurrent: bool = True
+
+    def __post_init__(self) -> None:
+        for label, value in (("max_epochs", self.max_epochs), ("project_rounds", self.project_rounds),
+                             ("stability_window", self.stability_window)):
+            if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+                raise ValueError(f"{label} must be a positive integer")
+        if self.stability_window < 2:
+            raise ValueError("stability_window must be at least two")
+        if (isinstance(self.threshold, bool) or not isinstance(self.threshold, Real)
+                or not math.isfinite(float(self.threshold))
+                or not 0.0 <= float(self.threshold) <= 1.0):
+            raise ValueError("convergence threshold must be a finite real number in [0, 1]")
+        _explicit_bool("recurrent", self.recurrent)
+        object.__setattr__(self, "max_epochs", int(self.max_epochs))
+        object.__setattr__(self, "project_rounds", int(self.project_rounds))
+        object.__setattr__(self, "stability_window", int(self.stability_window))
+        object.__setattr__(self, "threshold", float(self.threshold))
+
+
+@dataclass(frozen=True)
+class ConsolidationPlan:
+    """Immutable bidirectional sleep-replay schedule for two assemblies."""
+
+    area_a: str
+    assembly_a: Assembly
+    area_b: str
+    assembly_b: Assembly
+    rounds: int = 5
+    a_to_b: bool = True
+    b_to_a: bool = True
+
+    def __post_init__(self) -> None:
+        _require_name("area_a", self.area_a)
+        _require_name("area_b", self.area_b)
+        if self.area_a == self.area_b:
+            raise ValueError("consolidation requires distinct areas")
+        if not isinstance(self.assembly_a, Assembly) or self.assembly_a.area != self.area_a:
+            raise ValueError("assembly_a must belong to area_a")
+        if not isinstance(self.assembly_b, Assembly) or self.assembly_b.area != self.area_b:
+            raise ValueError("assembly_b must belong to area_b")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        _explicit_bool("a_to_b", self.a_to_b)
+        _explicit_bool("b_to_a", self.b_to_a)
+        if not self.a_to_b and not self.b_to_a:
+            raise ValueError("consolidation requires at least one replay direction")
+
+    def preflight(self, brain) -> None:
+        for area in (self.area_a, self.area_b):
+            if area not in brain.areas:
+                raise KeyError(f"consolidation area is unknown: {area!r}")
+
+
+@dataclass(frozen=True)
+class ConsolidationProtocolPlan:
+    """Immutable ordered replay protocol for generic consolidation."""
+
+    steps: tuple
+    passes: int = 1
+    clear_activity: bool = True
+    prepare_areas: bool = False
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.steps, tuple) or not self.steps:
+            raise ValueError("consolidation requires a nonempty step tuple")
+        if isinstance(self.passes, bool) or not isinstance(self.passes, Integral) or self.passes < 1:
+            raise ValueError("consolidation passes must be a positive integer")
+        _explicit_bool("clear_activity", self.clear_activity)
+        _explicit_bool("prepare_areas", self.prepare_areas)
+        object.__setattr__(self, "passes", int(self.passes))
+
+
+@dataclass(frozen=True)
+class ContextAccumulationPlan:
+    """Immutable ordered word-to-context accumulation schedule."""
+
+    word_steps: tuple[tuple[str, str], ...]
+    context_area: str
+    core_assemblies: tuple[Assembly | None, ...] | None = None
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.word_steps, tuple) or not self.word_steps:
+            raise ValueError("context accumulation requires a nonempty word schedule")
+        if any(not isinstance(step, tuple) or len(step) != 2
+               or any(not isinstance(name, str) or not name for name in step)
+               for step in self.word_steps):
+            raise ValueError("context accumulation steps must be (phon, core_area) tuples")
+        _require_name("context_area", self.context_area)
+        if self.core_assemblies is not None:
+            if not isinstance(self.core_assemblies, tuple) or len(self.core_assemblies) != len(self.word_steps):
+                raise ValueError("core_assemblies must match word_steps length")
+            if any(assembly is not None and not isinstance(assembly, Assembly)
+                   for assembly in self.core_assemblies):
+                raise TypeError("core_assemblies entries must be Assembly or None")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        if self.context_area not in brain.areas:
+            raise KeyError(f"context accumulation area is unknown: {self.context_area!r}")
+        for phon, core_area in self.word_steps:
+            if core_area not in brain.areas:
+                raise KeyError(f"context accumulation core area is unknown: {core_area!r}")
+            if self.core_assemblies is None and phon not in brain.stimuli:
+                raise KeyError(f"context accumulation stimulus is unknown: {phon!r}")
+        if self.core_assemblies is not None:
+            for (_, core_area), assembly in zip(self.word_steps, self.core_assemblies, strict=True):
+                if assembly is not None and assembly.area != core_area:
+                    raise ValueError("context accumulation core assembly belongs to another area")
+
+
+@dataclass(frozen=True)
+class ContextAccumulationStepPlan:
+    """Immutable one-word context transition schedule."""
+
+    core_area: str
+    context_area: str
+    phon: str | None = None
+    core_assembly: Assembly | None = None
+    rounds: int = 10
+
+    def __post_init__(self) -> None:
+        _require_name("core_area", self.core_area)
+        _require_name("context_area", self.context_area)
+        if self.core_area == self.context_area:
+            raise ValueError("context step requires distinct core and context areas")
+        if self.phon is not None and (not isinstance(self.phon, str) or not self.phon):
+            raise ValueError("context step phon must be a nonempty stimulus name or None")
+        if self.core_assembly is not None:
+            if not isinstance(self.core_assembly, Assembly):
+                raise TypeError("context step core_assembly must be an Assembly or None")
+            if self.core_assembly.area != self.core_area:
+                raise ValueError("context step core_assembly belongs to another area")
+        if self.phon is not None and self.core_assembly is not None:
+            raise ValueError("context step requires exactly one source representation")
+        if self.phon is None and self.core_assembly is None:
+            raise ValueError("context step requires phon or core_assembly")
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+
+    def preflight(self, brain) -> None:
+        for label, area in (("core", self.core_area), ("context", self.context_area)):
+            if area not in brain.areas:
+                raise KeyError(f"context step {label} area is unknown: {area!r}")
+        if self.core_assembly is None and self.phon not in brain.stimuli:
+            raise KeyError(f"context step stimulus is unknown: {self.phon!r}")
+
+
+# The three policies completion can honour, spelled by the one closed enum
+# every run record uses (ObservationPolicy); `probe` and `none` do not apply
+# to a recurrent recovery schedule.
+_COMPLETION_OBSERVATION_MODES = frozenset({
+    ObservationPolicy.PLASTIC.value,
+    ObservationPolicy.FROZEN.value,
+    ObservationPolicy.READ_ONLY.value,
+})
+
+
+@dataclass(frozen=True)
+class PreparedCompletion:
+    """A reference assembly and its exact sampled compact-index cue."""
+
+    plan: "CompletionPlan"
+    reference: Assembly
+    entry_compact: tuple[int, ...]
+    compact_cue: tuple[int, ...]
+    brain_identity: int
+
+    def inject_cue(self, brain) -> None:
+        if id(brain) != self.brain_identity:
+            raise ValueError("prepared completion belongs to a different brain")
+        current = tuple(int(value) for value in brain.areas[self.plan.area].winners)
+        if current != self.entry_compact:
+            raise ValueError("completion source changed after cue preparation")
+        brain.areas[self.plan.area].winners = np.asarray(
+            self.compact_cue, dtype=np.uint32,
+        )
+
+
+@dataclass(frozen=True)
+class CompletionPlan:
+    """Validated partial-cue construction and recurrent recovery schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-completion
+    """
+
+    area: str
+    fraction: float = 0.5
+    rounds: int = 5
+    seed: int | None = None
+    observation_mode: str | None = None
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        if (
+            isinstance(self.fraction, bool)
+            or not isinstance(self.fraction, Real)
+            or not math.isfinite(float(self.fraction))
+            or not 0 < self.fraction <= 1
+        ):
+            raise ValueError("fraction must be finite and in (0, 1]")
+        object.__setattr__(self, "fraction", float(self.fraction))
+        object.__setattr__(self, "rounds", _positive_rounds(self.rounds))
+        if (
+            self.seed is None
+            or isinstance(self.seed, bool)
+            or not isinstance(self.seed, Integral)
+        ):
+            raise ValueError("seed must be an explicit integer")
+        object.__setattr__(self, "seed", int(self.seed))
+        if self.observation_mode not in _COMPLETION_OBSERVATION_MODES:
+            raise ValueError(
+                "observation_mode must be 'plastic', 'frozen', or 'read-only'"
+            )
+
+    @property
+    def steps(self) -> tuple[ProjectionStep, ...]:
+        step = ProjectionStep(stimuli=(), fibers=((self.area, (self.area,)),))
+        return _schedule(step, step, self.rounds)
+
+    def observation_scope(self, brain):
+        """Return the one state policy named by this protocol."""
+        if self.observation_mode == "plastic":
+            return nullcontext(brain)
+        if self.observation_mode == "frozen":
+            return brain.frozen()
+        return brain.read_only()
+
+    def prepare(self, brain) -> PreparedCompletion:
+        if self.area not in brain.areas:
+            raise IndexError(f"Not in brain.areas: {self.area}")
+        # Card C3: a clamped (fixed) target cannot masquerade as free recall.
+        # With winners pinned the schedule below cannot change them, so any
+        # overlap it reports is the clamp, not recovery. Refuse before the
+        # cue is even drawn.
+        area = brain.areas[self.area]
+        if getattr(area, "fixed_assembly", False) or brain._engine_for(area).is_fixed(self.area):
+            raise ValueError(
+                f"area {self.area!r} has a fixed assembly; completion measures free "
+                "recall and a clamped target cannot report it (unfix the area first)"
+            )
+        reference = Assembly.from_area(brain, self.area)
+        compact = tuple(int(value) for value in brain.areas[self.area].winners)
+        if not compact:
+            raise ValueError(f"area {self.area!r} has no assembly to complete")
+        if len(compact) != len(reference):
+            raise ValueError("completion reference and compact cue source disagree")
+        cue_size = int(len(reference) * self.fraction)
+        if cue_size < 1:
+            raise ValueError(
+                "fraction retains no neurons at the current assembly size"
+            )
+        cue = tuple(random.Random(self.seed).sample(compact, cue_size))
+        return PreparedCompletion(
+            plan=self,
+            reference=reference,
+            entry_compact=compact,
+            compact_cue=cue,
+            brain_identity=id(brain),
+        )
+
+
+@dataclass(frozen=True)
+class OrderedRecallPlan:
+    """Validated schedule for recurrent sequence readout with LRI.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory
+    """
+
+    area: str
+    cue: str
+    max_steps: int = 20
+    convergence_threshold: float = 0.9
+    rounds_per_step: int = 1
+    novelty_threshold: float = 0.3
+
+    def __post_init__(self) -> None:
+        _require_name("area", self.area)
+        _require_name("cue", self.cue)
+        for label, value in (("max_steps", self.max_steps),
+                             ("rounds_per_step", self.rounds_per_step)):
+            if isinstance(value, bool) or not isinstance(value, Integral) or value < 1:
+                raise ValueError(f"{label} must be a positive integer")
+            object.__setattr__(self, label, int(value))
+        for label, value in (("convergence_threshold", self.convergence_threshold),
+                             ("novelty_threshold", self.novelty_threshold)):
+            if (isinstance(value, bool) or not isinstance(value, Real)
+                    or not math.isfinite(float(value))
+                    or not 0.0 <= float(value) <= 1.0):
+                raise ValueError(f"{label} must be a finite real number in [0, 1]")
+            object.__setattr__(self, label, float(value))
+
+    def preflight(self, brain) -> None:
+        if self.area not in brain.areas:
+            raise KeyError(f"ordered_recall area is unknown: {self.area!r}")
+        if self.cue not in brain.stimuli:
+            raise KeyError(f"ordered_recall cue stimulus is unknown: {self.cue!r}")
+        if brain.areas[self.area].refractory_period == 0:
+            raise ValueError(
+                f"ordered_recall requires refractory_period > 0 for area {self.area!r}. "
+                "Add the area with refractory_period=N to enable LRI."
+            )
+
+
+@dataclass(frozen=True)
+class SequenceMemorizePlan:
+    """Validated ordered-stimulus training schedule.
+
+    Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory
+    """
+
+    stimuli: tuple[str, ...]
+    target: str
+    rounds_per_step: int = 10
+    repetitions: int = 1
+    phase_b_ratio: float | None = None
+    beta_boost: float | None = None
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.stimuli, tuple) or not self.stimuli:
+            raise ValueError("stimuli must be a nonempty ordered tuple")
+        if any(not isinstance(name, str) or not name for name in self.stimuli):
+            raise ValueError("stimuli must contain nonempty names")
+        _require_name("target", self.target)
+        for label, value in (("rounds_per_step", self.rounds_per_step),
+                             ("repetitions", self.repetitions)):
+            object.__setattr__(self, label, _positive_rounds(value))
+        if self.phase_b_ratio is not None:
+            if (isinstance(self.phase_b_ratio, bool)
+                    or not isinstance(self.phase_b_ratio, Real)
+                    or not math.isfinite(float(self.phase_b_ratio))
+                    or not 0.0 <= float(self.phase_b_ratio) <= 1.0):
+                raise ValueError("phase_b_ratio must be a finite real number in [0, 1]")
+            object.__setattr__(self, "phase_b_ratio", float(self.phase_b_ratio))
+        if self.beta_boost is not None:
+            if (isinstance(self.beta_boost, bool)
+                    or not isinstance(self.beta_boost, Real)
+                    or not math.isfinite(float(self.beta_boost))
+                    or float(self.beta_boost) < 0.0):
+                raise ValueError("beta_boost must be a finite nonnegative real number")
+            object.__setattr__(self, "beta_boost", float(self.beta_boost))
+
+    def preflight(self, brain) -> None:
+        if self.target not in brain.areas:
+            raise KeyError(f"sequence_memorize target area is unknown: {self.target!r}")
+        unknown = [name for name in self.stimuli if name not in brain.stimuli]
+        if unknown:
+            raise KeyError(f"sequence_memorize stimulus name(s) are unknown: {unknown!r}")
+
+
+@dataclass(frozen=True)
+class AttentionPlan:
+    """Immutable readout schedule for sparse assembly attention."""
+
+    query: Assembly
+    keys: tuple[tuple[str, Assembly], ...]
+    values: tuple[tuple[str, Assembly], ...]
+    top_k: int = 1
+    output_size: int | None = None
+    temperature: float = 1.0
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.query, Assembly) or not self.query:
+            raise ValueError("attention query must be a nonempty Assembly")
+        if not self.keys or not self.values:
+            raise ValueError("attention requires nonempty keys and values")
+        if tuple(label for label, _ in self.keys) != tuple(label for label, _ in self.values):
+            raise ValueError("attention keys and values must have identical ordered labels")
+        if len({label for label, _ in self.keys}) != len(self.keys):
+            raise ValueError("attention labels must be unique")
+        if any(not isinstance(label, str) or not label or not isinstance(assembly, Assembly)
+               or not assembly for label, assembly in (*self.keys, *self.values)):
+            raise ValueError("attention entries must be nonempty labeled Assemblies")
+        if any(assembly.area != self.query.area for _, assembly in self.keys):
+            raise ValueError("attention query and keys must share one area")
+        if len({assembly.area for _, assembly in self.values}) != 1:
+            raise ValueError("attention values must share one area")
+        if isinstance(self.top_k, bool) or not isinstance(self.top_k, Integral) or not 1 <= self.top_k <= len(self.keys):
+            raise ValueError("attention top_k must be between one and the number of keys")
+        if self.output_size is not None and (isinstance(self.output_size, bool)
+                                              or not isinstance(self.output_size, Integral)
+                                              or self.output_size < 1):
+            raise ValueError("attention output_size must be a positive integer")
+        if (isinstance(self.temperature, bool) or not isinstance(self.temperature, Real)
+                or not math.isfinite(float(self.temperature)) or self.temperature <= 0):
+            raise ValueError("attention temperature must be finite and positive")
+
+
+@dataclass(frozen=True)
+class OperationContract:
+    """Reviewable scientific surface attached to an executable operation."""
+
+    operation_id: str
+    specification: str
+    plan_type: type
+    inputs: tuple[str, ...]
+    reads: tuple[str, ...]
+    mutates: tuple[str, ...]
+    regime: tuple[str, ...]
+    observed_outcome: tuple[str, ...]
+    failure_conditions: tuple[str, ...]
+    constructed_controls: tuple[str, ...]
+    true_negative_controls: tuple[str, ...]
+
+    def __post_init__(self) -> None:
+        if not isinstance(self.operation_id, str) or not self.operation_id:
+            raise ValueError("operation contract requires a nonempty string ID")
+        if not isinstance(self.specification, str) or "#contract-" not in self.specification:
+            raise ValueError("operation contract requires an ID and specification anchor")
+        plan_params = getattr(self.plan_type, "__dataclass_params__", None)
+        if not is_dataclass(self.plan_type) or not getattr(plan_params, "frozen", False):
+            raise ValueError("operation contract plan_type must be a frozen dataclass")
+        surfaces = {
+            "inputs": self.inputs,
+            "reads": self.reads,
+            "mutates": self.mutates,
+            "regime": self.regime,
+            "observed outcome": self.observed_outcome,
+            "failure conditions": self.failure_conditions,
+            "constructed controls": self.constructed_controls,
+            "true-negative controls": self.true_negative_controls,
+        }
+        invalid = []
+        for name, values in surfaces.items():
+            if (
+                not isinstance(values, tuple)
+                or not values
+                or any(not isinstance(value, str) or not value for value in values)
+                or len(set(values)) != len(values)
+            ):
+                invalid.append(name)
+        if invalid:
+            raise ValueError(f"operation contract has invalid surfaces: {invalid}")
+
+
+CONVERGENCE_CONTRACT = OperationContract(
+    operation_id="convergence-learning-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-convergence",
+    plan_type=ConvergencePlan,
+    inputs=("brain", "source", "target", "max_epochs", "project_rounds", "stability_window", "threshold", "recurrent"),
+    reads=("source stimulus or pattern", "target winners", "afferent and recurrent weights"),
+    mutates=("target winners", "enabled weights", "engine history"),
+    regime=("validated finite source pattern or registered stimulus", "consecutive snapshot overlap threshold"),
+    observed_outcome=("final assembly snapshot", "epochs used", "persistence"),
+    failure_conditions=("unknown areas or stimulus", "invalid source pattern", "invalid schedule", "empty source activation"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_learning_schedule_contract.py::"
+        "test_learning_rejects_invalid_convergence",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_learning_schedule_contract.py::"
+        "test_learning_rejects_invalid_convergence",
+    ),
+)
+
+
+READOUT_CONTRACT = OperationContract(
+    operation_id="fuzzy-readout-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-readout",
+    plan_type=ReadoutPlan,
+    inputs=("assembly snapshot", "lexicon", "threshold"),
+    reads=("stable neuron-ID overlap against each lexicon snapshot",),
+    mutates=("nothing; pure decoder observation",),
+    regime=("finite threshold in [0, 1]", "deterministic lexical tie break"),
+    observed_outcome=("best label or None when below threshold",),
+    failure_conditions=("malformed snapshot", "malformed lexicon", "invalid threshold"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_readout.py::test_readout_ties_are_independent_of_dictionary_order",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_readout.py::test_invalid_threshold_is_rejected",
+    ),
+)
+
+
+FIBER_MATERIALIZATION_CONTRACT = OperationContract(
+    operation_id="fiber-materialization-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-fiber-materialization",
+    plan_type=FiberMaterializationPlan,
+    inputs=("brain", "source area", "target area", "optional source snapshot"),
+    reads=("source activity", "target fiber allocation state"),
+    mutates=("target fiber columns", "temporary source/target activity"),
+    regime=("known source and target areas", "frozen allocation with plasticity off"),
+    observed_outcome=("boolean indicating whether source traffic was materialized",),
+    failure_conditions=("unknown topology", "snapshot/source mismatch", "stale snapshot"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_materialize_fiber_contract.py::"
+        "test_materialize_fiber_rejects_unknown_topology",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_materialize_fiber_contract.py::"
+        "test_materialize_fiber_reports_inactive_source_explicitly",
+    ),
+)
+
+
+LEXICON_BUILD_CONTRACT = OperationContract(
+    operation_id="lexicon-build-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-lexicon-build",
+    plan_type=LexiconBuildPlan,
+    inputs=("brain", "target area", "ordered word labels", "stimulus map", "rounds"),
+    reads=("phonological stimuli", "target area connectome"),
+    mutates=("target area activity", "target recurrent connections between words"),
+    regime=("unique words", "exact stimulus-map keys", "reset connections between words"),
+    observed_outcome=("word-to-Assembly lexicon",),
+    failure_conditions=("unknown area or stimulus", "duplicate/malformed labels", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_readout.py::test_build_lexicon_distinct",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_readout.py::test_build_lexicon_preflights_all_inputs",
+    ),
+)
+
+
+NEXT_TOKEN_PREDICTION_CONTRACT = OperationContract(
+    operation_id="next-token-prediction-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-prediction",
+    plan_type=NextTokenPredictionPlan,
+    inputs=("brain", "area", "ordered context", "stimulus map", "lexicon", "rounds", "adapt"),
+    reads=("context stimulus drives", "recurrent area state", "lexicon overlaps"),
+    mutates=("temporary activity; weights only when adapt=True",),
+    regime=("nonempty context", "positive rounds", "frozen by default", "ranked overlap readout"),
+    observed_outcome=("ordered label/overlap scores",),
+    failure_conditions=("unknown words/stimuli/area", "invalid rounds", "malformed lexicon", "empty context"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_next_token_after_the",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_prediction_rejects_nonpositive_rounds",
+    ),
+)
+
+
+NEXT_TOKEN_TRAINING_CONTRACT = OperationContract(
+    operation_id="next-token-training-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-training",
+    plan_type=NextTokenTrainingPlan,
+    inputs=("brain", "area", "ordered corpus", "stimulus map", "rounds", "repetitions"),
+    reads=("corpus token stimuli", "recurrent area state"),
+    mutates=("area winners", "recurrent weights", "engine history"),
+    regime=("nonempty sentences", "positive rounds and repetitions", "ordered teacher-forced sequence"),
+    observed_outcome=("trained brain state",),
+    failure_conditions=("unknown words/stimuli/area", "malformed corpus", "invalid schedule"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_lexicon_is_built",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_training_rejects_unknown_word_before_mutation",
+    ),
+)
+
+
+NEXT_TOKEN_SCORE_CONTRACT = OperationContract(
+    operation_id="next-token-score-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-next-token-score",
+    plan_type=NextTokenScorePlan,
+    inputs=("brain", "area", "ordered corpus", "stimulus map", "lexicon", "rounds"),
+    reads=("frozen next-token rankings", "lexicon overlaps"),
+    mutates=("temporary observation activity only",),
+    regime=("complete corpus preflight", "frozen prediction", "top-k and MRR metrics"),
+    observed_outcome=("top1/top3 accuracy, MRR, prediction count",),
+    failure_conditions=("unknown words/stimuli/area", "malformed corpus", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_above_chance_accuracy",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_next_token.py::test_scoring_rejects_unknown_word_before_prediction",
+    ),
+)
+
+
+RECOVERY_CONTRACT = OperationContract(
+    operation_id="cue-recovery-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-cue-recovery",
+    plan_type=RecoveryPlan,
+    inputs=("brain", "reference Assembly", "cue Assembly", "rounds", "seed", "recurrence_enabled"),
+    reads=("fully materialized recurrent area", "reference/cue neuron IDs"),
+    mutates=("temporary winners only under read-only scope",),
+    regime=("nonempty reference", "cue in reference area", "full materialization", "explicit recurrence control"),
+    observed_outcome=("cue overlap, recovered overlap, improvement",),
+    failure_conditions=("unknown area", "invalid IDs", "partial population", "invalid rounds/seed"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_recovery_improves_cue_and_fails_learning_and_dynamics_nulls",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_partial_population_refuses_before_activating_cue",
+    ),
+)
+
+
+CUE_REPLACEMENT_CONTRACT = OperationContract(
+    operation_id="cue-replacement-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-cue-replacement",
+    plan_type=CueReplacementPlan,
+    inputs=("reference Assembly", "eligible population", "replacement count", "seed"),
+    reads=("reference neuron IDs", "eligible population IDs"),
+    mutates=("nothing; pure deterministic cue construction",),
+    regime=("distinct alternatives", "count bounded by reference and complement", "seeded draw"),
+    observed_outcome=("cue Assembly with requested replacements",),
+    failure_conditions=("empty/malformed reference", "invalid population", "count overflow", "invalid seed"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_population_must_be_unique_and_contain_reference",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_noise_robustness.py::test_population_must_be_unique_and_contain_reference",
+    ),
+)
+
+
+ACTIVATION_CONTRACT = OperationContract(
+    operation_id="assembly-activation-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-activation",
+    plan_type=ActivationPlan,
+    inputs=("brain", "assembly snapshot"),
+    reads=("stable neuron IDs", "target area index mapping"),
+    mutates=("target area winners", "engine activity state"),
+    regime=("snapshot belongs to target area", "IDs are valid in current population"),
+    observed_outcome=("no return value; target activity is updated",),
+    failure_conditions=("unknown area", "invalid neuron IDs", "stale snapshot mapping"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_public_model_boundaries.py::"
+        "test_explicit_activation_rejects_neuron_outside_area",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_public_model_boundaries.py::"
+        "test_explicit_activation_rejects_neuron_outside_area",
+    ),
+)
+
+
+PROJECTION_CONTRACT = OperationContract(
+    operation_id="projection-v1",
+    specification=(
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-projection"
+    ),
+    plan_type=ProjectionPlan,
+    inputs=("brain", "stimulus", "target", "rounds", "recurrent"),
+    reads=("stimulus", "target", "afferent weights", "plasticity state"),
+    mutates=("target winners", "enabled incoming weights", "engine history"),
+    regime=("registered stimulus and target", "backend-defined model regime"),
+    observed_outcome=("final target neuron-ID snapshot",),
+    failure_conditions=(
+        "invalid schedule",
+        "unknown stimulus",
+        "unknown target",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_semantic_cards.py::"
+        "test_p3_operation_owns_recurrence_schedule",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_topology_rejects_before_the_first_mutation",
+    ),
+)
+
+
+RECIPROCAL_PROJECTION_CONTRACT = OperationContract(
+    operation_id="reciprocal-projection-v1",
+    specification=(
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#"
+        "contract-reciprocal-projection"
+    ),
+    plan_type=ReciprocalProjectionPlan,
+    inputs=("brain", "source", "target", "rounds", "fix_source"),
+    reads=("source winners", "forward and return fibers", "plasticity state"),
+    mutates=("target winners", "participating weights", "engine history", "clamps"),
+    regime=("distinct registered areas", "active source assembly"),
+    observed_outcome=("final target neuron-ID snapshot",),
+    failure_conditions=(
+        "invalid schedule",
+        "unknown area",
+        "empty source assembly",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_pnas_roundtrip_contract.py::"
+        "test_roundtrip_responds_to_learning_disabled_control",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_reciprocal_preflight_rejects_before_the_first_mutation",
+    ),
+)
+
+
+ASSOCIATION_CONTRACT = OperationContract(
+    operation_id="association-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-association",
+    plan_type=AssociationPlan,
+    inputs=(
+        "brain", "source_a", "source_b", "target", "stim_a", "stim_b",
+        "rounds", "cofire_rounds",
+    ),
+    reads=("source winners", "optional source stimuli", "pathway weights"),
+    mutates=("target winners", "participating weights", "engine history", "clamps"),
+    regime=(
+        "three distinct registered areas",
+        "two distinct registered stimuli or two active fixed sources",
+    ),
+    observed_outcome=("final jointly-driven target neuron-ID snapshot",),
+    failure_conditions=(
+        "invalid phase schedule",
+        "partial stimulus specification",
+        "unknown topology",
+        "empty fixed source",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_ac_conformance.py::"
+        "test_association_grows_with_coactivation",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_association_preflight_rejects_before_the_first_mutation",
+    ),
+)
+
+
+MERGE_CONTRACT = OperationContract(
+    operation_id="merge-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-merge",
+    plan_type=MergePlan,
+    inputs=(
+        "brain", "source_a", "source_b", "target", "stim_a", "stim_b",
+        "rounds", "parent_self", "target_self", "back_project",
+        "unstimulated_source_mode",
+    ),
+    reads=("parent winners", "optional parent stimuli", "participating weights"),
+    mutates=("target winners", "participating weights", "engine history", "clamps"),
+    regime=(
+        "three distinct registered areas",
+        "active unstimulated parents",
+        "explicit mode for exactly one unstimulated parent",
+    ),
+    observed_outcome=("final jointly-driven target neuron-ID snapshot",),
+    failure_conditions=(
+        "invalid schedule switch",
+        "ambiguous partial-stimulus protocol",
+        "source clamp contradicts declared mode",
+        "unknown topology",
+        "empty unstimulated source",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_merge_back_projection_switch_changes_the_declared_schedule",
+        "neural_assemblies/tests/test_ac_conformance.py::"
+        "test_merge_creates_two_way_connectivity_with_bounded_support",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_merge_preflight_rejects_a_source_state_that_contradicts_its_mode",
+    ),
+)
+
+
+COMPLETION_CONTRACT = OperationContract(
+    operation_id="pattern-completion-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-completion",
+    plan_type=CompletionPlan,
+    inputs=("brain", "area", "fraction", "rounds", "seed", "observation_mode"),
+    reads=("entry assembly", "compact winners", "recurrent weights"),
+    mutates=(
+        "area winners",
+        "recurrent weights in plastic mode",
+        "recruitment outside read-only mode",
+        "engine history outside read-only mode",
+    ),
+    regime=("registered active area", "nonempty retained cue"),
+    observed_outcome=(
+        "final recovered neuron-ID snapshot",
+        "min-normalized overlap with immutable entry reference",
+    ),
+    failure_conditions=(
+        "invalid cue protocol",
+        "missing seed or observation mode",
+        "unknown or empty area",
+        "cue rounds to zero neurons",
+        "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_public_model_boundaries.py::"
+        "test_teaching_example_has_a_working_learning_disabled_control",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_completion_prepare_rejects_before_mutation",
+    ),
+)
+
+
+ORDERED_RECALL_CONTRACT = OperationContract(
+    operation_id="ordered-recall-v1",
+    specification=(
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory"
+    ),
+    plan_type=OrderedRecallPlan,
+    inputs=(
+        "brain", "area", "cue", "max_steps", "known_assemblies",
+        "convergence_threshold", "rounds_per_step", "novelty_threshold",
+    ),
+    reads=("cue stimulus", "area winners", "recurrent weights", "refractory state"),
+    mutates=("area winners", "refractory state", "engine history"),
+    regime=("registered area and cue", "positive refractory period", "ordered learned transitions"),
+    observed_outcome=("ordered neuron-ID assembly snapshots", "explicit termination at cycle, novelty, or budget"),
+    failure_conditions=(
+        "invalid schedule", "unknown area or cue", "refractory period disabled",
+        "malformed reference assemblies", "backend projection rejection",
+    ),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_ordered_recall_plan_requires_lri",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_ordered_recall_plan_requires_lri",
+    ),
+)
+
+
+SEQUENCE_MEMORIZE_CONTRACT = OperationContract(
+    operation_id="sequence-memorize-v1",
+    specification=(
+        "docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-sequence-memory"
+    ),
+    plan_type=SequenceMemorizePlan,
+    inputs=("brain", "stimuli", "target", "rounds_per_step", "repetitions", "phase_b_ratio", "beta_boost"),
+    reads=("ordered stimuli", "target winners", "recurrent weights", "plasticity state"),
+    mutates=("target winners", "transition weights", "engine history", "temporary beta state"),
+    regime=("registered nonempty stimulus sequence", "explicit phase schedule", "backend model regime"),
+    observed_outcome=("ordered neuron-ID assembly snapshots", "resolved training schedule"),
+    failure_conditions=("scalar or empty stimuli", "unknown topology", "invalid schedule", "backend projection rejection"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_sequence_memorize_contract.py::"
+        "test_sequence_memorize_rejects_scalar_stimulus_input",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_sequence_memorize_contract.py::"
+        "test_sequence_memorize_rejects_scalar_stimulus_input",
+    ),
+)
+
+
+SEPARATION_CONTRACT = OperationContract(
+    operation_id="separation-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-separation",
+    plan_type=SeparationPlan,
+    inputs=("brain", "stim_a", "stim_b", "target", "rounds"),
+    reads=("stimulus fibers", "target recurrent weights", "target winners"),
+    mutates=("target winners", "target recurrent weights"),
+    regime=("two distinct registered stimuli", "stimulus-driven target", "destructive recurrent-reset measurement"),
+    observed_outcome=("two neuron-ID assembly snapshots", "normalized pairwise overlap"),
+    failure_conditions=("identical stimuli", "unknown topology", "invalid rounds", "backend projection rejection"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_separation_plan_rejects_identical_stimuli",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_separation_plan_preflight_rejects_unknown_topology",
+    ),
+)
+
+
+ATTENTION_CONTRACT = OperationContract(
+    operation_id="assembly-attention-v1",
+    specification="neural_assemblies/ir/VERIFICATION.md#contract-assembly-attention",
+    plan_type=AttentionPlan,
+    inputs=("query", "labeled keys", "labeled values", "top_k", "output_size", "temperature"),
+    reads=("query and key neuron IDs", "value neuron IDs"),
+    mutates=("nothing; pure readout",),
+    regime=("nonempty immutable assemblies", "shared query/key area", "shared value area"),
+    observed_outcome=("ranked compatibility weights", "selected labels", "bounded sparse value assembly"),
+    failure_conditions=("mismatched labels", "mixed areas", "invalid top_k/output_size/temperature"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_attention_operator.py::test_attention_multi_key_output_is_deterministic_and_bounded",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_attention_operator.py::test_attention_rejects_key_value_mismatch_and_mixed_value_areas",
+    ),
+)
+
+
+BINDING_CONTRACT = OperationContract(
+    operation_id="binding-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding",
+    plan_type=BindingPlan,
+    inputs=("brain", "source_area", "target_area", "source_assembly", "source_stimulus", "project_rounds", "tail_rounds", "fix_source"),
+    reads=("source assembly or live source winners", "source-to-target fiber", "target recurrent fiber"),
+    mutates=("target winners", "binding weights", "temporary source clamp", "engine history"),
+    regime=("distinct registered source and shared target areas", "one explicit source of activity", "feed-forward round then optional recurrent tail"),
+    observed_outcome=("bound target neuron-ID snapshot",),
+    failure_conditions=("unknown areas", "missing source activity", "invalid schedule", "stale injected snapshot"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_bind_input_contract.py::test_bind_rejects_empty_implicit_source",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_bind_input_contract.py::test_bind_rejects_ambiguous_schedule_before_source_resolution",
+    ),
+)
+
+
+BINDING_READ_CONTRACT = OperationContract(
+    operation_id="binding-read-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-read",
+    plan_type=BindingReadPlan,
+    inputs=("brain", "source_area", "target_area", "source_assembly", "tail_rounds"),
+    reads=("source snapshot", "source-to-target weights", "target winners"),
+    mutates=("nothing persistent; activity is restored by read_only",),
+    regime=("distinct source and target areas", "plasticity and recruitment disabled", "optional recurrent tail"),
+    observed_outcome=("target neuron-ID snapshot",),
+    failure_conditions=("unknown areas", "invalid tail schedule", "stale source snapshot"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_completion_observation_modes_have_distinct_mutation_contracts",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::"
+        "test_reciprocal_plan_rejects_a_self_projection",
+    ),
+)
+
+
+INPUT_DRIVE_CONTRACT = OperationContract(
+    operation_id="input-drive-v1",
+    specification="neural_assemblies/ir/VERIFICATION.md#contract-pre-kwta-observation",
+    plan_type=InputDrivePlan,
+    inputs=("brain", "sources", "target_areas", "source_assemblies", "metric"),
+    reads=("source winners", "source-to-target weights", "pre-k-WTA or winner drive"),
+    mutates=("nothing persistent; activity is restored by probe scope",),
+    regime=("nonempty distinct source and target lists", "one shared projection", "explicit drive metric"),
+    observed_outcome=("per-target comparable drive scores",),
+    failure_conditions=("unknown areas", "empty or duplicate topology", "invalid metric", "no active source"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_input_drive_rejects_unknown_areas_instead_of_returning_empty_mapping",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_input_drive_rejects_unknown_areas_instead_of_returning_empty_mapping",
+    ),
+)
+
+
+BINDING_STRENGTH_CONTRACT = OperationContract(
+    operation_id="binding-strength-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-strength",
+    plan_type=BindingStrengthPlan,
+    inputs=("brain", "sources", "target_area", "target_assembly", "source_assemblies"),
+    reads=("source winners", "binding pathway", "target Assembly neuron IDs"),
+    mutates=("nothing persistent; delegates to read-only recall",),
+    regime=("nonempty active source", "target snapshot in target area", "stable neuron-ID overlap"),
+    observed_outcome=("bounded target recovery overlap",),
+    failure_conditions=("unknown or empty sources", "target snapshot area mismatch", "inactive source"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_bind_strength_contract.py::"
+        "test_bind_strength_rejects_snapshot_from_wrong_area",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_bind_strength_contract.py::"
+        "test_bind_strength_rejects_inactive_source",
+    ),
+)
+
+
+SOURCE_BINDING_CONTRACT = OperationContract(
+    operation_id="source-binding-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-source-binding",
+    plan_type=SourceBindingPlan,
+    inputs=("brain", "sources", "target_area", "teachers", "source_assemblies", "rounds"),
+    reads=("source and teacher winners", "target fibers", "plasticity state"),
+    mutates=("target winners", "source-to-target weights", "engine history"),
+    regime=("one or more active source areas", "optional teacher co-drive", "free target competition"),
+    observed_outcome=("boolean indicating whether a pairing was applied",),
+    failure_conditions=("unknown areas", "duplicate source or teacher names", "invalid rounds", "no live source activity"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_binding_operator_contract.py::"
+        "test_bind_rejects_unknown_area_names",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_binding_operator_contract.py::"
+        "test_bind_rejects_ambiguous_round_schedule",
+    ),
+)
+
+
+BINDING_RECALL_CONTRACT = OperationContract(
+    operation_id="binding-recall-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-binding-recall",
+    plan_type=BindingRecallPlan,
+    inputs=("brain", "sources", "target_area", "source_assemblies", "clear_target"),
+    reads=("source winners", "source-to-target weights", "target winners"),
+    mutates=("temporary activity only under read-only scope",),
+    regime=("at least one active source", "plasticity and recruitment disabled", "optional target clearing"),
+    observed_outcome=("target Assembly snapshot or no result",),
+    failure_conditions=("unknown areas", "duplicate source names", "invalid clear_target flag", "no active source"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_recall_rejects_unknown_area_instead_of_returning_none",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_binding_area_contract.py::"
+        "test_recall_rejects_unknown_area_instead_of_returning_none",
+    ),
+)
+
+
+CONSOLIDATION_CONTRACT = OperationContract(
+    operation_id="consolidation-pair-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation",
+    plan_type=ConsolidationPlan,
+    inputs=("brain", "area_a", "assembly_a", "area_b", "assembly_b", "rounds", "a_to_b", "b_to_a"),
+    reads=("stored assembly snapshots", "forward and return fibers", "plasticity state"),
+    mutates=("participating weights", "area winners", "engine history"),
+    regime=("distinct areas with current assembly snapshots", "one or both explicit replay directions"),
+    observed_outcome=("post-replay snapshots for both areas",),
+    failure_conditions=("unknown areas", "snapshot/area mismatch", "invalid rounds or direction flags", "no replay direction"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_engine_e2_overlap.py::test_init_reciprocal_connectome_and_consolidate_pair",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_operation_contract_objects.py::test_consolidation_plan_rejects_empty_direction_before_mutation",
+    ),
+)
+
+
+CONSOLIDATION_PROTOCOL_CONTRACT = OperationContract(
+    operation_id="consolidation-protocol-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-consolidation-protocol",
+    plan_type=ConsolidationProtocolPlan,
+    inputs=("brain", "ordered replay steps", "passes", "clear_activity", "prepare_areas"),
+    reads=("step source assemblies and stimuli", "existing area-to-area weights"),
+    mutates=("replayed weights", "area activity", "area index mappings when preparation is enabled"),
+    regime=("nonempty ordered protocol", "positive replay passes", "optional destructive area preparation"),
+    observed_outcome=("set of strengthened pathway edges",),
+    failure_conditions=("empty protocol", "invalid pass count or flags", "malformed replay step"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_consolidate_strengthens_pathway_without_reset",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_consolidate_rejects_empty_protocol_or_invalid_passes",
+    ),
+)
+
+
+CONTEXT_ACCUMULATION_CONTRACT = OperationContract(
+    operation_id="context-accumulation-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-accumulation",
+    plan_type=ContextAccumulationPlan,
+    inputs=("brain", "ordered word steps", "context_area", "core_assemblies", "rounds"),
+    reads=("phonological stimuli or core snapshots", "core and context winners", "context recurrence"),
+    mutates=("core/context winners", "core-to-context weights", "engine history"),
+    regime=("nonempty ordered schedule", "one context area", "fixed round budget"),
+    observed_outcome=("final context Assembly snapshot",),
+    failure_conditions=("empty/malformed schedule", "unknown topology", "stimulus or snapshot mismatch", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_matches_manual_steps",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_rejects_empty_schedule",
+    ),
+)
+
+
+CONTEXT_STEP_CONTRACT = OperationContract(
+    operation_id="context-accumulation-step-v1",
+    specification="docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-context-accumulation-step",
+    plan_type=ContextAccumulationStepPlan,
+    inputs=("brain", "phon", "core_area", "context_area", "core_assembly", "rounds"),
+    reads=("phonological stimulus or core snapshot", "core/context winners", "context recurrence"),
+    mutates=("core/context winners", "core-to-context weights", "engine history"),
+    regime=("exactly one source representation", "distinct core and context areas", "fixed round budget"),
+    observed_outcome=("post-step context Assembly snapshot",),
+    failure_conditions=("missing source", "unknown topology", "snapshot/area mismatch", "invalid rounds"),
+    constructed_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_matches_manual_steps",
+    ),
+    true_negative_controls=(
+        "neural_assemblies/tests/test_consolidation.py::"
+        "test_accumulate_context_step_rejects_missing_source",
+    ),
+)
+
+
+OPERATION_CONTRACTS = MappingProxyType({
+    "activate_assembly": ACTIVATION_CONTRACT,
+    "fuzzy_readout": READOUT_CONTRACT,
+    "materialize_fiber": FIBER_MATERIALIZATION_CONTRACT,
+    "build_lexicon": LEXICON_BUILD_CONTRACT,
+    "predict_next_token": NEXT_TOKEN_PREDICTION_CONTRACT,
+    "train_on_corpus": NEXT_TOKEN_TRAINING_CONTRACT,
+    "score_corpus": NEXT_TOKEN_SCORE_CONTRACT,
+    "observe_recovery": RECOVERY_CONTRACT,
+    "replace_neurons": CUE_REPLACEMENT_CONTRACT,
+    "projection": PROJECTION_CONTRACT,
+    "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
+    "association": ASSOCIATION_CONTRACT,
+    "merge": MERGE_CONTRACT,
+    "pattern_completion": COMPLETION_CONTRACT,
+    "ordered_recall": ORDERED_RECALL_CONTRACT,
+    "sequence_memorize": SEQUENCE_MEMORIZE_CONTRACT,
+    "separate": SEPARATION_CONTRACT,
+    "attention": ATTENTION_CONTRACT,
+    "bind": BINDING_CONTRACT,
+    "read_binding": BINDING_READ_CONTRACT,
+    "input_drive": INPUT_DRIVE_CONTRACT,
+    "binding_strength": BINDING_STRENGTH_CONTRACT,
+    "source_binding": SOURCE_BINDING_CONTRACT,
+    "binding_recall": BINDING_RECALL_CONTRACT,
+    "consolidate_pair": CONSOLIDATION_CONTRACT,
+    "consolidate": CONSOLIDATION_PROTOCOL_CONTRACT,
+    "accumulate_context": CONTEXT_ACCUMULATION_CONTRACT,
+    "accumulate_context_step": CONTEXT_STEP_CONTRACT,
+    "learn_assembly": CONVERGENCE_CONTRACT,
+    "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
+})
+
+
+class ContractedOperation(Protocol[_P, _R_co]):
+    """Callable carrying the inspectable contract attached by ``implements``."""
+
+    operation_contract: OperationContract
+
+    def __call__(self, *args: _P.args, **kwargs: _P.kwargs) -> _R_co: ...
+
+
+def implements(
+    contract: OperationContract,
+) -> Callable[[Callable[_P, _R_co]], ContractedOperation[_P, _R_co]]:
+    """Attach and validate the exact contract at the implementation boundary.
+
+    A contract link is part of an operation's source-level meaning.  Checking
+    it while decorating the function makes a missing link an import-time
+    failure instead of allowing a semantically undocumented operation to run
+    until a later repository-wide audit.
+    """
+    def decorate(operation: Callable[_P, _R_co]) -> ContractedOperation[_P, _R_co]:
+        specification = contract.specification
+        if specification not in (operation.__doc__ or ""):
+            raise TypeError(
+                f"{operation.__module__}.{operation.__qualname__} must link "
+                f"its specification {specification!r} in its docstring"
+            )
+        contracted = cast(ContractedOperation[_P, _R_co], operation)
+        contracted.operation_contract = contract
+        return contracted
+    return decorate

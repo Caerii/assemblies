@@ -1,0 +1,3 @@
+# Content-addressed source objects must stay byte-exact: a line-ending
+# conversion changes the SHA-256 the object is named by (research/source_store.py).
+research/results/source-store/** -text -diff

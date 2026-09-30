@@ -1,0 +1,21 @@
+[
+  {"name": "disabled", "valid": true, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": false, "synaptic_scaling_deferred": false}},
+  {"name": "normalized", "valid": true, "document": {"profile": "homeostasis-v1", "norm_init": true, "synaptic_scaling": false, "synaptic_scaling_deferred": false}},
+  {"name": "all", "valid": true, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": true, "synaptic_scaling_deferred": false}},
+  {"name": "named", "valid": true, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": ["Z", "A"], "synaptic_scaling_deferred": false}},
+  {"name": "deferred", "valid": true, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": ["A"], "synaptic_scaling_deferred": true}},
+  {"name": "version", "valid": false, "document": {"profile": "homeostasis-v2", "norm_init": false, "synaptic_scaling": false, "synaptic_scaling_deferred": false}},
+  {"name": "unknown", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": false, "synaptic_scaling_deferred": false, "extra": true}},
+  {"name": "string_scope", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": "A", "synaptic_scaling_deferred": false}},
+  {"name": "empty_scope", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": [], "synaptic_scaling_deferred": false}},
+  {"name": "duplicate_scope", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": ["A", "A"], "synaptic_scaling_deferred": false}},
+  {"name": "empty_name", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": [""], "synaptic_scaling_deferred": false}},
+  {"name": "number_name", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": [1], "synaptic_scaling_deferred": false}},
+  {"name": "numeric_flag", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": 1, "synaptic_scaling": false, "synaptic_scaling_deferred": false}},
+  {"name": "string_flag", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": false, "synaptic_scaling_deferred": "false"}},
+  {"name": "inactive_deferred", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": false, "synaptic_scaling_deferred": true}},
+  {"name": "missing_profile", "valid": false, "document": {"norm_init": false, "synaptic_scaling": false, "synaptic_scaling_deferred": false}},
+  {"name": "missing_norm_init", "valid": false, "document": {"profile": "homeostasis-v1", "synaptic_scaling": false, "synaptic_scaling_deferred": false}},
+  {"name": "missing_synaptic_scaling", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling_deferred": false}},
+  {"name": "missing_synaptic_scaling_deferred", "valid": false, "document": {"profile": "homeostasis-v1", "norm_init": false, "synaptic_scaling": false}}
+]

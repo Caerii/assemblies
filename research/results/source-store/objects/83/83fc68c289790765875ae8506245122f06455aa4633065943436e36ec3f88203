@@ -1,0 +1,166 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "neural-assemblies"
+version = "0.0.1a1"
+description = "Neural Assembly Simulation - Assembly Calculus Implementation"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.10"
+authors = [
+    { name = "Alif Jakir" },
+]
+maintainers = [
+    { name = "Superintelligent Group", email = "Alif@superintelligent.group" },
+]
+keywords = [
+    "neural-assemblies",
+    "assembly-calculus",
+    "computational-neuroscience",
+    "nemo",
+    "brain-simulation",
+]
+classifiers = [
+    "Development Status :: 3 - Alpha",
+    "Intended Audience :: Science/Research",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Scientific/Engineering",
+]
+dependencies = [
+    "numpy>=1.24.0",
+    "jsonschema>=4.26.0,<5",
+    "scipy>=1.10.0",
+    "matplotlib>=3.7.0",
+    "pptree>=3.1",
+    "tqdm>=4.65.0",
+    "pandas>=2.0.0",
+    "seaborn>=0.12.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Caerii/assemblies"
+Documentation = "https://github.com/Caerii/assemblies#readme"
+Repository = "https://github.com/Caerii/assemblies"
+
+[project.optional-dependencies]
+gpu = [
+    "torch>=2.0.0",
+    "cupy-cuda13x>=13.0.0; sys_platform == 'linux'",
+]
+notebooks = [
+    "jupyterlab>=4.0.0",
+    "ipywidgets>=8.0.0",
+    "ipympl>=0.9.0",
+    "ipycanvas>=0.14.0",
+    "ipycytoscape>=1.3.0",
+    "plotly>=6.0.0",
+    "networkx>=3.0",
+]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+    "pyyaml>=6.0.0",
+]
+all = [
+    "neural-assemblies[gpu,notebooks,dev]",
+]
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["neural_assemblies*"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    # Keep xdist in the development environment so the maintained gate can run
+    # the full package suite in parallel.
+    "pytest-xdist>=3.6",
+    "ruff>=0.1.0",
+    "ipython>=8.0.0",
+    "build>=1.0.0",
+    "twine>=5.0.0",
+    "pyyaml>=6.0.0",
+]
+
+gpu = [
+    "torch>=2.0.0",
+    "cupy-cuda13x>=13.0.0; sys_platform == 'linux'",
+]
+
+notebooks = [
+    "jupyterlab>=4.0.0",
+    "ipywidgets>=8.0.0",
+    "ipympl>=0.9.0",
+    "ipycanvas>=0.14.0",
+    "ipycytoscape>=1.3.0",
+    "plotly>=6.0.0",
+    "networkx>=3.0",
+]
+
+[tool.uv]
+# CUDA builds for Linux + Windows (RTX etc.). macOS falls back to PyPI CPU torch.
+[[tool.uv.index]]
+name = "pytorch-cu130"
+url = "https://download.pytorch.org/whl/cu130"
+explicit = true
+
+[tool.uv.sources]
+torch = [
+    { index = "pytorch-cu130", marker = "sys_platform == 'linux' or sys_platform == 'win32'" },
+]
+
+[tool.ruff]
+line-length = 100
+target-version = "py310"
+exclude = ["temp/", ".venv/", "*.egg-info", "dist/", "build/"]
+
+[tool.ruff.lint]
+# Start with pyflakes (F) errors that catch real bugs.
+# E rules are style - enable selectively to avoid noise.
+select = [
+    "F401",   # unused imports
+    "F541",   # f-string without placeholders
+    "F811",   # redefined unused name
+    "F841",   # unused variable
+    "E722",   # bare except
+    "E401",   # multiple imports on one line
+]
+# Ignore import-star issues in __init__.py files and notebooks
+per-file-ignores = {"__init__.py" = ["F401"], "*.ipynb" = ["F401", "E402"]}
+
+[tool.pytest.ini_options]
+testpaths = ["neural_assemblies/tests"]
+python_files = ["test_*.py", "*_test.py"]
+norecursedirs = [".worktrees"]
+# Parallelism is deliberately NOT in addopts. pytest-xdist is in the `dev`
+# dependency group and the full suite parallelizes cleanly, but spinning up
+# workers costs interpreter+numpy import overhead which dominates small runs:
+# test_area.py is 0.95s serially and 30.4s under `-n auto`. Opt in
+# per-invocation instead. (That per-worker cost dropped by ~1.1s once
+# scipy.stats and eager scipy.sparse left the import path -- see
+# docs/RUST_KERNELS.md and `_csr_weights.scipy_sparse`.)
+#
+# Full suite:   pytest -n 8 --dist loadfile
+# Single file:  pytest neural_assemblies/tests/test_foo.py      (serial, fast)
+#
+# Use `--dist loadfile` rather than the default `load`: the session-scoped
+# parser fixtures in conftest.py are instantiated PER WORKER, so scattering one
+# file's tests across workers retrains its backbone once per worker. Verified
+# equivalent -- the four parser-heavy files give 166 passed both serially and
+# under `-n 4` (545s -> 424s).  Eight workers is faster on the 16-core
+# development machine; larger counts can oversubscribe native numerical thread
+# pools and make teardown unreliable.
+markers = [
+    "legacy: repo-root compatibility and historical experiment tests",
+    "gpu: optional CUDA/C++/accelerator tests",
+    "research: research experiment validation tests",
+    "slow: long-running literature or curriculum tests",
+]

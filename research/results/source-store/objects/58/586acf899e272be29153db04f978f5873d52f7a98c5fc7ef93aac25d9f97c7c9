@@ -1,0 +1,377 @@
+"""Does the presentation SCHEDULE change what an assembly memory retains?
+
+Registration: research/notes/memory/PREREG_presentation_schedule.md.
+
+The spaced-repetition question in the only form this substrate can answer.
+Every deadline the model has is a COUNT -- potentiation and the refraction
+bias charge per WIN, the clip arrives after a fixed number of presentations,
+a refracted assembly relocates on a fixed period of rounds -- and there is no
+decay term anywhere, so an interval containing nothing changes nothing (bar
+SR-4 asserts exactly that, bit for bit). What is left is ORDER at matched
+presentation count: massed (`AAAA BBBB`) against interleaved (`ABAB ABAB`),
+crossed with the Hebbian control and the refracted memory.
+
+The prediction is an interaction. The control's collapse at T = 16 is
+recorded as hub formation, the items written FIRST becoming attractors
+([[REFRACTION-ANTI-MERGING]], PREREG_refraction_memory.md); refraction's
+whole job is to stop that. A schedule that denies any item a long consecutive
+run should therefore help the control and do nothing for the refracted arm.
+
+Run:  python -m research.runner presentation-schedule --tag UNIQUE
+      (smoke: --smoke --seeds 1 2 3; VOID)
+"""
+from __future__ import annotations
+
+from dataclasses import asdict, dataclass
+from pathlib import Path
+from typing import Any, cast
+
+import numpy as np
+
+from neural_assemblies import describe_assembly_memory
+from neural_assemblies.core.numpy_engine import _seeding
+from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
+from research.runner import experiment_parser, run_experiment, validate_registered_seeds
+
+PROTOCOL = "memory.presentation-schedule"
+VERSION = "1"
+REGISTRATION = "research/notes/memory/PREREG_presentation_schedule.md"
+REGISTERED_SEEDS = tuple(range(42, 62))
+
+N, K, P, BETA, W_MAX = 4000, 100, 0.5, 0.10, 20.0
+T_VISITS = 16                      # presentations per item, the control's collapse window
+CHECKPOINTS = (8, 16, 32, 64, 128, 256)
+SMOKE_CHECKPOINTS = (4, 8)
+SMOKE_VISITS = 4
+RECALL_SAMPLE, PAIR_SAMPLE = 64, 512
+STRENGTH = 0.5                     # as a fraction of beta, the adopted refracted setting
+
+SCHEDULES = ("massed", "interleaved")
+RULES = {"control": 0.0, "refracted": STRENGTH}
+ARMS = tuple(f"{schedule}-{rule}" for rule in RULES for schedule in SCHEDULES)
+
+
+def to_i32(value):
+    value &= 0xFFFFFFFF
+    return value - 0x100000000 if value >= 0x80000000 else value
+
+
+def profile_for(strength):
+    """The organ profile of one rule. `strength` is a fraction of beta."""
+    return describe_assembly_memory(w_max=W_MAX, norm_init=True, synaptic_scaling=False,
+                                    strength=strength, beta=BETA, gate=False)
+
+
+def visit_order(schedule: str, items: int, visits: int) -> list[int]:
+    """The item visited at each step, for `items` items and `visits` each.
+
+    `massed` finishes an item before starting the next; `interleaved` makes
+    one pass over every item and repeats. Both return exactly
+    ``items * visits`` steps and exactly ``visits`` of every item, which is
+    what "matched presentation count" means and what bar SR-5 checks.
+    """
+    if schedule == "massed":
+        return [i for i in range(items) for _ in range(visits)]
+    if schedule == "interleaved":
+        return [i for _ in range(visits) for i in range(items)]
+    raise ValueError(f"unknown schedule: {schedule}")
+
+
+def elapse(gap: int) -> int:
+    """Let `gap` units of time pass over the substrate, and return what changed.
+
+    Nothing changes, and that is the point. This is the hook a weight-decay
+    term would occupy; its absence is why idle spacing cannot be a treatment
+    here (bar SR-4 runs the massed schedule through this function and requires
+    bit-identical winners). Returns the number of state elements it touched.
+
+    The biological cousin of the refraction bias is the RELATIVE refractory
+    period, which recovers on a millisecond time constant. This bias does not
+    recover at all: it accumulates over a neuron's whole history. Giving it a
+    decay here is what would turn it into a refractory period and, in the same
+    stroke, make idle spacing a treatment rather than a no-op.
+    """
+    del gap                 # no state in this substrate is time-dependent
+    return 0
+
+
+@dataclass(frozen=True)
+class SchedulePlan:
+    """One arm's resolved protocol."""
+    schedule: str
+    rule: str
+    strength: float
+    checkpoints: tuple[int, ...]
+    visits: int
+
+    def __post_init__(self):
+        if self.schedule not in SCHEDULES:
+            raise ValueError(f"schedule must be one of {SCHEDULES}")
+        if self.rule not in RULES:
+            raise ValueError(f"rule must be one of {tuple(RULES)}")
+        if self.visits < 1 or not self.checkpoints:
+            raise ValueError("visits must be positive and checkpoints non-empty")
+        if tuple(sorted(set(self.checkpoints))) != tuple(self.checkpoints):
+            raise ValueError("checkpoints must be strictly increasing")
+
+
+class ScheduledMemory:
+    """The memory protocol with a re-entrant VISIT instead of a one-shot write.
+
+    `AssemblyMemory.store` builds a fresh stimulus fiber per call and writes an
+    item in one project of T rounds, so it cannot revisit an item: a second
+    call with the same seeds restarts that item's stimulus-side potentiation.
+    Here each item keeps ONE stimulus fiber for the whole schedule and a visit
+    is a single round, so the two schedules differ only in ORDER. Declared in
+    the registration; the capacity protocol has no need to revisit.
+    """
+
+    def __init__(self, seeds, *, strength, items, visits, device):
+        from neural_assemblies.core.torch_engine._hashed import HashedArea, StimulusFiber
+        from neural_assemblies.core.torch_engine._memory import recurrent_fiber
+
+        self.seeds = [int(s) for s in seeds]
+        self.B, self.device = len(self.seeds), device
+        self.strength = float(strength)
+        sd = [to_i32(_seeding.fnv1a_pair_seed(s, "A", "A")) for s in self.seeds]
+        self.area = HashedArea(N, K, sd, device=device,
+                               refracted_strength=self.strength * BETA)
+        self.area.masked_readout = self.strength > 0
+        self.fiber = recurrent_fiber(sd, N, P, beta=BETA, w_max=W_MAX, norm_init=True,
+                                     synaptic_scaling=False,
+                                     max_rounds=items * visits, device=device)
+        self.stimuli = []
+        for i in range(items):
+            ss = [to_i32(_seeding.fnv1a_pair_seed(s, f"s{i}", "A")) for s in self.seeds]
+            self.stimuli.append(StimulusFiber(ss, K, N, P, beta=BETA, w_max=W_MAX,
+                                              norm_init=True, max_rounds=visits,
+                                              device=device))
+        self.visits_made = [0] * items
+
+    def visit(self, item: int):
+        """One presentation of `item`: inhibit, then one round of its stimulus
+        alongside recurrence. Returns the winners [B, k]."""
+        self.area.inhibit()
+        win = self.area.project(1, [self.fiber, self.stimuli[item]])
+        self.visits_made[item] += 1
+        return cast(Any, win)
+
+    def recall(self, cue):
+        """Complete `cue` by frozen recurrent rounds; masked whenever refracted."""
+        from neural_assemblies.core._torch_ops import torch_ops
+        self.area.winners = cue.to(torch_ops.int64)
+        return self.area.project(T_VISITS, [self.fiber], freeze=True,
+                                 mask_bias=(True if self.strength > 0 else None))
+
+    @property
+    def fill(self):
+        return self.area.fill
+
+
+def _set_hash(Ks):
+    from neural_assemblies.core._torch_ops import torch_ops
+    M, B, k = Ks.shape
+    mult = torch_ops.arange(1, k + 1, device=Ks.device, dtype=torch_ops.int64)
+    return (Ks * mult.view(1, 1, k) * 1000003).sum(2)
+
+
+def _overlaps(Ks, ia, ib):
+    from neural_assemblies.core._torch_ops import torch_ops
+    A, Bv = Ks[ia], Ks[ib]
+    k = Ks.shape[2]
+    idx = torch_ops.searchsorted(A.contiguous(), Bv.contiguous()).clamp_(max=k - 1)
+    hit = torch_ops.gather(A, 2, idx) == Bv
+    return hit.sum(2).double() / k
+
+
+def measure(mem, stored, rng):
+    """Rank-1 half-cue recall PER ITEM, the hub statistic, and fill."""
+    from neural_assemblies.core._torch_ops import torch_ops
+
+    M = len(stored)
+    St = torch_ops.stack(stored).long()                       # [M, B, k]
+    k, B = St.shape[2], St.shape[1]
+    device = St.device
+    Ks = torch_ops.sort(St, dim=2).values
+
+    pw = np.zeros(B)
+    if M > 1:
+        npair = min(PAIR_SAMPLE, M * (M - 1) // 2)
+        ia, ib = rng.integers(0, M, npair), rng.integers(0, M, npair)
+        keep = ia != ib
+        if keep.any():
+            pw = _overlaps(Ks, torch_ops.from_numpy(ia[keep]).to(device),
+                           torch_ops.from_numpy(ib[keep]).to(device)).mean(0).cpu().numpy()
+
+    samp = sorted(rng.choice(M, min(RECALL_SAMPLE, M), replace=False).tolist())
+    off = (torch_ops.arange(B, device=device, dtype=torch_ops.int64) * N).view(1, B, 1)
+    flat = (St + off).reshape(-1)
+    hits = torch_ops.zeros(B, dtype=torch_ops.int64, device=device)
+    per_item = {}
+    for a in samp:
+        rec = mem.recall(St[a][:, : k // 2])
+        mask = torch_ops.zeros(B * N, dtype=torch_ops.bool, device=device)
+        mask[(rec + off[0]).reshape(-1)] = True
+        ov = mask[flat].view(M, B, k).sum(2)
+        won = (ov.argmax(dim=0) == int(a)).long()
+        per_item[str(a)] = won.double().cpu().numpy().tolist()
+        hits += won
+    return {
+        "rank1": (hits.double() / len(samp)).cpu().numpy().tolist(),
+        "rank1_by_item": per_item,
+        "recall_sample": samp,
+        "pairwise_x": (pw / (k / N)).tolist(),
+        "fill": mem.fill.cpu().numpy().tolist(),
+    }
+
+
+def run_arm(plan: SchedulePlan, seeds, rng, *, device, organ_semantics, idle_gap=0):
+    """One arm: build the memory, walk the schedule, checkpoint at each M."""
+    from neural_assemblies.core._torch_ops import torch_ops
+    from neural_assemblies.core.semantics import OrganSemantics
+
+    expected = profile_for(plan.strength)
+    if OrganSemantics.normalize(organ_semantics).mismatch(expected):
+        raise ValueError("recorded organ profile disagrees with the arm's construction")
+
+    m_max = max(plan.checkpoints)
+    out, presentations = {}, 0
+    for M in plan.checkpoints:
+        mem = ScheduledMemory(seeds, strength=plan.strength, items=M,
+                              visits=plan.visits, device=device)
+        last = [None] * M
+        for step in visit_order(plan.schedule, M, plan.visits):
+            if idle_gap:
+                elapse(idle_gap)
+            last[step] = mem.visit(step)
+        if any(v != plan.visits for v in mem.visits_made):
+            raise RuntimeError("an item did not receive exactly the registered visits")
+        presentations = M * plan.visits
+        stored = [cast(Any, w) for w in last]
+        out[str(M)] = {**measure(mem, stored, np.random.default_rng(rng.integers(1 << 31))),
+                       "presentations": presentations, "visits_per_item": plan.visits}
+        if M == m_max:
+            out["final_winners_digest"] = int(
+                _set_hash(torch_ops.sort(torch_ops.stack(stored).long(), dim=2).values
+                          ).sum().item())
+        del mem
+        torch_ops.cuda.empty_cache()
+    return out
+
+
+def experiment(record):
+    p = record["parameters"]
+    seeds = list(record["seeds"])
+    smoke = record["mode"] == "smoke"
+    checkpoints = tuple(p["checkpoints"])
+    visits = int(p["visits"])
+    rng = np.random.default_rng(0)
+
+    arms = {}
+    for name in p["arms"]:
+        schedule, rule = name.rsplit("-", 1)
+        plan = SchedulePlan(schedule=schedule, rule=rule, strength=RULES[rule],
+                            checkpoints=checkpoints, visits=visits)
+        arms[name] = run_arm(plan, seeds, rng, device=p["device"],
+                             organ_semantics=record["execution_semantics"]["profiles"][name])
+        tail = arms[name][str(max(checkpoints))]
+        print(f"  {name:<22s} M={max(checkpoints)} rank1 "
+              f"{np.mean(tail['rank1']):.3f}  pairwise/chance "
+              f"{np.mean(tail['pairwise_x']):.2f}  fill {np.mean(tail['fill']):.3f}", flush=True)
+
+    # SR-4: the idle arm must reproduce massed-control bit for bit.
+    idle = run_arm(SchedulePlan(schedule="massed", rule="control", strength=0.0,
+                                checkpoints=checkpoints, visits=visits),
+                   seeds, np.random.default_rng(0), device=p["device"],
+                   organ_semantics=record["execution_semantics"]["profiles"]["massed-control"],
+                   idle_gap=p["idle_gap"])
+    identical = idle["final_winners_digest"] == arms["massed-control"]["final_winners_digest"]
+    print(f"  idle-massed digest identical to massed-control: {identical}", flush=True)
+
+    bars, comparisons = {}, {}
+    if not smoke:
+        def cell(arm, M):
+            return arms[arm][str(M)]
+
+        def collapsed():
+            """Largest checkpoint whose massed control mean rank-1 is below 0.5."""
+            below = [M for M in checkpoints if np.mean(cell("massed-control", M)["rank1"]) < 0.5]
+            return max(below) if below else None
+
+        at = collapsed()
+        comparisons["collapse_checkpoint"] = at
+        if at is not None:
+            d = paired_delta(
+                ensemble_from_values(cell("interleaved-control", at)["rank1"], keys=seeds),
+                ensemble_from_values(cell("massed-control", at)["rank1"], keys=seeds),
+                label=f"interleaved - massed control @ M={at}")
+            comparisons["sr1"] = {**asdict(d), "low": d.low, "high": d.high}
+            wins = sum(a > b for a, b in zip(cell("interleaved-control", at)["rank1"],
+                                             cell("massed-control", at)["rank1"]))
+            hub_wins = sum(a < b for a, b in zip(cell("interleaved-control", at)["pairwise_x"],
+                                                 cell("massed-control", at)["pairwise_x"]))
+            comparisons["sr1_brains_higher"] = wins
+            comparisons["sr3_brains_lower_hub"] = hub_wins
+        n = len(seeds)
+        sr2 = {}
+        for M in checkpoints:
+            if M > 128:
+                continue
+            d = paired_delta(
+                ensemble_from_values(cell("interleaved-refracted", M)["rank1"], keys=seeds),
+                ensemble_from_values(cell("massed-refracted", M)["rank1"], keys=seeds),
+                label=f"interleaved - massed refracted @ M={M}")
+            sr2[str(M)] = {**asdict(d), "low": d.low, "high": d.high}
+        comparisons["sr2"] = sr2
+        counts_ok = all(c["presentations"] == M * visits and c["visits_per_item"] == visits
+                        for arm in arms.values() for M, c in
+                        ((int(key), value) for key, value in arm.items() if key.isdigit()))
+        bars = {
+            "SR-1 interleaving rescues the massed control at its collapse: >= 18/20 brains higher, paired lower bound > 0.05":
+                at is not None and comparisons["sr1_brains_higher"] >= 18 * n // 20
+                and comparisons["sr1"]["low"] > 0.05,
+            "SR-2 the schedule does nothing once refraction is on: paired interval contains zero at every M <= 128":
+                all(v["low"] <= 0.0 <= v["high"] for v in sr2.values()),
+            "SR-3 the mechanism is hub prevention: interleaved control's pairwise/chance lower on >= 18/20 brains":
+                at is not None and comparisons["sr3_brains_lower_hub"] >= 18 * n // 20,
+            "SR-4 idle spacing is a no-op: the idle arm's stored assemblies are bit-identical":
+                identical,
+            "SR-5 instrument: every arm presents M x T times and T per item":
+                counts_ok,
+        }
+        for name, ok in bars.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
+    return {"verdict": verdict, "bars": bars, "arms": arms,
+            "comparisons": comparisons, "idle_identical": identical,
+            "scope": "presentation order at matched count in a hashed assembly memory, "
+                     "one operating point; the substrate has no decay term"}
+
+
+def main(argv=None):
+    parser = experiment_parser(
+        "Massed against interleaved presentation in an assembly memory",
+        engines=("hashed_assembly_memory",), default_seeds=REGISTERED_SEEDS,
+    )
+    parser.add_argument("--device", default="cuda")
+    args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    checkpoints = SMOKE_CHECKPOINTS if args.smoke else CHECKPOINTS
+    visits = SMOKE_VISITS if args.smoke else T_VISITS
+    parameters = {"n": N, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
+                  "checkpoints": list(checkpoints), "visits": visits,
+                  "arms": list(ARMS), "strength": STRENGTH, "idle_gap": 8,
+                  "recall_sample": RECALL_SAMPLE, "pair_sample": PAIR_SAMPLE,
+                  "device": args.device}
+    profiles = {name: profile_for(RULES[name.rsplit("-", 1)[1]]) for name in ARMS}
+    path = run_experiment(
+        script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
+        registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
+        tag=args.tag, smoke=args.smoke, minimum_study_seeds=20,
+        parameters=parameters, organ_semantics=profiles, measure=experiment,
+    )
+    print(path)
+
+
+if __name__ == "__main__":
+    main()

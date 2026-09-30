@@ -240,12 +240,27 @@ The [runner](runner.py) writes schema 10 records for every execution kind (Brain
 organ, alignment, computed baseline and vendored reference; schemas 7 to 9 are the
 historical forms before the observation policy joined the record, see
 `neural_assemblies/ir/VERIFICATION.md#contract-execution-kinds` and
-`#contract-observation-policy`) with a sibling `source.zip` before calling measurement. The archive preserves exact checkout bytes, including mixed
+`#contract-observation-policy`) with its source archive captured before calling measurement. The archive preserves exact checkout bytes, including mixed
 line endings and Git-discovered nonignored untracked source. Its `source/` members
 use the same inventory and ordering as `source_sha256`; `script` and `registration`
 preserve the separately hashed entry point and preregistration. ZIP timestamps are
 fixed. The run record binds the archive by SHA-256. Existing tags remain reserved
 if capture fails, and measurement does not start.
+
+**Storage (since 2026-09-30).** The archive is assembled in memory and never
+written as a file. Its members are stored once each, by SHA-256, in
+`research/results/source-store/objects/` ([source_store.py](source_store.py)),
+and the run keeps a `source.manifest.json` listing them in archive order with
+the archive digest the record binds. Consecutive runs share almost all of their
+source, and a per-run zip is an opaque binary git cannot deduplicate: 71 such
+archives took 313 MB of the tree while their distinct content was 35.5 MB. All
+71 were migrated, and each zip was removed only after the store rebuilt it
+byte-for-byte (the archive is a deterministic function of the member names and
+bytes). A run may still carry a legacy `source.zip`; the validator accepts
+exactly one of the two forms. Store objects are marked `-text` in
+`.gitattributes`, since a line-ending conversion would change their names.
+`validate_source_archive(..., deep=True)` also rebuilds the archive and
+requires the recorded digest.
 
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,

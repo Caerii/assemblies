@@ -1,5 +1,6 @@
 """Old unsafe invocations must stop before compute or evidence replacement."""
 import argparse
+import io
 import json
 import tempfile
 from pathlib import Path
@@ -66,7 +67,7 @@ def run(tmp_path, monkeypatch):
                       engine='numpy_exact', seeds=[1, 2, 3], tag='fixture',
                       model_semantics=FIXTURE_MODEL, observation_policy='frozen',
                       parameters={'n': 100, 'k': 10}, measure=lambda record: {'values': [.1, .2, .3]},
-                      output_root=tmp_path)
+                      output_root=tmp_path / 'runs')
         values.update(kwargs)
         if "model_semantics" not in kwargs:
             values["model_semantics"] = (
@@ -143,7 +144,7 @@ def test_second_device_job_is_refused_before_reservation(run, tmp_path, monkeypa
             run(engine="hashed_arc_fsm", smoke=True, tag="second",
                 measure=lambda record: calls.append(record))
         assert calls == []
-        assert not (tmp_path / "audit.fixture" / "second").exists()
+        assert not (tmp_path / 'runs' / "audit.fixture" / "second").exists()
         # a CPU run does not contend for the device
         assert run(tag="cpu").exists()
     # released: the same device job now proceeds
@@ -153,7 +154,7 @@ def test_second_device_job_is_refused_before_reservation(run, tmp_path, monkeypa
 def test_wrong_engine_profile_stops_before_reservation(run, tmp_path):
     with pytest.raises(ValueError, match="does not implement requested"):
         run(engine="numpy_sparse", model_semantics=FIXTURE_MODEL)
-    assert not (tmp_path / "audit.fixture" / "fixture").exists()
+    assert not (tmp_path / 'runs' / "audit.fixture" / "fixture").exists()
 
 
 def test_wrong_organ_kind_stops_before_reservation(run, tmp_path):
@@ -164,14 +165,14 @@ def test_wrong_organ_kind_stops_before_reservation(run, tmp_path):
             engine="hashed_arc_fsm",
             organ_semantics=describe_assembly_memory(),
         )
-    assert not (tmp_path / "audit.fixture" / "fixture").exists()
+    assert not (tmp_path / 'runs' / "audit.fixture" / "fixture").exists()
 
 
 def test_scheduled_aligner_rejects_dense_profile_before_reservation(run, tmp_path):
     dense = describe_hashed_aligner(store="dense", scaling=False)
     with pytest.raises(ValueError, match="does not implement"):
         run(engine="scheduled_aligner", aligner_semantics=dense)
-    assert not (tmp_path / "audit.fixture" / "fixture").exists()
+    assert not (tmp_path / 'runs' / "audit.fixture" / "fixture").exists()
 
 
 def test_alignment_run_uses_the_current_schema_and_canonical_profile(run):
@@ -286,7 +287,7 @@ def test_attachment_damage_or_inventory_drift_is_rejected(run, damage):
 def test_unsafe_attachment_names_fail_before_sidecar_write(run, name, tmp_path):
     with pytest.raises(ValueError, match='attachment names'):
         run(measure=lambda _record: runner.ExperimentOutput({}, {name: [1, 2, 3]}))
-    directory = tmp_path / 'audit.fixture/fixture'
+    directory = tmp_path / 'runs' / 'audit.fixture/fixture'
     assert (directory / 'failure.json').exists()
     assert not list(directory.glob('*.json.gz'))
 
@@ -295,7 +296,7 @@ def test_nonfinite_attachment_fails_without_publishing_partial_sidecar(run, tmp_
     with pytest.raises(ValueError, match='JSON compliant|nonfinite'):
         run(measure=lambda _record: runner.ExperimentOutput(
             {}, {'raw.json.gz': {'value': float('nan')}}))
-    directory = tmp_path / 'audit.fixture/fixture'
+    directory = tmp_path / 'runs' / 'audit.fixture/fixture'
     assert (directory / 'failure.json').exists()
     assert not (directory / 'results.json').exists()
     assert not (directory / 'raw.json.gz').exists()
@@ -323,7 +324,7 @@ def test_source_capture_failure_is_retained_as_a_failed_reservation(run, monkeyp
     monkeypatch.setattr(runner, '_source_identity', drift)
     with pytest.raises(RuntimeError, match='source changed'):
         run()
-    failure = tmp_path / 'audit.fixture' / 'fixture' / 'failure.json'
+    failure = tmp_path / 'runs' / 'audit.fixture' / 'fixture' / 'failure.json'
     assert failure.exists()
     payload = json.loads(failure.read_text())
     assert payload['status'] == 'failed'
@@ -507,7 +508,7 @@ def test_environment_change_prevents_completed_results(run, monkeypatch, tmp_pat
         return {'values': [1, 2, 3]}
     with pytest.raises(RuntimeError, match='environment changed'):
         run(measure=measure)
-    directory = tmp_path / 'audit.fixture/fixture'
+    directory = tmp_path / 'runs' / 'audit.fixture/fixture'
     assert not (directory / 'results.json').exists()
     failure = json.loads((directory / 'failure.json').read_text())
     assert failure['status'] == 'failed'
@@ -628,6 +629,22 @@ def test_strict_document_roundtrip_keeps_subnormals_and_large_integers(tmp_path)
     assert encode_document(load_document(path)) == encode_document(value)
 
 
+def _archive_bytes(directory):
+    """The run's source archive, rebuilt from the content-addressed store."""
+    from research import source_store
+    from research.source_archive import store_for
+    return source_store.rebuild_archive(directory, store_for(directory))
+
+
+def _as_legacy_zip(directory):
+    """Turn a run's manifest into the pre-store sibling source.zip, so the
+    legacy form keeps its own damage tests."""
+    archive = directory / 'source.zip'
+    archive.write_bytes(_archive_bytes(directory))
+    (directory / 'source.manifest.json').unlink()
+    return archive
+
+
 def test_source_archive_preserves_checkout_bytes_and_untracked_code(source_repo):
     from zipfile import ZipFile
     from research.evidence import validate_artifact
@@ -641,7 +658,7 @@ def test_source_archive_preserves_checkout_bytes_and_untracked_code(source_repo)
         protocol_version='1', engine='numpy_exact', seeds=[1, 2, 3], tag='capture',
         parameters={}, model_semantics=FIXTURE_MODEL, observation_policy='frozen',
         measure=lambda record: {'value': 0})
-    with ZipFile(path.parent / 'source.zip') as archive:
+    with ZipFile(io.BytesIO(_archive_bytes(path.parent))) as archive:
         assert archive.read('source/study.py') == script
         assert archive.read('script') == script
         assert archive.read('registration') == registration
@@ -677,7 +694,7 @@ def test_source_archive_damage_is_rejected_even_with_updated_container_digest(ru
     from zipfile import ZipFile
     from research.evidence import validate_artifact
     path = run()
-    archive_path = path.parent / 'source.zip'
+    archive_path = _as_legacy_zip(path.parent)
     payload = json.loads(path.read_text())
     if damage == 'missing':
         archive_path.unlink()
@@ -705,11 +722,14 @@ def test_source_archive_damage_is_rejected_even_with_updated_container_digest(ru
 
 def test_archive_mutation_during_measurement_prevents_completion(run, tmp_path):
     def measure(record):
-        (tmp_path / 'audit.fixture/fixture/source.zip').write_bytes(b'changed')
+        manifest = tmp_path / 'runs' / 'audit.fixture/fixture/source.manifest.json'
+        document = json.loads(manifest.read_text())
+        document['archive_sha256'] = '0' * 64
+        manifest.write_text(json.dumps(document))
         return {'value': 1}
-    with pytest.raises(RuntimeError, match='archive digest mismatch'):
+    with pytest.raises(RuntimeError, match='archive digest'):
         run(measure=measure)
-    directory = tmp_path / 'audit.fixture/fixture'
+    directory = tmp_path / 'runs' / 'audit.fixture/fixture'
     assert (directory / 'failure.json').exists()
     assert not (directory / 'results.json').exists()
 
@@ -721,7 +741,7 @@ def test_historical_records_do_not_require_source_capture(run, version):
     payload = json.loads(path.read_text())
     payload['run']['schema_version'] = version
     payload['run'].pop('source_archive')
-    (path.parent / 'source.zip').unlink()
+    (path.parent / 'source.manifest.json').unlink()
     path.write_text(json.dumps(payload))
     (path.parent / 'run.json').write_text(json.dumps(payload['run']))
     assert validate_artifact(path) == []
@@ -743,7 +763,7 @@ def test_run_inputs_are_recoverable_and_bound_to_record(source_repo, damage):
         measure=lambda record: {'value': 0})
     payload = json.loads(path.read_text())
     assert payload['run']['input_artifacts'] == {'parameters.json': hashlib.sha256(data).hexdigest()}
-    archive_path = path.parent / 'source.zip'
+    archive_path = _as_legacy_zip(path.parent)
     with ZipFile(archive_path) as archive:
         assert archive.read('inputs/parameters.json') == data
         entries = {name: archive.read(name) for name in archive.namelist()}
@@ -790,7 +810,7 @@ def test_historical_schema_three_inputs_are_not_claimed_recoverable(run):
     payload['run']['input_artifacts'] = {name: 'a' * 64}
     path.write_text(json.dumps(payload))
     (path.parent / 'run.json').write_text(json.dumps(payload['run']))
-    with ZipFile(path.parent / 'source.zip') as archive:
+    with ZipFile(io.BytesIO(_archive_bytes(path.parent))) as archive:
         assert not any(name.startswith('inputs/') for name in archive.namelist())
     assert validate_artifact(path) == []
 
@@ -812,7 +832,7 @@ def test_input_mutation_keeps_original_bytes_and_records_failure(source_repo):
     directory = source_repo / 'research/results/runs/fixture/mutation'
     assert (directory / 'failure.json').exists()
     assert not (directory / 'results.json').exists()
-    with ZipFile(directory / 'source.zip') as archive:
+    with ZipFile(io.BytesIO(_archive_bytes(directory))) as archive:
         assert archive.read('inputs/parameters.json') == b'{"size": 60}'
 
 
@@ -867,5 +887,57 @@ def test_parameter_cli_runs_with_archived_overrides(source_repo, monkeypatch):
     payload = json.loads(path.read_text())
     assert payload['run']['parameters'] == {'size': 7, 'rounds': 5}
     assert payload['observations']['verdict'] == 'VOID'
-    with ZipFile(path.parent / 'source.zip') as archive:
+    with ZipFile(io.BytesIO(_archive_bytes(path.parent))) as archive:
         assert archive.read('inputs/parameters.json') == data
+
+
+@pytest.mark.parametrize('damage', ['missing', 'digest', 'swapped', 'duplicate', 'escape',
+                                    'object-missing', 'object-corrupt', 'both-forms'])
+def test_source_manifest_damage_is_rejected(run, damage):
+    """The manifest form: every way to lie about the archived source fails."""
+    from research import source_store
+    from research.evidence import validate_artifact
+    from research.source_archive import store_for, validate_source_archive
+    path = run()
+    directory = path.parent
+    manifest = directory / 'source.manifest.json'
+    document = json.loads(manifest.read_text())
+    members = document['members']
+    store = store_for(directory)
+    record = json.loads(path.read_text())['run']
+    assert validate_source_archive(directory, record, deep=True) == []
+    source_index = next(i for i, (name, _) in enumerate(members) if name.startswith('source/'))
+    if damage == 'missing':
+        manifest.unlink()
+    elif damage == 'digest':
+        document['archive_sha256'] = '0' * 64
+    elif damage == 'swapped':      # a source member pointed at other stored bytes
+        members[source_index][1] = source_store.put(b'# not what ran', store)
+    elif damage == 'duplicate':
+        members.append(list(members[0]))
+    elif damage == 'escape':
+        members.append(['source/../escape.py', source_store.put(b'bad', store)])
+    elif damage == 'object-missing':
+        source_store.object_path(members[source_index][1], store).unlink()
+    elif damage == 'object-corrupt':
+        source_store.object_path(members[source_index][1], store).write_bytes(b'tampered')
+    elif damage == 'both-forms':
+        (directory / 'source.zip').write_bytes(_archive_bytes(directory))
+    if damage in ('digest', 'swapped', 'duplicate', 'escape'):
+        manifest.write_text(json.dumps(document))
+    errors = validate_artifact(path)
+    assert errors, f'{damage}: the damaged source manifest was accepted'
+    assert any('archive' in e or 'archived' in e or 'source' in e for e in errors), errors
+
+
+def test_consecutive_runs_share_their_source_bytes(run, tmp_path):
+    """The point of the store: a second run adds a manifest, not a copy."""
+    from research.source_archive import store_for
+    first = run(tag='first')
+    store = store_for(first.parent)
+    objects_after_first = sorted(p.name for p in store.rglob('*') if p.is_file())
+    second = run(tag='second')
+    objects_after_second = sorted(p.name for p in store.rglob('*') if p.is_file())
+    assert objects_after_second == objects_after_first
+    assert (second.parent / 'source.manifest.json').exists()
+    assert not (second.parent / 'source.zip').exists()

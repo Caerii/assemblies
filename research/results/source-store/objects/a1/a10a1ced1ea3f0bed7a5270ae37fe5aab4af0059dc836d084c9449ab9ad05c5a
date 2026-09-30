@@ -1,0 +1,50 @@
+paper_id: damore2022planning
+bibkey: damore2022planning
+title: "Planning with Biological Neurons (AAAI 2022)"
+
+blocks_world_ac:
+  n: 5000
+  k: 50
+  beta: 0.08
+  rounds: 8
+  prefix: _bw
+  areas:
+    holding: _bw_hold
+    table: _bw_table
+
+fsm_control:
+  states: [search, apply, done]
+  symbols: "pick_{block}, put_{block}, put_table"
+  transitions:
+    - [search, pick_B, apply]
+    - [apply, put_B, search]
+    - [apply, put_table, search]
+
+strips:
+  action: BlocksAction(src, dst)
+  table_token: table
+  verify: verify_plan
+
+pinned_problems:
+  two_block:
+    start: {A: B, B: null}
+    goal: {B: A, A: null}
+  three_block:
+    start: {A: B, B: C, C: null}
+    goal: {C: B, B: A, A: null}
+  four_block:
+    start: {A: B, B: C, C: D, D: null}
+    goal: {D: C, C: B, B: A, A: null}
+
+neural_execution:
+  module: planning.solve_and_run
+  discrete_state_tracking: initialize_discrete_state + apply_strips_plan
+  holding_recurrent_rounds: rounds - 1
+  gap: "Full paper AC operator program not ported (uses STRIPS shortcut)"
+
+golden_artifacts:
+  planning_scale: research/literature/parity/golden/aaai2022_planning.json  # missing
+  ac_program: null
+
+reference_repo:
+  modules: [planning.py]

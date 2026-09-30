@@ -1,0 +1,200 @@
+"""Is the episode penalty the TENURE? (PREREG_refraction_period_law.md, Amendment 3)
+
+The schedule study found a refracted memory storing far better in four short
+episodes than in one long one at the same total rounds per item (0.195 against
+0.846 at M = 256). The reading offered there, and not adopted, is that a
+16-round episode is a large fraction of one tenure, so the assembly selected at
+the start of a long episode is one the accumulated bias no longer selects by
+its end.
+
+That is testable now that the tenure is measurable. Refraction strength moves
+it a long way -- 59.49, 47.15 and 41.60 rounds at s/beta of 0.25, 0.375 and
+0.5 -- while the register holds strength to be a capacity SWITCH with one
+plateau across 0.3 to 0.6 beta, so 0.375 and 0.5 differ in tenure inside one
+capacity plateau. If the penalty is the tenure it must shrink as the episode
+becomes a smaller share of one.
+
+The write primitive is `ScheduledMemory`, imported from the schedule study
+which owns it, and whose single-episode write is bit-identical to
+`AssemblyMemory.store` (test_presentation_schedule_parity.py).
+
+Run:  python -m research.runner episode-tenure --tag UNIQUE
+      (smoke: --smoke --seeds 1 2 3; VOID)
+"""
+from __future__ import annotations
+
+from dataclasses import asdict
+from pathlib import Path
+
+import numpy as np
+
+from neural_assemblies.diagnostics import ensemble_from_values, paired_delta
+from research.experiments.presentation_schedule import (
+    TOTAL_ROUNDS, ScheduledMemory, measure, profile_for,
+)
+from research.runner import experiment_parser, run_experiment, validate_registered_seeds
+
+PROTOCOL = "memory.episode-tenure"
+VERSION = "1"
+REGISTRATION = "research/notes/memory/PREREG_refraction_period_law.md"
+REGISTERED_SEEDS = tuple(range(42, 62))
+
+CHECKPOINTS = (64, 128, 256)
+SMOKE_CHECKPOINTS = (8, 16)
+PENALTY_AT = 256
+#: Tenures measured in period-law-strength-20260913, and what a 16-round
+#: episode is as a share of one. The register's capacity plateau is 0.3-0.6
+#: beta, so 0.375 and 0.5 are matched on capacity and 0.25 is not.
+TENURE = {0.25: 59.49, 0.375: 47.15, 0.5: 41.60}
+#: name -> (episodes, episode_rounds, strength ratio). Every arm spends
+#: TOTAL_ROUNDS per item; only the grouping and the strength differ.
+ARM_SPECS = {
+    "e1x16-s0.5": (1, 16, 0.5),
+    "e2x8-s0.5": (2, 8, 0.5),
+    "e4x4-s0.5": (4, 4, 0.5),
+    "e8x2-s0.5": (8, 2, 0.5),
+    "e1x16-s0.375": (1, 16, 0.375),
+    "e8x2-s0.375": (8, 2, 0.375),
+    "e1x16-s0.25": (1, 16, 0.25),
+    "e8x2-s0.25": (8, 2, 0.25),
+}
+ARMS = tuple(ARM_SPECS)
+STRENGTHS = (0.5, 0.375, 0.25)
+
+
+def episode_share(ratio, episode_rounds=TOTAL_ROUNDS):
+    """An episode as a fraction of one tenure at this strength."""
+    return episode_rounds / TENURE[ratio]
+
+
+def run_arm(seeds, episodes, episode_rounds, ratio, *, checkpoints, device,
+            organ_semantics, rng):
+    """One arm: massed episodes, checkpointing at each M."""
+    from neural_assemblies.core._torch_ops import torch_ops
+    from neural_assemblies.core.semantics import OrganSemantics
+
+    if OrganSemantics.normalize(organ_semantics).mismatch(profile_for(ratio)):
+        raise ValueError("recorded organ profile disagrees with the arm's construction")
+    if episodes * episode_rounds != TOTAL_ROUNDS:
+        raise ValueError("every arm must spend the registered rounds per item")
+    out = {}
+    for M in checkpoints:
+        mem = ScheduledMemory(seeds, strength=ratio, items=M, visits=episodes,
+                              device=device, episode_rounds=episode_rounds)
+        last = [None] * M
+        for i in range(M):                      # massed: an item's episodes together
+            for _ in range(episodes):
+                last[i] = mem.visit(i)
+        if any(v != episodes for v in mem.visits_made):
+            raise RuntimeError("an item did not receive exactly the registered episodes")
+        stored = [w for w in last if w is not None]
+        out[str(M)] = {**measure(mem, stored, np.random.default_rng(rng.integers(1 << 31))),
+                       "episodes": episodes, "episode_rounds": episode_rounds,
+                       "rounds_per_item": episodes * episode_rounds,
+                       "strength_ratio": ratio}
+        del mem
+        torch_ops.cuda.empty_cache()
+    return out
+
+
+def _pair(a, b, seeds, label):
+    d = paired_delta(ensemble_from_values(a, keys=seeds),
+                     ensemble_from_values(b, keys=seeds), label=label)
+    return {**asdict(d), "low": d.low, "high": d.high}
+
+
+def experiment(record):
+    p = record["parameters"]
+    seeds = list(record["seeds"])
+    smoke = record["mode"] == "smoke"
+    checkpoints = tuple(p["checkpoints"])
+    rng = np.random.default_rng(0)
+
+    arms = {}
+    for name in p["arms"]:
+        episodes, episode_rounds, ratio = ARM_SPECS[name]
+        arms[name] = run_arm(seeds, episodes, episode_rounds, ratio,
+                             checkpoints=checkpoints, device=p["device"], rng=rng,
+                             organ_semantics=record["execution_semantics"]["profiles"][name])
+        tail = arms[name][str(max(checkpoints))]
+        print(f"  {name:<14s} M={max(checkpoints)} rank1 {np.mean(tail['rank1']):.3f}"
+              f"  pairwise/chance {np.mean(tail['pairwise_x']):.2f}"
+              f"  episode share {episode_share(ratio, episode_rounds) * 100:5.1f}%", flush=True)
+
+    bars, comparisons = {}, {}
+    if not smoke and PENALTY_AT in checkpoints:
+        at = str(PENALTY_AT)
+
+        def rank1(name):
+            return arms[name][at]["rank1"]
+        n = len(seeds)
+        penalties = {}
+        for ratio in STRENGTHS:
+            long_arm, short_arm = f"e1x16-s{ratio:g}", f"e8x2-s{ratio:g}"
+            if long_arm in arms and short_arm in arms:
+                penalties[ratio] = _pair(rank1(short_arm), rank1(long_arm), seeds,
+                                         f"8x2 - 1x16 at s={ratio:g}")
+        comparisons["penalty_by_strength"] = penalties
+        comparisons["episode_share"] = {str(r): episode_share(r) for r in STRENGTHS}
+        ladder = [f"e{e}x{r}-s0.5" for e, r in ((1, 16), (2, 8), (4, 4), (8, 2))]
+        means = [float(np.mean(rank1(a))) for a in ladder if a in arms]
+        comparisons["episode_ladder"] = dict(zip(ladder, means))
+        ordered = [penalties[r]["mean"] for r in STRENGTHS if r in penalties]
+        comparisons["penalty_ordered_by_share"] = ordered
+        if "e8x2-s0.5" in arms and "e8x2-s0.375" in arms:
+            comparisons["plateau_gap"] = abs(float(np.mean(rank1("e8x2-s0.5")))
+                                             - float(np.mean(rank1("e8x2-s0.375"))))
+        bars = {
+            "PL-6 shorter episodes help at a fixed tenure: rank1 non-decreasing across the ladder and 1x16 strictly worst on >= 18/20":
+                len(means) == 4 and all(a <= b for a, b in zip(means, means[1:]))
+                and sum(x < y for x, y in zip(rank1(ladder[0]), rank1(ladder[-1]))) >= 18 * n // 20,
+            "PL-8 the penalty tracks the episode's share of a tenure: strictly larger at 0.5 than 0.375 than 0.25":
+                len(ordered) == 3 and ordered[0] > ordered[1] > ordered[2],
+            "PL-9 and it is not capacity in disguise: the two plateau strengths' 8x2 arms differ by < 0.05":
+                comparisons.get("plateau_gap") is not None
+                and comparisons["plateau_gap"] < 0.05,
+            "PL-10 instrument: every arm spends the registered rounds per item":
+                all(cell["rounds_per_item"] == TOTAL_ROUNDS
+                    for arm in arms.values() for cell in arm.values()),
+        }
+        bars = {name: bool(ok) for name, ok in bars.items()}
+        for name, ok in bars.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+        for ratio in STRENGTHS:
+            if ratio in penalties:
+                pen = penalties[ratio]
+                print(f"  penalty at s={ratio:g} (share {episode_share(ratio)*100:.1f}%): "
+                      f"{pen['mean']:+.4f} [{pen['low']:+.4f}, {pen['high']:+.4f}]")
+    verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
+    return {"verdict": verdict, "bars": bars, "arms": arms, "comparisons": comparisons,
+            "scope": "the episode-length penalty of a refracted memory against the "
+                     "measured tenure, one operating point, massed schedules only"}
+
+
+def main(argv=None):
+    parser = experiment_parser(
+        "Does the episode-length penalty track the assembly's tenure?",
+        engines=("hashed_assembly_memory",), default_seeds=REGISTERED_SEEDS,
+    )
+    parser.add_argument("--device", default="cuda")
+    args = parser.parse_args(argv)
+    validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    checkpoints = SMOKE_CHECKPOINTS if args.smoke else CHECKPOINTS
+    parameters = {"checkpoints": list(checkpoints), "arms": list(ARMS),
+                  "arm_specs": {k: list(v) for k, v in ARM_SPECS.items()},
+                  "rounds_per_item": TOTAL_ROUNDS, "penalty_at": PENALTY_AT,
+                  "tenure": {str(k): v for k, v in TENURE.items()},
+                  "rule": "refracted", "readout": "masked",
+                  "device": args.device}
+    profiles = {name: profile_for(spec[2]) for name, spec in ARM_SPECS.items()}
+    path = run_experiment(
+        script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
+        registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
+        tag=args.tag, smoke=args.smoke, minimum_study_seeds=20,
+        parameters=parameters, organ_semantics=profiles, measure=experiment,
+    )
+    print(path)
+
+
+if __name__ == "__main__":
+    main()

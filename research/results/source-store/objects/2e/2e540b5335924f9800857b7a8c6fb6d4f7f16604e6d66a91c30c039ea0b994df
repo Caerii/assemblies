@@ -1,0 +1,56 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/Caerii/assemblies/neural_assemblies/ir/v1/explicit-round.schema.json",
+  "title": "Explicit dense-area projection round v1",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "profile",
+    "target",
+    "from_areas",
+    "plasticity",
+    "external_drive"
+  ],
+  "properties": {
+    "profile": {
+      "const": "explicit-area-round-v1"
+    },
+    "target": {
+      "type": "string",
+      "minLength": 1
+    },
+    "from_areas": {
+      "type": "array",
+      "uniqueItems": true,
+      "items": {
+        "type": "string",
+        "minLength": 1
+      }
+    },
+    "plasticity": {
+      "type": "boolean"
+    },
+    "external_drive": {
+      "type": "array",
+      "items": {
+        "type": "number"
+      }
+    }
+  },
+  "anyOf": [
+    {
+      "properties": {
+        "from_areas": {
+          "minItems": 1
+        }
+      }
+    },
+    {
+      "properties": {
+        "external_drive": {
+          "minItems": 1
+        }
+      }
+    }
+  ]
+}

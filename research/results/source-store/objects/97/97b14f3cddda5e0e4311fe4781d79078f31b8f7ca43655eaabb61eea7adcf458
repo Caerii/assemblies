@@ -1,0 +1,200 @@
+"""Computed baselines and vendored references are spellable, and only truthfully.
+
+Specification: neural_assemblies/ir/VERIFICATION.md#contract-execution-kinds
+
+Before these kinds existed the oracle-ceiling and arc-reference scripts had no
+engine to name and stayed outside the shared runner. Each test here pairs an
+admitted case with a constructed negative that must fail before measurement.
+"""
+import json
+from pathlib import Path
+from typing import Any
+
+import pytest
+
+from neural_assemblies import (
+    BaselineSemantics, ConnectomeMode, ExecutionKind, ExecutionSemantics,
+    ModelSemantics, PlasticityRule, TieBreakRule,
+    describe_brain_model, describe_computed_baseline, describe_nemo_numpy_reference,
+)
+from research import runner
+from research.evidence import validate_artifact
+
+
+BASELINE = describe_computed_baseline(corpus="agreement-chain", tie_seed=0)
+REFERENCE = describe_nemo_numpy_reference()
+
+
+@pytest.fixture
+def run(tmp_path, monkeypatch):
+    monkeypatch.setattr(
+        runner, "_source_paths",
+        lambda: [Path(__file__).relative_to(runner.ROOT).as_posix()],
+    )
+
+    def execute(**kwargs):
+        values: dict[str, Any] = dict(
+            script=Path(__file__), protocol="audit.kinds", protocol_version="1",
+            registration="research/notes/sequence/DESIGN_sequence_port.md",
+            engine="computed_baseline", seeds=[1, 2, 3], tag="fixture",
+            baseline_semantics=BASELINE, parameters={"estimators": ["bigram"]},
+            measure=lambda record: {"values": [.1, .2, .3]}, output_root=tmp_path,
+        )
+        values.update(kwargs)
+        return runner.run_experiment(**values)
+    return execute
+
+
+# --- baseline profile ------------------------------------------------------
+
+def test_baseline_profile_is_canonical_and_round_trips():
+    document = BASELINE.to_dict()
+    assert document == {
+        "corpus": "agreement-chain", "scoring": "mrr-random-ties",
+        "tie_break": "seeded-uniform-jitter", "tie_seed": 0,
+    }
+    assert BaselineSemantics.normalize(document) == BASELINE
+
+
+@pytest.mark.parametrize("change", [
+    {"tie_break": "lowest-neuron-id"},        # an engine tie rule on a count estimator
+    {"tie_break": "backend-topk-order"},
+    {"tie_seed": True},                       # a boolean is not a seed identity
+    {"tie_seed": 1.5},
+    {"corpus": "childes"},                    # not a corpus family this repository computes on
+])
+def test_baseline_profile_rejects_engine_tie_rules_and_malformed_fields(change):
+    with pytest.raises(ValueError):
+        BaselineSemantics.normalize({**BASELINE.to_dict(), **change})
+
+
+def test_baseline_profile_rejects_partial_and_extra_fields():
+    document = BASELINE.to_dict()
+    with pytest.raises(ValueError, match="missing"):
+        BaselineSemantics.normalize({k: v for k, v in document.items() if k != "tie_seed"})
+    with pytest.raises(ValueError, match="unknown"):
+        BaselineSemantics.normalize({**document, "estimators": ["bigram"]})
+
+
+# --- runner admission ------------------------------------------------------
+
+def test_baseline_run_writes_schema_nine_and_validates(run):
+    path = run()
+    record = json.loads(path.read_text())["run"]
+    assert record["schema_version"] == 9
+    assert record["engine"] == "computed_baseline"
+    assert record["execution_semantics"] == {
+        "kind": "baseline", "profiles": {"default": BASELINE.to_dict()},
+    }
+    assert validate_artifact(path) == []
+
+
+def test_baseline_run_refuses_to_borrow_another_kind_of_profile(run, tmp_path):
+    calls = []
+    for extra in (
+        {"model_semantics": describe_brain_model("numpy_exact", norm_init=False)},
+        {"organ_semantics": {"organ": "assigned-state-fsm"}},
+        {"aligner_semantics": {"cross_store": "present-only"}},
+    ):
+        with pytest.raises(ValueError, match="cannot claim"):
+            run(measure=lambda record: calls.append(record), **extra)
+    with pytest.raises(ValueError, match="require a complete baseline_semantics"):
+        run(measure=lambda record: calls.append(record), baseline_semantics=None)
+    assert calls == []
+    assert not (tmp_path / "audit.kinds" / "fixture").exists()
+
+
+def test_brain_run_refuses_a_baseline_profile(run, tmp_path):
+    calls = []
+    with pytest.raises(ValueError, match="cannot claim organ, aligner or baseline"):
+        run(engine="numpy_exact",
+            model_semantics=describe_brain_model("numpy_exact", norm_init=False),
+            measure=lambda record: calls.append(record))
+    assert calls == []
+    assert not (tmp_path / "audit.kinds" / "fixture").exists()
+
+
+def test_reference_run_requires_the_declared_profile_exactly(run, tmp_path):
+    path = run(engine="reference_nemo_numpy", baseline_semantics=None,
+               model_semantics=REFERENCE)
+    record = json.loads(path.read_text())["run"]
+    assert record["schema_version"] == 9
+    assert record["execution_semantics"]["kind"] == "reference"
+    assert record["execution_semantics"]["profiles"]["default"] == REFERENCE.to_dict()
+    assert validate_artifact(path) == []
+
+    # A request that disagrees with the describer on one field is refused
+    # before the tag is reserved: the describer is the contract.
+    clipped = ModelSemantics.normalize({
+        **REFERENCE.to_dict(),
+        "plasticity": PlasticityRule.MULTIPLICATIVE_CLIPPED.value,
+        "weight_ceiling": 20.0,
+    })
+    calls = []
+    with pytest.raises(ValueError, match="does not implement requested"):
+        run(engine="reference_nemo_numpy", baseline_semantics=None,
+            model_semantics=clipped, tag="clipped",
+            measure=lambda record: calls.append(record))
+    assert calls == []
+    assert not (tmp_path / "audit.kinds" / "clipped").exists()
+    with pytest.raises(ValueError, match="require the declared model_semantics"):
+        run(engine="reference_nemo_numpy", baseline_semantics=None, tag="none")
+
+
+def test_reference_profile_names_the_stream_addressed_dense_connectome():
+    assert REFERENCE.connectome is ConnectomeMode.FIXED_DENSE_STREAM_ADDRESSED
+    assert REFERENCE.plasticity is PlasticityRule.MULTIPLICATIVE_UNBOUNDED
+    assert REFERENCE.weight_ceiling is None
+    assert REFERENCE.default_tie_break is TieBreakRule.BACKEND_TOPK_ORDER
+
+
+# --- envelope and validator ------------------------------------------------
+
+def test_envelope_discriminates_the_new_kinds():
+    baseline = ExecutionSemantics(ExecutionKind.BASELINE, {"default": BASELINE})
+    assert baseline.to_dict()["kind"] == "baseline"
+    reference = ExecutionSemantics(ExecutionKind.REFERENCE, {"default": REFERENCE})
+    assert reference.to_dict()["kind"] == "reference"
+    with pytest.raises(ValueError):
+        ExecutionSemantics(ExecutionKind.BASELINE, {"default": REFERENCE.to_dict()})
+    with pytest.raises(ValueError):
+        ExecutionSemantics(ExecutionKind.REFERENCE, {"default": BASELINE.to_dict()})
+    with pytest.raises(ValueError, match="exactly the default profile"):
+        ExecutionSemantics(ExecutionKind.BASELINE, {"a": BASELINE, "b": BASELINE})
+
+
+def _rewrite(path: Path, mutate):
+    """Apply one mutation to both the reserved run.json and its embedded copy."""
+    for name in (path, path.parent / "run.json"):
+        document = json.loads(name.read_text())
+        record = document["run"] if "run" in document else document
+        mutate(record)
+        name.write_text(json.dumps(document))
+
+
+def test_validator_rejects_kind_engine_and_schema_disagreement(run):
+    path = run()
+    assert validate_artifact(path) == []
+
+    def downgrade(record):
+        record["schema_version"] = 7
+    _rewrite(path, downgrade)
+    assert any("require run schema 9" in error for error in validate_artifact(path))
+
+    path = run(tag="engine")
+
+    def relabel(record):
+        record["engine"] = "numpy_exact"
+    _rewrite(path, relabel)
+    assert any("kind disagrees with engine" in error for error in validate_artifact(path))
+
+
+def test_validator_rechecks_reference_profile_against_the_describer(run):
+    path = run(engine="reference_nemo_numpy", baseline_semantics=None,
+               model_semantics=REFERENCE)
+
+    def drift(record):
+        record["execution_semantics"]["profiles"]["default"]["normalization"] = "inverse-indegree"
+    _rewrite(path, drift)
+    assert any("disagrees with the declared describer" in error
+               for error in validate_artifact(path))

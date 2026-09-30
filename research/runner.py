@@ -11,6 +11,7 @@ from dataclasses import dataclass, field
 from datetime import datetime, timezone
 import gzip
 import hashlib
+import io
 import importlib
 import os
 from pathlib import Path
@@ -31,7 +32,8 @@ from neural_assemblies.core.semantics import (
 from research.json_documents import (
     encode_document, snapshot_document, write_new_document as _write_new,
 )
-from research.source_archive import validate_source_archive
+from research import source_store
+from research.source_archive import store_for, validate_source_archive
 
 ROOT = Path(__file__).resolve().parents[1]
 # Source-linked specification: research/README.md#source-identity
@@ -495,9 +497,12 @@ def _reserve_and_measure(record, *, protocol, tag, output_root, input_bytes,
     directory.mkdir()  # atomic reservation; raises FileExistsError before measure
     # Source-linked specification: research/README.md#recoverable-source
     # Reserve first; no measurement may run without a complete source capture.
-    archive_path = directory / 'source.zip'
+    # The archive is assembled in memory: its digest is what the record binds,
+    # and its members go to the content-addressed store with a manifest
+    # (research/source_store.py), so consecutive runs share their bytes.
+    buffer = io.BytesIO()
     try:
-        with ZipFile(archive_path, 'x') as archive:
+        with ZipFile(buffer, 'x') as archive:
             captured = _source_identity(archive)
             for name, data in input_bytes.items():
                 _archive_bytes(archive, 'inputs/' + name, data)
@@ -508,10 +513,15 @@ def _reserve_and_measure(record, *, protocol, tag, output_root, input_bytes,
                 _archive_bytes(archive, field, data)
         if captured != {k: record[k] for k in ('git_commit', 'source_sha256')}:
             raise RuntimeError('source changed while capturing source')
-        record['source_archive'] = {
-            'file': 'source.zip',
-            'sha256': hashlib.sha256(archive_path.read_bytes()).hexdigest(),
-        }
+        archive_bytes = buffer.getvalue()
+        archive_sha256 = hashlib.sha256(archive_bytes).hexdigest()
+        with ZipFile(io.BytesIO(archive_bytes)) as archive:
+            members = [(info.filename, archive.read(info)) for info in archive.infolist()]
+        if hashlib.sha256(source_store.build_archive(members)).hexdigest() != archive_sha256:
+            raise RuntimeError('the source archive is not reproducible from its members')
+        source_store.write_manifest(directory, members, archive_sha256,
+                                    store=store_for(directory), rebuilt=True)
+        record['source_archive'] = {'file': 'source.zip', 'sha256': archive_sha256}
         _write_new(directory / 'run.json', record)
     except BaseException as exc:
         # Reservation is intentionally early.  If capture fails, retain the

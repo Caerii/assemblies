@@ -1,0 +1,28 @@
+paper_id: papadimitriou2019random
+bibkey: papadimitriou2019random
+title: "Random Projection in the Brain (ITCS 2019)"
+
+inherits: pnas2020.yaml
+append_operation:
+  status: missing
+  note: "ITCS primitive; not named in package API"
+
+theorem:
+  convergence: "RP&C + Hebbian → stable assembly (main ITCS theorem)"
+  cite_only: true
+
+research_experiments:
+  scaling_laws:
+    module: research/experiments/stability/test_scaling_laws.py
+    hypothesis: H3_O_log_n
+  density_simulator:
+    module: neural_assemblies/simulation/density_simulator.py
+    n: 100000
+    k: 317
+    p: 0.01
+    rounds: 20
+    beta_values: [0, 0.025, 0.05, 0.075, 0.1]
+
+ccneuro_precursor:
+  paper_id: papadimitriou2019ccneuro
+  cite_itcs_for_proofs: true

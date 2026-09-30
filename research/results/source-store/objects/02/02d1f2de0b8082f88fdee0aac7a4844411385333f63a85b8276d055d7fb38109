@@ -1,0 +1,12 @@
+name = "assembly-contracts"
+version = "0.1.0"
+defaultTargets = ["AssemblyIR"]
+
+[[lean_lib]]
+name = "AssemblyIR"
+moreLeanArgs = ["-DwarningAsError=true"]
+
+[[lean_exe]]
+name = "check-wire-cases"
+root = "CheckWireCases"
+moreLeanArgs = ["-DwarningAsError=true"]

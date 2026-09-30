@@ -1,0 +1,88 @@
+"""The autonomous-chain design (PREREG_autonomous_chain.md).
+
+The chain is driven by ONE constant symbol, so the symbol carries no
+information and every advance comes from the state through the arc. For that
+to be a test rather than a demonstration, the arms must isolate one thing each,
+and the score must be able to fail.
+"""
+from __future__ import annotations
+
+import unittest
+
+from research.experiments.autonomous_chain import (
+    ARM_SPECS, ARMS, BETA, K, N_ARC, P, PRESENTATIONS, TICK,
+    chain_table, consecutive_correct,
+)
+
+
+class TheChainIsAPath(unittest.TestCase):
+    def test_one_symbol_carries_every_transition(self):
+        states, table = chain_table(8)
+        self.assertEqual(len(states), 9)
+        self.assertEqual({sym for _, sym, _ in table}, {TICK})
+        # the symbol appears in EVERY transition and each state in one, which
+        # is what makes this the extreme case of conjunct exposure
+        self.assertEqual(len(table), 8)
+        self.assertEqual(len({fr for fr, _, _ in table}), 8)
+
+    def test_it_is_a_simple_path_with_no_revisits(self):
+        _, table = chain_table(16)
+        for i, (fr, _, to) in enumerate(table):
+            self.assertEqual(fr, f"q{i}")
+            self.assertEqual(to, f"q{i + 1}")
+
+    def test_scoring_stops_at_the_first_wrong_visit(self):
+        self.assertEqual(consecutive_correct([1, 2, 3, 4], 4), 4)
+        self.assertEqual(consecutive_correct([1, 2, 9, 4], 4), 2)
+        self.assertEqual(consecutive_correct([0, 2, 3, 4], 4), 0)
+
+    def test_a_chain_that_sat_still_would_score_zero(self):
+        # the failure mode refraction prevents: every step reads the same state
+        self.assertEqual(consecutive_correct([1, 1, 1, 1], 4), 1)
+        self.assertEqual(consecutive_correct([0, 0, 0, 0], 4), 0)
+
+
+class TheArmsCanFail(unittest.TestCase):
+    def test_every_arm_varies_exactly_one_thing_from_the_baseline(self):
+        base = ARM_SPECS["L32"]
+        for name, spec in ARM_SPECS.items():
+            if name in ("L32", "L128"):
+                continue
+            differing = [i for i in range(4) if spec[i] != base[i]]
+            self.assertEqual(len(differing), 1, (name, spec, base))
+
+    def test_the_mechanism_disabled_arm_is_present_and_is_zero_strength(self):
+        self.assertEqual(ARM_SPECS["L32-no-refraction"][2], 0.0)
+        self.assertGreater(ARM_SPECS["L32"][2], 0.0)
+
+    def test_the_length_arm_reaches_past_the_reported_band(self):
+        # the paper reports difficulty beyond 20 to 40 assemblies
+        self.assertGreaterEqual(ARM_SPECS["L32"][0], 32)
+        self.assertGreaterEqual(ARM_SPECS["L128"][0], 4 * 32)
+
+    def test_undertrained_and_sparse_arms_exist_so_a_perfect_score_can_move(self):
+        trained = [s[1] for n, s in ARM_SPECS.items() if n.startswith("L32-pres")]
+        self.assertTrue(all(t < PRESENTATIONS for t in trained), trained)
+        sparse = [s[3] for n, s in ARM_SPECS.items() if "-p0." in n]
+        self.assertTrue(all(d < P for d in sparse), sparse)
+
+    def test_the_arms_cover_the_five_bars(self):
+        for name in ("L32", "L128", "L32-no-refraction", "L32-pres5",
+                     "L32-pres10", "L32-p0.05", "L32-p0.02"):
+            self.assertIn(name, ARMS)
+
+
+class TheCollapseMeasurementHasAScale(unittest.TestCase):
+    def test_chance_overlap_is_far_below_the_collapse_bar(self):
+        chance = K / N_ARC
+        self.assertLess(3 * chance, 0.5, "the CL-5 bars must not overlap")
+        self.assertAlmostEqual(chance, 0.01, places=6)
+
+    def test_the_gain_table_must_be_sized_to_the_episode(self):
+        # the engine refuses the default 4096 at this beta; the registration
+        # records the size and why
+        self.assertGreater((1 + BETA) ** 931, 3.4e38)
+
+
+if __name__ == "__main__":
+    unittest.main()

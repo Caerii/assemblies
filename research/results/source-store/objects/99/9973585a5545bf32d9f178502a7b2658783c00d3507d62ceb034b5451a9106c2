@@ -1,0 +1,1053 @@
+"""Autonomous chain recall on the refracted arc. [[ARC-CONJUNCT-EXPOSURE]]
+
+Registration: research/notes/sequence/PREREG_autonomous_chain.md.
+
+The reference builds sequences from a feedforward RefractedArea arc driven by
+`(symbol, state)`. Drive it with a SINGLE CONSTANT symbol and the chain becomes
+autonomous: the tick carries no information, so every advance comes from the
+state through the arc. That is the recall `ordered_recall` fails at, built on
+the construction that works.
+
+It is also the sharpest available test of the anti-swamping claim: the tick
+appears in every transition while each state appears in one, so it is the most
+over-exposed conjunct the construction admits. With refraction off, the arcs of
+distinct states should collapse onto the tick and the chain should not move.
+
+Run:  python -m research.runner autonomous-chain --tag UNIQUE
+      (smoke: --smoke --seeds 1 2 3; VOID)
+"""
+from __future__ import annotations
+
+from dataclasses import asdict
+from pathlib import Path
+
+from neural_assemblies import describe_hashed_arc_fsm
+from neural_assemblies.diagnostics import ensemble_from_values
+from research.runner import experiment_parser, run_experiment, validate_registered_seeds
+
+PROTOCOL = "sequence.autonomous-chain"
+VERSION = "3"          # v2: Amendment 1 limit grid; v3: Amendment 2 collidable states
+REGISTRATION = "research/notes/sequence/PREREG_autonomous_chain.md"
+#: Seeds 42-45 were used by the exploratory probe that informed the bars, so
+#: the study runs on a block no probe has touched.
+#: Amendment 3's bars were stated FROM block 62..81, so confirming them there
+#: would be circular; 82..101 is the fresh block they are to be met on.
+SEED_BLOCKS = (tuple(range(62, 82)), tuple(range(82, 102)))
+REGISTERED_SEEDS = SEED_BLOCKS[0]
+
+N_ARC, K, P, BETA, W_MAX = 10000, 100, 0.2, 0.10, 20.0
+STRENGTH = BETA                 # the reference runs the refracted arc at s = plasticity
+MAX_POTENTIATIONS = 96          # sized to the episode; the default overflows float32
+PRESENTATIONS = 20
+TICK = "tick"
+#: name -> (length, presentations, strength ratio of beta, arc density)
+ARM_SPECS = {
+    "L32": (32, PRESENTATIONS, 1.0, P),
+    "L128": (128, PRESENTATIONS, 1.0, P),
+    "L32-no-refraction": (32, PRESENTATIONS, 0.0, P),
+    "L32-pres5": (32, 5, 1.0, P),
+    "L32-pres10": (32, 10, 1.0, P),
+    "L32-p0.05": (32, PRESENTATIONS, 1.0, 0.05),
+    "L32-p0.02": (32, PRESENTATIONS, 1.0, 0.02),
+}
+ARMS = tuple(ARM_SPECS)
+SMOKE_ARMS = ("L32", "L32-no-refraction")
+
+#: Amendment 1. n_state is held FIXED across every limit cell: HashedArcFSM
+#: otherwise sizes it from the chain length, so varying L would redraw the
+#: connectome. The engine caps it at 65536 (topk_select packs a 16-bit index),
+#: which bounds the chain at 65536/k - 1 = 639 here.
+LIMIT_P = 0.3          # kp = 30 clears 3 ln n in every limit cell
+LIMIT_ARCS = (1000, 2000, 3000, 4000)
+LIMIT_LENGTHS = (160, 256, 384, 512)
+
+#: A chain of length L has L + 1 states, so the area must hold (L_max + 1) k
+#: disjoint blocks. The first version of this constant was L_max * k = 51200,
+#: which is 100 short: HashedArcFSM silently takes max(n_state, n_states * k),
+#: so the L = 512 column ran at 51300 while every other column ran at 51200 --
+#: the one cell where the control this constant exists to enforce did not hold.
+N_STATE_FIXED = (max(LIMIT_LENGTHS) + 1) * K
+
+
+def limit_arms():
+    """name -> (length, presentations, strength ratio, density, n_arc)."""
+    out = {f"n{n}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, n)
+           for n in LIMIT_ARCS for L in LIMIT_LENGTHS}
+    # the mechanism-disabled null carried over, at the smallest cell
+    out[f"n{LIMIT_ARCS[0]}-L{LIMIT_LENGTHS[0]}-no-refraction"] = (
+        LIMIT_LENGTHS[0], PRESENTATIONS, 0.0, LIMIT_P, LIMIT_ARCS[0])
+    return out
+
+
+LIMIT_SPECS = limit_arms()
+
+#: Amendment 2. Every earlier result assigns each state a DISJOINT block, so
+#: state collision is impossible by construction. These arms replace the code
+#: with random k-subsets and shrink the state area until collision is forced.
+#: A chain of length L has L + 1 states, so the code needs (L + 1) k = 16100
+#: neurons to be disjoint and THREE of the five arms cannot be -- the
+#: registration's "L * k = 16000, so the last two" is the same off-by-one the
+#: limit grid's state area carried, and n16000 is crowded too, not roomy.
+STATE_L, STATE_ARC = 160, 3000
+STATE_AREAS = (64000, 32000, 16000, 8000, 4000)
+
+
+def code_arms(length, n_arc, areas, *, prefix=""):
+    """Arms that carry their OWN state code.
+
+    Spec shape (length, presentations, strength ratio, density, n_arc,
+    n_state, kind) -- a superset of every other arm's five. Carrying the code
+    in the spec rather than looking it up by arm NAME removes a whole class of
+    defect: the load sweep drops an area the name lookup still expected, and
+    that would have raised KeyError at the readout after minutes of training.
+    """
+    head = (length, PRESENTATIONS, 1.0, LIMIT_P, n_arc)
+    out = {f"{prefix}blocks-n{areas[0]}": head + (areas[0], "blocks")}
+    out.update({f"{prefix}random-n{n}": head + (n, "random") for n in areas})
+    return out
+
+
+STATE_ARM_SPECS = code_arms(STATE_L, STATE_ARC, STATE_AREAS)
+#: the code is disjoint exactly when the area holds (L + 1) k neurons
+STATE_ROOMY = tuple(n for n in STATE_AREAS if n >= (STATE_L + 1) * K)
+STATE_CROWDED = tuple(n for n in STATE_AREAS if n < (STATE_L + 1) * K)
+
+#: Amendment 4. Amendment 2 ran where the chain has MARGIN (20/20 exact with
+#: room), and a treatment that costs nothing where there is slack can still be
+#: decisive where there is none. This is the same sweep at the most stable
+#: MARGINAL cell in the limit grid: n_arc = 2000, L = 256, which gave exactly
+#: 14 of 20 exact on two independent seed blocks -- high enough that a cost
+#: would show as a drop, low enough that it is not at ceiling.
+MARGIN_L, MARGIN_ARC = 256, 2000
+MARGIN_ARM_SPECS = code_arms(MARGIN_L, MARGIN_ARC, STATE_AREAS)
+MARGIN_ROOMY = tuple(n for n in STATE_AREAS if n >= (MARGIN_L + 1) * K)
+MARGIN_CROWDED = tuple(n for n in STATE_AREAS if n < (MARGIN_L + 1) * K)
+
+#: Amendment 5. Amendments 2 and 4 differ in TWO ways at once -- the cell's
+#: margin and the load reached (4.03 against 6.42) -- so neither says which is
+#: the variable. This drives the ROOMY cell (the one that absorbed everything)
+#: past the load the marginal cell died at. n_state 2500 gives load 6.44, which
+#: matches the marginal cell's tightest arm; the rest go further.
+LOAD_AREAS = (4000, 2500, 2000, 1600, 1200)
+LOAD_ARM_SPECS = code_arms(STATE_L, STATE_ARC, LOAD_AREAS)
+# the roomy reference the sweep is measured against
+LOAD_ARM_SPECS[f"blocks-n{STATE_AREAS[0]}"] = (
+    STATE_L, PRESENTATIONS, 1.0, LIMIT_P, STATE_ARC, STATE_AREAS[0], "blocks")
+LOAD_ARM_SPECS.pop(f"blocks-n{LOAD_AREAS[0]}", None)
+#: the arm whose load matches Amendment 4's tightest cell, within 0.02
+LOAD_MATCHED = "random-n2500"
+
+#: Amendment 6. Amendment 5 says MARGIN decides whether state crowding costs
+#: anything, but "margin" is a label, not a mechanism: the two cells differed in
+#: chain length AND arc size together. The named hypothesis is that the ARC is
+#: the bottleneck, so crowding the states bites exactly when the arc has no
+#: room. This holds the chain and the state crowding FIXED at the combination
+#: that collapsed to 0.43 of L, and gives the arc more neurons.
+ARCB_L, ARCB_STATE = MARGIN_L, 4000      # the killing cell: L=256, load 6.42
+ARCB_ARCS = (2000, 3000, 4000, 6000)
+ARCB_BLOCKS_STATE = 32000                # roomy for 257 states (needs 25700)
+ARCB_BLOCKS_ARCS = (2000, 4000)          # 6000 x 32000 nears the device ceiling
+
+
+def arc_bottleneck_arms():
+    """The crowded code at four arc sizes, plus a blocks control at two."""
+    head = (ARCB_L, PRESENTATIONS, 1.0, LIMIT_P)
+    out = {f"random-n{ARCB_STATE}-arc{a}": head + (a, ARCB_STATE, "random")
+           for a in ARCB_ARCS}
+    out.update({f"blocks-n{ARCB_BLOCKS_STATE}-arc{a}":
+                head + (a, ARCB_BLOCKS_STATE, "blocks")
+                for a in ARCB_BLOCKS_ARCS})
+    return out
+
+
+ARCB_ARM_SPECS = arc_bottleneck_arms()
+
+#: Amendment 7. The probe says the break is a DEGRADED ARC at the end of the
+#: chain, with the decode margin flat at 96/100 until the last few steps. The
+#: mechanism named for it comes from the training loop: `train` sweeps the
+#: table in chain order and the arc's refraction bias never decays, so by the
+#: end of each sweep the late arcs are recruited from whatever is least
+#: suppressed. If that is right the weakness belongs to being trained LAST, not
+#: to being far along -- and REVERSING the order must move the break to the
+#: START of the chain. Same cell, same dosage, order alone.
+TORD_L, TORD_ARC = 512, 4000
+TORD_ORDERS = ("chain", "reversed", "shuffled")
+TORD_ARM_SPECS = {
+    f"order-{o}": (TORD_L, PRESENTATIONS, 1.0, LIMIT_P, TORD_ARC,
+                   N_STATE_FIXED, "blocks", o)
+    for o in TORD_ORDERS
+}
+#: what the marginal cell did at that load, as a fraction of its chain length
+MARGIN_COLLAPSE_FRACTION = 110.0 / 256
+
+
+def state_code(seeds, n_state, kind, n_states, k, device):
+    """[n_states, k] compact indices: disjoint blocks, or random k-subsets.
+
+    Random subsets overlap at about chance k / n_state when the area is roomy
+    and are FORCED to overlap once n_states * k exceeds it.
+    """
+    from neural_assemblies.core._torch_ops import torch_ops
+    if kind == "blocks":
+        if n_states * k > n_state:
+            raise ValueError("disjoint blocks do not fit in the state area")
+        return torch_ops.arange(n_states * k, device=device,
+                                dtype=torch_ops.int64).view(n_states, k)
+    gen = torch_ops.Generator(device="cpu")
+    gen.manual_seed(int(seeds[0]))
+    rows = [torch_ops.randperm(n_state, generator=gen)[:k] for _ in range(n_states)]
+    return torch_ops.stack(rows).to(device).to(torch_ops.int64)
+
+
+def decode_by_overlap(winners, code):
+    """[B] index of the code row the winners overlap most.
+
+    The block readout decodes by integer division and assumes contiguous
+    disjoint blocks, so a collidable code needs this instead. The disjoint arm
+    is decoded the same way, so the two are compared on ONE readout.
+    """
+    # [S, k] code against [B, k] winners -> [B, S] overlap counts
+    hit = (winners.unsqueeze(1).unsqueeze(-1) == code.unsqueeze(0).unsqueeze(2))
+    return hit.any(-1).sum(-1).argmax(1)
+
+
+def code_overlap(code, k):
+    """Mean pairwise overlap between distinct code rows, as a fraction of k."""
+    from neural_assemblies.core._torch_ops import torch_ops
+    srt = torch_ops.sort(code, dim=1).values
+    S = srt.shape[0]
+    total, pairs = 0.0, 0
+    for i in range(S):
+        a = srt[i].unsqueeze(0).expand(S - i - 1, k) if i + 1 < S else None
+        if a is None:
+            continue
+        b = srt[i + 1:]
+        idx = torch_ops.searchsorted(a.contiguous(), b.contiguous()).clamp_(max=k - 1)
+        total += float((torch_ops.gather(a, 1, idx) == b).sum()) / k
+        pairs += S - i - 1
+    return total / max(pairs, 1)
+
+
+def profile_for(ratio):
+    """The organ profile of one arm. `ratio` is a fraction of beta."""
+    return describe_hashed_arc_fsm(w_max=W_MAX, norm_init=False,
+                                   refracted_strength=ratio * BETA,
+                                   tie_jitter=0.0, zero_or_size=False)
+
+
+def chain_table(length):
+    """A simple path q0 -> q1 -> ... -> qL on one constant symbol."""
+    states = [f"q{i}" for i in range(length + 1)]
+    return states, [(states[i], TICK, states[i + 1]) for i in range(length)]
+
+
+def consecutive_correct(visited, length):
+    """Correct visits from the start; visit t is correct when it reads q_{t+1}."""
+    got = 0
+    for t in range(length):
+        if visited[t] == t + 1:
+            got += 1
+        else:
+            break
+    return got
+
+
+def follows_table(visited, start):
+    """Fraction of transitions from `start` onward that step q_i -> q_{i+1}.
+
+    THE POSITION-LOCKED TRAP. `correct` and `total_correct` both ask whether
+    visit t reads q_{t+1}, which is a question about PHASE. A chain that runs
+    380 steps, falls back to q2 and then steps 3, 4, 5 correctly is still
+    obeying the transition table, but every later visit is out of phase and
+    both statistics call it dead. Measured on the first grid: of the brains
+    that failed at n4000-L512, some continued to follow the table exactly from
+    wherever they landed. This asks the relation question instead.
+    """
+    tail = visited[start:]
+    if len(tail) < 2:
+        return None
+    return sum(1 for i in range(len(tail) - 1)
+               if tail[i + 1] == tail[i] + 1) / (len(tail) - 1)
+
+
+#: A failing brain is classified by what it does AFTER the first error, not by
+#: whether it ever re-enters phase. `total_correct > correct` fires on a single
+#: coincidental hit: all three brains that failed AL-1 on the first grid were
+#: thrashing chains ([101, 102, 286, 326, 101, 286, 1]) that happened to land
+#: on t + 1 exactly once. That is a coincidence detector, not a death test.
+WRAP_FOLLOW = 0.95      # keeps stepping through the table from a new position
+STALL_REPEAT = 0.50     # mostly absorbed: repeats or short cycles
+
+
+def failure_kind(visited, length, first_error):
+    """'exact', 'wrap', 'stall' or 'scatter' for one brain."""
+    if first_error >= length:
+        return "exact"
+    follow = follows_table(visited, first_error)
+    if follow is None:
+        return "wrap"                 # failed on the very last visit; nothing follows
+    if follow >= WRAP_FOLLOW:
+        return "wrap"
+    tail = visited[first_error:]
+    if len(set(tail)) <= max(2, len(tail) * (1.0 - STALL_REPEAT)):
+        return "stall"
+    return "scatter"
+
+
+#: sampled pairs for the collapse measurement; the full set is quadratic in L
+PAIR_SAMPLE = 512
+
+
+def arc_collapse(fsm, states, nbrain):
+    """Mean pairwise overlap between the ARC assemblies of distinct states,
+    over a fixed sample of pairs.
+
+    The anti-swamping measurement: if the constant tick swamps the state, every
+    state drives the SAME arc and this rises towards 1. Chance is k / n_arc.
+    """
+    from neural_assemblies.core._torch_ops import torch_ops
+
+    arcs = []
+    for name in states[:-1]:                 # every state that has an outgoing arc
+        fsm.arc.inhibit()
+        fsm.cue_state(name)
+        fsm.step(TICK)
+        arcs.append(torch_ops.sort(fsm.arc.winners, dim=1).values.clone())
+    stack = torch_ops.stack(arcs)            # [S, B, k]
+    S, _, k = stack.shape
+    # SAMPLE pairs rather than enumerate them: the full set is quadratic in the
+    # chain length and at S = 512 that is 130k tensor comparisons, which took
+    # 13 minutes on one cell before this was fixed. The capacity protocol
+    # samples for the same reason.
+    want = min(PAIR_SAMPLE, S * (S - 1) // 2)
+    gen = torch_ops.Generator(device="cpu")
+    gen.manual_seed(0)
+    ia = torch_ops.randint(0, S, (want,), generator=gen)
+    ib = torch_ops.randint(0, S, (want,), generator=gen)
+    keep = ia != ib
+    ia, ib = ia[keep].to(stack.device), ib[keep].to(stack.device)
+    if ia.numel() == 0:
+        return [0.0] * nbrain
+    a, b = stack[ia], stack[ib]              # [P, B, k], sorted along k
+    idx = torch_ops.searchsorted(a.contiguous(), b.contiguous()).clamp_(max=k - 1)
+    hit = (torch_ops.gather(a, 2, idx) == b).sum(2).float() / k     # [P, B]
+    return hit.mean(0).cpu().numpy().tolist()
+
+
+#: Amendment 8, the arc-capacity curve. Amendment 6 showed the arc is the
+#: bottleneck; this measures the law. The estimand is GRADED and interpolated,
+#: never `exact_length`, which cost this registration three bars: a non-monotone
+#: grid (Amendment 1), a two-point median (AL-7) and a saturated comparison
+#: (Amendment 4). n_state is pinned at (L_max + 1) k for every cell so varying L
+#: cannot redraw the connectome, and n_arc stops at 4000 because 4000 x 51300 is
+#: 205 M cell-products, the largest that has run; 6000 would be 307 M.
+ACAP_ARCS = (1000, 2000, 3000, 4000)
+ACAP_LENGTHS = (64, 128, 192, 256, 320, 384, 448, 512)
+ACAP_N_STATE = (max(ACAP_LENGTHS) + 1) * K
+ACAP_THRESHOLD = 0.95           # the fraction of L that counts as reliable
+#: Set from Amendment 7's RESULT, not from the plan. The plan was to measure
+#: capacity under a shuffled schedule, on the reasoning that shuffling averages
+#: out the late-slot disadvantage. It does not: shuffled reaches 0.403 of L
+#: against chain order's 0.995, with the outcome spread from 15 to 512 where
+#: both fixed orders are tight. Measuring capacity there would have measured a
+#: consolidation failure and called it capacity. Chain order is used for its
+#: CONSISTENCY, and the end-of-chain artifact is absorbed by the estimand:
+#: losing the last four steps of 512 leaves 0.992, above the 0.95 crossing.
+ACAP_ORDER = "chain"
+
+
+#: Amendment 9. The diagnostics found that arc stability -- and with it recall
+#: -- is a function of the FRACTIONAL PART of L k / n_arc alone, peaking when
+#: that load is an INTEGER, where it can be balanced exactly across arc neurons.
+#: Both "periods" seen earlier (40 in L at n_arc 1000, ~16 at 1500) were ALIASES
+#: of one true period of 1.0 in load, since step 8 in L samples the load axis at
+#: 0.800 and 0.533. This confirms it at a THIRD arc size, sampling the LOAD axis
+#: at 0.125 so the period is resolved directly rather than aliased.
+#: n_arc = 1600 makes arcs/neuron exactly L/16: integers at 336, 352, 368 and
+#: half-integers at 344, 360. The band sits above the ~19 edge where the
+#: fractional part decides.
+#: transitions watched when arc stability is measured
+STABILITY_WATCH = 6
+ILOAD_ARC = 1600
+ILOAD_LENGTHS = tuple(range(336, 370, 2))
+ILOAD_INTEGER = (336, 352, 368)          # load 21.0, 22.0, 23.0
+ILOAD_HALF = (344, 360)                  # load 21.5, 22.5
+ILOAD_ARM_SPECS = {
+    f"iload-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, ILOAD_ARC, (L + 1) * K,
+                    "blocks", "chain")
+    for L in ILOAD_LENGTHS
+}
+
+
+def arc_capacity_arms():
+    return {f"arc{a}-L{L}": (L, PRESENTATIONS, 1.0, LIMIT_P, a, ACAP_N_STATE,
+                             "blocks", ACAP_ORDER)
+            for a in ACAP_ARCS for L in ACAP_LENGTHS}
+
+
+ACAP_ARM_SPECS = arc_capacity_arms()
+
+
+def crossing_length(points, threshold=ACAP_THRESHOLD):
+    """The chain length where mean correct/L first falls below `threshold`.
+
+    Linear interpolation between the bracketing grid points, so the answer is a
+    CURVE quantity rather than a grid one. Returns None when the curve never
+    crosses -- censored, and said so rather than reported as the grid edge,
+    which is the trap `exact_length` fell into.
+    """
+    ordered = sorted(points)
+    for (l0, v0), (l1, v1) in zip(ordered, ordered[1:]):
+        if v0 >= threshold > v1:
+            span = v0 - v1
+            return l0 + (l1 - l0) * ((v0 - threshold) / span if span else 0.0)
+    return None
+
+
+def arc_stability(fsm, presentations, order, watch):
+    """Mean overlap between an arc's winners on consecutive presentations.
+
+    The measurement the diagnostics showed the outcome actually follows: does a
+    transition's arc STAY PUT while it is being trained? Costs one clone per
+    watched transition per presentation, so it is opt-in and off everywhere
+    else.
+    """
+    from neural_assemblies.core._torch_ops import torch_ops
+    import random
+    items = list(fsm.table.items())
+    step = max(1, len(items) // watch)
+    snaps = {i: [] for i in range(0, len(items), step)}
+    rng = random.Random(0)
+    if order == "reversed":
+        items = items[::-1]
+    for _ in range(presentations):
+        if order == "shuffled":
+            items = list(fsm.table.items())
+            rng.shuffle(items)
+        for i, ((fr, sym), to) in enumerate(items):
+            fsm.train_transition(sym, fr, to)
+            if i in snaps:
+                snaps[i].append(torch_ops.sort(fsm.arc.winners, dim=1).values.clone())
+    got = []
+    for seq in snaps.values():
+        for a, b in zip(seq, seq[1:]):
+            hit = (a.unsqueeze(2) == b.unsqueeze(1)).any(2).sum(1).float()
+            got.append(float((hit / a.shape[1]).mean()))
+    return sum(got) / max(len(got), 1)
+
+
+def run_arm(seeds, length, presentations, ratio, density, *, device,
+            organ_semantics, n_arc=N_ARC, n_state=None, code=None,
+            order="chain", watch=0):
+    from neural_assemblies.core._torch_ops import torch_ops
+    from neural_assemblies.core.semantics import OrganSemantics
+    from neural_assemblies.core.torch_engine._hashed_fsm import HashedArcFSM
+
+    if OrganSemantics.normalize(organ_semantics).mismatch(profile_for(ratio)):
+        raise ValueError("recorded organ profile disagrees with the arm's construction")
+    states, table = chain_table(length)
+    fsm = HashedArcFSM(seeds, states, [TICK], table, n_arc=n_arc, k=K, p=density,
+                       n_state=n_state, beta=BETA, refracted_strength=ratio * BETA,
+                       w_max=W_MAX, max_potentiations=MAX_POTENTIATIONS,
+                       device=device, state_code=code)
+    stability = None
+    if watch:
+        # the watched loop TRAINS as it measures; it must not also be trained
+        stability = arc_stability(fsm, presentations, order, watch)
+    else:
+        fsm.train(presentations, order=order)
+    fsm.check()
+    syms = torch_ops.zeros(len(seeds), length, dtype=torch_ops.int64, device=device)
+    visited = fsm.run(syms, states[0]).cpu().numpy()
+    rows = []
+    for b, s in enumerate(seeds):
+        seq = visited[b].tolist()
+        first = consecutive_correct(seq, length)
+        rows.append({
+            "seed": int(s), "correct": first,
+            # kept, but it is POSITION-LOCKED and cannot tell a wrap from a
+            # death; `kind` is the statistic that answers that question
+            "total_correct": sum(1 for t_, v in enumerate(seq) if v == t_ + 1),
+            # the hazard instrument: where it first went wrong, where it landed,
+            # and whether it kept obeying the table from there
+            "first_error": first if first < length else None,
+            "first_error_fraction": (first / length) if first < length else None,
+            "landed_on": seq[first] if first < length else None,
+            "follow_after": follows_table(seq, first) if first < length else None,
+            "kind": failure_kind(seq, length, first),
+            "visited": seq,
+        })
+    collapse = arc_collapse(fsm, states, len(seeds))
+    for row, value in zip(rows, collapse):
+        row["arc_overlap"] = float(value)
+    # the ACTUAL area the organ built, not the one asked for: HashedArcFSM
+    # takes max(n_state, n_states * k), so a short request is silently widened
+    actual_state = int(fsm.n_state)
+    # how much the STATE codes themselves overlap, which is the treatment in
+    # Amendment 2 and identically zero whenever the code is disjoint
+    state_ov = code_overlap(fsm.blocks, K)
+    del fsm
+    torch_ops.cuda.empty_cache()
+    return rows, actual_state, state_ov, stability
+
+
+def _ens(values, label, seeds):
+    e = ensemble_from_values([float(v) for v in values], label, keys=list(seeds))
+    return {**asdict(e), "low": e.low, "high": e.high}
+
+
+def experiment(record):
+    p = record["parameters"]
+    seeds = list(record["seeds"])
+    smoke = record["mode"] == "smoke"
+    # the same guard the CLI applies, so a run started through the runner
+    # cannot silently become a different experiment
+    if record["mode"] == "study" and tuple(seeds) not in SEED_BLOCKS:
+        raise ValueError(f"study seeds must be one registered block of {SEED_BLOCKS}, not {seeds}")
+    arms = {}
+    limit_mode = bool(p.get("limit_mode"))
+    margin_mode = bool(p.get("margin_mode"))
+    load_mode = bool(p.get("load_mode"))
+    arcb_mode = bool(p.get("arc_bottleneck_mode"))
+    tord_mode = bool(p.get("train_order_mode"))
+    acap_mode = bool(p.get("arc_capacity_mode"))
+    iload_mode = bool(p.get("integer_load_mode"))
+    states_mode = (bool(p.get("states_mode")) or margin_mode or load_mode
+                   or arcb_mode or tord_mode or acap_mode or iload_mode)
+    cell_L = MARGIN_L if (margin_mode or arcb_mode) else STATE_L
+    specs = (ILOAD_ARM_SPECS if iload_mode
+             else ACAP_ARM_SPECS if acap_mode
+             else TORD_ARM_SPECS if tord_mode
+             else ARCB_ARM_SPECS if arcb_mode
+             else (LOAD_ARM_SPECS if load_mode
+                   else (MARGIN_ARM_SPECS if margin_mode
+                         else (STATE_ARM_SPECS if states_mode
+                               else (LIMIT_SPECS if limit_mode else ARM_SPECS)))))
+    for name in p["arms"]:
+        spec = specs[name]
+        length, presentations, ratio, density = spec[:4]
+        n_arc = spec[4] if len(spec) > 4 else N_ARC
+        if smoke:
+            length = 8
+        code = None
+        n_state_arm, kind = (spec[5], spec[6]) if len(spec) > 6 else (None, "blocks")
+        if states_mode:
+            # BOTH arms get an explicit code, including the disjoint one, so
+            # both are read out by membership and the comparison is on one
+            # instrument rather than two (SC-1)
+            code = state_code(seeds, n_state_arm, kind, length + 1, K, p["device"])
+        rows, actual_state, state_ov, stability = run_arm(
+            seeds, length, presentations, ratio, density,
+            device=p["device"], n_arc=n_arc,
+            order=(spec[7] if len(spec) > 7 else "chain"),
+            watch=(STABILITY_WATCH if iload_mode else 0),
+            n_state=(n_state_arm if states_mode
+                     else (N_STATE_FIXED if limit_mode else None)),
+            code=code,
+            organ_semantics=record["execution_semantics"]["profiles"][name])
+        correct = [r["correct"] for r in rows]
+        # chance overlap is k / n_arc IN THIS CELL. The first grid divided by
+        # the module-level N_ARC = 10000 instead, which inflated every limit
+        # cell's multiple by 10000 / n_arc -- reported 20.9x down to 8.2x when
+        # the true figures are 2.1x up to 3.3x, reversing the trend in n_arc.
+        chance = K / n_arc
+        kinds = {}
+        for r in rows:
+            kinds[r["kind"]] = kinds.get(r["kind"], 0) + 1
+        arms[name] = {
+            "length": length, "presentations": presentations,
+            "strength_ratio": ratio, "density": density, "n_arc": n_arc,
+            "n_state_requested": (N_STATE_FIXED if limit_mode else None),
+            "n_state": actual_state, "chance_overlap": chance, "rows": rows,
+            "state_overlap": state_ov, "arc_stability": stability,
+            "state_code_kind": kind,
+            "correct": _ens(correct, f"{name}:correct", seeds),
+            "arc_overlap": _ens([r["arc_overlap"] for r in rows], f"{name}:arc", seeds),
+            "exact_brains": sum(c == length for c in correct),
+            "kinds": kinds,
+        }
+        # the ensemble already carries the seed statistic with its interval;
+        # printing a second hand-rolled mean would be a different claim
+        overlap_mean = arms[name]["arc_overlap"]["mean"]
+        broke = [r["first_error_fraction"] for r in rows if r["first_error"] is not None]
+        where = (f"  first error at {min(broke):.2f}-{max(broke):.2f} of L"
+                 if broke else "")
+        print(f"  {name:<20s} L={length:<4d} correct {min(correct)}..{max(correct)}"
+              f"  exact {arms[name]['exact_brains']}/{len(seeds)}"
+              f"  arc overlap {overlap_mean:.4f}"
+              f" ({overlap_mean / chance:.1f}x chance){where}"
+              f"  {kinds}", flush=True)
+
+    bars, comparisons = {}, {}
+    if not smoke and states_mode:
+        def arm(name):
+            return arms[name]
+
+        def exact_of(name):
+            return arm(name)["exact_brains"]
+        # derived from the arms PRESENT, not from a module tuple: each
+        # amendment sweeps a different set of areas, and naming an absent arm
+        # would be a KeyError at the end of a GPU run rather than at its start
+        random_arms = sorted((n for n in arms if n.startswith("random-")),
+                             key=lambda n: arms[n]["n_state"], reverse=True)
+        # The CROWDING amendments compare a roomiest against a tightest random
+        # arm. The training-order amendment has no random arm at all -- it
+        # varies the schedule under one disjoint code -- so these are optional
+        # and the branches that need them say so.
+        roomiest = random_arms[0] if random_arms else None
+        tightest = random_arms[-1] if random_arms else None
+        arc_gap = state_gap = None
+        if random_arms:
+            arc_gap = abs(arm(roomiest)["arc_overlap"]["mean"]
+                          - arm(tightest)["arc_overlap"]["mean"])
+            state_gap = abs(arm(roomiest)["state_overlap"]
+                            - arm(tightest)["state_overlap"])
+
+        def needs_random(bar):
+            """The crowding gaps, or a clear refusal. Returns them so the
+            caller holds floats rather than optionals."""
+            if arc_gap is None or state_gap is None:
+                raise ValueError(f"{bar} compares random-code arms and this "
+                                 f"amendment has none")
+            return arc_gap, state_gap
+        broken = [a for name, a in arms.items() if a["exact_brains"] < len(seeds)]
+        comparisons = {
+            "exact_by_arm": {k: v["exact_brains"] for k, v in arms.items()},
+            "state_overlap_by_arm": {k: v["state_overlap"] for k, v in arms.items()},
+            "arc_overlap_by_arm": {k: v["arc_overlap"]["mean"] for k, v in arms.items()},
+            "kinds_by_arm": {k: v["kinds"] for k, v in arms.items()},
+            "arc_overlap_gap": arc_gap, "state_overlap_gap": state_gap,
+            "disjoint_needs": (cell_L + 1) * K,
+            "roomy": [n for n in STATE_AREAS if n >= (cell_L + 1) * K],
+            "crowded": [n for n in STATE_AREAS if n < (cell_L + 1) * K],
+            # the crowding VARIABLE. Two random k-subsets of n overlap at k/n
+            # as a fraction of k, which is 0.0016 to 0.025 across this sweep --
+            # a 16-fold change that is nowhere near SC-4's 0.05 threshold. Load
+            # is how many states share the average neuron, and it moves 0.25 to
+            # 4.03 over the same arms.
+            "state_load_by_arm": {n: (a["length"] + 1) * K / a["n_state"]
+                                  for n, a in arms.items()},
+        }
+        if iload_mode:
+            def frac_of(L):
+                ap = L * K / ILOAD_ARC
+                return round(ap - int(ap), 3)
+
+            def stab(L):
+                return arm(f"iload-L{L}")["arc_stability"]
+
+            def out(L):
+                a = arm(f"iload-L{L}")
+                return a["correct"]["mean"] / a["length"]
+            ints = [stab(L) for L in ILOAD_INTEGER]
+            halves = [stab(L) for L in ILOAD_HALF]
+            groups = {}
+            for L in ILOAD_LENGTHS:
+                groups.setdefault(frac_of(L), []).append(stab(L))
+            shared = [v for v in groups.values() if len(v) > 1]
+            bars = {
+                "IL-1 INTEGER load beats half-integer: every integer cell exceeds every half-integer cell by 0.20":
+                    all(i - h >= 0.20 for i in ints for h in halves),
+                "IL-2 the outcome is perfect at integer load: mean correct >= 0.99 at every integer cell":
+                    all(out(L) >= 0.99 for L in ILOAD_INTEGER),
+                "IL-3 the outcome is NOT perfect at half-integer load: below 0.99 at every half-integer cell":
+                    all(out(L) < 0.99 for L in ILOAD_HALF),
+                "IL-4 stability is a function of the FRACTIONAL PART: cells sharing a frac agree within 0.06":
+                    bool(shared) and all(max(v) - min(v) <= 0.06 for v in shared),
+                "IL-5 the period is 1.0 in LOAD, resolved not aliased: the three stability maxima are the three integer cells":
+                    sorted(ILOAD_LENGTHS, key=stab, reverse=True)[:3] ==
+                    sorted(ILOAD_INTEGER, key=stab, reverse=True),
+            }
+            comparisons.update({
+                "stability_by_length": {L: stab(L) for L in ILOAD_LENGTHS},
+                "outcome_by_length": {L: out(L) for L in ILOAD_LENGTHS},
+                "frac_by_length": {L: frac_of(L) for L in ILOAD_LENGTHS},
+                "load_step": 2 * K / ILOAD_ARC,
+            })
+        elif acap_mode:
+            def frac(name):
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            curves = {a: [(L, frac(f"arc{a}-L{L}")) for L in ACAP_LENGTHS]
+                      for a in ACAP_ARCS}
+            star = {a: crossing_length(pts) for a, pts in curves.items()}
+            defined = {a: v for a, v in star.items() if v is not None}
+            big, small = star[ACAP_ARCS[-1]], star[ACAP_ARCS[0]]
+            ratio = (big / small) if (big and small) else None
+            bars = {
+                "AC-1 the curve falls with length: mean correct at L_max is at most at L_min, for every arc size":
+                    all(curves[a][-1][1] <= curves[a][0][1] for a in ACAP_ARCS),
+                "AC-2 capacity RISES with arc size: L* at the largest arc exceeds L* at the smallest":
+                    ratio is not None and ratio > 1.0,
+                "AC-3 the scaling is SUBLINEAR: a 4x arc buys less than 4x the length":
+                    ratio is not None and ratio < 4.0,
+                "AC-4 every arc size exceeds the reported 20-to-40 band: L* >= 40":
+                    len(defined) == len(ACAP_ARCS) and all(v >= 40 for v in defined.values()),
+                "AC-5 the estimand is DEFINED, not censored: every curve crosses the threshold inside the grid":
+                    len(defined) == len(ACAP_ARCS),
+            }
+            comparisons.update({
+                "capacity_curve_by_arc": {a: [[L, v] for L, v in pts]
+                                          for a, pts in curves.items()},
+                "L_star_by_arc": star, "L_star_ratio": ratio,
+                "threshold": ACAP_THRESHOLD, "training_order": ACAP_ORDER,
+            })
+        elif tord_mode:
+            # Amendment 7. Position statistics, over the FAILING brains.
+            def broke_median(name):
+                a = arm(name)
+                v = sorted(r["first_error_fraction"] for r in a["rows"]
+                           if r["first_error"] is not None)
+                return v[len(v) // 2] if v else None
+
+            def mean_frac(name):
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            chain_m, rev_m = broke_median("order-chain"), broke_median("order-reversed")
+            ovs = [arm(f"order-{o}")["arc_overlap"]["mean"] for o in TORD_ORDERS]
+            bars = {
+                "TO-1 the chain order reproduces the END cliff: it has failures and their median first error is past 0.90 of L":
+                    chain_m is not None and chain_m >= 0.90,
+                "TO-2 DECISIVE -- REVERSING the training order moves the break to the START: median first error at or before 0.30 of L":
+                    rev_m is not None and rev_m <= 0.30,
+                "TO-3 shuffling beats chain order on mean correct":
+                    mean_frac("order-shuffled") > mean_frac("order-chain"),
+                "TO-4 no arm simply has more crowding: arc overlap spread under 0.05":
+                    (max(ovs) - min(ovs)) < 0.05,
+            }
+            comparisons.update({
+                "first_error_median_by_order": {
+                    o: broke_median(f"order-{o}") for o in TORD_ORDERS},
+                "mean_correct_fraction_by_order": {
+                    o: mean_frac(f"order-{o}") for o in TORD_ORDERS},
+                "exact_by_order": {o: arm(f"order-{o}")["exact_brains"]
+                                   for o in TORD_ORDERS},
+            })
+        elif arcb_mode:
+            arc_gap_v, _ = needs_random("AB-5")
+            # Amendment 6. Graded measure throughout, as Amendment 5.
+            def frac(name):
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            crowded = [f"random-n{ARCB_STATE}-arc{a}" for a in ARCB_ARCS]
+            controls = [f"blocks-n{ARCB_BLOCKS_STATE}-arc{a}"
+                        for a in ARCB_BLOCKS_ARCS]
+            bars = {
+                "AB-1 the killing cell reproduces: the crowded code at the smallest arc is below 0.60 of L":
+                    frac(crowded[0]) < 0.60,
+                "AB-2 DECISIVE -- enlarging the ARC rescues it: the crowded code at the largest arc is above 0.90 of L":
+                    frac(crowded[-1]) > 0.90,
+                "AB-3 the rescue is monotone in arc size":
+                    all(frac(a) <= frac(b) for a, b in zip(crowded, crowded[1:])),
+                "AB-4 the blocks control is fine at BOTH arc sizes, so the rescue is specific to the crowded code":
+                    all(frac(c) > 0.95 for c in controls),
+                "AB-5 arc overlap falls as the arc gets room":
+                    all(arm(a)["arc_overlap"]["mean"] >= arm(b)["arc_overlap"]["mean"]
+                        for a, b in zip(crowded, crowded[1:])),
+            }
+            comparisons["mean_correct_fraction_by_arm"] = {
+                n: frac(n) for n in (crowded + controls)}
+            comparisons["arc_sizes"] = list(ARCB_ARCS)
+        elif load_mode:
+            arc_gap_v, _ = needs_random("LM-2")
+            # Amendment 5. Every bar here reads MEAN CORRECT, not exact/20.
+            # Amendment 4 is the reason: three of its five bars used exact/20,
+            # which saturates at 0 the moment a random code is used at all, and
+            # two of them passed without evidence because of it.
+            def frac(name):
+                """Mean consecutive-correct as a fraction of the chain length."""
+                a = arm(name)
+                return a["correct"]["mean"] / a["length"]
+            blocks = f"blocks-n{STATE_AREAS[0]}"
+            randoms = [f"random-n{n}" for n in LOAD_AREAS]
+            bars = {
+                "LM-1 the reference cell still recalls exactly: blocks arm at 1.00 of L":
+                    frac(blocks) >= 0.999,
+                "LM-2 DECISIVE -- at the load that collapsed the marginal cell (6.44), the roomy cell holds above 0.90 of L":
+                    frac(LOAD_MATCHED) >= 0.90,
+                "LM-3 the dose-response is monotone in load: mean correct non-increasing as the area shrinks":
+                    all(frac(a) >= frac(b) for a, b in zip(randoms, randoms[1:])),
+                "LM-4 the sweep HAS range: the tightest area falls below 0.90 of L":
+                    frac(randoms[-1]) < 0.90,
+                "LM-5 the arc moves too, as it did twice before: arc overlap falls monotonically as the area shrinks":
+                    all(arm(a)["arc_overlap"]["mean"] >= arm(b)["arc_overlap"]["mean"]
+                        for a, b in zip(randoms, randoms[1:])),
+            }
+            comparisons["mean_correct_fraction_by_arm"] = {
+                n: frac(n) for n in ([blocks] + randoms)}
+            comparisons["margin_cell_collapse_fraction"] = MARGIN_COLLAPSE_FRACTION
+            comparisons["load_matched_arm"] = LOAD_MATCHED
+        elif margin_mode:
+            arc_gap_v, _ = needs_random("MC-2")
+            # Amendment 4. SC-1..SC-7 are stated for a cell at CEILING and
+            # their thresholds are wrong here by construction: the blocks arm
+            # is 14/20 by design, so SC-1's "20/20" would fail on the cell
+            # rather than on the science. These ask the same questions where
+            # the chain has no margin to spend.
+            blocks = f"blocks-n{STATE_AREAS[0]}"
+            roomy_arms = [f"random-n{n}" for n in MARGIN_ROOMY]
+            crowded_arms = [f"random-n{n}" for n in MARGIN_CROWDED]
+            bars = {
+                "MC-1 the cell is the marginal one it was chosen for: blocks arm between 8 and 18 of 20 exact":
+                    8 <= exact_of(blocks) <= 18,
+                "MC-2 collision at the margin is COSTLY: the tightest area loses at least 5 brains against blocks":
+                    exact_of(blocks) - exact_of(tightest) >= 5,
+                "MC-3 the cost orders by crowding: every crowded arm at most every roomy arm":
+                    all(exact_of(c) <= exact_of(r)
+                        for c in crowded_arms for r in roomy_arms),
+                "MC-4 it is the states and not the arc: arc overlap moves < 0.05 across the random arms":
+                    arc_gap_v < 0.05,
+                "MC-5 a roomy random code is still as good as blocks: within 4 brains":
+                    abs(exact_of(roomiest) - exact_of(blocks)) <= 4,
+            }
+        else:
+            arc_gap_v, state_gap_v = needs_random("SC-2")
+            # the plain states mode. These name blocks-n64000 and the
+            # module's area tuple, which exist only in THIS mode -- the
+            # reason the dict has to be a branch and not a default.
+            bars = {
+                "SC-1 the decoder is not the treatment: 20/20 exact with disjoint blocks through the overlap decoder":
+                    exact_of(f"blocks-n{STATE_AREAS[0]}") == len(seeds),
+                "SC-2 a roomy random code is as good as a disjoint one: 20/20 exact at the largest area":
+                    exact_of(roomiest) == len(seeds),
+                "SC-3 crowding the states breaks the chain: fewer than 5/20 exact at the smallest area":
+                    exact_of(tightest) < 5,
+                "SC-4 it is the states and not the arc: arc overlap moves < 0.05, state overlap moves > 0.05":
+                    arc_gap_v < 0.05 and state_gap_v > 0.05,
+                # AS REGISTERED. This is AL-1's statistic and inherits its defect:
+                # it is position-locked, so it cannot tell a wrap from a death and
+                # it fires on a single coincidence. Kept so the registration is
+                # answered; SC-6 is the question it was reaching for.
+                "SC-5 the break is a chain death (AS REGISTERED, position-locked)":
+                    all(r["total_correct"] == r["correct"]
+                        for a in broken for r in a["rows"] if r["correct"] < a["length"]),
+                "SC-6 the break is a chain death (CLASSIFIED): no broken arm is mostly wraps":
+                    all(a["kinds"].get("wrap", 0) <= (len(seeds) - a["exact_brains"]) / 2
+                        for a in broken),
+                # SC-4 asks its question with a statistic its own treatment cannot
+                # move far enough; this asks it with the one that can. The arc is
+                # held identical by construction, so if exactness tracks LOAD while
+                # arc overlap does not move, the effect is in the states.
+                "SC-7 it is the states and not the arc, measured on LOAD: arc overlap moves < 0.05 while exactness falls with load":
+                    arc_gap_v < 0.05
+                    and exact_of(tightest) < exact_of(roomiest),
+            }
+        bars = {name: bool(ok) for name, ok in bars.items()}
+        for name, ok in bars.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+        print(f"  state overlap by arm: "
+              f"{ {k: round(v['state_overlap'], 4) for k, v in arms.items()} }")
+    elif not smoke and limit_mode:
+        def exact_length(n_arc):
+            """Largest tested length at which EVERY brain recalls every visit.
+            A grid quantity, never interpolated; the top of the grid is censored."""
+            best = 0
+            for L in LIMIT_LENGTHS:
+                a = arms.get(f"n{n_arc}-L{L}")
+                if a and a["exact_brains"] == len(seeds):
+                    best = L
+            return best
+        exact = {n: exact_length(n) for n in LIMIT_ARCS}
+        deaths = [(name, a) for name, a in arms.items()
+                  if "no-refraction" not in name and a["exact_brains"] < len(seeds)]
+        ratio_3x = (exact[LIMIT_ARCS[-1]] / exact[LIMIT_ARCS[0]]
+                    if exact[LIMIT_ARCS[0]] else None)
+        # exact_length takes the LARGEST all-exact cell, so a hole in the middle
+        # of a column is invisible in the scalar. The first grid had one: at
+        # n_arc = 3000, L = 384 gave 5/20 while L = 512 gave 18/20. The scalar
+        # is only a limit when exactness is non-increasing in L, so say whether
+        # it is rather than leaving the reader to assume it.
+        grid = {n: [arms[f"n{n}-L{L}"]["exact_brains"] for L in LIMIT_LENGTHS]
+                for n in LIMIT_ARCS}
+        monotone = {n: all(x >= y for x, y in zip(col, col[1:]))
+                    for n, col in grid.items()}
+        kinds_all = {}
+        for name, a in arms.items():
+            if "no-refraction" in name:
+                continue
+            for kind, count in a["kinds"].items():
+                kinds_all[kind] = kinds_all.get(kind, 0) + count
+        broke = [r["first_error_fraction"]
+                 for name, a in arms.items() if "no-refraction" not in name
+                 for r in a["rows"] if r["first_error"] is not None]
+        comparisons = {
+            "exact_length_by_arc": exact,
+            "censored": {n: exact[n] == LIMIT_LENGTHS[-1] for n in LIMIT_ARCS},
+            "n_state_identical": len({a["n_state"] for a in arms.values()}) == 1,
+            "n_state_by_arm": {name: a["n_state"] for name, a in arms.items()},
+            "exact_length_ratio_6000_over_2000": ratio_3x,
+            "exact_by_length": grid,
+            "exact_monotone_in_length": monotone,
+            "failure_kinds": kinds_all,
+            "first_error_fraction_median": (
+                sorted(broke)[len(broke) // 2] if broke else None),
+        }
+        ordered = [exact[n] for n in LIMIT_ARCS]
+        bars = {
+            "AL-1 it breaks, and the break is a chain DEATH not a dropped step":
+                bool(deaths) and all(
+                    r["total_correct"] == r["correct"]
+                    for _, a in deaths for r in a["rows"] if r["correct"] < a["length"]),
+            "AL-2 exact_length is non-decreasing in n_arc":
+                all(x <= y for x, y in zip(ordered, ordered[1:])),
+            "AL-3 superlinear but not square: the 4x arc ratio lands strictly between 4 and 16":
+                ratio_3x is not None and 4.0 < ratio_3x < 16.0,
+            "AL-4 the state area cannot be the cause: n_state identical in every cell":
+                comparisons["n_state_identical"],
+            "AL-5 refraction still carries it: 0 correct with strength 0":
+                all(r["correct"] == 0
+                    for r in arms[f"n{LIMIT_ARCS[0]}-L{LIMIT_LENGTHS[0]}-no-refraction"]["rows"]),
+        }
+        # --- Amendment 3 --------------------------------------------------
+        # AL-1 to AL-5 above are UNCHANGED and their first-grid verdicts stand.
+        # These are stated from structure the first grid's retained traces
+        # showed, so they are post hoc with respect to that grid and are to be
+        # CONFIRMED ON A FRESH SEED BLOCK, as the convergence study's
+        # Amendment 2 was. They ask the question exact_length cannot: not how
+        # far the chain gets, but where and how it breaks.
+        edge = {name: a for name, a in arms.items()
+                if "no-refraction" not in name and 0 < a["exact_brains"] < len(seeds)}
+
+        def medians(a, field):
+            """Median over the FAILING brains; an edge cell always has some."""
+            vals = sorted(r[field] for r in a["rows"] if r["first_error"] is not None)
+            if not vals:
+                raise ValueError(f"{field}: an edge cell must have a failing brain")
+            return vals[len(vals) // 2]
+
+        bars.update({
+            "AL-6 the break is at the END: median first error past 0.90 of L in every edge cell":
+                bool(edge) and all(medians(a, "first_error_fraction") >= 0.90
+                                   for a in edge.values()),
+            "AL-7 the break is a BACKWARD jump: every landing earlier than expected, median before 0.5 L":
+                bool(edge) and all(
+                    all(r["landed_on"] < r["first_error"] + 1
+                        for r in a["rows"] if r["first_error"] is not None)
+                    and medians(a, "landed_on") < 0.5 * a["length"]
+                    for a in edge.values()),
+            "AL-8 the state area control HOLDS: the organ's actual n_state is identical in every cell":
+                len({a["n_state"] for a in arms.values()}) == 1,
+            "AL-9 relative arc crowding RISES with n_arc at matched L":
+                (arms[f"n{LIMIT_ARCS[-1]}-L{LIMIT_LENGTHS[0]}"]["arc_overlap"]["mean"]
+                 / arms[f"n{LIMIT_ARCS[-1]}-L{LIMIT_LENGTHS[0]}"]["chance_overlap"]) >
+                (arms[f"n{LIMIT_ARCS[0]}-L{LIMIT_LENGTHS[0]}"]["arc_overlap"]["mean"]
+                 / arms[f"n{LIMIT_ARCS[0]}-L{LIMIT_LENGTHS[0]}"]["chance_overlap"]),
+        })
+        bars = {name: bool(ok) for name, ok in bars.items()}
+        for name, ok in bars.items():
+            # AL-4 compared the REQUESTED constant against itself, so it could
+            # not fail; AL-8 is the same claim asked of the organ. AL-4 is kept
+            # so the first grid stays reproducible, and printed as void.
+            void = " (VOID: tautology, superseded by AL-8)" if name.startswith("AL-4") else ""
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}{void}")
+        print(f"  exact_length by arc: {exact}; ratio {ratio_3x}")
+        print(f"  exact/20 by length {LIMIT_LENGTHS}: {grid}")
+        print(f"  monotone in L: {monotone}   failure kinds: {kinds_all}")
+    elif not smoke:
+        def arm(name):
+            return arms[name]
+
+        def all_exact(name):
+            return arm(name)["exact_brains"] == len(seeds)
+
+        def worst(name):
+            return max(r["correct"] for r in arm(name)["rows"])
+        comparisons = {
+            "chance_arc_overlap": {k: v["chance_overlap"] for k, v in arms.items()},
+            "arc_overlap_by_arm": {k: v["arc_overlap"]["mean"] for k, v in arms.items()},
+            "exact_brains_by_arm": {k: v["exact_brains"] for k, v in arms.items()},
+        }
+        bars = {
+            "CL-1 it exceeds the reported band: every brain exact at L=32 and at L=128":
+                all_exact("L32") and all_exact("L128"),
+            "CL-2 refraction is necessary and total: 0 correct on every brain with strength 0":
+                all(r["correct"] == 0 for r in arm("L32-no-refraction")["rows"]),
+            "CL-3 the score is reachable and not free: <= 5 correct on every brain at 5 and 10 presentations":
+                worst("L32-pres5") <= 5 and worst("L32-pres10") <= 5,
+            "CL-4 the arc needs density: <= 5 correct on every brain at p = 0.05 and p = 0.02":
+                worst("L32-p0.05") <= 5 and worst("L32-p0.02") <= 5,
+            "CL-5 the mechanism is anti-swamping: arcs collapse without refraction (>= 0.5) and sit near chance with it (<= 3x)":
+                all(r["arc_overlap"] >= 0.5 for r in arm("L32-no-refraction")["rows"])
+                and all(r["arc_overlap"] <= 3 * arm("L32")["chance_overlap"]
+                        for r in arm("L32")["rows"]),
+        }
+        bars = {name: bool(ok) for name, ok in bars.items()}
+        for name, ok in bars.items():
+            print(f"  {'PASS' if ok else 'FAIL'}  {name}")
+    verdict = "VOID" if smoke else ("PASS" if all(bars.values()) else "FAIL")
+    return {"verdict": verdict, "bars": bars, "arms": arms, "comparisons": comparisons,
+            "scope": "autonomous chain recall on a teacher-forced path over one "
+                     "constant symbol, hashed refracted arc, one operating point"}
+
+
+def main(argv=None):
+    parser = experiment_parser(
+        "Autonomous chain recall on the refracted arc, driven by one constant symbol",
+        engines=("hashed_arc_fsm",), default_seeds=REGISTERED_SEEDS,
+    )
+    parser.add_argument("--device", default="cuda")
+    parser.add_argument("--limit", action="store_true",
+                        help="run Amendment 1's fixed-grid chain-length cells")
+    parser.add_argument("--states", action="store_true",
+                        help="run Amendment 2's collidable-state cells")
+    parser.add_argument("--margin", action="store_true",
+                        help="run Amendment 4's collidable states at the MARGINAL cell")
+    parser.add_argument("--load", action="store_true",
+                        help="run Amendment 5: the ROOMY cell driven past the load that killed the marginal one")
+    parser.add_argument("--arc-bottleneck", action="store_true",
+                        help="run Amendment 6: is the ARC what makes a cell marginal?")
+    parser.add_argument("--train-order", action="store_true",
+                        help="run Amendment 7: is the end-of-chain break a training ORDER effect?")
+    parser.add_argument("--arc-capacity", action="store_true",
+                        help="run Amendment 8: the arc-capacity curve, graded and interpolated")
+    parser.add_argument("--integer-load", action="store_true",
+                        help="run Amendment 9: does recall peak at INTEGER L*k/n_arc?")
+    args = parser.parse_args(argv)
+    if not args.smoke and tuple(args.seeds) not in SEED_BLOCKS:
+        parser.error(f"--seeds must be one registered block: {SEED_BLOCKS}")
+    if tuple(args.seeds) == REGISTERED_SEEDS or args.smoke:
+        validate_registered_seeds(parser, args, REGISTERED_SEEDS)
+    modes = (args.limit, args.states, args.margin, args.load,
+             args.arc_bottleneck, args.train_order, args.arc_capacity,
+             args.integer_load)
+    if sum(map(bool, modes)) > 1:
+        parser.error("each flag is a different amendment; run one")
+    specs = (ILOAD_ARM_SPECS if args.integer_load
+             else ACAP_ARM_SPECS if args.arc_capacity
+             else TORD_ARM_SPECS if args.train_order
+             else ARCB_ARM_SPECS if args.arc_bottleneck
+             else (LOAD_ARM_SPECS if args.load
+                   else (MARGIN_ARM_SPECS if args.margin
+                         else (STATE_ARM_SPECS if args.states
+                               else (LIMIT_SPECS if args.limit else ARM_SPECS)))))
+    names = list(SMOKE_ARMS if args.smoke else specs)
+    parameters = {"n_arc": N_ARC, "k": K, "p": P, "beta": BETA, "w_max": W_MAX,
+                  "strength_ratio": 1.0, "max_potentiations": MAX_POTENTIATIONS,
+                  "presentations": PRESENTATIONS, "symbol": TICK, "arms": names,
+                  "arm_specs": {k: list(v) for k, v in specs.items() if k in names},
+                  "limit_mode": bool(args.limit),
+                  "states_mode": bool(args.states),
+                  "margin_mode": bool(args.margin),
+                  "load_mode": bool(args.load),
+                  "arc_bottleneck_mode": bool(args.arc_bottleneck),
+                  "train_order_mode": bool(args.train_order),
+                  "arc_capacity_mode": bool(args.arc_capacity),
+                  "integer_load_mode": bool(args.integer_load),
+                  "arc_capacity_order": (ACAP_ORDER if args.arc_capacity else None),
+                  # the arm specs already carry (n_state, kind); recording a
+                  # second copy keyed by name is what let the two drift apart
+                  "state_specs": None,
+                  "n_state_fixed": (N_STATE_FIXED if args.limit else None),
+                  "device": args.device}
+    profiles = {name: profile_for(specs[name][2]) for name in names}
+    path = run_experiment(
+        script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
+        registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
+        tag=args.tag, smoke=args.smoke, minimum_study_seeds=20,
+        parameters=parameters, organ_semantics=profiles, measure=experiment,
+    )
+    print(path)
+
+
+if __name__ == "__main__":
+    main()

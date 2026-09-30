@@ -1,0 +1,13 @@
+"""One construction boundary for historical fixed-connectome experiments."""
+
+
+def explicit_brain(brain_type, config, seed, model_semantics=None):
+    """Construct the recorded dense CPU model and make its profile executable."""
+    return brain_type(
+        p=config.p,
+        seed=seed,
+        w_max=config.w_max,
+        engine="numpy_explicit",
+        norm_init=False,
+        model_semantics=model_semantics,
+    )

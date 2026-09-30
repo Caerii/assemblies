@@ -1,0 +1,144 @@
+paper_id: mitropolsky2025simulated
+bibkey: mitropolsky2025simulated
+title: "Simulated Language Acquisition (arXiv:2507.11788)"
+
+brain_regimes:
+  literature_parity:
+    n: 5000
+    k: 80
+    p: 0.05
+    beta: 0.1
+    seed: 42
+    rounds: 10
+    test_file: neural_assemblies/tests/test_literature_parity.py::TestLiteratureParityNEMO2025
+  full_emergent_tests:
+    n: 10000
+    k: 100
+    p: 0.05
+    test_file: neural_assemblies/tests/test_emergent_parser.py
+
+vocabulary:
+  closed_vocab_size: 45
+  source: neural_assemblies/assembly_calculus/emergent/core/grounding.py
+  grounding_modalities:
+    - visual
+    - motor
+    - properties
+    - spatial
+    - social
+    - temporal
+    - emotional
+  distributional_threshold: 0.65  # GROUNDED_DIST_THRESHOLD
+
+train_for_agent_phases:
+  - lexicon
+  - roles
+  - phrases
+  - word_order
+  - tense
+  - mood
+  - polarity
+  - number
+  - conjunctions
+
+curriculum_stages:
+  # _STAGE_CONFIG in curriculum/trainer.py
+  BABBLE: {beta: 0.20, complexity: 0, phases: []}
+  FIRST_WORDS: {beta: 0.15, complexity: 1, phases: [lexicon]}
+  VOCABULARY_SPURT: {beta: 0.12, complexity: 2, phases: [lexicon, distributional]}
+  TWO_WORD: {beta: 0.10, complexity: 2, phases: [lexicon, distributional, roles]}
+  SENTENCES:
+    beta: 0.10
+    complexity: 4
+    phases: [lexicon, distributional, roles, phrases, word_order, tense, mood, polarity, prediction]
+  COMPLEX_GRAMMAR:
+    beta: 0.08
+    complexity: 6
+    phases: [lexicon, distributional, roles, phrases, word_order, tense, mood, polarity, conjunctions]
+  INSTRUCTIONS:
+    beta: 0.10
+    complexity: 3
+    phases: [lexicon, distributional, roles, phrases, mood, prediction]
+  DIALOGUE:
+    beta: 0.08
+    complexity: 4
+    phases: [lexicon, distributional, roles, phrases, word_order, mood, prediction, dialogue]
+  CONVERSATION:
+    beta: 0.08
+    complexity: 5
+    phases: [lexicon, distributional, roles, phrases, word_order, mood, prediction, dialogue, conversation]
+
+stage_training_rounds:
+  BABBLE: 2
+  FIRST_WORDS: 4
+  VOCABULARY_SPURT: 5
+  TWO_WORD: 6
+  SENTENCES: 7
+  COMPLEX_GRAMMAR: 8
+  INSTRUCTIONS: 7
+  DIALOGUE: 7
+  CONVERSATION: 8
+
+stage_distributional_reps:
+  BABBLE: 1
+  FIRST_WORDS: 1
+  VOCABULARY_SPURT: 2
+  TWO_WORD: 2
+  SENTENCES: 3
+  COMPLEX_GRAMMAR: 3
+  INSTRUCTIONS: 2
+  DIALOGUE: 2
+  CONVERSATION: 3
+
+stage_word_order_reps:
+  FIRST_WORDS: 1
+  VOCABULARY_SPURT: 1
+  TWO_WORD: 1
+  SENTENCES: 2
+  COMPLEX_GRAMMAR: 2
+  DIALOGUE: 2
+  CONVERSATION: 2
+
+stage_holdout_bridge_reps:
+  SENTENCES: 12
+  COMPLEX_GRAMMAR: 8
+  DIALOGUE: 6
+
+accuracy_thresholds:
+  pos_parity: 0.80
+  pos_full_vocab: 0.80
+  parsing_category: 0.80
+  parsing_roles: 0.80
+  neural_roles: 0.80
+  generalization_holdout: 0.66
+  unsupervised_roles: 0.60
+  scaled_200_word: 0.80
+  incremental_vs_batch: 0.90
+
+pinned_role_sentences:
+  - {words: [the, dog, runs], roles: {dog: AGENT}}
+  - {words: [the, cat, chases, the, bird], roles: {cat: AGENT, bird: PATIENT}}
+  - {words: [she, sees, the, bird], roles: {she: AGENT, bird: PATIENT}}
+novel_sentence:
+  words: [the, bird, chases, the, boy]
+  roles: {bird: AGENT, boy: PATIENT, chases: ACTION}
+  note: chases not in training pairs for this probe
+
+organ:
+  area_count: 45
+  source: neural_assemblies/assembly_calculus/emergent/core/areas.py
+  grounding_to_core:
+    visual: NOUN_CORE
+    motor: VERB_CORE
+    properties: ADJ_CORE
+    spatial: PREP_CORE
+    social: PRON_CORE
+    temporal: ADV_CORE
+    none: DET_CORE
+
+golden_artifacts:
+  curriculum: research/literature/parity/golden/nemo2025_curriculum.json
+
+env_flags:
+  EMERGENT_DEV_CURRICULUM: "1"  # force babble path, no preset skip
+  EMERGENT_FAST_TRAINING: "1"   # reduced rounds / phase skips

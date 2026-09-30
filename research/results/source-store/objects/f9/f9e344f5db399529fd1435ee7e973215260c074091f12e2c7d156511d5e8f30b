@@ -1,0 +1,112 @@
+"""Every result citation in the codebase must resolve, and extensions must say so.
+
+A citation register is only worth having if it cannot drift from the code that
+cites it. These are the two ways it would rot: a docstring citing an ID nobody
+defined, and an EXTENSION quietly losing the caveat that makes it readable as
+an extension rather than as an established fact.
+"""
+
+from __future__ import annotations
+
+import os
+import unittest
+
+from neural_assemblies import theory
+
+
+ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+REPO = os.path.dirname(ROOT)
+
+
+class TestTheoryCitations(unittest.TestCase):
+    def test_every_citation_resolves(self):
+        missing = theory.unresolved_citations(ROOT)
+        self.assertEqual(
+            missing, {},
+            "docstrings cite results that are not in neural_assemblies/theory.py; "
+            "add the result rather than removing the citation")
+
+    def test_research_notes_citations_resolve(self):
+        """Notes and experiments cite the same register as the library."""
+        research = os.path.join(REPO, "research")
+        if not os.path.isdir(research):
+            self.skipTest("no research tree")
+        self.assertEqual(theory.unresolved_citations(research), {})
+
+    def test_cite_rejects_unknown_ids(self):
+        with self.assertRaises(KeyError):
+            theory.cite("NOT-A-RESULT")
+
+    def test_every_extension_carries_a_caveat(self):
+        """An extension without a caveat reads as established fact.
+
+        The whole point of the status is to make the unproven step visible at
+        the point of use, which a bare claim does not do.
+        """
+        for result in theory.extensions():
+            self.assertTrue(
+                result.caveat.strip(),
+                f"{result.id} is an EXTENSION with no caveat saying what is "
+                f"unproven or what would falsify it")
+
+    def test_measured_results_name_their_evidence(self):
+        """A MEASURED claim must point at the experiment that measured it."""
+        for result in theory.RESULTS.values():
+            if result.status == theory.Status.MEASURED:
+                self.assertTrue(
+                    result.evidence,
+                    f"{result.id} is MEASURED but names no evidence")
+
+    def test_cross_references_between_results_resolve(self):
+        """Results citing other results must resolve too."""
+        for result in theory.RESULTS.values():
+            text = " ".join([result.claim, result.caveat,
+                             *result.preconditions, *result.evidence])
+            for rid in theory.CITATION.findall(text):
+                self.assertIn(rid, theory.RESULTS,
+                              f"{result.id} cites unknown result {rid}")
+
+    def test_measured_results_state_engine_or_explicit_provenance_gap(self):
+        for result in theory.RESULTS.values():
+            if result.status == theory.Status.MEASURED:
+                self.assertTrue(result.engine.strip(), f"{result.id} has no engine provenance")
+
+    def test_typed_evidence_references_resolve(self):
+        errors = theory.evidence_reference_errors(REPO)
+        self.assertEqual(errors, [], "\n".join(errors))
+
+    def test_typed_evidence_rejects_dangling_and_unsafe_paths(self):
+        original = theory._RESULTS
+        try:
+            theory._RESULTS = [theory.Result(
+                id="BROKEN-EVIDENCE", status=theory.Status.MEASURED,
+                claim="fixture", source="fixture", evidence=("fixture",), engine="fixture",
+                evidence_refs=(theory.EvidenceRef("../outside.json", "artifact"),))]
+            errors = theory.evidence_reference_errors(REPO)
+            self.assertTrue(any("unsafe evidence path" in error for error in errors))
+            theory._RESULTS = [theory.Result(
+                id="BROKEN-EVIDENCE", status=theory.Status.MEASURED,
+                claim="fixture", source="fixture", evidence=("fixture",), engine="fixture",
+                evidence_refs=(theory.EvidenceRef("research/results/missing.json", "artifact"),))]
+            errors = theory.evidence_reference_errors(REPO)
+            self.assertTrue(any("dangling evidence path" in error for error in errors))
+        finally:
+            theory._RESULTS = original
+
+
+if __name__ == "__main__":
+    unittest.main()
+
+
+def test_register_rendering_is_current():
+    """docs/register.md is the rendering of theory.py; regenerate it with
+    `python -m neural_assemblies.theory --render > docs/register.md`."""
+    import os
+    from neural_assemblies import theory
+    here = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+    path = os.path.join(here, "docs", "register.md")
+    with open(path, encoding="utf-8") as fh:
+        on_disk = fh.read().replace("\r\n", "\n")
+    assert on_disk == theory.render_markdown(), (
+        "docs/register.md is stale: run `python -m neural_assemblies.theory "
+        "--render > docs/register.md`")
