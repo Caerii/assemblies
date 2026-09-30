@@ -1,0 +1,67 @@
+paper_id: dabagia2024coinflipping
+bibkey: dabagia2024coinflipping
+title: "Coin-Flipping In The Brain (arXiv:2406.07715)"
+
+coin_flip_model_defaults:
+  n: 5000
+  k: 50
+  beta: 0.08
+  rounds: 8
+  input_noise_std: 0.0
+
+parity_tests:
+  n: 5000
+  k: 80
+  rounds: 6
+  seed: 42
+
+ambient_noise:
+  input_noise_std: 0.02
+  epwta:
+    fraction_of_max: 0.5
+    min_winners: 1
+
+markov_protocol:
+  traces: "5× (q0, flip, q0) + 5× (q0, flip, q1)"
+  expected_p: 0.5
+
+pfa_stochastic:
+  table: "50/50 two-target"
+  steps: 30
+  seeded: true
+
+empirical_flips:
+  fair:
+    bias: 0.5
+    n_flips: 24
+    require_both_outcomes: true
+  biased:
+    bias: 0.85
+    n_flips: 20
+    require_majority_zero: true
+
+flip_mechanism:
+  default: proportional_k_split
+  modes:
+    k_split: "Proportional mix of attractor winners (package default)"
+    compete: "Random k-init + competition (mdabagia/nemo RandomChoiceArea.flip)"
+  note: "Paper/site describe softmax+noise; both modes available via flip_mode"
+
+golden_artifacts:
+  demo_stats: research/literature/parity/golden/coin2024_demo.json
+  compete_mode: research/literature/parity/golden/coin2024_compete.json
+  softmax_trajectories: research/literature/parity/golden/coin2024_softmax.json
+
+reference_repo:
+  url: https://github.com/mdabagia/nemo
+  local_path: .reference/mdabagia-nemo
+  env_var: REF_NEMO_PATH
+  modules: [brain.py, nemo.py]
+  notebook: nemo-demo.ipynb
+  docs: [docs/coinflipping.markdown, docs/sequences.markdown]
+  flip_mechanism_ref: "RandomChoiceArea.flip + softmax plasticity (see brain.py BiasArea)"
+  flip_mechanism_package: "RandomChoiceArea.flip modes k_split|compete in pfa.py"
+
+demo_url:
+  url: http://dabagia.org/nemo/coinflipping/
+  scraped_params: null

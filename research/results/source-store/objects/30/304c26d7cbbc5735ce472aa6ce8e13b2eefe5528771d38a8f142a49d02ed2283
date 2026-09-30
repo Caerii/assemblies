@@ -1,0 +1,29 @@
+paper_id: onasch2025dendritic
+bibkey: onasch2025dendritic
+title: "Contextual Dendritic Gating of Plasticity (bioRxiv 2025)"
+status: not_started
+
+mechanism:
+  dendritic_compartments: per-neuron plasticity loci
+  context_gated: inhibition gates learning compartment-specific
+  application: visual-auditory association with ambiguous stimuli
+
+proposed_config_keys:
+  n_compartments: null  # extract from paper supplement
+  compartment_plasticity_gate: bool mask per compartment
+  context_area: gating context assembly
+  inhibition_target: dendrite | soma
+  beta: Hebbian when gate open
+  project_rounds: stabilization
+
+forgetting_protocol:
+  task_sequence: sequential A then B
+  metric: assembly recovery / binding degradation after B
+  baseline: standard_hebb vs gated_dendritic
+
+golden_artifacts:
+  forgetting: research/literature/parity/golden/onasch2025_forgetting.json  # missing
+  figures: bioRxiv supplement  # not extracted
+
+repo_gaps:
+  module: compute/dendritic.py  # does not exist

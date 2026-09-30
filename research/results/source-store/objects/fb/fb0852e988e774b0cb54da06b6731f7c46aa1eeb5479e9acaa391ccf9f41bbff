@@ -1,0 +1,15 @@
+[package]
+name = "na-kernels"
+version = "0.1.0"
+edition = "2021"
+license = "MIT"
+description = "Optional Rust accelerators for the neural_assemblies numpy engine"
+
+[lib]
+name = "na_kernels"
+crate-type = ["cdylib"]
+
+[dependencies]
+pyo3 = { version = "0.22", features = ["extension-module", "abi3-py310"] }
+numpy = "0.22"
+rayon = "1.10"

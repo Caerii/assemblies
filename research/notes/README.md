@@ -66,7 +66,7 @@ sections of the notes use variants.
 ## Refracted memory
 
 **Result.** A recurrent k-WTA area refracted at strength 0.5 beta, read
-from a half cue with its bias masked, stores 0.35 to 0.50 (n/k)² assemblies
+from a half cue with its bias masked, stores 0.345 to 0.502 (n/k)² assemblies
 in regime (0.395 at the largest cell). The Hebbian control stores between
 one twenty-third and one thirty-eighth of that. Stored
 items stay distinct after the area fills and overlap at chance, so

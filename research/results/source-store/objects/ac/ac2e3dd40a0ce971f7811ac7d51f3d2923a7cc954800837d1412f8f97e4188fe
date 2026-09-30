@@ -1,0 +1,260 @@
+"""Capacity migration preserves cell identity without requiring a GPU."""
+
+from dataclasses import FrozenInstanceError, asdict
+
+import pytest
+
+from research.experiments import seq_capacity_scaling as capacity
+
+
+def test_capacity_configuration_is_immutable():
+    config = capacity.CapacityProtocol()
+    with pytest.raises(FrozenInstanceError):
+        config.beta = 0.0
+
+
+@pytest.mark.parametrize("kwargs", [
+    {"checkpoints": (4, 4)}, {"checkpoints": (8, 4)}, {"p": float("nan")},
+    {"rounds": 0}, {"stim_size": 0}, {"recall_sample": 0},
+])
+def test_invalid_configuration_fails_before_gpu_import(kwargs):
+    with pytest.raises(ValueError):
+        capacity.CapacityProtocol(**kwargs)
+
+
+def test_same_n_different_k_retains_both_cells_and_seed_identity(monkeypatch):
+    calls = []
+    def fake_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
+                  organ_semantics):
+        calls.append((n, k, arm_settings, device, tuple(seeds)))
+        return {4: {"rank1": [0.9] * 3, "pairwise_x": [1.0] * 3,
+                    "distinct": [1.0] * 3, "fill": [0.1] * 3}}
+    monkeypatch.setattr(capacity, "run_cell", fake_cell)
+    result = capacity.experiment({
+        "seeds": [7, 13, 19], "mode": "smoke",
+        "parameters": {"configuration": asdict(capacity.CapacityProtocol(checkpoints=(4,))),
+                       "arms": ["B"], "nk": [[100, 10], [100, 20]],
+                       "measurement_seed": 1234, "half_bar": 0.5,
+                       "arm_settings": {"B": {"norm_init": True, "synaptic_scaling": False}},
+                       "device": "cuda:0", "distinct_gate": 3., "distinct_low_bar": .9},
+        "execution_semantics": {"profiles": {"B":
+            capacity.describe_assembly_memory(
+                norm_init=True, synaptic_scaling=False, strength=0.0,
+            ).to_dict()}},
+    })
+    assert calls == [(100, k, {"norm_init": True, "synaptic_scaling": False},
+                      "cuda:0", (7, 13, 19)) for k in (10, 20)]
+    assert [(c["n"], c["k"]) for c in result["cells"]] == [(100, 10), (100, 20)]
+    assert result["verdict"] == "VOID"
+    assert result["cells"][0]["ensembles"][4]["rank1"]["keys"] == (7, 13, 19)
+    # Exceeding the grid and filling the area are different censoring mechanisms.
+    assert result["cells"][0]["ceiling"]["grid_censored"]
+    assert not result["cells"][0]["ceiling"]["fill_censored"]
+
+
+def test_paired_refraction_conditions_share_seed_and_measurement_identity(monkeypatch):
+    calls = []
+
+    def fake_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
+                  organ_semantics):
+        calls.append((protocol.refracted, tuple(seeds), rng.integers(1_000_000)))
+        score = 1.0 if protocol.refracted else 0.0
+        return {4: {"rank1": [score] * 3, "pairwise_x": [0.0] * 3,
+                    "distinct": [1.0] * 3, "fill": [0.1] * 3}}
+
+    monkeypatch.setattr(capacity, "run_cell", fake_cell)
+    common = asdict(capacity.CapacityProtocol(checkpoints=(4,), readout="masked"))
+    control = {**common, "refracted_factor": 0.0}
+    treatment = {**common, "refracted": True, "refracted_factor": 0.5}
+    semantics = {
+        "control.B": capacity.describe_assembly_memory(
+            norm_init=True, synaptic_scaling=False, strength=0.0).to_dict(),
+        "refracted.B": capacity.describe_assembly_memory(
+            norm_init=True, synaptic_scaling=False, strength=0.5).to_dict(),
+    }
+    result = capacity.experiment({
+        "seeds": [7, 13, 19], "mode": "study",
+        "parameters": {"conditions": {"control": control, "refracted": treatment},
+                       "arms": ["B"], "nk": [[100, 10]], "measurement_seed": 1234,
+                       "half_bar": 0.5, "distinct_gate": 3.0,
+                       "distinct_low_bar": 0.9,
+                       "arm_settings": {"B": {"norm_init": True,
+                                                "synaptic_scaling": False}},
+                       "device": "cuda:0"},
+        "execution_semantics": {"profiles": semantics},
+    })
+    assert [call[:2] for call in calls] == [
+        (False, (7, 13, 19)), (True, (7, 13, 19))]
+    assert calls[0][2] == calls[1][2]
+    assert set(result["conditions"]) == {"control", "refracted"}
+    assert result["conditions"]["control"]["cells"]["B/100/10"]["seeds"] == [7, 13, 19]
+
+
+def test_paired_refraction_rejects_a_nonisolated_condition(monkeypatch):
+    monkeypatch.setattr(capacity, "run_cell",
+                        lambda *args, **kwargs: pytest.fail("invalid pair reached GPU"))
+    common = asdict(capacity.CapacityProtocol(checkpoints=(4,), readout="masked"))
+    treatment = {**common, "refracted": True, "refracted_factor": 0.5,
+                 "rounds": 9}
+    with pytest.raises(ValueError, match="differ only in refraction"):
+        capacity.experiment({
+            "seeds": [7, 13, 19], "mode": "study",
+            "parameters": {"conditions": {"control": {**common,
+                                                          "refracted_factor": 0.0},
+                                           "refracted": treatment},
+                           "arms": ["B"], "nk": [[100, 10]],
+                           "measurement_seed": 1234, "half_bar": 0.5,
+                           "distinct_gate": 3.0, "distinct_low_bar": 0.9,
+                           "arm_settings": {"B": {"norm_init": True,
+                                                    "synaptic_scaling": False}},
+                           "device": "cuda:0"},
+        })
+
+
+def test_original_capacity_cli_refuses_missing_tag(monkeypatch):
+    calls = []
+    monkeypatch.setattr(capacity, "run_experiment", lambda **kw: calls.append(kw))
+    with pytest.raises(SystemExit) as exc:
+        capacity.main([])
+    assert exc.value.code == 2
+    assert not calls
+
+
+def test_repeated_invocations_do_not_retain_previous_configuration(monkeypatch):
+    records = []
+    monkeypatch.setattr(capacity, "run_experiment", lambda **kw: records.append(kw))
+    common = ["--tag", "fixture", "--registration", "fixture.md"]
+    capacity.main(common + ["--beta", "0.3", "--arms", "B"])
+    capacity.main(common)
+    assert records[0]["parameters"]["configuration"]["beta"] == 0.3
+    assert records[1]["parameters"]["configuration"]["beta"] == capacity.BETA
+    assert records[1]["parameters"]["arms"] == ["B", "G"]
+
+
+def test_recorded_distinctness_bars_change_the_measured_gate():
+    cell = {"rank1": [.9]*3, "pairwise_x": [2.]*3, "distinct": [.95]*3}
+    assert capacity.gated(cell, [1,2,3], distinct_gate=3., distinct_low_bar=.9)[0] == .9
+    assert capacity.gated(cell, [1,2,3], distinct_gate=1., distinct_low_bar=.9)[0] == 0
+    assert capacity.gated(cell, [1,2,3], distinct_gate=3., distinct_low_bar=.99)[0] == 0
+
+
+@pytest.mark.parametrize("change", [
+    {"distinct_gate": float("nan")}, {"distinct_low_bar": 1.1},
+    {"half_bar": 0.0}, {"measurement_seed": True},
+    {"distinct_gate": True}, {"arm_settings": {}},
+    {"arm_settings": {"B": {"norm_init": 1, "synaptic_scaling": False}}},
+    {"device": ""},
+])
+def test_invalid_recorded_execution_settings_fail_before_measurement(monkeypatch, change):
+    def fail(*args, **kwargs):
+        pytest.fail("invalid settings reached measurement")
+    monkeypatch.setattr(capacity, "run_cell", fail)
+    parameters = {"distinct_gate": 3., "distinct_low_bar": .9,
+                  "half_bar": .5, "measurement_seed": 1234,
+                  "arms": ["B"], "device": "cuda",
+                  "arm_settings": {"B": {"norm_init": True, "synaptic_scaling": False}}}
+    parameters.update(change)
+    with pytest.raises(ValueError):
+        capacity.experiment({"parameters": parameters})
+
+
+def test_cli_records_explicit_execution_and_measurement_options(monkeypatch):
+    records = []
+    monkeypatch.setattr(capacity, "run_experiment", lambda **kw: records.append(kw))
+    capacity.main(["--tag", "fixture", "--registration", "fixture.md",
+                   "--device", "cuda:0", "--distinct-gate", "2.5", "--distinct-low-bar", ".95"])
+    parameters = records[0]["parameters"]
+    assert parameters["device"] == "cuda:0"
+    assert parameters["distinct_gate"] == 2.5 and parameters["distinct_low_bar"] == .95
+
+
+def test_comparison_cli_records_two_complete_semantic_profiles(monkeypatch):
+    records = []
+    monkeypatch.setattr(capacity, "run_experiment", lambda **kw: records.append(kw))
+    capacity.main(["--tag", "fixture", "--registration", "fixture.md",
+                   "--compare-refraction", "--refracted-factor", "0.5",
+                   "--arms", "B", "--nk", "4000:60", "--ms", "8,128"])
+    record = records[0]
+    assert record["protocol_version"] == "3"
+    assert set(record["parameters"]["conditions"]) == {"control", "refracted"}
+    assert "configuration" not in record["parameters"]
+    assert set(record["organ_semantics"]) == {"control.B", "refracted.B"}
+    assert record["organ_semantics"]["control.B"].arc_refraction_charge == 0.0
+    assert record["organ_semantics"]["refracted.B"].arc_refraction_charge == 0.05
+
+
+def test_paired_anchor_conditions_share_seed_and_measurement_identity(monkeypatch):
+    """PREREG_anchor_ratio.md sensitivity replay: two anchors, one protocol."""
+    calls = []
+
+    def fake_cell(n, k, protocol, seeds, rng, *, arm_settings, device,
+                  organ_semantics):
+        calls.append((protocol.stim_size, tuple(seeds), rng.integers(1_000_000)))
+        score = 1.0 if protocol.stim_size == 200 else 0.0
+        return {4: {"rank1": [score] * 3, "pairwise_x": [0.0] * 3,
+                    "distinct": [1.0] * 3, "fill": [0.1] * 3}}
+
+    monkeypatch.setattr(capacity, "run_cell", fake_cell)
+    common = asdict(capacity.CapacityProtocol(checkpoints=(4,), refracted_factor=0.0))
+    low = {**common, "stim_size": 100}
+    high = {**common, "stim_size": 200}
+    profile = capacity.describe_assembly_memory(
+        norm_init=True, synaptic_scaling=False, strength=0.0).to_dict()
+    result = capacity.experiment({
+        "seeds": [7, 13, 19], "mode": "study",
+        "parameters": {"conditions": {"anchor_low": low, "anchor_high": high},
+                       "arms": ["B"], "nk": [[100, 10]], "measurement_seed": 1234,
+                       "half_bar": 0.5, "distinct_gate": 3.0,
+                       "distinct_low_bar": 0.9,
+                       "arm_settings": {"B": {"norm_init": True,
+                                                "synaptic_scaling": False}},
+                       "device": "cuda:0"},
+        "execution_semantics": {"profiles": {"anchor_low.B": profile,
+                                             "anchor_high.B": profile}},
+    })
+    assert [call[:2] for call in calls] == [(100, (7, 13, 19)), (200, (7, 13, 19))]
+    assert calls[0][2] == calls[1][2]
+    assert set(result["conditions"]) == {"anchor_low", "anchor_high"}
+
+
+@pytest.mark.parametrize("change", [
+    {"rounds": 9},                                   # differs beyond the anchor
+    {"refracted": True, "refracted_factor": 0.5},    # not unrefracted
+    {"stim_size": 50},                               # high not above low
+])
+def test_paired_anchor_rejects_a_nonisolated_or_inverted_pair(monkeypatch, change):
+    monkeypatch.setattr(capacity, "run_cell",
+                        lambda *args, **kwargs: pytest.fail("invalid pair reached GPU"))
+    common = asdict(capacity.CapacityProtocol(checkpoints=(4,), refracted_factor=0.0))
+    with pytest.raises(ValueError, match="anchor"):
+        capacity.experiment({
+            "seeds": [7, 13, 19], "mode": "study",
+            "parameters": {"conditions": {"anchor_low": {**common, "stim_size": 100},
+                                           "anchor_high": {**common, "stim_size": 200, **change}},
+                           "arms": ["B"], "nk": [[100, 10]],
+                           "measurement_seed": 1234, "half_bar": 0.5,
+                           "distinct_gate": 3.0, "distinct_low_bar": 0.9,
+                           "arm_settings": {"B": {"norm_init": True,
+                                                    "synaptic_scaling": False}},
+                           "device": "cuda:0"},
+        })
+
+
+def test_anchor_comparison_cli_records_two_conditions_and_profiles(monkeypatch):
+    records = []
+    monkeypatch.setattr(capacity, "run_experiment", lambda **kw: records.append(kw))
+    capacity.main(["--tag", "fixture", "--registration", "fixture.md",
+                   "--compare-anchors", "100", "200", "--arms", "B",
+                   "--nk", "4000:100", "--ms", "8,128"])
+    record = records[0]
+    assert record["protocol_version"] == "3"
+    conditions = record["parameters"]["conditions"]
+    assert set(conditions) == {"anchor_low", "anchor_high"}
+    assert conditions["anchor_low"]["stim_size"] == 100
+    assert conditions["anchor_high"]["stim_size"] == 200
+    assert not conditions["anchor_high"]["refracted"]
+    assert set(record["organ_semantics"]) == {"anchor_low.B", "anchor_high.B"}
+    assert record["organ_semantics"]["anchor_low.B"].arc_refraction_charge == 0.0
+    with pytest.raises(SystemExit):
+        capacity.main(["--tag", "x", "--registration", "fixture.md",
+                       "--compare-anchors", "200", "100", "--arms", "B", "--nk", "4000:100"])

@@ -881,11 +881,54 @@ _RESULTS: List[Result] = [
             control_path="observations/conditions/control/cells/B~14000~160/checkpoints/128/rank1",
             relation="all-greater", minimum_effect=0.5,
             mechanism="refracted memory versus paired Hebbian control at M=128",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/capacity-law-replay-L3-20260930/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~12000~160/checkpoints/64/rank1",
+            control_path="observations/conditions/control/cells/B~12000~160/checkpoints/64/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at (2000, 60), M=64 (Amendment 8, RP-4)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/capacity-law-replay-L1-20260930/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~14000~1120/checkpoints/64/rank1",
+            control_path="observations/conditions/control/cells/B~14000~1120/checkpoints/64/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at (4000, 120), M=64 (Amendment 8, RP-4)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/capacity-law-replay-L1-20260930/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~12000~130/checkpoints/384/rank1",
+            control_path="observations/conditions/control/cells/B~12000~130/checkpoints/384/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at (2000, 30), M=384 (Amendment 8, RP-4)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/capacity-law-replay-L1-20260930/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~18000~1120/checkpoints/384/rank1",
+            control_path="observations/conditions/control/cells/B~18000~1120/checkpoints/384/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at (8000, 120), M=384 (Amendment 8, RP-4)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/capacity-law-replay-L2-20260930/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~18000~160/checkpoints/1536/rank1",
+            control_path="observations/conditions/control/cells/B~18000~160/checkpoints/1536/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at (8000, 60), M=1536 (Amendment 8, RP-4)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.capacity-scaling/capacity-law-replay-L2-20260930/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/conditions/refracted/cells/B~14000~130/checkpoints/1536/rank1",
+            control_path="observations/conditions/control/cells/B~14000~130/checkpoints/1536/rank1",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="refracted memory versus paired Hebbian control at (4000, 30), M=1536 (Amendment 8, RP-4)",
         ),),
-        sensitivity_gap="The paired A7 check covers the central R1 capacity "
-                        "contrast; the masked-vs-net veto, convergence gate, "
-                        "strength plateau, and cross-engine mirror still lack "
-                        "retained paired sensitivity checks.",
+        sensitivity_gap="Paired refracted-versus-control checks now cover all "
+                        "seven cells the law is fitted to (A7 at (4000, 60); "
+                        "Amendment 8 at the other six). The masked-vs-net veto, "
+                        "the convergence gate, the strength plateau and the "
+                        "cross-engine mirror still lack retained paired checks.",
         claim="A recurrent k-WTA area refracted at HALF beta and read with the "
               "refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 "
               "M* ~ 1600-2200 stored assemblies against 64-89 for the control, "
@@ -960,8 +1003,22 @@ _RESULTS: List[Result] = [
                         "paired version-3 reproduction and sensitivity run"),
             EvidenceRef("research/results/comparisons/refraction-paired-sensitivity-20260911.json", "comparison",
                         "2090-scalar migration comparison receipt"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-law-replay-L1-20260930/results.json", "artifact",
+                        "Amendment 8 replay: (2000,30), (4000,120), (8000,120), paired"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-law-replay-L2-20260930/results.json", "artifact",
+                        "Amendment 8 replay: (8000,60), (4000,30), paired, grid to 16384"),
+            EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-law-replay-L3-20260930/results.json", "artifact",
+                        "Amendment 8 replay: (2000,60), paired"),
+            EvidenceRef("research/results/comparisons/capacity-law-replay-L1-20260930.json", "comparison",
+                        "3615-scalar per-seed comparison with the surviving k-sweep control file"),
+            EvidenceRef("research/results/comparisons/capacity-law-replay-L2-20260930.json", "comparison",
+                        "3050-scalar per-seed comparison with the surviving n/k = 133 refracted file"),
         ),
-        provenance_gap="most capacity-grid artifacts predate immutable source/environment records",
+        provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
+                        "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "
+                        "data survives, every lost ceiling reproduced; the gated (Amendment 5), "
+                        "strength (Amendment 6) and T-sweep grids and the numpy mirror still "
+                        "predate immutable source records"),
         preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
                        "scaling (arm B); refraction strength 0.5 beta; T = 8 "
                        "rounds per item from an inhibited area; readout = "

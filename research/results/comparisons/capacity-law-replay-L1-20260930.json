@@ -1,0 +1,42 @@
+{
+  "candidate": "research/results/runs/memory.capacity-scaling/capacity-law-replay-L1-20260930/results.json",
+  "candidate_sha256": "8bbb9f2d969777ef1f196943bf78954dcf1139ffce7dbc87349dabd6801f6528",
+  "comparator_sha256": "4feece2d3a0a25ac846e3f6ec57a8324145772188cc6a12fdbcfd22ba893c08a",
+  "comparator_source": {
+    "git_commit": "370cc40388ba6e822daf760fc21531ab0c302758",
+    "inventory": "source-inputs-v3",
+    "source_sha256": "df1d33019baa1d3bb715ddfebc7733de43e7cc54742f195214d1c5b5647ffbc4"
+  },
+  "comparison_version": 4,
+  "comparisons": 3615,
+  "errors": [],
+  "kind": "capacity-control",
+  "numerical_match": true,
+  "reference": "research/results/memory/capacity_scaling_results_ksweep_ctl.json",
+  "reference_seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "reference_sha256": "a373c3b85a924ccf8b61e0018fecb3e19ded2a11f80daa32317250a71afd4872",
+  "scope": "observation comparison only; no scientific adoption or protocol-equivalence verdict",
+  "treatment_reference": null,
+  "treatment_reference_sha256": null
+}

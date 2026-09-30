@@ -1,0 +1,41 @@
+paper_id: mitropolsky2022center
+bibkey: mitropolsky2022center
+title: "Center-Embedding and Constituency (NALOMA 2022)"
+
+depth1_pinned:
+  pattern: "outer that inner , outer_continued"
+  markers: [that, ","]
+  examples:
+    - "cats chase mice that dogs chase cats , love mice"
+    - "dogs chase cats that cats bite mice , love dogs"
+  success:
+    min_readout_len: 5
+    require_role: DEP-VERB
+    inner_words_via: _inner_lexeme_cache
+
+depth2_research:
+  pattern: "the dog that the cat that the bird sees chases eats the fish"
+  source: research/experiments/lib/grammar.py::CenterEmbeddedCFG
+  status: not_in_rule_parser
+
+working_memory_replay:
+  module: neural_assemblies/language/__init__.py
+  on_comma:
+    disable_plasticity: true
+    single_parse_project_per_token: true
+    reset_outer_lexeme_cache: true
+  known_bug:
+    outer_subj_overwrite: true
+    claim_id: NALO22-E01
+
+readout_roles:
+  DEP-VERB: pinned
+  DEP_CLAUSE: disinhibit on "that"
+  inner_subj: dep_subj with clause_scope=inner  # not pinned
+
+theorem:
+  cfg_characterization: "AC parser + WM ⟹ CFG class (NALOMA main result)"
+  cite_only: true
+
+reference_repo:
+  modules: [parser.py]

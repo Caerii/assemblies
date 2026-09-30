@@ -1,0 +1,22 @@
+[
+{"name": "top-k", "valid": true, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": 2}},
+{"name": "threshold", "valid": true, "document": {"profile": "competition-v1", "kind": "threshold", "tie_policy": "value_then_index", "k": 2, "threshold": -1}},
+{"name": "relative-threshold", "valid": true, "document": {"profile": "competition-v1", "kind": "relative-threshold", "tie_policy": "value_then_index", "fraction_of_max": 0.5, "min_winners": 1, "max_winners": null}},
+{"name": "e-percent", "valid": true, "document": {"profile": "competition-v1", "kind": "e-percent", "tie_policy": "value_then_index", "fraction_of_max": 0.9, "e_fraction": 1, "min_winners": 1, "window": "sigma", "sigma_c": 1.7}},
+{"name": "zero-count", "valid": true, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": 0}},
+{"name": "large-count", "valid": true, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": 1208925819614629174706176}},
+{"name": "negative-count", "valid": false, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": -1}},
+{"name": "float-count", "valid": false, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": 2.0}},
+{"name": "bool-count", "valid": false, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": true}},
+{"name": "wrong-profile", "valid": false, "document": {"profile": "competition-v2", "kind": "top-k", "tie_policy": "value_then_index", "k": 2}},
+{"name": "unknown-field", "valid": false, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "value_then_index", "k": 2, "engine": "numpy"}},
+{"name": "wrong-tie", "valid": false, "document": {"profile": "competition-v1", "kind": "top-k", "tie_policy": "random", "k": 2}},
+{"name": "bad-window", "valid": false, "document": {"profile": "competition-v1", "kind": "e-percent", "tie_policy": "value_then_index", "fraction_of_max": 0.9, "e_fraction": 1, "min_winners": 1, "window": "sigam", "sigma_c": 1.7}},
+{"name": "negative-sigma", "valid": false, "document": {"profile": "competition-v1", "kind": "e-percent", "tie_policy": "value_then_index", "fraction_of_max": 0.9, "e_fraction": 1, "min_winners": 1, "window": "sigma", "sigma_c": -1}},
+{"name": "large-real-overflow", "valid": false, "document": {"profile": "competition-v1", "kind": "threshold", "tie_policy": "value_then_index", "k": 2, "threshold": 10000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000}},
+{"name": "reversed-bounds", "valid": false, "document": {"profile": "competition-v1", "kind": "relative-threshold", "tie_policy": "value_then_index", "fraction_of_max": 0.5, "min_winners": 3, "max_winners": 2}},
+{"name": "large-valid-bounds", "valid": true, "document": {"profile": "competition-v1", "kind": "relative-threshold", "tie_policy": "value_then_index", "fraction_of_max": 0.5, "min_winners": 1208925819614629174706176, "max_winners": 1208925819614629174706177}},
+{"name": "large-reversed-bounds", "valid": false, "document": {"profile": "competition-v1", "kind": "relative-threshold", "tie_policy": "value_then_index", "fraction_of_max": 0.5, "min_winners": 1208925819614629174706177, "max_winners": 1208925819614629174706176}},
+{"name": "fraction-over-one", "valid": false, "document": {"profile": "competition-v1", "kind": "e-percent", "tie_policy": "value_then_index", "fraction_of_max": 0.9, "e_fraction": 1.1, "min_winners": 1, "window": "sigma", "sigma_c": 1.7}},
+{"name": "missing-tie", "valid": false, "document": {"profile": "competition-v1", "kind": "top-k", "k": 2}}
+]

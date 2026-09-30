@@ -1,0 +1,85 @@
+paper_id: dabagia2025sequences
+bibkey: dabagia2025sequences
+title: "Computation with Sequences of Assemblies (Neural Computation 2025)"
+
+param_regimes:
+  ci_parity:
+    n: 5000
+    k: 80
+    p: 0.05
+    beta: 0.1
+    rounds: 10
+    seed: 42
+  test_sequences:
+    n: 10000
+    k: 100
+    p: 0.05
+    beta: 0.1
+  tm_demo:
+    n: 5000
+    k: 50
+    beta: 0.08
+    rounds: 8
+  fsm_network_default:
+    n: 10000
+    k: 100
+    beta: 0.05
+    rounds: 10
+  lri_recall_sweep:
+    n: 4000
+    k: 50
+    rounds_per_step: 8
+    repetitions: 2
+    match_threshold: 0.3
+
+sequence_memorize:
+  rounds_per_step: 10
+  repetitions: 1
+  phase_b_ratio: null
+  beta_boost: null
+  distinctness_threshold: 0.5
+
+ordered_recall:
+  max_steps: 20
+  convergence_threshold: 0.9
+  novel_threshold: 0.3
+  rounds_per_step: 1
+  requires_refractory_period_gt: 0
+  lri_defaults:
+    refractory_period: 3
+    inhibition_strength: 100.0
+  lri_hard_test:
+    refractory_period: 3
+    inhibition_strength: 1000.0
+  lri_soft_test:
+    refractory_period: 2
+    inhibition_strength: 5.0
+
+tm_unary_increment:
+  alphabet: ["1", "_"]
+  states: [q0, q1, q_halt]
+  transitions:
+    - [q0, "1", q1]
+    - [q1, "1", q1]
+    - [q1, "_", q_halt]
+  test_tapes: ["11_", "111_"]
+  prefix: _tm
+
+fsm_learn_parity:
+  states: [q0, q1]
+  symbols: [a]
+  traces:
+    - [q0, a, q1]
+    - [q1, a, q0]
+
+exploratory_turing:
+  module: neural_assemblies/simulation/turing_simulations.py
+  larger_k: {n: 10000, k: 100, p: 0.01, beta: 0.05, bigger_factor: 10}
+  turing_erase: {n: 50000, k: 100, p: 0.01, beta: 0.05, bigger_factor: 20}
+
+golden_artifacts:
+  recall_len: research/literature/parity/golden/sequences2025_recall_len.json  # missing
+  tm_full: null  # port dmitropolsky/assemblies turing_sim
+
+reference_repo:
+  modules: [turing_sim.py, fsm_learn.py]

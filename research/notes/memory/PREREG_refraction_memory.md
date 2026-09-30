@@ -650,6 +650,10 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | G6 gain constant in n/k | ratio in [1.15, 1.55] at (8000, 60) | PASS | 1.24 (8666 vs 6995) |
 | S8 strength a lever | some strength >= 2275 | FAIL | 1986, 1919, 1961, 1993 at 0.3 to 0.6 beta (A7 correction) |
 | S9 convergence | reported | -- | all converge; transition in (0.6, 0.7] beta |
+| RP-1 exact reproduction (A8) | surviving legacy values equal | PASS | 3,615 + 3,050 per-seed values equal |
+| RP-2 lost ceilings (A8) | inside the reported brackets | PASS | all seven, within 0.1% of the reports |
+| RP-3 law as cited (A8) | in-regime M*/(n/k)^2 in [0.35, 0.50] | FAIL | 0.345 and 0.502: the quoted range was rounded inward |
+| RP-4 live contrast (A8) | every brain >= 0.50 at M_s, six cells | PASS | minimum 0.938 |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -800,3 +804,56 @@ amendment, one GPU job at a time.
           refracted vector must fail RP-4.
 
 The run is UNJUDGED until RP-1 to RP-4 are evaluated and recorded below.
+
+### Amendment 8 result (2026-09-30)
+
+Three runs from a worktree pinned at 370cc403, 20 paired brains each, seeds
+42 to 61: [L1](../../results/runs/memory.capacity-scaling/capacity-law-replay-L1-20260930/results.json),
+[L2](../../results/runs/memory.capacity-scaling/capacity-law-replay-L2-20260930/results.json),
+[L3](../../results/runs/memory.capacity-scaling/capacity-law-replay-L3-20260930/results.json)
+(4, 11 and 2 minutes). Receipts:
+[L1 control](../../results/comparisons/capacity-law-replay-L1-20260930.json),
+[L2 refracted](../../results/comparisons/capacity-law-replay-L2-20260930.json).
+
+    RP-1  EXACT REPRODUCTION                                        PASS
+          L1 control vs ksweep_ctl: 3,615 per-seed values equal;
+          L2 refracted vs amend4_ref133: 3,050 equal; ceiling fields
+          equal. With Amendment 7's 2,090, every surviving legacy value
+          behind the law is reproduced exactly.
+    RP-2  REPORTED CEILINGS where the legacy data was lost          PASS
+                            replayed   reported   bracket
+          control (2000,60)    11.31      11.3    [8, 16)
+          control (8000,60)   306.79     306.8    [256, 384)
+          control (4000,30)   262.76     262.8    [256, 384)
+          REF     (2000,60)   431.32     431      [384, 512)
+          REF     (4000,120)  383.15     383      [256, 384)
+          REF     (2000,30)  1588.53    1589      [1536, 2048)
+          REF     (8000,120) 2229.73    2230      [2048, 3072)
+          Every point value within 0.1% of its report.
+    RP-3  THE LAW AS CITED, window [0.35, 0.50]                     FAIL
+          M*/(n/k)^2 in regime: (2000,60) 0.388, (4000,120) 0.345,
+          (4000,60) 0.441 (A7), (8000,120) 0.502, (8000,60) 0.393.
+          Two cells fall just outside: 0.345 and 0.502.
+    RP-4  LIVE CONTRAST AT EVERY CELL, every brain >= 0.50          PASS
+          minimum paired REF - CTL rank-1 at M_s: 0.969, 0.969, 0.938,
+          0.969, 1.000, 1.000 (cells in the registered order).
+    RP-0  TRUE NEGATIVE (control substituted for refracted)         PASS
+
+**Reading.** Every number the capacity law is fitted to is reproduced under
+the shared runner, with source, environment and parameters recorded. Where
+legacy per-seed data survives the reproduction is exact, and where it was
+lost the replay lands on the reported value. The substrate is deterministic,
+so the lost files were a storage failure, not a measurement one. RP-3 fails
+as registered because the window was taken from the register's quoted range,
+"0.35 to 0.50", whose endpoints were these same two cells ROUNDED inward
+(383/33.3^2 = 0.3447, 2230/66.7^2 = 0.5017). The bar is not moved after the
+data. The law's in-regime range as measured is 0.345 to 0.502 (n/k)^2, and
+the register, the notes map and the papers plan now quote that. Out of
+regime, (2000,30) is 0.357 and (4000,30) 0.267, as Amendment 4 reported.
+REF/CTL multipliers: 38.1x and 33.9x at n/k = 33, 24.7x and 25.1x at 67,
+22.8x and 18.1x at 133.
+
+The register entry's provenance gap is narrowed accordingly, and its
+retained sensitivity checks now cover all seven cells. Still without runner
+provenance: the gated grid (Amendment 5), the strength grid (Amendment 6),
+the T sweep and the numpy mirror.

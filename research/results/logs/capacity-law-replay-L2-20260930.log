@@ -1,0 +1,5 @@
+control B n=8000 k=60: 306.79003852182007
+control B n=4000 k=30: 262.7649733763383
+refracted B n=8000 k=60: 6995.135435554336
+refracted B n=4000 k=30: 4748.47057822085
+wrote C:\Github\assemblies-runs-20260930\research\results\runs\memory.capacity-scaling\capacity-law-replay-L2-20260930\results.json
