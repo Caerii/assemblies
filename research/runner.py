@@ -64,6 +64,33 @@ DEVICE_ENGINES = frozenset({'torch_sparse', 'cuda_implicit', 'cupy_sparse',
                             *ORGAN_ENGINE_KINDS, *ALIGNER_ENGINE_NAMES})
 
 
+#: Opt-out for the checkout-location rule, for the runner's own tests only.
+ALLOW_TEMP_CHECKOUT_ENV = 'ASSEMBLIES_ALLOW_TEMP_CHECKOUT'
+
+
+def refuse_temporary_checkout(smoke: bool) -> None:
+    """A study must not run from a checkout under the system temp directory.
+
+    The runner writes a study's record into the checkout it runs from, and
+    Windows Storage Sense empties %TEMP% on its own schedule: two pinned-run
+    worktrees there lost every tracked file in September 2026, and an
+    uncommitted result survived only by chance. Pin study runs to a
+    worktree beside the repository instead (for example
+    ``git worktree add ..ssemblies-runs-<date> <commit>``). Smoke runs,
+    whose observations are void, are not refused.
+    """
+    if smoke or os.environ.get(ALLOW_TEMP_CHECKOUT_ENV) == '1':
+        return
+    temp = Path(tempfile.gettempdir()).resolve()
+    root = ROOT.resolve()
+    if root == temp or temp in root.parents:
+        raise ValueError(
+            f'refusing a study run from {root}: it is under the system temp '
+            f'directory ({temp}), which the OS may empty before the record is '
+            'committed. Run from a worktree outside it, e.g. '
+            'git worktree add ../assemblies-runs-<date> <commit>.')
+
+
 def _device_lock_path() -> Path:
     """One lock per machine, shared by every worktree and environment.
 
@@ -419,6 +446,7 @@ def run_experiment(*, script: str | Path, protocol: str, protocol_version: str,
     schema_version = 10
     if type(smoke) is not bool or type(minimum_study_seeds) is not int or minimum_study_seeds < 3:
         raise ValueError('smoke must be boolean and minimum_study_seeds an integer of at least three')
+    refuse_temporary_checkout(smoke)
     seeds = list(seeds)
     if any(type(seed) is not int for seed in seeds) or len(set(seeds)) != len(seeds):
         raise ValueError('seeds must be unique integer identities')

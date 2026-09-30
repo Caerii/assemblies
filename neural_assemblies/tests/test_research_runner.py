@@ -1,6 +1,7 @@
 """Old unsafe invocations must stop before compute or evidence replacement."""
 import argparse
 import json
+import tempfile
 from pathlib import Path
 from typing import Any
 
@@ -56,6 +57,9 @@ def run(tmp_path, monkeypatch):
     # on the card would refuse these fixtures, and parallel workers would
     # refuse each other.
     monkeypatch.setenv('ASSEMBLIES_DEVICE_LOCK', str(tmp_path / 'device.lock'))
+    # These fixtures run from wherever the suite runs, a scratch worktree
+    # under %TEMP% included; the location rule has its own test below.
+    monkeypatch.setenv(runner.ALLOW_TEMP_CHECKOUT_ENV, '1')
     def execute(**kwargs):
         values: dict[str, Any] = dict(script=Path(__file__), protocol='audit.fixture', protocol_version='1',
                       registration='research/notes/sequence/DESIGN_sequence_port.md',
@@ -113,6 +117,18 @@ def test_invalid_run_stops_before_compute(run, kwargs):
     with pytest.raises(ValueError):
         run(measure=lambda record: calls.append(record), **kwargs)
     assert calls == []
+
+
+def test_a_study_is_refused_from_a_checkout_under_the_temp_directory(tmp_path, monkeypatch):
+    monkeypatch.delenv(runner.ALLOW_TEMP_CHECKOUT_ENV, raising=False)
+    temp_checkout = Path(tempfile.gettempdir()) / 'assemblies-runs-fixture'
+    monkeypatch.setattr(runner, 'ROOT', temp_checkout)
+    with pytest.raises(ValueError, match='under the system temp directory'):
+        runner.refuse_temporary_checkout(smoke=False)
+    runner.refuse_temporary_checkout(smoke=True)          # void numbers: allowed
+    elsewhere = Path(tempfile.gettempdir()).resolve().anchor + 'assemblies-runs-fixture'
+    monkeypatch.setattr(runner, 'ROOT', Path(elsewhere))
+    runner.refuse_temporary_checkout(smoke=False)         # outside temp: allowed
 
 
 def test_second_device_job_is_refused_before_reservation(run, tmp_path, monkeypatch):
@@ -431,6 +447,8 @@ def source_repo(tmp_path, monkeypatch):
     subprocess.run(['git', '-c', 'user.name=Test', '-c', 'user.email=test@example.invalid',
                     'commit', '-qm', 'fixture'], cwd=root, check=True)
     monkeypatch.setattr(runner, 'ROOT', root)
+    # a throwaway repository under pytest's temp area, by design
+    monkeypatch.setenv(runner.ALLOW_TEMP_CHECKOUT_ENV, '1')
     return root
 
 

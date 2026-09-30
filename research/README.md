@@ -200,6 +200,23 @@ Version 3 adds Windows `.cmd` build scripts to the source inventory. Earlier
 version 2 records remain historical records with that coverage limitation.
 
 
+<a id="study-checkout"></a>
+
+## Study checkout location
+
+Run a study from a worktree pinned at a commit and placed beside the
+repository, not under the system temp directory:
+
+```bash
+git worktree add ../assemblies-runs-<date> <commit>
+```
+
+The runner writes the study's record into the checkout it runs from, and
+Windows Storage Sense empties `%TEMP%` on its own schedule. Two pinned-run
+worktrees there lost every tracked file in September 2026. The runner
+therefore refuses a study (not a smoke run) whose checkout is under the temp
+directory (`research.runner.refuse_temporary_checkout`).
+
 <a id="one-device-job"></a>
 
 ## One device job
