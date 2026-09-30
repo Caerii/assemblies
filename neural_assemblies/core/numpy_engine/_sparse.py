@@ -1684,11 +1684,22 @@ class NumpySparseEngine(GrowthMixin, DegreeNormMixin, DriveCacheMixin,
                       "projecting into this area for the first time.",
                     RuntimeWarning, stacklevel=3,
                 )
-            return ProjectionResult(
+            result = ProjectionResult(
                 winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
                 num_first_winners=0,
                 num_ever_fired=tgt.w,
             )
+            if record_activation:
+                # RECORD THE OBSERVATION THIS BRANCH MADE: every existing
+                # candidate summed to exactly zero. Leaving the fields at their
+                # defaults reported ZERO CANDIDATES, which the typed
+                # observation rightly rejects -- and the ERP adapter turned that
+                # into its legacy 0.0 deficit, a PERFECT parse. Every category
+                # violation routes through an untrained core->role fiber and
+                # lands here, so the violation arm read as flawless and the
+                # P600 AUC was exactly 0.000 at both curriculum depths.
+                result.record_zero_signal(len(prev_winner_inputs))
+            return result
 
         # --- Compiled topology: top-k on pregrown columns only ---
         # Skips truncated-normal sampling and connectome expansion when

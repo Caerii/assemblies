@@ -677,6 +677,7 @@ class TorchSparseEngine(ComputeEngine):
             )
             result.pre_kwta_prev_only = np.zeros(0, dtype=np.float32)
             result.pre_kwta_total = float(act.sum().item())
+            result.pre_kwta_count = int(act.numel())
         return result
 
     # -- Projection (core operation) ----------------------------------------
@@ -888,10 +889,15 @@ class TorchSparseEngine(ComputeEngine):
                     target, from_stimuli, from_areas,
                     plasticity_enabled=plasticity_enabled,
                     record_activation=record_activation)
-            return ProjectionResult(
+            result = ProjectionResult(
                 winners=tgt.winners.cpu().numpy().astype(np.uint32),
                 num_first_winners=0,
                 num_ever_fired=tgt.w)
+            if record_activation:
+                # Every existing candidate summed to exactly zero: a measured
+                # zero over those candidates, not a missing observation.
+                result.record_zero_signal(int(prev_winner_inputs.numel()))
+            return result
 
         # --- Sample new winner candidates via truncated normal ---
         input_sizes = (
@@ -1134,6 +1140,7 @@ class TorchSparseEngine(ComputeEngine):
             result.pre_kwta_prev_only = _raw_prev_t.cpu().numpy().astype(
                 np.float32)
             result.pre_kwta_total = _pre_kwta_total_val
+            result.pre_kwta_count = int(len(_pre_kwta_snapshot))
         return result
 
     # -- Plasticity ---------------------------------------------------------

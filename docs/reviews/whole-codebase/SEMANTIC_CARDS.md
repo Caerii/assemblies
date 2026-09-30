@@ -978,6 +978,16 @@ population with a nonempty lexicon. Grounding names are resolved without adding
 stimuli. Constructed inhibited-area and zero-evidence controls must return no
 neural recognition; familiar words and grounded holdouts remain positive checks.
 
+Because a read-only probe cannot recruit, it selects k winners from the P
+neurons an area already has, and chance overlap with a stored assembly is k/P.
+Scores remain raw maximum overlaps, but the category is the area whose score
+most exceeds its own k/P floor (CORE_AREAS order breaks ties). Ranking raw
+overlaps let the smallest population win every weak cue: PREP_CORE (P=136,
+floor 0.221) beat VERB_CORE (P=2822, floor 0.011) for the grounded holdout
+'finds', 0.333 to 0.167, which the mutating classifier had hidden by growing
+every area it probed. A constructed control fixes overlaps where the two rules
+disagree.
+
 Cache writes and distributional subcategory metadata are parser bookkeeping,
 not neural learning. Their provenance/invalidation remains a separate contract.
 This repair does not certify category accuracy or statistical equivalence of

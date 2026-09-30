@@ -5,7 +5,9 @@ import numpy as np
 import pytest
 
 from neural_assemblies.assembly_calculus.emergent import EmergentParser
-from neural_assemblies.assembly_calculus.emergent.core.areas import CORE_AREAS, NOUN_CORE, VERB_CORE
+from neural_assemblies.assembly_calculus.emergent.core.areas import (
+    CORE_AREAS, CORE_TO_CATEGORY, NOUN_CORE, VERB_CORE,
+)
 
 
 @pytest.fixture
@@ -148,3 +150,32 @@ def test_alternate_grounding_cache_path_matches_inference_without_neural_mutatio
     assert actual == expected and actual[1]
     assert parser._category_cache == cached
     assert_brain_unchanged(parser.brain, before)
+
+
+def test_areas_are_ranked_by_overlap_above_their_chance_floor(parser, monkeypatch):
+    # A read-only probe picks k of the P neurons an area already has, so any
+    # cue overlaps a stored assembly by k/P on average. Ranking RAW overlaps
+    # therefore handed every weak cue to the smallest population: on a trained
+    # dialogue parser PREP_CORE (P=136, floor 0.221) outscored VERB_CORE
+    # (P=2822, floor 0.011) for the holdout verb 'finds', 0.333 against 0.167.
+    import neural_assemblies.assembly_calculus.emergent.parser_mixins.classify as module
+    brain = parser.brain
+    lexicons = {name: lex for name, lex in parser.core_lexicons.items() if lex}
+    floors = {name: brain.areas[name].k / brain.population_counts(name).materialized
+              for name in lexicons}
+    small = max(floors, key=lambda name: floors[name])
+    large = min(floors, key=lambda name: floors[name])
+    # Raw overlap favours the small population, excess over floor the large.
+    overlaps = {small: floors[small] + 0.02, large: floors[large] + 0.04}
+    assert overlaps[small] > overlaps[large]
+
+    area_of = {id(lex): name for name, lex in lexicons.items()}
+
+    def readout(_assembly, lexicon):
+        return [("stored", overlaps.get(area_of[id(lexicon)], 0.0))]
+
+    monkeypatch.setattr(module, "readout_all", readout)
+    evidence = parser.classify_word_evidence("dog")
+    assert evidence.source == "neural"
+    assert evidence.scores[small] == overlaps[small]
+    assert evidence.category == CORE_TO_CATEGORY[large]

@@ -95,6 +95,25 @@ class ProjectionResult:
     #: research/notes/language/erp_scale_is_an_implementation_detail.md.
     pre_kwta_count: int = 0
 
+    def record_zero_signal(self, candidate_count: int) -> None:
+        """Record the observation of a noiseless ZERO-SIGNAL projection.
+
+        Specification: neural_assemblies/ir/VERIFICATION.md#contract-pre-kwta-observation
+
+        Zero signal means every one of ``candidate_count`` accumulated drive
+        entries is exactly zero, so the observation is a total of 0.0 over
+        those candidates -- a measured zero, not a missing one. An engine that
+        takes the preserve-the-assembly shortcut without calling this leaves
+        ``pre_kwta_count`` at its default, which reads as ZERO CANDIDATES.
+        """
+        if isinstance(candidate_count, bool) or int(candidate_count) <= 0:
+            raise ValueError("a zero-signal observation needs candidates")
+        zeros = np.zeros(int(candidate_count), dtype=np.float32)
+        self.pre_kwta_inputs = zeros
+        self.pre_kwta_prev_only = zeros.copy()
+        self.pre_kwta_total = 0.0
+        self.pre_kwta_count = int(candidate_count)
+
 
 class ComputeEngine(ABC):
     # Concrete engines populate this registry during setup.  Declaring the

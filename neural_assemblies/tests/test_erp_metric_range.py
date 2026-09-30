@@ -1,9 +1,18 @@
 """The ERP Cohen's d is scored on a variable clipped at its own null.
 
-#102 remains a known measurement defect: the clipped quantity must not be read
-as an effect size. The historical raw-quantity saturation (#32) has since
-moved out of its xfail: the range assertion below now passes on the current
-protocol, while retaining the test so regression is visible.
+#102 / #32. Pinned as KNOWN DEFECTS so they cannot quietly change, and so that
+nobody reads a large Cohen's d from this package as a large effect.
+
+THE #32 PIN WAS LIFTED ON A DEAD PROBE, and is restored. From 2026-09-11
+(11e690b4) the sparse engine's zero-signal branch recorded ZERO candidates, the
+typed pre-k-WTA observation rejected them, and anchored_p600_live fell back to
+its legacy 0.0 deficit -- a PERFECT parse -- for every category violation. Those
+samples read exactly 0.55 (0.55 * instability + 0.45 * 0), which stretched the
+raw span past 0.1, so the range test "passed"; and the violation arm then
+ranked BELOW grammatical, so the separation tests were given an
+xfail-on-inversion escape. Both were accommodations of the regression. With the
+branch recording total 0.0 over its candidates, the span is back to 0.0069 and
+the separation is correctly signed again.
 
 1. CLIPPED AGAINST ITS OWN NULL. `p600_excess(v) = max(0, v - p600_median)`
    and `ErpBaseline.p600_median` is "median over recent grammatical parses".
@@ -106,6 +115,13 @@ class TestExcessIsClippedAtItsOwnNull:
 
 class TestRawQuantityIsSaturated:
 
+    @pytest.mark.xfail(strict=True, reason=(
+        "KNOWN DEFECT (#32), pinned deliberately: raw p600 uses <1% of its "
+        "range in every condition (seed 11, 2026-09-30: [0.9921, 0.9990], span "
+        "0.0069). P600 is 1 - normalized_energy and the role area receives ~1% "
+        "of its normalizing scale throughout. This XPASSED from 2026-09-11 to "
+        "2026-09-30 only because dead probes read exactly 0.55 and stretched "
+        "the span. See research/notes/language/erp_metric_is_clipped.md"))
     def test_raw_p600_uses_a_reasonable_fraction_of_its_range(
         self, forked_parser,
     ):
@@ -135,11 +151,8 @@ class TestRawQuantityIsSaturated:
         catv = [float(s.p600) for s in _samples(report, "category_violation")]
         assert gram and catv
         sep = separation(catv, gram, "p600")
-        if sep.auc <= 0.5:
-            pytest.xfail(
-                "raw P600 separation is currently inverted on this backend; "
-                "retain the failed scientific bar"
-            )
+        # NO XFAIL ON INVERSION (one stood here 2026-09-12..30 and hid a dead
+        # probe; see the module docstring).
         assert sep.auc > 0.5, (
             f"violations do not score above grammatical: AUC {sep.auc:.3f} on "
             f"gram {gram} vs catv {catv}. At or below 0.5 the separation "

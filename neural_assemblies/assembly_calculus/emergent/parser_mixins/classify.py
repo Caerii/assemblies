@@ -127,10 +127,25 @@ class CategoryClassificationMixin:
         preserved. A nonempty lexicon requires a population usable for probing.
 
         Neural scores are maximum stored-word overlaps keyed by core area,
-        not probabilities. CORE_AREAS order resolves positive ties. No positive
-        neural evidence falls back to distributional classification when corpus
-        statistics exist, otherwise UNKNOWN. Distributional scores have category
-        keys and may update parser subcategory metadata, not neural weights.
+        not probabilities. The category is the area whose score most exceeds
+        its CHANCE FLOOR, k / (population the probe selected from); CORE_AREAS
+        order resolves ties. No positive neural evidence falls back to
+        distributional classification when corpus statistics exist, otherwise
+        UNKNOWN. Distributional scores have category keys and may update parser
+        subcategory metadata, not neural weights.
+
+        WHY THE FLOOR. A read-only probe cannot recruit, so it picks k winners
+        from the neurons the area already has, and any k of P neurons overlap a
+        stored k-assembly by k/P on average whatever the cue. Raw overlaps are
+        therefore not commensurable across areas. Measured on a compiled
+        dialogue parser (seed 74): PREP_CORE holds 136 neurons, a floor of
+        0.221, and scored 0.27-0.37 for EVERY word probed ('dog', 'the', 'big');
+        VERB_CORE holds 2822, a floor of 0.011. So the holdout verb 'finds' --
+        VERB 0.167 (15x its floor) against PREP 0.333 (1.5x) -- read as PREP,
+        on three seeds of three. The mutating classifier this replaced hid it:
+        every probe recruited, so small areas grew and their floors fell.
+        Ranking by the excess leaves all 420 trained words over those seeds
+        correct and returns VERB for 'finds' on two of the three.
         """
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-classification-cues
         if cue_mode not in ("combined", "phon_only", "grounding_only"):
@@ -153,6 +168,7 @@ class CategoryClassificationMixin:
             return evidence("UNKNOWN", "none", {})
 
         scores: Dict[str, float] = {}
+        floors: Dict[str, float] = {}
         brain = self.brain
         with brain.read_only():
             for core_area in CORE_AREAS:
@@ -166,6 +182,11 @@ class CategoryClassificationMixin:
                     core_area, {cue: [core_area] for cue in cues}, {}, self.rounds)
                 overlaps = readout_all(_snap(brain, core_area), lexicon)
                 scores[core_area] = overlaps[0][1] if overlaps else 0.0
+                # No recruitment inside read_only: the k-WTA chose from the
+                # materialized population (all n for a dense engine).
+                pool = brain.population_counts(core_area).materialized
+                area = brain.areas[core_area]
+                floors[core_area] = area.k / (area.n if pool is None else pool)
 
         if not scores or max(scores.values()) == 0.0:
             # Fall back to distributional classification
@@ -174,6 +195,6 @@ class CategoryClassificationMixin:
                 return evidence(category, "distributional", scores)
             return evidence("UNKNOWN", "neural", scores)
 
-        best_area = max(scores, key=lambda area: scores[area])
+        best_area = max(floors, key=lambda area: scores[area] - floors[area])
         return evidence(CORE_TO_CATEGORY[best_area], "neural", scores)
 

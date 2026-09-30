@@ -212,12 +212,11 @@ class TestErpCalibration:
         # the clipped excess median is intentionally descriptive only.
         quantities = report.p600_quantities()
         assert quantities.auc_of_raw == report.separation["p600_auc"]
-        if quantities.auc_of_raw <= CHANCE:
-            pytest.xfail(
-                "SENTENCES ERP separation is currently inverted on this "
-                "backend; retain the failed bar instead of asserting a false "
-                "effect"
-            )
+        # NO XFAIL ON INVERSION. One stood here from 2026-09-12 to 2026-09-30
+        # and hid a dead probe: the zero-signal branch recorded zero candidates,
+        # every violation took the legacy 0.0 deficit (a PERFECT parse), and
+        # the AUC read exactly 0.000 -- an instrument failure, reported as an
+        # expected one. An inverted AUC here is a defect to find.
         assert quantities.auc_of_raw > CHANCE, (
             f"p600 AUC {report.separation['p600_auc']:.3f} is not above chance "
             f"-- violations do not out-score grammatical")

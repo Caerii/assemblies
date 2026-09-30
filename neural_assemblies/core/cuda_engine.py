@@ -500,11 +500,16 @@ class CudaImplicitEngine(NumpySparseEngine):
         # Zero signal — preserve current assembly
         # Use cp.any() to avoid GPU->CPU scalar transfer
         if len(prev_winner_inputs) > 0 and not bool(cp.any(prev_winner_inputs)):
-            return ProjectionResult(
+            result = ProjectionResult(
                 winners=np.array(to_cpu(tgt.winners), dtype=np.uint32),
                 num_first_winners=0,
                 num_ever_fired=tgt.w,
             )
+            if record_activation:
+                # A measured zero over the existing candidates, not a
+                # missing observation (see ProjectionResult.record_zero_signal).
+                result.record_zero_signal(len(prev_winner_inputs))
+            return result
 
         # --- Sample new winner candidates via truncated normal (CPU) ---
         input_sizes = (

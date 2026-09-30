@@ -1268,9 +1268,9 @@ class Brain:
             for area_name, result in batch_results.items():
                 self._apply_result(area_name, result, stim_in, area_in)
                 activation_scores[area_name] = result.total_activation
-                if getattr(self, 'record_activation', False):
+                if getattr(self, 'record_activation', False) and result.pre_kwta_count:
                     pre_kwta[area_name] = float(result.pre_kwta_total or 0.0)
-                    pre_kwta_n[area_name] = int(result.pre_kwta_count or 0)
+                    pre_kwta_n[area_name] = int(result.pre_kwta_count)
 
         # Sequential path: one target at a time
         # List comprehension, not a set difference: preserves the deterministic
@@ -1305,9 +1305,15 @@ class Brain:
             self._apply_result(area_name, result, stim_in, area_in,
                                had_external_drive=external_drive_vec is not None)
             activation_scores[area_name] = result.total_activation
-            if getattr(self, 'record_activation', False):
+            # Only a result that OBSERVED something is recorded. A result that
+            # never summed its inputs (a fixed target, no inputs) carries
+            # ProjectionResult's defaults, and writing those down manufactured
+            # a total of 0.0 over ZERO candidates -- a malformed observation
+            # where the contract says there is none (pre_kwta_observation ->
+            # None).
+            if getattr(self, 'record_activation', False) and result.pre_kwta_count:
                 pre_kwta[area_name] = float(result.pre_kwta_total or 0.0)
-                pre_kwta_n[area_name] = int(result.pre_kwta_count or 0)
+                pre_kwta_n[area_name] = int(result.pre_kwta_count)
 
         # Total synaptic drive each target received, kept for the caller. This
         # is the quantity area-level competition is decided on, so exposing it

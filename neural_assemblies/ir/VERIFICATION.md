@@ -1753,6 +1753,18 @@ observation into `Measured.undefined`, preserving the reason. Controls construct
 a valid observation, each malformed half-record and an area whose ambiguous
 `.w` changes without changing the recorded candidate count.
 
+A noiseless zero-signal projection is an observation: every existing candidate
+summed to exactly zero, so the engine records a total of 0.0 over those
+candidates (`ProjectionResult.record_zero_signal`) before preserving the
+assembly. A result that never summed its inputs (a fixed target, no inputs)
+records nothing, and Brain writes no half of it down, so the area reads `None`.
+Before this, both paths left the result's default count of zero in place: an
+untrained core->role fiber produced a rejected observation, the ERP adapter
+substituted its legacy 0.0 deficit, and every category violation read as a
+perfect parse (P600 AUC exactly 0.000). The Torch engine recorded no count at
+all, so all of its observations were rejected. Controls: a never-used sparse
+fiber under a probe, a Torch observation, and a fixed target.
+
 
 <a id="contract-initial-recruitment"></a>
 

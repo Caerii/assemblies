@@ -96,3 +96,60 @@ def test_self_recurrent_energy_uses_the_same_observation_contract():
     assert observation.candidate_count == 100
     assert brain.areas["A"].w != observation.candidate_count
     assert float(energy) == observation.mean
+
+
+def _grown_pair(engine):
+    """Two areas grown by their own stimuli; the B -> A fiber is never used."""
+    brain = Brain(engine=engine, p=0.1, seed=5, norm_init=False)
+    brain.add_stimulus("S", 20)
+    brain.add_stimulus("T", 20)
+    brain.add_area("A", 1000, 20, beta=0.1)
+    brain.add_area("B", 1000, 20, beta=0.1)
+    for _ in range(5):
+        brain.project({"S": ["A"], "T": ["B"]}, {})
+    return brain
+
+
+def test_zero_signal_projection_is_a_measured_zero_not_zero_candidates():
+    # An untrained cross-area fiber under a probe delivers exactly zero drive,
+    # and the sparse engine takes its preserve-the-assembly shortcut. That
+    # branch used to leave the count at its default, i.e. ZERO CANDIDATES; the
+    # typed observation rejected it, and the ERP adapter read the rejection as
+    # its legacy 0.0 deficit -- a PERFECT parse -- on every category
+    # violation, so the P600 AUC read exactly 0.000.
+    brain = _grown_pair("numpy_sparse")
+    materialized = brain.population_counts("A").materialized
+
+    drive = input_drive(brain, sources=["B"], target_areas=["A"])["A"]
+    observation = brain.pre_kwta_observation("A")
+
+    assert observation == PreKwtaObservation(total=0.0, candidate_count=materialized)
+    assert drive == 0.0
+
+
+@pytest.mark.requires_torch
+def test_torch_reports_the_candidate_count_it_summed_over():
+    # The torch engine recorded totals but never counts, so every one of its
+    # observations read as zero candidates and was rejected.
+    brain = _grown_pair("torch_sparse")
+
+    drive = input_drive(brain, sources=["B"], target_areas=["A"])["A"]
+    observation = brain.pre_kwta_observation("A")
+
+    assert observation is not None
+    assert observation.candidate_count > 0
+    assert drive == observation.mean
+
+
+def test_a_projection_that_sums_nothing_records_no_observation():
+    # A FIXED target returns before its inputs are summed. Brain used to write
+    # ProjectionResult's defaults down anyway -- 0.0 over zero candidates, a
+    # malformed record -- where the contract says there is no observation.
+    brain = _grown_pair("numpy_sparse")
+    brain.areas["A"].fix_assembly()
+    brain.record_activation = True
+    try:
+        brain.project({"S": ["A"]}, {})
+    finally:
+        brain.record_activation = False
+    assert brain.pre_kwta_observation("A") is None
