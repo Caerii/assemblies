@@ -13,8 +13,8 @@ this bit.
 import numpy as np
 import pytest
 
-from neural_assemblies.core.torch_engine._hashed import (
-    _chain_table, count_saturation_is_exact)
+from neural_assemblies.core._pricing import (
+    chain_table as _chain_table, count_saturation_is_exact)
 
 
 def test_clipped_table_within_the_count_range_saturates_exactly():

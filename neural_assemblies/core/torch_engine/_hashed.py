@@ -42,91 +42,10 @@ from typing import Any
 
 from . import _fused_cuda
 from .._homeostasis import column_scale, scaling_setpoint
-
-
-def _chain_table(beta, w_max, rounds):
-    """``chain(1.0, c)`` for c = 0..rounds, by the ENGINE's own arithmetic.
-
-    The engine potentiates with ``w *= (1 + beta)`` and clamps at ``w_max``
-    every round, so a cell potentiated c times is a per-step
-    multiply-and-clip -- NOT ``min((1+beta)**c, w_max)``, which differs once
-    the clip binds.
-    """
-    import numpy as np
-    g = np.float32(1.0 + beta)
-    out = np.ones(rounds + 1, dtype=np.float32)
-    v = np.float32(1.0)
-    for c in range(1, rounds + 1):
-        v = np.float32(v * g)
-        if w_max is not None:
-            v = min(v, np.float32(w_max))
-        out[c] = v
-    return out
-
-
-def count_saturation_is_exact(table, max_count: int) -> bool:
-    """Whether stored counts capped at ``max_count`` price exactly like unbounded ones.
-
-    Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-count-saturation
-
-    True when the chain table's last entry equals the one before it (the
-    weight clip has bound, so every further potentiation leaves the weight
-    unchanged) and the table's last index is at most ``max_count`` (so a
-    stored count of ``max_count`` still lands on that entry). With no clip,
-    or a table longer than the count range, a capped count would have
-    changed a weight and the cap is a real loss.
-    """
-    import numpy as np
-    table = np.asarray(table)
-    if table.ndim != 1 or table.size < 2:
-        return False
-    return bool(table.size - 1 <= int(max_count) and table[-1] == table[-2])
-
-
-def _rel_table(beta, depth):
-    """``(1 + beta)**(-d)`` for d = 0..depth, by repeated float32 division.
-
-    The MAX-RELATIVE price of a cell: with column scaling and no clip a
-    weight is ``base * (1+beta)^c * s_j`` with ``s_j`` a per-column scalar, so
-    every column is a SHARE distribution and only count DIFFERENCES within a
-    column matter. ``(1+beta)^c`` overflows float32 at c ~ 900 -- a cell that
-    co-fires 1325 times in a long training run is ordinary -- while
-    ``(1+beta)^(c - cmax_j)`` lies in (0, 1] and underflows only for cells
-    ~900 counts behind the column's leader, whose share is zero in the engine
-    as well. Underflow to 0 is therefore the right limit, not an error.
-    """
-    import numpy as np
-    g = np.float32(1.0 + beta)
-    out = np.ones(depth + 1, dtype=np.float32)
-    v = np.float32(1.0)
-    for d in range(1, depth + 1):
-        v = np.float32(v / g)
-        out[d] = v
-    return out
-
-
-def _gain_table(beta, rounds):
-    """``(1 + beta)**c``, for a weight that does NOT start at 1.0.
-
-    SIZE THIS BY THE EPISODE, not by a whole study. Unlike `_chain_table` there
-    is no clip to bound the recursion, so `1.1**2048` overflows float32 to inf;
-    the stimulus drive then goes infinite, no assembly stabilises, and the
-    deviation store explodes -- measured as 0.10 -> 82 ms/brain/round before
-    the cause was found. A stimulus weight can be potentiated at most once per
-    round of the episode it belongs to.
-    """
-    import numpy as np
-    g = np.float32(1.0 + beta)
-    out = np.ones(rounds + 1, dtype=np.float32)
-    v = np.float32(1.0)
-    for c in range(1, rounds + 1):
-        v = np.float32(v * g)
-        if not np.isfinite(v):
-            raise ValueError(
-                f"(1+beta)^{c} overflows float32 at beta={beta}; size the "
-                "gain table by the EPISODE's rounds, not a whole study")
-        out[c] = v
-    return out
+from .._pricing import (chain_table as _chain_table,
+                        count_saturation_is_exact,
+                        gain_table as _gain_table,
+                        relative_table as _rel_table)
 
 
 def _local_index(idx):

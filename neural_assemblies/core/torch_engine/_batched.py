@@ -164,23 +164,6 @@ def batched_project_independent(
     return idx_local
 
 
-def _gain_table(beta, rounds):
-    """``(1 + beta)**c`` for c = 0..rounds, by repeated float32 multiply.
-
-    Separate from `_chain_table` because a stimulus weight does NOT start at
-    1.0 -- it starts at the pre-summed input count -- so the clip applies to
-    `base * gain` and cannot be folded into the table.
-    """
-    import numpy as np
-    g = np.float32(1.0 + beta)
-    out = np.ones(rounds + 1, dtype=np.float32)
-    v = np.float32(1.0)
-    for c in range(1, rounds + 1):
-        v = np.float32(v * g)
-        out[c] = v
-    return out
-
-
 def batched_project_hashed(
     n, k, p, seeds, winners, rounds, *, beta=0.0, w_max=None,
     norm_init=False, synaptic_scaling=False, stim_drive=None,

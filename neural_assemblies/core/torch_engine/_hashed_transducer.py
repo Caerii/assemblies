@@ -40,7 +40,8 @@ from typing import Any, Dict, List, Sequence, cast
 from ._torch_ops import torch_ops
 
 from ._arc_core import HashedArcCore
-from ._hashed import DenseOrganFiber, HashedArea, StimulusFiber, _gain_table
+from .._pricing import gain_table as _gain_table
+from ._hashed import DenseOrganFiber, HashedArea, StimulusFiber
 from ._hashed_aligner import pair_seeds
 
 
