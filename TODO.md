@@ -543,7 +543,7 @@ source-linked contract, negative control, and relevant gate are all present.
 
 ## Performance and GPU operations
 
-- [ ] **Run the fused CUDA and parity suites in the documented developer shell.**
+- [x] **Run the fused CUDA and parity suites in the documented developer shell.**
   Add an environment diagnostic for `vcvars64`, `ninja`, `CUDA_HOME`, compiler,
   and device capability; serialize one GPU job at a time. Do not call a CPU
   smoke run a GPU science result.
@@ -555,6 +555,23 @@ source-linked contract, negative control, and relevant gate are all present.
     `test_second_device_job_is_refused_before_reservation`). Studies run
     from a worktree pinned at a commit
     (`%TEMP%/assemblies-runs-20260912`) so edits here cannot void them.
+  - DONE 2026-09-30 (branch `gpu-unify`): `scripts\gpu-gate.cmd` is the one
+    command. It enters `cuda-dev.cmd` and runs every accelerator test with
+    `ASSEMBLIES_REQUIRE_DEVICE=fused`, so a kernel that does not build FAILS
+    instead of skipping. Every device requirement in the suite now goes
+    through `neural_assemblies/tests/_devices.py` (seven older idioms
+    removed; `test_device_gate.py` refuses their return). Result on the
+    committed branch, slow GPU tests included: 182 passed, 0 failed, 0
+    skipped -- fused kernels, every hashed-organ parity gate, and the
+    CSR-store case that failed on 2026-09-09. `uv sync` now installs CUDA
+    torch by default (`default-groups = ["dev", "gpu"]`). The %TEMP%
+    worktree convention above was retired: Storage Sense emptied both such
+    worktrees by 2026-09-27, and the runner now refuses a study run from
+    under the temp directory (research/README.md#study-checkout).
+    LESSON, recorded because it cost a two-hour run: a pytest run imports
+    lazily from its checkout, so editing that checkout mid-run produced 16
+    ImportErrors that looked like organ failures. Never edit the tree a run
+    is importing from; the runner guards studies, nothing guards pytest.
 - [ ] **Measure end-to-end throughput at scale.** Extend the README performance
   table with reproducible sizes, seeds, backend, materialization semantics,
   wall time, memory, and confidence intervals. Include plots/artifacts rather
