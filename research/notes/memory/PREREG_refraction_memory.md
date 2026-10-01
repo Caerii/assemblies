@@ -1863,3 +1863,78 @@ judged on identification instead, with each memory at its best rate, the
 multiplier is smaller at the largest cell (15429 against 2499 rank-1 at
 (8000, 60), 6x), because a weakly written Hebbian control identifies far
 more than it completes.
+
+## Amendment 15 (2026-10-01, before running): write rounds as depth -- does the per-round learning rate scale as 1/T?
+
+Registered before any run of this amendment. Each item is written by T
+rounds of stimulus plus recurrence, every round multiplying the weights of
+pairs that fire together by (1 + beta); the log-weight an item puts on its
+own assembly therefore grows with T at a fixed beta. Amendment 13 fixed the
+completion-optimal per-item write at T = 8: ln(1 + beta*) = 0.29 /
+sqrt(k p / 2). The depth reading of muP is that rounds are depth, and the
+per-round rate should shrink with them so the per-item write stays put:
+beta_T = expm1(ln(1 + beta*_8) x 8 / T). The earlier record reads the other
+way: fewer rounds per item raised the ceiling (R5: T = 8 above T = 16 at
+beta = 0.1), and the convergence gate, which stops writing an item once it
+has settled, raised it 24 to 34%. If those were OVER-WRITING, one law
+explains all three.
+
+**Seen before registering:** the earlier T results above; a smoke run of
+this study (VOID: 3 brains, cap 32, (2000, 60), T = 8, beta = 0.1, distinct
+completion above 0.5 to the cap); and a direct check of the T path (VOID: 3
+brains, cap 32, T = 16 at beta = 0.0381 with 8 recall rounds): first-item
+count 10, so the per-item write 10 ln(1.0381) = 0.37 matches T = 8's at its
+law rate (about 5 ln(1.0778)); distinct completion 0.83 to 1.00 up to 32
+items.
+
+### Protocol
+
+`research/experiments/memory_time_depth.py` through the shared runner
+(`python -m research.runner time-depth`), seeds 102 to 121 (new brains), one
+run from a worktree pinned at the commit registering this amendment. The
+refracted AssemblyMemory (0.5 beta, w_max 20, arm B, ungated, the capacity
+study's stimuli) at (2000, 60) and (4000, 60) (k p = 30), write rounds T in
+{6, 8, 12, 16}; RECALL held at 8 rounds at every T (`AssemblyMemory.recall`
+gains a `rounds` argument, default unchanged), so only the write's depth
+varies. At each T, beta over beta_T x 2^(j/4), j = -2..3 (beta_T = 0.105,
+0.0778, 0.0512, 0.0381 for T = 6, 8, 12, 16), kept at or above 0.025 --
+where the int8 count matrix saturates exactly at the clip -- plus beta =
+0.1, which serves D1 only. Distinct completion and capacity as in
+Amendments 13 and 14; checkpoints from M = 2. beta*_T is the parabola
+vertex in log beta over the regular grid.
+
+    python -m research.runner time-depth \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag time-depth-20261001 --seeds 102 103 104 105 106 107 108 109 110 \
+        111 112 113 114 115 116 117 118 119 120 121
+
+### Bars
+
+    DV  THE INSTRUMENT. At T = 8 the best capacity is within 15% of
+        Amendment 14's (492 at (2000, 60), 1616 at (4000, 60)) on new
+        brains. Failure voids D1 to D4.
+    D1  THE OLD EFFECT. At beta = 0.1, the capacity at T = 16 is below
+        the capacity at T = 8 at both cells.
+    D2  THE RESCALED WRITE TRANSFERS. At the law point beta_T, the capacity
+        at T = 6, 12 and 16 is within 15% of T = 8's, at both cells.
+    D3  THE BEST RATE SCALES AS 1/T. T ln(1 + beta*_T) is within 20% of its
+        mean across the four depths, and its coefficient of variation is
+        below that of ln(1 + beta*_T) itself, at both cells.
+    D4  DEPTH DOES NOT MATTER AT THE OPTIMUM. The best capacity over beta at
+        each T is within 15% of its mean across the four depths, at both
+        cells.
+
+### Interpretation, stated now
+
+* D2 to D4 pass: write rounds are depth in the muP sense; the per-round
+  rate should be quoted as T ln(1 + beta), and "fewer rounds store more"
+  (R5) and the convergence gate's gain are, at least in part, protection
+  against over-writing. The learning-rate law is restated per item.
+* D3 passes and D4 fails: the per-round rate scales as 1/T but some depths
+  store more even at their optimum; report which, and that rounds do more
+  than accumulate the write (settling, refraction's per-round charge).
+* D3 fails: the per-round optimum does not scale as 1/T; report its
+  scaling.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until DV to D4 are evaluated and recorded below.

@@ -139,14 +139,19 @@ class AssemblyMemory:
         return self._last_used
 
     # -- the read -------------------------------------------------------------
-    def recall(self, cue, *, masked=None):
+    def recall(self, cue, *, masked=None, rounds=None):
         """Complete ``cue`` [B, m] (m <= k neurons of a stored assembly) by
-        ``rounds`` frozen recurrent rounds -- ``probe()``: nothing is written
-        and no bias is charged. ``masked`` (default: whenever refracted)
-        reads the synaptic memory with the bias zeroed; ``masked=False`` is
-        the net readout, which reads chance on a refracted memory."""
+        ``rounds`` frozen recurrent rounds (default: the write's) --
+        ``probe()``: nothing is written and no bias is charged. ``masked``
+        (default: whenever refracted) reads the synaptic memory with the
+        bias zeroed; ``masked=False`` is the net readout, which reads chance
+        on a refracted memory. ``rounds`` lets a study vary the WRITE's depth
+        while holding the read's fixed."""
+        if rounds is not None and (type(rounds) is not int or rounds < 1):
+            raise ValueError("recall rounds must be a positive integer")
         self.area.winners = cue.to(torch_ops.int64)
-        return self.area.project(self.rounds, [self.fiber], freeze=True,
+        return self.area.project(self.rounds if rounds is None else rounds,
+                                 [self.fiber], freeze=True,
                                  mask_bias=(None if masked is None
                                             else bool(masked) and self.refracted))
 

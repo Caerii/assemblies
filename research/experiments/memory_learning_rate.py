@@ -83,9 +83,10 @@ def profile(beta):
                                     gate=False, norm_init=True, synaptic_scaling=False)
 
 
-def readings(mem, St, M, n, k):
+def readings(mem, St, M, n, k, recall_rounds=None):
     """Per-brain rank-1, own overlap and completed fraction from the module's
-    own masked recall on `sample_for(M)`."""
+    own masked recall on `sample_for(M)` (`recall_rounds` frozen rounds;
+    default the write's)."""
     torch = pe._torch()
     B = St.shape[1]
     flat = St.permute(1, 0, 2)                                       # [B, M, k]
@@ -95,7 +96,7 @@ def readings(mem, St, M, n, k):
     distinct = torch.zeros(B, device=St.device)
     sample = pe.sample_for(M)
     for i in sample:
-        rec = mem.recall(St[int(i)][:, : k // 2])
+        rec = mem.recall(St[int(i)][:, : k // 2], rounds=recall_rounds)
         mask = torch.zeros(B, n, dtype=torch.bool, device=St.device)
         mask.scatter_(1, rec, True)
         ov = torch.stack([mask[b][flat[b]].sum(1) for b in range(B)])  # [B, M]
@@ -113,7 +114,7 @@ def readings(mem, St, M, n, k):
 
 def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
              stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
-             grid_start=16, give_up=None):
+             grid_start=16, give_up=None, rounds=None, recall_rounds=None):
     """Store with the capacity study's stimuli and read every checkpoint.
 
     Stops once a `stop_on` metric has been above 0.5 and all have then been
@@ -124,7 +125,8 @@ def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     mem = AssemblyMemory(seeds_for(seeds), n, k, pe.P if p is None else p, beta=beta,
                          w_max=pe.W_MAX, norm_init=True, synaptic_scaling=False,
-                         rounds=pe.T, strength=strength, gate=False, max_items=cap,
+                         rounds=pe.T if rounds is None else rounds,
+                         strength=strength, gate=False, max_items=cap,
                          device=device, organ_semantics=organ_semantics)
     grid = [m for m in pe.geometric_grid(grid_start, cap)]
     stored, cache = [], {}
@@ -137,7 +139,7 @@ def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
             c = pe.first_item_count(mem.fiber.C, mem.fiber.pres, stored[0], n)
         if M not in grid:
             continue
-        cache[M] = readings(mem, torch.stack(stored), M, n, k)
+        cache[M] = readings(mem, torch.stack(stored), M, n, k, recall_rounds)
         cache[M]["fill"] = mem.fill.cpu().numpy().tolist()
         means = [ensemble_from_values(cache[M][m]).mean for m in stop_on]
         if any(v > pe.HALF_BAR for v in means):
