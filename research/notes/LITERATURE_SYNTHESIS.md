@@ -120,6 +120,15 @@ published demonstrations are existence proofs at low load in a regime where
 multi-item capacity would be small and noise-dominated. Scaling them is a
 question of fan-in, not of neuron count alone.
 
+Measured (PREREG_refraction_memory.md, Amendment 17, 20 brains): at the PNAS
+2020 cell itself (n = 10^4, k = 100, p = 0.01) no learning rate from 0.1 to
+0.4 of the convergence threshold completes a single item at the distinct
+criterion; rank-1 identification peaks at 112 items. Below the floor at
+p = 0.5 the memory does complete (about 1400 items at n = 4000, flat in k
+from 10 to 40); at p = 0.05 it completes 160-200 items on twice the neurons.
+The published operations are therefore identification-grade at the published
+parameters, and below the floor sparseness costs capacity even at equal fan-in.
+
 ### 2.4 Per-fiber parameters are already used, by hand
 
 The acquisition and architecture papers state that p and beta "may vary from
@@ -193,7 +202,11 @@ square root of a neuron's fan-in.
 
 1. **The law in the literature's regimes.** Measure beta* at k p = 1-10 (PNAS,
    NEMO parameters). Does the optimum stay at a fixed fraction of the
-   convergence threshold where fan-in is below ln n?
+   convergence threshold where fan-in is below ln n? *Answered by Amendment
+   17:* above the floor, yes (0.18-0.19); below it, at p = 0.5 yes down to
+   k p = 5, at p = 0.05 no (the fraction climbs to 0.30 at k p = 5), and at
+   k p = 1 nothing completes. The optimum sits at the completion onset, the
+   weakest write under which an item converges.
 2. **One capacity protocol for every anti-interference mechanism.** Refraction,
    E%-WTA, dendritic gating, and the saturating coin-flip rule, each at its own
    best beta, on distinct completion.

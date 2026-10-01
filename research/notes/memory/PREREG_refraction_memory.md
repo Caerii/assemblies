@@ -698,6 +698,9 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | S2 noise law (A16) | gamma_noise within 15%, tighter than gamma_plain | PASS | CV 0.081 vs 0.258 |
 | S3 dense side (A16) | beta*(p .75) / beta*(p .5) <= 0.85 | PASS | 0.707 (predicted 0.71) |
 | S4 capacity p-invariant (A16) | k p = 30 bests within 15% | PASS | 436-497 |
+| TV instrument (A17) | (4000, 60, 0.5) within 15% of 1616 | PASS | 1589 (0.983) |
+| T1 threshold fraction above floor (A17) | beta*/theta within 15% of 0.20 at k p = 30, 40, 80 | PASS | 0.180, 0.189, 0.180 |
+| T2 threshold fraction below floor (A17) | >= 1 resolved; every resolved within 25% of 0.20 | FAIL | p 0.5: 0.19-0.22; p 0.05: 0.21, 0.27, 0.30; PNAS cell never completes |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -2206,3 +2209,82 @@ its rank-1 capacity, and which cells below the floor complete at all.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until TV, T1 and T2 are evaluated and recorded below.
+
+### Amendment 17 result (2026-10-01)
+
+One run from a worktree pinned at a8b95efe, 20 new brains (seeds 142 to
+161), ten cells, 37 minutes:
+[record](../../results/runs/memory.threshold-law/threshold-law-20261001/results.json),
+[log](../../results/logs/threshold-law-20261001.log). theta =
+sqrt((1 - p) ln n / (p k)); the floor is k p >= 3 ln n (24.9 at n = 4000,
+27.0 at n = 8000); rank-1 capacity at 8192 is the give-up cap (a lower
+bound):
+
+    cell (n, k, p)      k p  floor  theta   beta*   fraction  distinct  rank-1
+    (4000, 60, 0.5)     30   above  0.3718  0.0669  0.180     1589      >=8192
+    (4000, 80, 0.5)     40   above  0.3220  0.0608  0.189     1312      7719
+    (4000, 160, 0.5)    80   above  0.2277  0.0411  0.180     1017      2510
+    (4000, 10, 0.5)     5    below  0.9107  0.1968  0.216     1356      >=8192
+    (4000, 20, 0.5)     10   below  0.6440  0.1241  0.193     1382      >=8192
+    (4000, 40, 0.5)     20   below  0.4554  0.0968  0.213     1452      >=8192
+    (8000, 100, 0.05)   5    below  1.3067  0.3872  0.296     201       1492
+    (8000, 200, 0.05)   10   below  0.9240  0.2496  0.270     182       926
+    (8000, 400, 0.05)   20   below  0.6534  0.1377  0.211     161       484
+    (10000, 100, 0.01)  1    below  3.0196  --      --        0         112
+
+    TV  THE INSTRUMENT                                                PASS
+        best capacity at (4000, 60, 0.5): 1589 against Amendment 14's
+        1616 (0.983).
+    T1  THE FRACTION ABOVE THE FLOOR                                  PASS
+        0.180, 0.189, 0.180 at k p = 30, 40, 80 (bar: 0.17 to 0.23).
+    T2  THE FRACTION BELOW THE FLOOR                                  FAIL
+        six of seven cells resolved; within 25% of 0.20 at the three
+        p = 0.5 cells (0.216, 0.193, 0.213) and at (8000, 400, 0.05)
+        (0.211); outside it at (8000, 100, 0.05) (0.296, +48%) and
+        (8000, 200, 0.05) (0.270, +35%). The PNAS 2020 cell completes at
+        no learning rate.
+
+**Reading.** Above the floor the completion-optimal learning rate is a
+fixed fraction of the convergence-threshold form, now on new brains and at
+k p = 80, beyond the fan-in Amendments 13 and 16 measured: 0.18 to 0.19 of
+sqrt((1 - p) ln n / (p k)), set from (n, k, p) alone. It replaces the fitted
+constants of Amendments 13 and 16 there. The three fractions sit a little
+below the post hoc 0.20 (mean 0.183), inside the bar.
+
+Below the floor the rule does not hold as registered, and how it fails is
+not one of the readings stated in advance. It is not that nothing below the
+floor completes: six of seven cells do. Nor is the rule simply an above-floor
+rule: at p = 0.5 it holds unchanged down to k p = 5 (0.19 to 0.22). It fails
+at the SPARSE cells, where the fraction climbs as fan-in falls (0.21, 0.27,
+0.30 at k p = 20, 10, 5). Below the floor the optimum depends on p at fixed
+k p, which theta's (1 - p) factor does not capture. The registered reading
+"the rule is an above-floor rule" is the nearest stated one, and it holds
+for sparse areas only.
+
+Two things below the floor that the bars did not ask about:
+
+* **Capacity loses its laws.** At p = 0.5 the distinct-completion capacity
+  is 1356, 1382, 1452 at k = 10, 20, 40: flat in k, where (n/k)^2 would
+  predict a 16-fold fall from k = 10 to k = 40. At equal fan-in, capacity is
+  no longer p-invariant (Amendment 16's S4 held above the floor). At
+  k p = 5 the sparse cell stores 201 items against the dense cell's 1356, on
+  twice the neurons.
+* **The literature's own cell identifies but never completes.** At the PNAS
+  2020 cell (n = 10000, k = 100, p = 0.01, k p = 1), no learning rate from
+  0.10 theta to 0.40 theta completes a single item at the distinct
+  criterion; rank-1 identification peaks at 112 items (beta = 0.36). At the
+  dense low-k cells identification runs past the 8192-item cap at rates
+  where completion is zero: there, a stored item can be told apart long
+  after it can be recalled.
+
+**Seen in the record, not registered.** At p = 0.5 the best capacity is the
+FIRST grid point that completes at all (4 of 6 cells) or one step above it
+(2 of 6). The optimum is the completion ONSET: the weakest write under which
+an item's assembly converges. The parabola vertex there is fitted through a
+zero neighbour, so it marks the cliff more than a smooth peak. This is why
+the optimum scales as the convergence threshold: it IS the convergence
+threshold, measured. At p = 0.05 capacity keeps rising for three grid steps
+above the onset, so the vertex moves up, and that is the sparse cells'
+excess fraction. A registration that measures the onset directly (the
+weakest completing rate on a finer grid) and the capacity's rise above it,
+as separate quantities, is what this points to.

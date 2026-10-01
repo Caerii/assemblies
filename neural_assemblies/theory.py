@@ -1014,7 +1014,14 @@ _RESULTS: List[Result] = [
               "side (0.707 predicted 0.71); capacity at the optimum is the same "
               "across p at equal fan-in. DEPTH (Amendment 15): at each number of "
               "write rounds' own best rate capacity is the same (T = 6-16); the "
-              "per-round optimum falls faster than 1/T.",
+              "per-round optimum falls faster than 1/T. THE CONVERGENCE-THRESHOLD "
+              "RULE (Amendment 17, ten cells, new brains): above the floor "
+              "k p >= 3 ln n the best rate is 0.18-0.19 of sqrt((1 - p) ln n / "
+              "(p k)) (k p = 30-80); below it the fraction holds at p = 0.5 down "
+              "to k p = 5 but climbs at p = 0.05 (0.21 / 0.27 / 0.30 at k p = 20 "
+              "/ 10 / 5), capacity is flat in k (1356-1452 at k = 10-40) and "
+              "no longer p-invariant (201 vs 1356 at k p = 5), and the PNAS 2020 "
+              "cell (k p = 1) completes at no rate (rank-1 at most 112).",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1052,7 +1059,11 @@ _RESULTS: List[Result] = [
                   "memory_learning_rate.py --distinct, 20 new brains, seven cells "
                   "(A13): beta* 0.0705 / 0.0558 / 0.0532 / 0.0444 / 0.0377 at n/k = 33 "
                   "(k p 30 / 45 / 60 / 90 / 120), 0.0752 / 0.0569 at n/k = 67; "
-                  "predicted 0.063 and 0.044 at the unseen (3000,90), (6000,180)"),
+                  "predicted 0.063 and 0.044 at the unseen (3000,90), (6000,180)",
+                  "memory_threshold_law.py, 20 new brains, ten cells (A17): "
+                  "beta*/theta 0.180 / 0.189 / 0.180 above the floor; 0.216 / "
+                  "0.193 / 0.213 (p 0.5) and 0.211 / 0.270 / 0.296 (p 0.05) below; "
+                  "(10000, 100, 0.01) distinct completion 0 at every rate"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -1088,6 +1099,8 @@ _RESULTS: List[Result] = [
                         "Amendment 15: write rounds T = 6-16, recall at 8 rounds"),
             EvidenceRef("research/results/runs/memory.sparse-law/sparse-law-20261001/results.json", "artifact",
                         "Amendment 16: the learning-rate law with connectivity noise, p = 0.125-0.75"),
+            EvidenceRef("research/results/runs/memory.threshold-law/threshold-law-20261001/results.json", "artifact",
+                        "Amendment 17: the best rate as a fraction of the convergence threshold, k p = 1-80"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "
