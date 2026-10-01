@@ -84,7 +84,7 @@ registration and a manuscript.
 
 | # | Working title | The claim in one sentence | Register IDs | Readiness |
 |---|---------------|---------------------------|--------------|-----------|
-| P1 | Refraction makes a recurrent k-WTA area an associative memory with a square capacity law | An area refracted at half beta and read with its bias masked stores 0.345 to 0.502 (n/k)² assemblies, 23 to 38× the Hebbian ceiling, because refraction stops items merging while they are written. | `REFRACTION-ANTI-MERGING`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `REFRACTION-CANCELS-CONVERGENCE` | results complete |
+| P1 | Refraction makes a recurrent k-WTA area an associative memory, and the learning rate that serves it scales with fan-in | Each at its own best learning rate, a refracted area completes 14 to 57× as many distinct items as a Hebbian one; refraction raises pattern efficiency from ~2% to ~50% of what the synapses hold; the best rate obeys ln(1 + beta*) = 0.285 sqrt(2(1 - p))/sqrt(k p/2). | `REFRACTION-ANTI-MERGING`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `REFRACTION-CANCELS-CONVERGENCE` | reframed 2026-10-01; scaling law at the optimum open |
 | P2 | An exact assembly transition machine, and the anatomy of its errors | The refracted-arc machine runs 2000 random steps without error on 40 of 40 brains; its rare soft transitions are ties between a block's least-connected neuron and the best-connected outsider, and training just below the weight clip removes them. | `SEQ-EXACT-RECOVERY`, `SEQ-REGIME-CLIFF`, `ARC-CONJUNCT-EXPOSURE`, `REFRACTION-PROPORTIONAL`, `KWTA-TIE-FRAGILE`, `SEQ-ORGAN-EMBEDS` | results complete; two figures queued |
 | P3 | A hash-regenerated GPU substrate for the assembly calculus, and what lazy sampling did to earlier results | Regenerating each brain's connectome from a hash and batching brains gives exact drives at sixty to seventy times the numpy throughput, and the parity gates it required exposed a sampler artifact behind every earlier derailment. | substrate DESIGN notes, [PREREG_sampler_audit.md](../notes/sequence/PREREG_sampler_audit.md) | results complete; timing table queued |
 | P4 | Statistical mechanics of the substrate: control parameters, order parameters, measured phase structure | Capacity, the gain crossover, and the regime floor are functions of a few ratios, and each failure is a cliff rather than a slope. | `AC-CAP`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `SEQ-REGIME-CLIFF`, `HEBB-OUTER-PRODUCT`, `DRIVE-SPLIT`, plus [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex) | tex draft exists; needs merging with the register and one derivation |
@@ -94,30 +94,64 @@ registration and a manuscript.
 ### P1. Refracted memory
 
 Evidence: [PREREG_refraction_memory.md](../notes/memory/PREREG_refraction_memory.md),
-bars R1 to R7, N1 to N3, Q1 to Q4, G1 to G5, Amendments 1 to 6; twenty
-brains per cell; grids to 16,384 items; seven (n, k) cells. Figures:
-`memory_recall_vs_M.png`, `memory_ceiling_vs_nk.png`, `memory_gate_U.png`.
+bars R1 to R7, N1 to N3, Q1 to Q4, G1 to G5, Amendments 1 to 17; twenty
+brains per cell; register entry `REFRACTION-ANTI-MERGING`. Figures:
+`memory_recall_vs_M.png`, `memory_ceiling_vs_nk.png`, `memory_gate_U.png`;
+new figures needed for Amendments 9, 11, 13 and 16 (below).
 
-The paper is short. One mechanism, one law, one multiplier, one gate. What
-it still needs:
+**Reframed 2026-10-01.** Amendments 9 to 16 change what the paper is about.
+The original sentence -- 0.345 to 0.502 (n/k)^2 assemblies, 23 to 38 times
+the Hebbian ceiling, n/k alone -- is a rank-1 IDENTIFICATION ceiling at one
+fixed, over-strong learning rate. What now stands, each on registered bars:
 
-- A capacity argument for the square form. The Willshaw and sparse Hopfield
-  literature (Willshaw 1969; Tsodyks and Feigelman 1988; Amit, Gutfreund
-  and Sompolinsky) gives (n/k)² scaling for sparse binary memories under
-  the right readout; the paper must say which of those assumptions the
-  refracted area meets and which it does not, and report the 0.40 constant
-  as empirical. The exponent drifting from 2.1 to 1.8 across the grid is a
-  finite-size statement and must be reported as such, not as a power law.
-- The failed bars in the text: Q1 out of regime, G3 no U-shape, G5 the
-  budget cost, and the overturned Amendment 1. They locate the regime
-  floor and the gate's mechanism.
-- The two caveats that bound the claim: graded stimuli are required (a
-  zero-or-size stimulus rotates the refracted item), and the readout must be
-  bias-masked, which the paper should present as a readout-mode primitive
-  ([DESIGN_readout_mode.md](../notes/substrate/DESIGN_readout_mode.md)).
-- A Hebbian control with its own optimum: the control's rounds window is
-  attractor dominance, and the paper must show the control at its best
-  setting, not at the refracted arm's.
+1. **The multiplier on recall.** With each memory at its own best learning
+   rate, the refracted area completes 14 to 57 times as many DISTINCT items
+   (recovered >= 0.8 and nearest its own item) as the Hebbian area, at ten
+   (n, k, p) cells (Amendment 14, W1).
+2. **What the constant is.** Random patterns written into the same circuit
+   at the model's own write strength fail near Willshaw's operating point
+   (0.69 to 0.92 (n/k)^2, half the synapses potentiated); refraction raises
+   the pattern efficiency from about 2% to about 50% (Amendment 9). The
+   residual is synapse-pair reuse (a correlate, not shown to be a cause).
+3. **Identification and completion want opposite writes** (Amendment 11);
+   "n/k alone" belongs to the operating write. Every capacity is quoted with
+   its criterion.
+4. **The learning-rate law** -- the paper's new result: ln(1 + beta*) =
+   0.285 sqrt(2 (1 - p)) / sqrt(k p / 2), confirmed on new brains, at unseen
+   cells, and at p = 0.125 to 0.75 (Amendments 13, 16); the field's beta = 0.1
+   is 1.3 to 2.7 times too strong. Amendment 17 tests whether it is 0.20 of
+   the field's own convergence-threshold form, which would make it a rule
+   from the theory rather than a fit.
+5. **Depth as over-writing.** At each number of write rounds' own best rate
+   capacity is the same (Amendment 15); "8 rounds beat 16" was over-writing.
+
+Title candidate: *Refraction makes a recurrent k-WTA area an associative
+memory, and the learning rate that serves it scales with fan-in.*
+
+What it still needs:
+
+- The scaling law at the optimum. Whether completion capacity follows the
+  synapse-count form n^2 p / (k ln(n/k)) or (n/k)^2 is unsettled (Amendment
+  14, W2); it needs a wider n/k range than the GPU now holds at 20 brains.
+  Until then the paper states it as open.
+- A theoretical account of the law: the sqrt(fan-in) scaling and the (1 - p)
+  factor follow from a signal-against-connectivity-noise argument; the
+  constant, and its relation to the convergence threshold, need a derivation.
+- The failed and voided bars in the text: Q1 out of regime, G3 no U-shape,
+  G5 the budget cost, the overturned Amendment 1, PE-3/5/6/S (Amendment 9),
+  Amendment 10 void by instrument, Amendment 12's merged-recall failure,
+  D2/D3 (Amendment 15). They locate the regime floor, the criteria and the
+  instruments.
+- The caveats that bound the claim: graded stimuli; the bias-masked readout
+  as a readout-mode primitive
+  ([DESIGN_readout_mode.md](../notes/substrate/DESIGN_readout_mode.md)); one
+  area and one fiber type; the lexicon's learner follows a different rule
+  (word capacity, Amendment 4).
+- Related work from the literature synthesis
+  ([LITERATURE_SYNTHESIS.md](../notes/LITERATURE_SYNTHESIS.md)): refraction in
+  the sequence and speech papers, E%-WTA and dendritic gating as competing
+  anti-interference mechanisms, and the convergence thresholds of ITCS 2019
+  and COLT 2022.
 
 ### P2. The transition machine
 
