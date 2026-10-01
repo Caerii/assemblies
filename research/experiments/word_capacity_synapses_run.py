@@ -22,6 +22,10 @@ registered protocol 3.3. At p = 0.05, beta = 0.1 the run replays Amendment 3
 Part 2 exactly (the instrument).
 
     python -m research.runner word-capacity-synapses --p 0.05 --tag NAME [--smoke]
+
+Amendment 5 (`--optimum`, protocol version 2) judges each lexicon at its OWN
+best plasticity: a grid one factor of 2 wider at each end (0.0125 to 0.8), on
+new brains (seeds 200 to 219).
 """
 from dataclasses import replace
 import math
@@ -43,6 +47,11 @@ PROBABILITIES = (0.025, 0.05, 0.1)
 BETAS = (0.025, 0.05, 0.1, 0.2, 0.4)
 #: Amendment 3 Part 2's ceilings at p = 0.05, beta = 0.1 (L0)
 PART2 = {"A": 73.826, "B": 166.4, "C": 324.4}
+#: Amendment 5 (protocol version 2): a grid wide enough to contain every
+#: lexicon's optimum, on new brains
+OPT_BETAS = (0.0125, 0.025, 0.05, 0.1, 0.2, 0.4, 0.8)
+OPT_SEEDS = tuple(range(200, 220))
+VERSIONS = ("1", "2")
 
 
 def base_protocol(p, *, smoke=False):
@@ -70,7 +79,7 @@ def _validate(raw):
 
 
 def measure(record):
-    if record.get("protocol") != PROTOCOL or record.get("protocol_version") != VERSION:
+    if record.get("protocol") != PROTOCOL or record.get("protocol_version") not in VERSIONS:
         raise ValueError("word-capacity-synapses protocol identity mismatch")
     execution = ExecutionSemantics.normalize(record.get("execution_semantics"))
     if execution.kind is not ExecutionKind.ALIGNMENT:
@@ -178,25 +187,70 @@ def evaluate(observations_by_p):
     return out
 
 
+def evaluate_optimum(observations_by_p):
+    """Amendment 5's bars: each lexicon judged at its own best plasticity."""
+    out = {"bars": {}, "cells": {}}
+    ps = sorted(observations_by_p)
+
+    def reading(p, beta, cell):
+        c = observations_by_p[p]["sweep"][f"{beta:g}"]["cells"][cell]
+        return c["ceiling"]["mean"], c["censored_seeds"]
+
+    stars, bests = {}, {}
+    for cell in CELLS:
+        for p in ps:
+            values = [reading(p, b, cell)[0] for b in OPT_BETAS]
+            i = max(range(len(values)), key=lambda j: values[j])
+            stars[(cell, p)] = optimum(list(OPT_BETAS), values)
+            bests[(cell, p)] = (values[i], reading(p, OPT_BETAS[i], cell)[1], OPT_BETAS[i])
+            out["cells"][f"{cell} p={p:g}"] = {"best": values[i], "best_beta": OPT_BETAS[i],
+                                              "censored_at_best": bests[(cell, p)][1],
+                                              "beta_star": stars[(cell, p)],
+                                              "curve": dict(zip(OPT_BETAS, values))}
+    out["bars"]["M0"] = all(abs(reading(0.05, 0.1, c)[0] / PART2[c] - 1) <= 0.15 for c in CELLS)
+    m1 = True
+    for cell in ("A", "B"):
+        for lo, hi in zip(ps, ps[1:]):
+            (vl, cl, _), (vh, ch, _) = bests[(cell, lo)], bests[(cell, hi)]
+            ratio = vh / vl
+            out["cells"][f"{cell} p={lo:g}->{hi:g}"] = {"ratio": ratio}
+            m1 &= cl == 0 and ch == 0 and 1.6 <= ratio <= 2.5
+    out["bars"]["M1"] = m1
+    m2 = True
+    for p in ps:
+        s = [stars[(c, p)] for c in CELLS]
+        m2 &= None not in s and all(a > b for a, b in zip(s, s[1:]))
+    out["bars"]["M2"] = m2
+    m3 = True
+    for cell in CELLS:
+        s = [stars[(cell, p)] for p in ps]
+        m3 &= None not in s and all(a > b for a, b in zip(s, s[1:]))
+    out["bars"]["M3"] = m3
+    return out
+
+
 def main(argv=None):
     parser = experiment_parser(
         "Word capacity against connection probability and plasticity",
         engines=("scheduled_aligner",), default_seeds=STUDY_SEEDS,
     )
     parser.add_argument("--p", type=float, required=True)
+    parser.add_argument("--optimum", action="store_true",
+                        help="Amendment 5: the wide plasticity grid on new brains (seeds 200..219)")
     args = parser.parse_args(argv)
-    validate_registered_seeds(parser, args, STUDY_SEEDS)
+    validate_registered_seeds(parser, args, OPT_SEEDS if args.optimum else STUDY_SEEDS)
     if not args.smoke and args.p not in PROBABILITIES:
         parser.error(f"--p must be one of {PROBABILITIES}")
     protocol = base_protocol(args.p, smoke=args.smoke)
-    betas = [0.1] if args.smoke else list(BETAS)
+    betas = [0.1] if args.smoke else list(OPT_BETAS if args.optimum else BETAS)
     semantics = describe_hashed_aligner(
         p=protocol.connection_probability, beta=protocol.plasticity,
         rounds_word=protocol.rounds_per_pair, norm_init=True, scaling=True,
         w_max=None, stim_beta=0.0, stim_gain=None, store="present",
     )
     return run_experiment(
-        script=Path(__file__), protocol=PROTOCOL, protocol_version=VERSION,
+        script=Path(__file__), protocol=PROTOCOL,
+        protocol_version="2" if args.optimum else VERSION,
         registration=REGISTRATION, engine=args.engine, seeds=args.seeds,
         tag=args.tag, smoke=args.smoke,
         parameters={"protocol": protocol.to_parameters(), "betas": betas},

@@ -487,3 +487,64 @@ rate, the smallest does not, and the best rate depends on both fan-in and
 load -- steeper than the memory's square root. A registration that sweeps
 plasticity wide enough to contain every optimum, and judges vocabulary at
 the optimum, is the test this points to.
+
+## Amendment 5 (2026-10-01, before running): each lexicon at its own best plasticity
+
+Registered before any run of this amendment. Amendment 4 failed L1, L3 and
+L4 as registered, for two reasons recorded with it: its plasticity grid did
+not contain every lexicon's optimum (cell A's was the grid's top at two of
+three p), and cells with seeds censored below the vocabulary grid dropped out
+of the bars, so L1 rested on one cell. Its post hoc reading was that at each
+lexicon's OWN best plasticity the vocabulary grows close to linearly with
+the fiber's p (C: x1.70 and x1.57 per doubling), and that the best plasticity
+falls both with p and with the lexicon's size. This amendment tests that
+reading on new brains with a grid wide enough to contain every optimum.
+
+**Seen before registering:** Amendment 4's record and its post hoc reading;
+the refraction-memory learning-rate law (PREREG_refraction_memory.md,
+Amendments 13, 16, and 17's result that the memory's optimum sits at its
+completion onset); and a smoke run of this protocol (VOID: 3 brains, cell A
+only, FEAT 1000 x 50, V 8 and 16, beta = 0.1 at p = 0.05): type accuracy
+1.000 at V = 8 and 0.938 / 0.938 / 1.000 at V = 16, so the ceiling sat above
+the smoke grid (16.0, all three seeds censored), as it must at that size.
+
+### Protocol
+
+As Amendment 4 (`word_capacity_synapses_run.py`, `--optimum`, protocol
+version 2), with two changes: the plasticity grid is 0.0125, 0.025, 0.05,
+0.1, 0.2, 0.4, 0.8 (factor 2, one step wider at each end), and the brains are
+new (seeds 200 to 219). p = 0.025, 0.05, 0.1, one run each; cells A, B, C;
+FEAT = 4000 x 100; V grid 16 to 1024. A cell's BEST vocabulary at p is its
+largest V* over the grid; beta* is the parabola vertex in log beta through
+the best grid point and its neighbours (undefined at a grid end).
+
+    python -m research.runner word-capacity-synapses --optimum --p 0.025 \
+        --tag word-capacity-optimum-p0025-20261001 --seeds 200 ... 219
+    (and --p 0.05, --p 0.1 with their tags)
+
+### Bars
+
+    M0  THE INSTRUMENT. At p = 0.05, beta = 0.1 the new brains' V* of A, B
+        and C is within 15% of Part 2's (73.8, 166.4, 324.4). Failure voids
+        M1 to M3.
+    M1  SYNAPSE-LIMITED AT THE OPTIMUM. For A and B, the best vocabulary
+        multiplies by 1.6 to 2.5 per doubling of p (0.025 -> 0.05 -> 0.1),
+        with no censored seed at either best point.
+    M2  THE OPTIMUM FALLS WITH LOAD. At every p, beta* strictly decreases
+        from A to B to C (the larger lexicon wants the weaker write).
+    M3  THE OPTIMUM FALLS WITH FAN-IN. For every cell, beta* strictly
+        decreases from p = 0.025 to 0.05 to 0.1.
+
+### Interpretation, stated now
+
+* M1 passes: a lexical area's vocabulary is synapse-limited once it is
+  written at its own best plasticity; Amendment 4's failure was the fixed
+  plasticity, not the synapse count.
+* M2 passes: this learner's best plasticity depends on how much it stores,
+  the load axis the refracted memory's law does not contain; a learning-rate
+  schedule that weakens as the lexicon fills is the registered next test.
+* M3 passes: the fan-in direction of the memory's law carries to this
+  learner (its exponent is reported, not judged).
+* A failed bar is recorded as failed and not moved after the data.
+
+The runs are UNJUDGED until M0 to M3 are evaluated and recorded below.
