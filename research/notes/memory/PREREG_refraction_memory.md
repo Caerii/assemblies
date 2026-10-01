@@ -673,6 +673,11 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | X4 n/k law belongs to the operating write (A11) | own-c pairs in [0.8, 1.25], c = 32 pairs <= 0.8 | PASS | 1.11, 0.89; 0.68, 0.69 |
 | X5 weak writes have a load window (A11) | c = 3 lower edge, capacity above own c | PASS | 213-801 lower; 1.6-1.8x |
 | X6 smallest completing write falls with k p (A11) | strictly decreasing in k per n/k level | PASS | 11 / 6 / 4 |
+| TV instrument (A12) | beta = 0.1 rank-1 within 10% of A7/A8 | PASS | 0.979-1.040 |
+| T1 interior optimum (A12) | completion peaks inside the beta grid | FAIL | (2000, 60): merged recall at the top |
+| T2 beta* falls with k p (A12) | strictly decreasing per n/k level | FAIL | 0.209 at (8000, 240), merged recall |
+| T3 gamma* within 25% (A12) | all five cells | FAIL | undefined; 1.47 |
+| T4 wider is better at the optimum (A12) | best completion / (n/k)^2 rises with k p | PASS | 0.66 / 1.12 / 2.79; 0.34 / 0.94 |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -1489,3 +1494,62 @@ The run is UNJUDGED until TV to T4 are evaluated and recorded below.
     python -m research.runner learning-rate \
         --registration research/notes/memory/PREREG_refraction_memory.md \
         --tag learning-rate-20261001
+
+### Amendment 12 result (2026-10-01)
+
+One run from a worktree pinned at 5fb9e2a7, 20 brains, five cells, eight
+learning rates, 43 minutes:
+[record](../../results/runs/memory.learning-rate/learning-rate-20261001/results.json),
+[log](../../results/logs/learning-rate-20261001.log). Capacities (upper edges
+of the load windows) for beta = 0.025, 0.0354, 0.05, 0.0707, 0.1, 0.1414,
+0.2, 0.2828:
+
+    (2000, 60)  completion  0     0     0     459   285   201   164   730
+                rank-1      4079  2553  1668  954   438   258   180   131
+    (4000,120)  completion  0     0     1241  684   342   260   219   1096
+                rank-1      4096+ 4096+ 2442  911   398   266   208   114
+    (8000,240)  completion  0     2672  1301  497   358   276   3097  1461
+                rank-1      4975  3547  1369  511   354   256   201   113
+    (4000, 60)  completion  0     0     0     1491  1030  608   492   416
+                rank-1      13960 9978  5531  3636  1921  892   628   406
+    (8000,120)  completion  0     0     4196  3875  1979  1227  1104  2176
+                rank-1      18541 19084 10914 5570  2277  1246  1002  617
+
+    TV  THE INSTRUMENT                                                PASS
+        rank-1 at beta = 0.1 over Amendments 7/8: 1.016, 1.040, 0.979, 1.021.
+    T1  AN INTERIOR OPTIMUM                                           FAIL
+        (2000, 60): the largest completion capacity is at the grid's top
+        (730 at 0.2828).
+    T2  beta* FALLS WITH k p                                          FAIL
+        n/k = 33: undefined, 0.053, 0.209; n/k = 67: 0.077, 0.058.
+    T3  gamma* WITHIN 25%                                             FAIL
+        undefined at (2000, 60); 1.47 at (8000, 240) against 0.29 elsewhere.
+    T4  WIDER IS BETTER AT THE OPTIMUM                                PASS
+        best completion / (n/k)^2: 0.657, 1.117, 2.787; 0.336, 0.944.
+
+**Why T1 to T3 fail: completion counted MERGED recall.** At strong
+learning rates the completion capacity jumps above the rank-1 capacity
+(730 against 131 at (2000, 60), beta = 0.2828), which distinct items cannot
+do. An exploratory check (4 brains, (2000, 60), the real memory) confirms
+it: at beta = 0.0707 no stored assembly has a near-duplicate and every
+completed recall is also rank-1; at beta = 0.2828, 69 to 73% of the stored
+assemblies have a near-duplicate (overlap >= 0.8) and 62 of 79 completed
+recalls are NOT rank-1 -- the recall recovers an assembly that several items
+were merged into. The registered criterion did not require distinct items,
+so these readings entered the optimum: they set (2000, 60)'s maximum at the
+grid end and (8000, 240)'s at 0.2. T4's pass survives without them (best
+completion that is not above the rank-1 capacity: 0.413, 1.117, 2.405;
+0.336, 0.944).
+
+**Post hoc, labelled, not adopted.** Dropping completion readings that
+exceed the rank-1 capacity at the same beta (a rule chosen after seeing the
+data), the optimum is beta* = 0.076, 0.053, 0.037 at n/k = 33 (k p = 30,
+60, 120) and 0.078, 0.058 at n/k = 67 (k p = 30, 60), and gamma* =
+ln(1 + beta*) sqrt(k p / 2) = 0.285, 0.285, 0.284, 0.289, 0.309. Its
+coefficient of variation across the five cells is 0.032 with sqrt(k p),
+against 0.242 for beta itself and 0.127, 0.134 and 0.265 for exponents 0.25,
+0.75 and 1. The weakest learning rate that completes at all falls one grid
+step (sqrt 2) per doubling of k p as well. This is the shape the
+registration predicted, with the instrument it should have used;
+Amendment 13 tests it on fresh brains, at cells it did not see, with
+completion required to be distinct.
