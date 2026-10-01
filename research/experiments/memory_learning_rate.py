@@ -114,7 +114,8 @@ def readings(mem, St, M, n, k, recall_rounds=None):
 
 def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
              stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
-             grid_start=16, give_up=None, rounds=None, recall_rounds=None):
+             grid_start=16, give_up=None, rounds=None, recall_rounds=None,
+             stop_from=None):
     """Store with the capacity study's stimuli and read every checkpoint.
 
     Stops once a `stop_on` metric has been above 0.5 and all have then been
@@ -146,7 +147,10 @@ def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
             seen, below = True, 0
         elif seen:
             below += 1
-        if seen and below >= 2:
+        # with a handful of items a recall sample is noise: from M = 2, two
+        # readings of 0.48 stopped a store whose capacity was ~1500
+        # (Amendment 15); `stop_from` holds the stop decision until then
+        if seen and below >= 2 and (stop_from is None or M >= stop_from):
             break
         if give_up is not None and not seen and M >= give_up:
             break

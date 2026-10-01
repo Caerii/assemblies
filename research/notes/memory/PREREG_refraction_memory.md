@@ -2000,3 +2000,75 @@ optimum the measured per-item write c ln(1 + beta) is 0.30 / 0.25 / 0.30 /
 but falling at T = 16, whose optimum the grid did not reach. Registering
 the invariant as "the write the final assembly receives", with a grid that
 contains the T = 16 optimum, is the next test of this line.
+
+## Amendment 16 (2026-10-01, before running): does the learning-rate law need the connectivity-noise factor (1 - p)?
+
+Registered before any run of this amendment. Amendment 13 fixed the
+completion-optimal learning rate at p = 0.5: ln(1 + beta*) = 0.29 /
+sqrt(k p / 2). Amendment 14 found that at equal (n/k, k p) a sparser area
+stores as much but wants a higher rate, and proposed post hoc that the
+write must clear the SPREAD of the cue synapses a neuron receives,
+Binomial(k/2, p) with standard deviation sqrt(k p (1 - p) / 2), not
+sqrt(k p / 2):
+
+    ln(1 + beta*) = 0.29 sqrt(2 (1 - p)) / sqrt(k p / 2).
+
+That is identical at p = 0.5, 1.22x and 1.32x higher at p = 0.25 and 0.125,
+and 0.71x LOWER at p = 0.75. The plain fan-in law predicts no change with p
+at fixed k p, so the dense side (p = 0.75) is where the two disagree most.
+
+**Seen before registering:** Amendment 14's sparse cells (optima at grid
+index 3 and 4 of 0..4) and Amendment 15's result, which bears on depth, not
+on p. No run of this study has been made.
+
+### Protocol
+
+`research/experiments/memory_sparse_law.py` through the shared runner
+(`python -m research.runner sparse-law`), seeds 122 to 141 (new brains), one
+run from a worktree pinned at the commit registering this amendment. The
+refracted AssemblyMemory (0.5 beta, T = 8, w_max 20, arm B, ungated, the
+capacity study's stimuli) at six cells with n/k = 33:
+
+    k p = 30:  (1333, 40, 0.75), (2000, 60, 0.5), (4000, 120, 0.25),
+               (8000, 240, 0.125)
+    k p = 60:  (4000, 120, 0.5), (8000, 240, 0.25)
+
+Each swept over beta_pred x 2^(j/4), j = -4..4 (an octave either side of the
+(1 - p) law's prediction: 0.0544, 0.0778, 0.096, 0.104, 0.0544, 0.067), kept
+at or above 0.025. Distinct completion and capacity as in Amendments 13 and
+14, checkpoints from M = 2, with no stop decision before M = 32 (Amendment
+15's early-stop artifact); beta* is the parabola vertex in log beta. Two normalised optima:
+gamma_plain = ln(1 + beta*) sqrt(k p / 2) and gamma_noise = gamma_plain /
+sqrt(2 (1 - p)).
+
+    python -m research.runner sparse-law \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag sparse-law-20261001 --seeds 122 123 124 125 126 127 128 129 130 \
+        131 132 133 134 135 136 137 138 139 140 141
+
+### Bars
+
+    SV  THE INSTRUMENT. The best capacity at the five cells Amendment 14
+        measured is within 15% of its values there (492, 442, 502, 1208,
+        1109) on new brains. Failure voids S1 to S4.
+    S1  AN INTERIOR OPTIMUM at all six cells.
+    S2  THE NOISE LAW. gamma_noise lies within 15% of its mean at all six
+        cells and varies less across them than gamma_plain does.
+    S3  THE DENSE SIDE. beta* at (1333, 40, 0.75) is at most 0.85 times
+        beta* at (2000, 60, 0.5) (the noise law predicts 0.71, the plain
+        law 1.0).
+    S4  CAPACITY IS p-INVARIANT AT EQUAL FAN-IN. At k p = 30 the four best
+        capacities (p = 0.75 to 0.125) lie within 15% of their mean.
+
+### Interpretation, stated now
+
+* S2 and S3 pass: the learning-rate law is the write clearing the
+  connectivity noise, ln(1 + beta*) proportional to sqrt((1 - p) / (k p)),
+  and it is stated that way for every p; a cortex-like sparse area needs a
+  rate set by its fan-in AND its sparseness.
+* S2 passes and S3 fails: the correction holds on the sparse side only.
+* S4 passes: capacity at the optimum depends on connectivity only through
+  k p over p = 0.125 to 0.75 (Amendment 14 found it for p <= 0.5).
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until SV to S4 are evaluated and recorded below.
