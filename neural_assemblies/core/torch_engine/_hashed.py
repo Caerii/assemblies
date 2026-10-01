@@ -48,6 +48,44 @@ from .._pricing import (chain_table as _chain_table,
                         relative_table as _rel_table)
 
 
+def per_brain(value, B):
+    """``value`` as a tuple of B floats when it is a sequence (one per brain),
+    else None: the scalar is shared and every caller keeps its scalar path.
+
+    A learning-rate sweep runs its rates as brains of ONE launch
+    (DESIGN_memory_throughput.md); each brain's arithmetic is the arithmetic
+    it would do alone, so a swept brain's trajectory equals its solo run's."""
+    if value is None or isinstance(value, (int, float)):
+        return None
+    values = tuple(float(v) for v in value)
+    if len(values) != B:
+        raise ValueError(f"{len(values)} per-brain values for {B} brains")
+    return values
+
+
+_GAIN_TABLES: dict = {}
+
+
+def _device_gain(betas, rounds, device):
+    """The stimulus gain table on the device: [rounds + 1] for one rate,
+    [B, rounds + 1] for one rate per brain. Read-only and cached: a stimulus
+    fiber is built per stored item, and copying its table from host memory
+    each time made every item wait for the GPU to drain."""
+    key = (betas, rounds, device)
+    table = _GAIN_TABLES.get(key)
+    if table is None:
+        if isinstance(betas, tuple):
+            import numpy as np
+            rows = {b: _gain_table(b, rounds) for b in set(betas)}
+            host = np.stack([rows[b] for b in betas])
+        else:
+            host = _gain_table(betas, rounds)
+        if len(_GAIN_TABLES) > 256:
+            _GAIN_TABLES.clear()
+        table = _GAIN_TABLES[key] = torch_ops.from_numpy(host).to(device)
+    return table
+
+
 def _local_index(idx):
     """Map raw ids to per-brain local ids. ``idx`` [B, L] -> loc, values, W."""
     B, L = idx.shape
@@ -676,24 +714,51 @@ class DenseOrganFiber:
             raise ValueError(f"organ count matrices would be {need / 2**30:.1f} "
                              "GiB; fewer brains per launch")
         self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
-        self.beta, self.w_max = float(beta), w_max
+        #: one learning rate per brain, or None when they share `beta`
+        self.betas = per_brain(beta, B)
+        self.beta = None if self.betas else float(beta)
+        self.w_max = w_max
         self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
         self.device = device
-        self.learns = bool(beta)
+        self.learns = any(self.betas) if self.betas else bool(beta)
         self.relative, self.absolute = False, True
         self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
         self.C = torch_ops.zeros(B, n_pre, n_post, dtype=torch_ops.int8, device=device)
         self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
         self.max_rounds = int(max_rounds)
-        self.tab = torch_ops.from_numpy(_chain_table(beta, w_max, self.max_rounds)).to(device)
+        self._no_map = torch_ops.zeros(0, dtype=torch_ops.int32, device=device)
+        self.tab = self._table(self.max_rounds)
         deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
         self.dj = deg if norm_init else None
         self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
             0, dtype=torch_ops.float32, device=device)
 
+    def _table(self, depth):
+        """The chain table: [depth + 1] shared, or [B, depth + 1] per brain."""
+        if self.betas is None:
+            return torch_ops.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+        import numpy as np
+        rows = {b: _chain_table(b, self.w_max, depth) for b in set(self.betas)}
+        return torch_ops.from_numpy(np.stack([rows[b] for b in self.betas])).to(self.device)
+
     def counts(self):
         return self.C
+
+    def select(self, keep):
+        """Keep only the brains ``keep`` [B'] (indices), in that order: a
+        batched sweep drops the rates whose stores have finished."""
+        keep = torch_ops.as_tensor(keep, dtype=torch_ops.int64, device=self.device)
+        self.C = self.C.index_select(0, keep)
+        self.pres = self.pres.index_select(0, keep)
+        self.seeds = self.seeds.index_select(0, keep)
+        if self.dj is not None:
+            self.dj = self.dj.index_select(0, keep)
+            self.invdj = self.invdj.index_select(0, keep)
+        if self.betas is not None:
+            self.betas = tuple(self.betas[i] for i in keep.tolist())
+            self.tab = self.tab.index_select(0, keep)
+        self.B = int(keep.numel())
 
     @property
     def nnz(self):
@@ -709,7 +774,9 @@ class DenseOrganFiber:
     @property
     def count_saturation_is_exact(self) -> bool:
         """Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-count-saturation"""
-        return count_saturation_is_exact(self.tab.cpu().numpy(), self.MAX_COUNT)
+        tab = self.tab.cpu().numpy()
+        return all(count_saturation_is_exact(row, self.MAX_COUNT)
+                   for row in (tab if tab.ndim == 2 else [tab]))
 
     def check(self):
         code = int(self.err.item())
@@ -733,14 +800,17 @@ class DenseOrganFiber:
 
     def ensure_depth(self, depth):
         depth = int(depth)
-        if self.tab.numel() < depth + 1:
-            self.tab = torch_ops.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+        if self.tab.shape[-1] < depth + 1:
+            self.tab = self._table(depth)
 
-    def contribute(self, drive, rows):
+    def contribute(self, drive, rows, brains=None):
+        """Add this fiber's drive from ``rows`` [V, K] into ``drive`` [V, n].
+        ``brains`` [V] (int32) names the brain whose synapses each row reads;
+        omitted, row b is brain b."""
         if rows.shape[1] == 0:
             return
         self.mod.organ_drive(rows.to(torch_ops.int32), self.C, self.pres, self.invdj,
-                             self.tab, drive)
+                             self.tab, self._no_map if brains is None else brains, drive)
 
     def begin_episode(self):
         pass
@@ -786,7 +856,8 @@ class StimulusFiber:
         self.B, self.size, self.n, self.p = B, size, n_post, float(p)
         self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
         self.threshold = _fused_cuda.threshold_for(p)
-        self.learns = bool(beta)
+        betas = per_brain(beta, B)
+        self.learns = bool(beta) if betas is None else any(betas)
         if zero_or_size:
             # THE ENGINE'S STIMULUS MODEL ([[add-stimulus-zero-or-size]]): a
             # neuron's weight from a stimulus is `size` with probability p
@@ -808,7 +879,8 @@ class StimulusFiber:
         # a fiber per word, the int64 counter was two thirds of the memory
         self.pot = (torch_ops.zeros(B, n_post, dtype=torch_ops.int64, device=device)
                     if self.learns else None)
-        self.gain = torch_ops.from_numpy(_gain_table(beta, max_rounds)).to(device)
+        self.gain = _device_gain(float(beta) if betas is None else betas,
+                                 int(max_rounds), str(device))
         self.dj = ((self.base + self.p * (n_post - size)).clamp_min(1.0)
                    if norm_init else None)
         self.hi = (w_max * max(1.0, size * self.p)
@@ -842,7 +914,9 @@ class StimulusFiber:
                 self._const = const
             drive += const[1]
             return
-        d = self.base * self.gain[self.pot.clamp_max(self.gain.numel() - 1)]
+        top = self.gain.shape[-1] - 1
+        d = self.base * (self.gain[self.pot.clamp_max(top)] if self.gain.dim() == 1
+                         else torch_ops.gather(self.gain, 1, self.pot.clamp_max(top)))
         if self.hi != float("inf"):
             d = d.clamp_max(self.hi)
         if self.dj is not None:
@@ -863,6 +937,14 @@ class StimulusFiber:
 
     def end_episode(self):
         pass
+
+
+def _raise_overflow(bad):
+    if bad:
+        raise RuntimeError(
+            f"k-WTA candidate set overflowed ({bad} candidates) -- the "
+            "drive is too flat for the histogram to narrow. Refusing "
+            "to return a truncated winner set.")
 
 
 class HashedArea:
@@ -905,9 +987,18 @@ class HashedArea:
         #: bias is the exact anti-Hebbian counterweight on a neuron's own
         #: repeated input (net drive stays at its base value), and a handicap
         #: on every other input; see PREREG_refraction_capacity.md.
-        self.refracted_strength = float(refracted_strength or 0.0)
+        strengths = per_brain(refracted_strength, self.B)
+        if strengths is None:
+            self.refracted_strength: Any = float(refracted_strength or 0.0)
+            charged = self.refracted_strength > 0
+        else:
+            # one strength per brain, [B, 1]: a swept learning rate carries
+            # its own 0.5 beta
+            self.refracted_strength = torch_ops.tensor(
+                strengths, dtype=torch_ops.float32, device=device).view(-1, 1)
+            charged = any(v > 0 for v in strengths)
         self.bias = (torch_ops.zeros(self.B, n, dtype=torch_ops.float32, device=device)
-                     if self.refracted_strength > 0 else None)
+                     if charged else None)
 
         #: LONG RANGE INHIBITION. PROVENANCE, checked against the clones and
         #: NOT what I first wrote here: neither reference implements a
@@ -958,6 +1049,8 @@ class HashedArea:
         #: compare the true drive); only the ORDER among exact ties changes.
         self.tie_jitter = float(tie_jitter or 0.0)
         self._cols = torch_ops.arange(n, dtype=torch_ops.int64, device=device)
+        #: the largest deferred k-WTA overflow not yet checked, on the device
+        self._overflow = torch_ops.zeros((), dtype=torch_ops.int32, device=device)
 
     def _jitter(self, fibers):
         """[B, n] offsets in [0, tie_jitter), keyed by the active fibers.
@@ -1052,9 +1145,32 @@ class HashedArea:
         mask = torch_ops.as_tensor(mask, dtype=torch_ops.bool, device=self.device)
         self.winners = self.winners.masked_fill(mask.view(-1, 1), -1)
 
+    def check_overflow(self):
+        """Raise if any deferred projection's k-WTA overflowed (one host
+        read). Call it before anything reads the winners as a result."""
+        bad = int(self._overflow)
+        if bad:
+            self._overflow.zero_()
+            _raise_overflow(bad)
+
+    def select(self, keep):
+        """Keep only the brains ``keep`` [B'] (indices), in that order. The
+        per-brain state goes with them; the round counters are shared."""
+        keep = torch_ops.as_tensor(keep, dtype=torch_ops.int64, device=self.device)
+        self.winners = self.winners.index_select(0, keep)
+        self.ever = self.ever.index_select(0, keep)
+        if self.bias is not None:
+            self.bias = self.bias.index_select(0, keep)
+        if isinstance(self.refracted_strength, torch_ops.Tensor):
+            self.refracted_strength = self.refracted_strength.index_select(0, keep)
+        if self._lri_hist is not None:
+            self._lri_hist = self._lri_hist.index_select(0, keep)
+        self.__dict__.pop("_jitter_cache", None)
+        self.B = int(keep.numel())
+
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
                 stim_drive=None, return_drive=False, mask_bias=None,
-                manage_episodes=True, stop_when_stable=False):
+                manage_episodes=True, stop_when_stable=False, defer_overflow=False):
         """Run ``rounds`` rounds with ``fibers`` afferent.
 
         ``rows_for`` maps a fiber to its source winners; a fiber absent from it
@@ -1150,12 +1266,13 @@ class HashedArea:
                 if not bool(active.any()):
                     break
         if ovf_acc is not None:
-            bad = int(ovf_acc.max())
-            if bad:
-                raise RuntimeError(
-                    f"k-WTA candidate set overflowed ({bad} candidates) -- the "
-                    "drive is too flat for the histogram to narrow. Refusing "
-                    "to return a truncated winner set.")
+            if defer_overflow:
+                # kept on the device until `check_overflow`: reading it here is
+                # a host sync per call, which stalls a store loop on every item.
+                # Updated IN PLACE, so a replayed CUDA graph accumulates into it.
+                torch_ops.maximum(self._overflow, ovf_acc.max(), out=self._overflow)
+            else:
+                _raise_overflow(int(ovf_acc.max()))
         if not freeze and manage_episodes:
             for f in fibers:
                 f.end_episode()

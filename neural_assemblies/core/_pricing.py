@@ -317,18 +317,23 @@ def count_saturation_is_exact(table, max_count: int) -> bool:
 
     Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-count-saturation
 
-    True when the chain table's last entry equals the one before it (the
-    weight clip has bound, so every further potentiation leaves the weight
-    unchanged) and the table's last index is at most ``max_count`` (so a
-    stored count of ``max_count`` still lands on that entry). With no clip,
-    or a table longer than the count range, a capped count would have
-    changed a weight and the cap is a real loss.
+    The drive prices a count c as ``table[min(c, len - 1)]``, and a stored
+    count is capped at ``max_count``. True when the weight clip has bound
+    (``table[-1] == table[-2]``, so counts past the table price as its last
+    entry) AND by the cap: the entry a capped count lands on,
+    ``table[min(max_count, len - 1)]``, already equals the clipped weight.
+    Then a stored ``max_count`` and every true count above it price
+    identically. A long table is exact when its clip binds by the cap (at
+    beta 0.05, w_max 20, from count 62); with no clip, or a clip that binds
+    only past the cap, a capped count would have changed a weight and the
+    cap is a real loss.
     """
     import numpy as np
     table = np.asarray(table)
     if table.ndim != 1 or table.size < 2:
         return False
-    return bool(table.size - 1 <= int(max_count) and table[-1] == table[-2])
+    at_cap = table[min(int(max_count), table.size - 1)]
+    return bool(table[-1] == table[-2] and at_cap == table[-1])
 
 
 def relative_table(beta, depth):

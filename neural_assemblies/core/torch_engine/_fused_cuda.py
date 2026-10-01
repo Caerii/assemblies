@@ -38,6 +38,7 @@ optimisation. So nothing here is used unless a caller asks for it explicitly.
 """
 from __future__ import annotations
 
+import hashlib
 import os
 import threading
 
@@ -49,6 +50,14 @@ _ERROR: str | None = None
 _CUDA_SRC = r'''
 #include <torch/extension.h>
 #include <cuda_runtime.h>
+#include <ATen/cuda/CUDAContext.h>
+
+// Every launch goes on torch's CURRENT stream, not the legacy default
+// stream: kernels then order with torch's own ops under a stream context,
+// and a sequence of them can be captured as a CUDA graph
+// (DESIGN_memory_throughput.md). Outside a stream context the current
+// stream IS the default stream, so nothing else changes.
+#define NA_STREAM at::cuda::getCurrentCUDAStream()
 
 #define NB    4096
 #define NTH   1024
@@ -577,7 +586,7 @@ torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
                             torch::dtype(torch::kFloat32).device(rows.device()));
     const long long tot = (long long)B * n;
     const int th = 256;
-    hashed_drive_kernel<<<(tot + th - 1) / th, th>>>(
+    hashed_drive_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         rows.data_ptr<int>(), seeds.data_ptr<int>(), B, K, (int)n,
         (int)threshold, out.data_ptr<float>());
     return out;
@@ -597,7 +606,7 @@ void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
     if (C == 0 || K == 0) return;
     const long long tot = (long long)B * K * C;
     const int th = 256;
-    dev_correct_kernel<<<(tot + th - 1) / th, th>>>(
+    dev_correct_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
         colids.data_ptr<int>(), colmask.data_ptr<int64_t>(),
         tab.data_ptr<float>(), (int)tab.numel(), seeds.data_ptr<int>(),
@@ -614,7 +623,7 @@ torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n,
                             torch::dtype(torch::kFloat32).device(seeds.device()));
     const long long tot = (long long)B * n;
     const int th = 256;
-    indegree_kernel<<<(tot + th - 1) / th, th>>>(
+    indegree_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         seeds.data_ptr<int>(), B, (int)n, (int)threshold, (float)floor_,
         out.data_ptr<float>());
     return out;
@@ -634,7 +643,7 @@ std::vector<torch::Tensor> column_mass(torch::Tensor cols,
     auto opt = torch::dtype(torch::kFloat32).device(cols.device());
     auto out = torch::empty({B, (int64_t)K}, opt);
     auto omax = torch::empty({B, (int64_t)K}, opt);
-    colmass_kernel<<<B * K, 256>>>(
+    colmass_kernel<<<B * K, 256, 0, NA_STREAM>>>(
         cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
         colmask.data_ptr<int64_t>(), tab.data_ptr<float>(),
         (int)tab.numel(), seeds.data_ptr<int>(), K, N, W, (int)threshold,
@@ -651,7 +660,7 @@ void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
     offs = offs.contiguous(); tab = tab.contiguous(); seeds = seeds.contiguous();
     const int B = S.size(0), K = S.size(1), N = out.size(1);
     if (K == 0 || keys.numel() == 0) return;
-    dev_csr_kernel<<<B * K, 128>>>(
+    dev_csr_kernel<<<B * K, 128, 0, NA_STREAM>>>(
         S.data_ptr<int>(), keys.data_ptr<int64_t>(), cnts.data_ptr<int>(),
         offs.data_ptr<int64_t>(), (int)offs.numel() - 1,
         tab.data_ptr<float>(), (int)tab.numel(),
@@ -811,18 +820,29 @@ __device__ __forceinline__ unsigned long long sched_key(float v, int j) {
 // per-brain-inhibit convention of the scheduled organ.
 #define ORGAN_CH 8
 
+// BRAIN MAP AND PER-BRAIN TABLES (DESIGN_memory_throughput.md). A row of
+// `S` and `out` is a VIRTUAL brain v; `bmap[v]` names the physical brain whose
+// counts, connectome, in-degrees and table it reads (no map: v itself). That
+// lets a frozen read run many cues against one brain's synapses in a single
+// launch. `tab_stride` 0 shares one chain table; ntab gives each physical
+// brain its own (a learning-rate sweep batched into the brain axis). The
+// arithmetic per column is unchanged -- the same rows in the same order --
+// so a mapped or swept brain reads the drive it would read alone.
 __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
                                    const signed char* __restrict__ C,
                                    const unsigned int* __restrict__ pres, int W,
                                    const float* __restrict__ invdj,
-                                   const float* __restrict__ tab, int ntab,
-                                   int B, int Npre, int N, float* __restrict__ out) {
+                                   const float* __restrict__ tab, int ntab, int tab_stride,
+                                   const int* __restrict__ bmap,
+                                   int V, int Npre, int N, float* __restrict__ out) {
     const long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
-    if (idx >= (long long)B * N) return;
-    const int j = (int)(idx % N), b = (int)(idx / N);
+    if (idx >= (long long)V * N) return;
+    const int j = (int)(idx % N), v = (int)(idx / N);
+    const int b = bmap != nullptr ? bmap[v] : v;
     const signed char* Cb = C + (long long)b * Npre * N;
     const unsigned int* Pb = pres + (long long)b * Npre * W;
-    const int* Sb = S + (long long)b * K;
+    const float* Tb = tab + (long long)b * tab_stride;
+    const int* Sb = S + (long long)v * K;
     const int wj = j >> 5, bj = j & 31;
     float acc = 0.0f;
     for (int s0 = 0; s0 < K; s0 += ORGAN_CH) {
@@ -840,12 +860,12 @@ __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
 #pragma unroll
         for (int u = 0; u < ORGAN_CH; ++u) {
             const int c = cs[u] < ntab ? cs[u] : ntab - 1;       // the chain saturates at the clip
-            acc += ((pm >> u) & 1u) ? tab[c] : 0.0f;
+            acc += ((pm >> u) & 1u) ? Tb[c] : 0.0f;
         }
     }
-    float v = acc;
-    if (invdj != nullptr) v *= invdj[idx];
-    out[idx] += v;
+    float d = acc;
+    if (invdj != nullptr) d *= invdj[(long long)b * N + j];
+    out[idx] += d;
 }
 
 // one block per (brain, winner column): count the present rows in
@@ -1549,7 +1569,7 @@ void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
     if (keys.numel() > 0) {
         keys = keys.contiguous(); cnts = cnts.contiguous();
         offs = offs.contiguous();
-        devcnt_csr_kernel<<<B * K, 128>>>(
+        devcnt_csr_kernel<<<B * K, 128, 0, NA_STREAM>>>(
             S.data_ptr<int>(), keys.data_ptr<int64_t>(), cnts.data_ptr<int>(),
             offs.data_ptr<int64_t>(), (int)offs.numel() - 1, K, N,
             scratch.data_ptr<int>());
@@ -1557,11 +1577,11 @@ void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
     if (rowmask.numel() > 0) {
         rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
         const int W = (int)(rowmask.numel() / ((long long)B * rowmask.size(-1)));
-        devcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+        devcnt_mask_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
             S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
             colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
     }
-    devapply_kernel<<<(tot + th - 1) / th, th>>>(
+    devapply_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         S.data_ptr<int>(), scratch.data_ptr<int>(), tab.data_ptr<float>(),
         (int)tab.numel(), seeds.data_ptr<int>(), B, K, N, (int)threshold,
         out.data_ptr<float>());
@@ -1584,18 +1604,18 @@ std::vector<torch::Tensor> column_mass_exact(
         keys = keys.contiguous(); cnts = cnts.contiguous();
         colmap = colmap.contiguous();
         const long long nnz = keys.numel();
-        colcnt_store_kernel<<<(nnz + th - 1) / th, th>>>(
+        colcnt_store_kernel<<<(nnz + th - 1) / th, th, 0, NA_STREAM>>>(
             keys.data_ptr<int64_t>(), cnts.data_ptr<int>(), nnz,
             colmap.data_ptr<int>(), K, N, scratch.data_ptr<int>());
     }
     if (rowmask.numel() > 0) {
         rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
         const int W = (int)(rowmask.numel() / ((long long)B * N));
-        colcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+        colcnt_mask_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
             cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
             colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
     }
-    colmass_apply_kernel<<<B * K, 256>>>(
+    colmass_apply_kernel<<<B * K, 256, 0, NA_STREAM>>>(
         cols.data_ptr<int>(), scratch.data_ptr<int>(), tab.data_ptr<float>(),
         (int)tab.numel(), seeds.data_ptr<int>(), K, N, (int)threshold,
         out.data_ptr<float>(), omax.data_ptr<float>());
@@ -1617,7 +1637,7 @@ void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
     if (keys.numel() > 0) {
         keys = keys.contiguous(); cnts = cnts.contiguous();
         offs = offs.contiguous();
-        devcnt_csr_kernel<<<B * K, 128>>>(
+        devcnt_csr_kernel<<<B * K, 128, 0, NA_STREAM>>>(
             S.data_ptr<int>(), keys.data_ptr<int64_t>(), cnts.data_ptr<int>(),
             offs.data_ptr<int64_t>(), (int)offs.numel() - 1, K, N,
             scratch.data_ptr<int>());
@@ -1625,11 +1645,11 @@ void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts,
     if (rowmask.numel() > 0) {
         rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
         const int W = (int)(rowmask.numel() / ((long long)B * rowmask.size(-1)));
-        devcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+        devcnt_mask_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
             S.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
             colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
     }
-    devapply_rel_kernel<<<(tot + th - 1) / th, th>>>(
+    devapply_rel_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         S.data_ptr<int>(), scratch.data_ptr<int>(), rel.data_ptr<float>(),
         (int)rel.numel(), cmax.data_ptr<int>(), seeds.data_ptr<int>(),
         B, K, N, (int)threshold, out.data_ptr<float>());
@@ -1653,18 +1673,18 @@ std::vector<torch::Tensor> column_mass_rel(
         keys = keys.contiguous(); cnts = cnts.contiguous();
         colmap = colmap.contiguous();
         const long long nnz = keys.numel();
-        colcnt_store_kernel<<<(nnz + th - 1) / th, th>>>(
+        colcnt_store_kernel<<<(nnz + th - 1) / th, th, 0, NA_STREAM>>>(
             keys.data_ptr<int64_t>(), cnts.data_ptr<int>(), nnz,
             colmap.data_ptr<int>(), K, N, scratch.data_ptr<int>());
     }
     if (rowmask.numel() > 0) {
         rowmask = rowmask.contiguous(); colmask = colmask.contiguous();
         const int W = (int)(rowmask.numel() / ((long long)B * N));
-        colcnt_mask_kernel<<<(tot + th - 1) / th, th>>>(
+        colcnt_mask_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
             cols.data_ptr<int>(), rowmask.data_ptr<int64_t>(),
             colmask.data_ptr<int64_t>(), B, K, N, W, scratch.data_ptr<int>());
     }
-    colmass_rel_kernel<<<B * K, 256>>>(
+    colmass_rel_kernel<<<B * K, 256, 0, NA_STREAM>>>(
         cols.data_ptr<int>(), scratch.data_ptr<int>(), rel.data_ptr<float>(),
         (int)rel.numel(), seeds.data_ptr<int>(), K, N, (int)threshold,
         out.data_ptr<float>(), omax.data_ptr<int>());
@@ -1680,25 +1700,35 @@ torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post
                             torch::dtype(torch::kInt32).device(seeds.device()));
     const long long tot = (long long)B * n_pre * W;
     const int th = 256;
-    presence_kernel<<<(tot + th - 1) / th, th>>>(
+    presence_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         seeds.data_ptr<int>(), B, (int)n_pre, (int)n_post, W, (int)threshold,
         reinterpret_cast<unsigned int*>(out.data_ptr<int>()));
     return out;
 }
 
 void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj,
-                 torch::Tensor tab, torch::Tensor out) {
-    S = S.contiguous(); tab = tab.contiguous();
+                 torch::Tensor tab, torch::Tensor bmap, torch::Tensor out) {
+    S = S.contiguous(); tab = tab.contiguous(); bmap = bmap.contiguous();
     TORCH_CHECK(C.scalar_type() == torch::kInt8, "counts are int8");
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1), W = pres.size(2);
+    const int V = S.size(0);
+    TORCH_CHECK(out.size(0) == V && out.size(1) == N, "out: [V, N]");
+    TORCH_CHECK(bmap.numel() ? bmap.numel() == V : V == B,
+                "without a brain map the rows are the brains");
+    TORCH_CHECK(tab.dim() == 1 || (tab.dim() == 2 && tab.size(0) == B),
+                "tab: [ntab] shared or [B, ntab] per brain");
     if (K == 0) return;
-    const long long tot = (long long)B * N;
+    const int ntab = (int)tab.size(tab.dim() - 1);
+    const int stride = tab.dim() == 2 ? ntab : 0;
+    const long long tot = (long long)V * N;
     const int th = 256;
-    organ_drive_kernel<<<(tot + th - 1) / th, th>>>(
+    organ_drive_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         S.data_ptr<int>(), K, C.data_ptr<signed char>(),
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
         invdj.numel() ? invdj.data_ptr<float>() : nullptr,
-        tab.data_ptr<float>(), (int)tab.numel(), B, Npre, N, out.data_ptr<float>());
+        tab.data_ptr<float>(), ntab, stride,
+        bmap.numel() ? bmap.data_ptr<int>() : nullptr,
+        V, Npre, N, out.data_ptr<float>());
 }
 
 void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres,
@@ -1708,7 +1738,7 @@ void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tens
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), W = pres.size(2);
     const int KP = P.size(1), KW = Wn.size(1);
     if (KP == 0 || KW == 0) return;
-    organ_write_kernel<<<B * KW, 128>>>(
+    organ_write_kernel<<<B * KW, 128, 0, NA_STREAM>>>(
         P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<signed char>(),
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
         Npre, N, err.data_ptr<int>());
@@ -1720,7 +1750,7 @@ torch::Tensor present_degree(torch::Tensor pres) {
     auto out = torch::empty({B, Npre}, torch::dtype(torch::kInt32).device(pres.device()));
     const long long tot = (long long)B * Npre;
     const int th = 256;
-    present_degree_kernel<<<(tot + th - 1) / th, th>>>(
+    present_degree_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W, tot, out.data_ptr<int>());
     return out;
 }
@@ -1731,7 +1761,7 @@ torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax) {
     auto out = torch::empty({B, Npre, dmax}, torch::dtype(torch::kInt32).device(pres.device()));
     const long long tot = (long long)B * Npre;
     const int th = 256;
-    present_fill_kernel<<<(tot + th - 1) / th, th>>>(
+    present_fill_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W, (int)n_post, tot,
         (int)dmax, reinterpret_cast<unsigned int*>(out.data_ptr<int>()));
     return out;
@@ -1754,7 +1784,7 @@ void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax,
     const size_t shm = pr_warp_bytes(N, W, K, 1);
     pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
         cudaFuncSetAttribute(present_drive_kernel<MAXIT>, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
-        present_drive_kernel<MAXIT><<<B, 32, shm>>>(
+        present_drive_kernel<MAXIT><<<B, 32, shm, NA_STREAM>>>(
             reinterpret_cast<const unsigned int*>(ent.data_ptr<int>()), DMAX,
             S.data_ptr<int>(), K, cmax.data_ptr<int>(), scale.data_ptr<float>(),
             invdj.numel() ? invdj.data_ptr<float>() : nullptr, rel.data_ptr<float>(),
@@ -1771,7 +1801,7 @@ void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::
     const size_t shm = pr_warp_bytes(N, W, KP, KW);
     pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
         cudaFuncSetAttribute(present_write_kernel<MAXIT>, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
-        present_write_kernel<MAXIT><<<B, 32, shm>>>(
+        present_write_kernel<MAXIT><<<B, 32, shm, NA_STREAM>>>(
             P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW,
             reinterpret_cast<unsigned int*>(ent.data_ptr<int>()), DMAX,
             cmax.data_ptr<int>(), mass.data_ptr<double>(), scale.data_ptr<float>(),
@@ -1799,7 +1829,7 @@ void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex
     const int blocks = (B + (int)wpb - 1) / (int)wpb;
     pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
         cudaFuncSetAttribute(present_train_kernel<MAXIT>, cudaFuncAttributeMaxDynamicSharedMemorySize, (int)shm);
-        present_train_kernel<MAXIT><<<blocks, 32 * (int)wpb, shm>>>(
+        present_train_kernel<MAXIT><<<blocks, 32 * (int)wpb, shm, NA_STREAM>>>(
             words.data_ptr<int64_t>(), bundles.data_ptr<int64_t>(), S,
             lex_cache.data_ptr<int64_t>(), V, K, bundle_drive.data_ptr<float>(),
             jit.data_ptr<float>(), I, reinterpret_cast<unsigned int*>(ent.data_ptr<int>()), DMAX,
@@ -1815,7 +1845,7 @@ torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, 
     TORCH_CHECK(B % wpb == 0, "B must be a multiple of warps per block");
     auto out = torch::zeros({B, 32}, torch::dtype(torch::kFloat32).device(ent.device()));
     pr_dispatch(DMAX, [&](auto tag) { constexpr int MAXIT = decltype(tag)::value;
-        present_probe_kernel<MAXIT><<<B / (int)wpb, 32 * (int)wpb>>>(
+        present_probe_kernel<MAXIT><<<B / (int)wpb, 32 * (int)wpb, 0, NA_STREAM>>>(
             reinterpret_cast<const unsigned int*>(ent.data_ptr<int>()), DMAX,
             S.data_ptr<int>(), K, Npre, (int)rounds, out.data_ptr<float>()); });
     return out;
@@ -1831,7 +1861,7 @@ std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
     auto iopt = torch::dtype(torch::kInt32).device(x.device());
     auto out = torch::empty({B, (int64_t)K}, iopt);
     auto ovf = torch::zeros({B}, iopt);
-    select_kernel<<<B, NTH>>>(x.data_ptr<float>(), N, (int)K,
+    select_kernel<<<B, NTH, 0, NA_STREAM>>>(x.data_ptr<float>(), N, (int)K,
                               out.data_ptr<int>(), ovf.data_ptr<int>());
     return {out, ovf};
 }
@@ -1849,7 +1879,7 @@ void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, to
 std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
 torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post, int64_t threshold);
 torch::Tensor present_degree(torch::Tensor pres);
-void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj, torch::Tensor tab, torch::Tensor out);
+void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj, torch::Tensor tab, torch::Tensor bmap, torch::Tensor out);
 void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres, torch::Tensor err);
 torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax);
 void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out, int64_t absolute);
@@ -1899,7 +1929,7 @@ def load() -> object | None:
             from torch.utils.cpp_extension import load_inline
             _augment_path()
             _MODULE = load_inline(
-                name="na_fused_cuda", cpp_sources=[_CPP],
+                name=build_name(), cpp_sources=[_CPP],
                 cuda_sources=[_CUDA_SRC],
                 functions=["hashed_drive", "hashed_indegree", "dev_correct",
                            "dev_correct_csr", "dev_correct_exact",
@@ -1914,6 +1944,19 @@ def load() -> object | None:
             _MODULE = None
             _ERROR = f"{type(exc).__name__}: {exc}"
         return _MODULE
+
+
+def build_name() -> str:
+    """The extension's build name, content-addressed.
+
+    torch builds an inline extension into a cache directory named after it,
+    shared by every checkout on the machine. One fixed name meant a pinned
+    run worktree and an edited checkout rebuilt each other's kernels in
+    turn, and on Windows a rebuild cannot replace a module a running study
+    has loaded. A name per source keeps every version's build apart.
+    """
+    digest = hashlib.sha256((_CPP + _CUDA_SRC + "-O3").encode()).hexdigest()
+    return f"na_fused_cuda_{digest[:12]}"
 
 
 def available() -> bool:

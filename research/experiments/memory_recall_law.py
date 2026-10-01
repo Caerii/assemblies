@@ -115,13 +115,15 @@ def experiment(record):
         for memory in ("refracted", "control"):
             plan_m = spec[memory]
             sweep = {}
-            for beta in plan_m["betas"]:
-                c, cache = lr.run_beta(
-                    n, k, beta, seeds, plan_m["cap"], device, profiles[name(memory, beta)],
-                    stop_on=("rank1", "complete_distinct") if memory == "control"
-                    else ("complete_distinct",),
-                    p=p, strength=lr.STRENGTH if memory == "refracted" else 0.0,
-                    grid_start=2, give_up=plan_m["give_up"])
+            betas = plan_m["betas"]
+            results = lr.run_betas(
+                n, k, betas, seeds, plan_m["cap"], device,
+                {b: profiles[name(memory, b)] for b in betas},
+                stop_on=("rank1", "complete_distinct") if memory == "control"
+                else ("complete_distinct",),
+                p=p, strength=lr.STRENGTH if memory == "refracted" else 0.0,
+                grid_start=2, give_up=plan_m["give_up"])
+            for beta, (c, cache) in zip(betas, results):
                 windows = {m: ws.edges([(M, ensemble_from_values(r[m]).mean)
                                         for M, r in cache.items()])
                            for m in ("rank1", "complete", "complete_distinct")}

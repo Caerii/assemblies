@@ -29,9 +29,16 @@ def test_unclipped_table_is_not_exact():
     assert not count_saturation_is_exact(table, 127)
 
 
-def test_table_longer_than_the_count_range_is_not_exact():
-    table = _chain_table(0.1, 20.0, 200)          # clipped, but index 200 > 127
+def test_a_long_table_clipped_by_the_cap_is_exact():
+    table = _chain_table(0.1, 20.0, 200)          # index 200 > 127, clipped from ~32
+    assert table[-1] == table[-2] == table[127]
+    assert count_saturation_is_exact(table, 127)
+
+
+def test_a_long_table_clipped_only_past_the_cap_is_not_exact():
+    table = _chain_table(0.01, 20.0, 400)         # (1.01)^c reaches 20 near c = 301
     assert table[-1] == table[-2]
+    assert table[127] < table[-1]
     assert not count_saturation_is_exact(table, 127)
 
 

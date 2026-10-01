@@ -52,6 +52,7 @@ sections of the notes use variants.
 | Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](sequence/PREREG_seq_a3_transducer.md) |
 | Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md) |
 | Substrate | built | two kernel layouts, one per density regime, gated on the drive | [DESIGN_present_only.md](substrate/DESIGN_present_only.md) |
+| Memory throughput | built | a learning-rate sweep runs as brains of one launch, checkpoint reads as one batched recall, the write as a replayed CUDA graph: 12x on a sweep, bit-identical to the code that ran Amendments 12-17 | [DESIGN_memory_throughput.md](substrate/DESIGN_memory_throughput.md) |
 | Sampler audit | measured | two of three audited entries stand materialized; the load window's lower edge was the sampler's | [PREREG_sampler_audit.md](sequence/PREREG_sampler_audit.md) |
 | Successor state | closed, negative | a state teacher-forced toward its next h words carries nothing across two distractors (+0.000 and +0.003 over a bigram) | [PREREG_successor_state.md](sequence/PREREG_successor_state.md) |
 | Temporal memory | adopted | with the previous arc as state and predicted neurons winning, the transducer carries agreement across two and three distractors (+0.149 and +0.106 over a bigram) and predicts order-10 sequences exactly inside the clip window | [PREREG_temporal_memory.md](sequence/PREREG_temporal_memory.md) |

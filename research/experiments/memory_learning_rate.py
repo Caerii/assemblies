@@ -83,29 +83,43 @@ def profile(beta):
                                     gate=False, norm_init=True, synaptic_scaling=False)
 
 
+#: items whose stimulus seeds go to the device in one copy
+STIMULUS_BLOCK = 1024
+#: elements of the [brains, items x k] membership gather a reading holds at once
+GATHER_ELEMENTS = 1 << 25
+
+
 def readings(mem, St, M, n, k, recall_rounds=None):
     """Per-brain rank-1, own overlap and completed fraction from the module's
     own masked recall on `sample_for(M)` (`recall_rounds` frozen rounds;
-    default the write's)."""
+    default the write's). `St` is [M, B, k]. The sampled cues are read in
+    one batched recall (`AssemblyMemory.recall_many`, equal per cue to
+    `recall`), and each recall's overlap with every stored item is one
+    gather over brains, in chunks that bound its memory."""
     torch = pe._torch()
     B = St.shape[1]
-    flat = St.permute(1, 0, 2)                                       # [B, M, k]
     hits = torch.zeros(B, device=St.device)
     own = torch.zeros(B, device=St.device)
     done = torch.zeros(B, device=St.device)
     distinct = torch.zeros(B, device=St.device)
     sample = pe.sample_for(M)
-    for i in sample:
-        rec = mem.recall(St[int(i)][:, : k // 2], rounds=recall_rounds)
-        mask = torch.zeros(B, n, dtype=torch.bool, device=St.device)
-        mask.scatter_(1, rec, True)
-        ov = torch.stack([mask[b][flat[b]].sum(1) for b in range(B)])  # [B, M]
-        hit = ov.argmax(1) == int(i)
-        hits += hit.float()
-        o = ov[:, int(i)].float() / k
-        own += o
-        done += (o >= ws.COMPLETE).float()
-        distinct += ((o >= ws.COMPLETE) & hit).float()
+    index = torch.as_tensor(np.asarray(sample), dtype=torch.int64, device=St.device)
+    cues = St.index_select(0, index)[:, :, : k // 2].permute(1, 0, 2)  # [B, S, k/2]
+    recalled = mem.recall_many(cues.to(torch.int64), rounds=recall_rounds)  # [B, S, k]
+    per = max(1, GATHER_ELEMENTS // (M * k))                         # brains per gather
+    for b0 in range(0, B, per):
+        rows = slice(b0, b0 + per)
+        items = St[:, rows].permute(1, 0, 2).reshape(-1, M * k).to(torch.int64)
+        for s, i in enumerate(sample):
+            mask = torch.zeros(items.shape[0], n, dtype=torch.bool, device=St.device)
+            mask.scatter_(1, recalled[rows, s], True)
+            ov = mask.gather(1, items).view(-1, M, k).sum(2)             # [brains, M]
+            hit = ov.argmax(1) == int(i)
+            hits[rows] += hit.float()
+            o = ov[:, int(i)].float() / k
+            own[rows] += o
+            done[rows] += (o >= ws.COMPLETE).float()
+            distinct[rows] += ((o >= ws.COMPLETE) & hit).float()
     S = len(sample)
     return {"rank1": (hits / S).tolist(), "own": (own / S).tolist(),
             "complete": (done / S).tolist(),
@@ -113,50 +127,123 @@ def readings(mem, St, M, n, k, recall_rounds=None):
 
 
 def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
-             stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
-             grid_start=16, give_up=None, rounds=None, recall_rounds=None,
-             stop_from=None):
-    """Store with the capacity study's stimuli and read every checkpoint.
+             stop_on=("rank1", "complete"), **options):
+    """One learning rate: `run_betas` with a single rate."""
+    return run_betas(n, k, [beta], seeds, cap, device, {beta: organ_semantics},
+                     stop_on, **options)[0]
 
-    Stops once a `stop_on` metric has been above 0.5 and all have then been
-    at or below it at two consecutive checkpoints, at `cap`, or -- when
-    `give_up` is set -- at the first checkpoint at or past it if none has
-    yet risen. `p`, `strength` and `grid_start` default to Amendments 12-13."""
+
+def launch_rates(n, B):
+    """How many learning rates of B brains each one launch holds: the organ
+    fiber's count matrices and connectome bits under its byte limit."""
+    from neural_assemblies.core.torch_engine._hashed import DenseOrganFiber
+    per_brain = n * (n + ((n + 31) // 32) * 4)
+    return max(1, DenseOrganFiber.MAX_BYTES // (per_brain * B))
+
+
+def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
+              stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
+              grid_start=16, give_up=None, rounds=None, recall_rounds=None,
+              stop_from=None):
+    """Store with the capacity study's stimuli and read every checkpoint, for
+    every rate in `betas`; returns [(c, cache)] in their order.
+
+    Each rate's store stops once a `stop_on` metric has been above 0.5 and
+    all have then been at or below it at two consecutive checkpoints, at
+    `cap`, or -- when `give_up` is set -- at the first checkpoint at or past
+    it if none has yet risen. `p`, `strength` and `grid_start` default to
+    Amendments 12-13. `organ_semantics` maps each rate to its profile.
+
+    THE RATES ARE BRAINS OF ONE LAUNCH (DESIGN_memory_throughput.md): rate g's
+    brains are the seeds' brains with that rate's chain table and charge,
+    and a rate whose store has stopped is dropped from the launch. A brain's
+    arithmetic is the arithmetic of its solo run, so every rate's readings
+    equal its own run's (tested against the one-rate launch)."""
+    betas = [float(b) for b in betas]
+    per = launch_rates(n, len(seeds))
+    out = []
+    for g0 in range(0, len(betas), per):
+        out += _run_launch(n, k, betas[g0:g0 + per], seeds, cap, device,
+                           organ_semantics, stop_on, p=p, strength=strength,
+                           grid_start=grid_start, give_up=give_up, rounds=rounds,
+                           recall_rounds=recall_rounds, stop_from=stop_from)
+    return out
+
+
+def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
+                p, strength, grid_start, give_up, rounds, recall_rounds, stop_from):
     torch = pe._torch()
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
-    mem = AssemblyMemory(seeds_for(seeds), n, k, pe.P if p is None else p, beta=beta,
+    S, G = len(seeds), len(betas)
+    brains = seeds_for(seeds)
+    mem = AssemblyMemory(brains * G, n, k, pe.P if p is None else p,
+                         beta=(betas[0] if G == 1 else [b for b in betas for _ in brains]),
                          w_max=pe.W_MAX, norm_init=True, synaptic_scaling=False,
                          rounds=pe.T if rounds is None else rounds,
-                         strength=strength, gate=False, max_items=cap,
-                         device=device, organ_semantics=organ_semantics)
-    grid = [m for m in pe.geometric_grid(grid_start, cap)]
-    stored, cache = [], {}
-    seen, below, c = False, 0, None
+                         strength=strength, gate=False, max_items=cap, device=device,
+                         graphs=True,
+                         organ_semantics=(organ_semantics[betas[0]] if G == 1
+                                          else {b: organ_semantics[b] for b in betas}))
+    grid = set(pe.geometric_grid(grid_start, cap))
+    active = list(range(G))                       # the rates still storing, in launch order
+    caches = [{} for _ in range(G)]
+    c = [None] * G
+    seen, below = [False] * G, [0] * G
+    St = None                                     # [M, brains, k] int32, the stored items
+    pending = []
     for a in range(cap):
-        ss = [to_i32(_seeding.fnv1a_pair_seed(seed, f"s{a}", "A")) for seed in seeds]
-        stored.append(mem.store(ss, stim_size=k).clone())
+        if a % STIMULUS_BLOCK == 0:
+            # the stimuli's seeds go to the device a block at a time: a copy
+            # per item made every item wait for the GPU to drain
+            stim = torch.tensor([[to_i32(_seeding.fnv1a_pair_seed(seed, f"s{b}", "A"))
+                                  for seed in seeds]
+                                 for b in range(a, min(a + STIMULUS_BLOCK, cap))],
+                                dtype=torch.int32, device=device)
+        pending.append(mem.store(stim[a % STIMULUS_BLOCK].repeat(len(active)),
+                                 stim_size=k).to(torch.int32))
         M = a + 1
         if M == 1:
-            c = pe.first_item_count(mem.fiber.C, mem.fiber.pres, stored[0], n)
+            first = pending[0]
+            for j, g in enumerate(active):
+                part = slice(j * S, (j + 1) * S)
+                c[g] = pe.first_item_count(mem.fiber.C[part], mem.fiber.pres[part],
+                                           first[part].long(), n)
         if M not in grid:
             continue
-        cache[M] = readings(mem, torch.stack(stored), M, n, k, recall_rounds)
-        cache[M]["fill"] = mem.fill.cpu().numpy().tolist()
-        means = [ensemble_from_values(cache[M][m]).mean for m in stop_on]
-        if any(v > pe.HALF_BAR for v in means):
-            seen, below = True, 0
-        elif seen:
-            below += 1
-        # with a handful of items a recall sample is noise: from M = 2, two
-        # readings of 0.48 stopped a store whose capacity was ~1500
-        # (Amendment 15); `stop_from` holds the stop decision until then
-        if seen and below >= 2 and (stop_from is None or M >= stop_from):
+        mem.check()
+        new = torch.stack(pending)
+        St = new if St is None else torch.cat([St, new])
+        pending = []
+        r = readings(mem, St, M, n, k, recall_rounds)
+        fill = mem.fill.cpu().numpy().tolist()
+        finished = []
+        for j, g in enumerate(active):
+            part = slice(j * S, (j + 1) * S)
+            caches[g][M] = {name: values[part] for name, values in r.items()}
+            caches[g][M]["fill"] = fill[part]
+            means = [ensemble_from_values(caches[g][M][m]).mean for m in stop_on]
+            if any(v > pe.HALF_BAR for v in means):
+                seen[g], below[g] = True, 0
+            elif seen[g]:
+                below[g] += 1
+            # with a handful of items a recall sample is noise: from M = 2, two
+            # readings of 0.48 stopped a store whose capacity was ~1500
+            # (Amendment 15); `stop_from` holds the stop decision until then
+            if seen[g] and below[g] >= 2 and (stop_from is None or M >= stop_from):
+                finished.append(j)
+            elif give_up is not None and not seen[g] and M >= give_up:
+                finished.append(j)
+        if len(finished) == len(active):
             break
-        if give_up is not None and not seen and M >= give_up:
-            break
-    del mem, stored
+        if finished:
+            keep_rates = [j for j in range(len(active)) if j not in finished]
+            keep = [j * S + b for j in keep_rates for b in range(S)]
+            mem.select(keep)
+            St = St.index_select(1, torch.as_tensor(keep, device=St.device))
+            active = [active[j] for j in keep_rates]
+    del mem, St, pending
     torch.cuda.empty_cache()
-    return c, cache
+    return list(zip(c, caches))
 
 
 def experiment(record):
@@ -170,9 +257,10 @@ def experiment(record):
     for spec in parameters["cells"]:
         n, k, cap = spec["n"], spec["k"], spec["cap"]
         sweep = {}
-        for beta in parameters["betas"]:
-            c, cache = run_beta(n, k, beta, seeds, cap, device, profiles[profile_name(beta)],
-                                stop_on=stop_on)
+        betas = parameters["betas"]
+        results = run_betas(n, k, betas, seeds, cap, device,
+                            {b: profiles[profile_name(b)] for b in betas}, stop_on=stop_on)
+        for beta, (c, cache) in zip(betas, results):
             windows = ws.windows(cache)
             if distinct:
                 windows["complete_distinct"] = ws.edges(

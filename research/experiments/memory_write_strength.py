@@ -215,6 +215,7 @@ def circuit(n, k, seeds, device, organ_semantics):
                          organ_semantics=organ_semantics)
     ss = [to_i32(_seeding.fnv1a_pair_seed(seed, "s0", "A")) for seed in seeds]
     first = mem.store(ss, stim_size=k)
+    mem.check()
     c = pe.first_item_count(mem.fiber.C, mem.fiber.pres, first, n)
     return c, mem.fiber.pres.clone(), mem.fiber.invdj.clone()
 

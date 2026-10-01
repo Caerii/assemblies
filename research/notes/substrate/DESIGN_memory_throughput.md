@@ -1,0 +1,77 @@
+# Memory throughput: the sweep is the batch
+
+**Status:** built 2026-10-01; every path gated bit-for-bit on its solo run
+(`neural_assemblies/tests/test_memory_throughput.py`). Measured speedups are
+in the table below.
+
+## The problem
+
+The refracted-memory studies (PREREG_refraction_memory.md, Amendments 9 to
+17) spend their time in `memory_learning_rate.run_beta`: store items one at a
+time, read a sample of them back at every checkpoint, once per learning rate
+in the sweep, one rate after another. At the studies' sizes (n = 2000 to
+10000, 20 brains) a round reads a few MB, and the RTX 3080 ran at **36%
+utilization** through Amendment 17. The work was LATENCY-bound, not
+bandwidth-bound ([[gpu-latency-chains-not-bandwidth]],
+[[gpu-lever-is-batching-not-the-kernel]]):
+
+* about 17 kernel launches and their Python per round, 8 rounds per item;
+* three HOST SYNCS per item: the stimulus gain table copied from pageable
+  host memory, the stimulus seeds copied the same way, and the k-WTA overflow
+  flag read back -- each drained the CPU/GPU pipeline, so the CPU could
+  never queue ahead;
+* a checkpoint's 32 recalls run one after another, and a Python loop over
+  brains per recalled cue (20 tiny launches each);
+* the rates of a sweep, which share everything but beta, run serially.
+
+## What changed
+
+| lever | where | how it stays exact |
+|---|---|---|
+| **rates as brains** | `AssemblyMemory(beta=[...])`, `DenseOrganFiber` / `StimulusFiber` per-brain tables, `HashedArea` per-brain charge, `run_betas` | each brain reads its own chain/gain table row and its own 0.5 beta; brains never interact, so a brain in a sweep does its solo run's arithmetic |
+| **finished rates leave** | `AssemblyMemory.select`, `run_betas` | a rate's stop decision is its solo decision; dropped brains' state is sliced, survivors' untouched |
+| **batched recall** | `AssemblyMemory.recall_many`, the organ drive's brain map | a cue is a VIRTUAL brain that reads its brain's counts; frozen rounds write nothing, so cues cannot affect each other |
+| **vectorized readings** | `readings` | the overlap of a recall with every stored item is one gather over a chunk of brains instead of a Python loop |
+| **no host syncs in the write** | cached device gain tables, stimulus seeds sent a block of items at a time, overflow deferred to the checkpoint (`check_overflow`) | the overflow is still checked before anything reads a winner as a result; a truncated winner set can never be recorded |
+| **the write as a CUDA graph** | `AssemblyMemory(graphs=True)`, kernels on torch's current stream | an ungated write is the same launches on the same shapes every item; everything it mutates is updated in place, so a replay is the eager write |
+| **content-addressed kernel build** | `_fused_cuda.build_name()` | a pinned run worktree and an edited checkout no longer rebuild each other's extension (a rebuild cannot replace a module a running study has loaded on Windows) |
+
+The memory budget of a launch is the organ fiber's `MAX_BYTES` (6 GiB of
+int8 counts plus connectome bits): at n = 4000 a whole 9-rate sweep of 20
+brains (180 brains, 3.2 GB) is one launch; at n = 8000 about four rates are;
+`run_betas` splits the sweep by `launch_rates`.
+
+## The gate
+
+`test_memory_throughput.py` (CUDA): a swept memory equals its solo runs (items,
+counts, bias, recall); `recall_many` equals `recall` per cue, masked and
+unmasked, and in several passes; dropping rates leaves the survivors on their
+solo trajectories; the graphed write equals the eager write through a drop;
+the study loop's readings, first-item counts and stop points equal the
+one-rate launch's, with rates stopping at different checkpoints; and a sweep
+split across launches equals one launch. A recorded run is replayed on the
+new path as the end-to-end check (below).
+
+## Measured (RTX 3080, 2026-10-01)
+
+One sweep at (4000, 60, 0.5), seeds 142-161, rates 0.0442-0.0884 (five),
+1024 items each, no early stop:
+
+| code | how | seconds | readings |
+|---|---|---|---|
+| a8b95efe (before) | one rate at a time | 57.3 | -- |
+| this change | one rate at a time (`run_beta`) | 9.6 | identical, 9500 of 9500 scalars |
+| this change | the five rates in one launch (`run_betas`) | 4.8 | identical, 9500 of 9500 scalars |
+
+12x, bit-identical to the code that ran Amendments 12-17. A nine-rate grid
+(Amendment 17's) of 1024 items: 7.6 s, of which store 5.0 s and readings
+1.5 s. The GPU is now busy rather than waiting on the host: by kernel time,
+the organ drive is 44%, the k-WTA select 21% and the organ write 11%, and
+those three kernels are the next levers.
+
+The count-saturation contract was tightened alongside
+(`count_saturation_is_exact`, VERIFICATION.md#contract-organ-count-saturation):
+a chain table longer than the count range is exact when its clip binds by
+count 127. The memory's tables run to 256 rounds, and the old rule would
+have raised on every Hebbian-control store whose hub counts pass 127, now
+that `run_betas` checks the fiber at each checkpoint.

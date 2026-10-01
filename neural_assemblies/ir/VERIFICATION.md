@@ -233,12 +233,14 @@ The dense organ fiber stores potentiation counts as int8 (`ORGAN_CMAX`
 127). Its write kernel leaves a count at 127 when the next potentiation
 would pass it and raises a flag; its drive kernel prices every count at or
 beyond the chain table's last index with that entry. When the weight clip
-has bound by the table's last entry (`table[-1] == table[-2]`) and the
-table's last index is at most 127, a stored 127 and the true count price
-identically, so the flag is informational and `DenseOrganFiber.check`
-clears it. Without a clip, or with a table longer than the count range, a
-capped count would have changed a weight and the flag stays an
-`OverflowError`. The predicate is `count_saturation_is_exact(table,
+has bound (`table[-1] == table[-2]`) and has bound BY THE CAP -- the entry
+a capped count lands on, `table[min(127, len - 1)]`, is already the clipped
+weight -- a stored 127 and the true count price identically, so the flag is
+informational and `DenseOrganFiber.check` clears it. A table longer than
+the count range qualifies when its clip binds by count 127 (the memory's
+tables run to 256 rounds and clip by count 62 at beta 0.05). Without a clip,
+or with a clip that binds only past 127, a capped count would have changed
+a weight and the flag stays an `OverflowError`. The predicate is `count_saturation_is_exact(table,
 max_count)`; `tests/test_organ_count_saturation.py` holds both directions.
 Motivation: the registered position instrument at gap 3 repeats the same
 noun-to-noun transitions often enough that counts pass 127 under the

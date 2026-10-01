@@ -79,12 +79,13 @@ def experiment(record):
     for spec in parameters["cells"]:
         n, k, T = spec["n"], spec["k"], spec["T"]
         sweep = {}
-        for beta in spec["betas"]:
-            c, cache = lr.run_beta(n, k, beta, seeds, spec["cap"], device,
-                                   profiles[lr.profile_name(beta)],
-                                   stop_on=("complete_distinct",), grid_start=2,
-                                   give_up=spec["give_up"], rounds=T,
-                                   recall_rounds=parameters["recall_rounds"])
+        betas = spec["betas"]
+        results = lr.run_betas(n, k, betas, seeds, spec["cap"], device,
+                               {b: profiles[lr.profile_name(b)] for b in betas},
+                               stop_on=("complete_distinct",), grid_start=2,
+                               give_up=spec["give_up"], rounds=T,
+                               recall_rounds=parameters["recall_rounds"])
+        for beta, (c, cache) in zip(betas, results):
             windows = {m: ws.edges([(M, ensemble_from_values(r[m]).mean)
                                     for M, r in cache.items()])
                        for m in ("rank1", "complete", "complete_distinct")}
