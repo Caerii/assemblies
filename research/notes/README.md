@@ -46,7 +46,8 @@ sections of the notes use variants.
 
 | Line | Status | Result | Start with |
 |------|--------|--------|------------|
-| Refracted memory | adopted | 0.35 to 0.50 (n/k)² assemblies, 23 to 38× the Hebbian ceiling | [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md) |
+| Refracted memory | adopted | 0.345 to 0.502 (n/k)² assemblies identified at beta 0.1, about half of what the same synapses hold for random patterns (Amendment 9); on DISTINCT completion, each memory at its own best rate, 14 to 57× the Hebbian control at ten cells (Amendment 14); the best rate obeys ln(1 + beta*) = 0.29 / sqrt(k p / 2) at p = 0.5, confirmed on unseen cells (Amendment 13) | [PREREG_refraction_memory.md](memory/PREREG_refraction_memory.md) |
+| Literature synthesis | reading note | the fifteen indexed papers read against these results: capacity is the field's blind spot and refraction answers it; the field's beta trades capacity for speed, and the best rate sits at a fixed fraction of the papers' own convergence threshold; most published runs sit below k p = 3 ln n | [LITERATURE_SYNTHESIS.md](LITERATURE_SYNTHESIS.md) |
 | Sequence organ | adopted | exact over 2000 steps; soft transitions removed by training below the clip | [DESIGN_sequence_port.md](sequence/DESIGN_sequence_port.md) |
 | Transducer | closed, null | the induced state carries no information on this corpus | [PREREG_seq_a3_transducer.md](sequence/PREREG_seq_a3_transducer.md) |
 | Aligner | measured | word capacity scales with the lexicon's n | [PREREG_word_capacity.md](aligner/PREREG_word_capacity.md) |
