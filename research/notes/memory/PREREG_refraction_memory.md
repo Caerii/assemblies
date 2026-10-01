@@ -1398,3 +1398,94 @@ measured with independent random patterns on the memory's circuit, not
 with the refracted memory's own assemblies at other write strengths; and
 nothing here changes the write a model uses -- that is the per-fiber,
 fan-in-scaled learning rate X6 motivates, the registered next question.
+
+## Amendment 12 (2026-10-01, before running): does the best learning rate transfer across scale when scaled with fan-in?
+
+Registered before any run of this amendment. Amendment 11's X6 found that
+the weakest write that completes falls as each neuron sums more cue synapses
+(11 / 6 / 4 counts at k p = 15 / 30 / 60). In muP terms the memory already
+has a fan-in-scaled initialisation (norm_init divides by in-degree) and a
+scale-free readout (k-WTA keeps only relative drive); what it lacks is a
+learning rate that scales with fan-in. This asks the transfer question on
+the REAL refracted memory: if beta is tuned for completion at one scale, is
+the tuned value right at another? A signal-to-noise argument predicts it is
+not, and that ln(1 + beta*) sqrt(k p / 2) is: the learned signal per item,
+(1 + beta)^c - 1 summed over k p / 2 cue synapses, has to clear connectivity
+noise that grows as sqrt(k p / 2).
+
+**Seen before registering.** A first smoke run (VOID, 3 brains, cap 64) held
+the refraction CHARGE fixed at 0.05; at beta = 0.05 that is 1.0 beta, past
+the churn transition (Amendment 6, (0.6, 0.7] beta), and the first item
+never settled (0 counts on its final set). The design was changed before
+registering to keep refraction at the adopted 0.5 beta, so it scales with
+the learning rate. A second smoke run (VOID, same size) then gave first-item
+counts 3 / 5 / 6 at (2000, 60) and 5 / 6 / 7 at (8000, 240) for beta =
+0.05 / 0.1 / 0.2, with recall still above 0.5 at the 64-item cap everywhere.
+
+### Protocol
+
+`research/experiments/memory_learning_rate.py` through the shared runner
+(`python -m research.runner learning-rate`), seeds 42 to 61, one run from a
+worktree pinned at the commit registering this amendment. The refracted
+AssemblyMemory as in Amendment 8 (arm B, T = 8, w_max = 20, refraction 0.5
+beta, ungated, the capacity study's stimuli), with beta, for both of its
+fibers (recurrent and stimulus, whose fan-ins are equal here: k p), on the
+grid 0.025, 0.0354, 0.05, 0.0707, 0.1, 0.1414, 0.2, 0.2828 (ratio sqrt 2).
+Cells, two n/k levels with k p doubling within each:
+
+    n/k = 33:  (2000, 60), (4000, 120), (8000, 240)    k p = 30, 60, 120
+    n/k = 67:  (4000, 60), (8000, 120)                 k p = 30, 60
+
+At each (cell, beta) items are stored in order and, at every checkpoint of
+the geometric grid from 16 (16, 24, 32, 48, ...), the module's own masked
+half-cue recall is read on 32 sampled items per brain: rank-1 and
+completion (the fraction of items whose recall recovers at least 0.8 of
+them). Storing stops once both metrics have been at or below 0.5 at two
+consecutive checkpoints after either was above, or at a cap of 16 times the
+cell's beta = 0.1 ceiling (0.4 (n/k)^2 for the new (8000, 240) cell, at most
+40000). Each metric's load window is read with Amendment 11's `edges`;
+capacity is the upper edge (a censored window counts at its last point
+above; a metric that never exceeds 0.5 counts 0). beta* is the vertex of a
+parabola in log beta through the best grid beta for COMPLETION and its two
+neighbours (undefined when the best is a grid end); gamma* = ln(1 + beta*)
+sqrt(k p / 2).
+
+### Bars
+
+    TV  THE INSTRUMENT. At beta = 0.1 the rank-1 capacity is within 10% of
+        Amendments 7 and 8's ceilings at the four cells that have one
+        (431, 383, 1961, 2230). Failure voids T1 to T4.
+    T1  AN INTERIOR OPTIMUM. At every cell the completion capacity peaks
+        strictly inside the beta grid.
+    T2  THE STANDARD PARAMETERISATION DOES NOT TRANSFER. Within each n/k
+        level beta* strictly decreases as k p rises.
+    T3  THE FAN-IN PARAMETERISATION DOES. gamma* lies within 25% of its
+        mean at all five cells.
+    T4  WIDER IS BETTER AT THE OPTIMUM. Within each n/k level the best
+        completion capacity over beta, per (n/k)^2, strictly increases with
+        k p.
+
+Reported, not judged: the rank-1 capacity across beta; first-item counts;
+and how well ln(1 + beta*) (k p / 2)^a collapses across cells for
+a = 0, 0.25, 0.5, 0.75, 1 (coefficient of variation) -- Amendment 11's X6
+counts fall faster than sqrt between k p = 15 and 30, so the exponent is
+not assumed.
+
+### Interpretation, stated now
+
+* T1 fails: completion does not have an optimum inside the grid; report the
+  direction and do not quote beta*.
+* T2 and T3 pass: the memory's learning rate is a per-fiber, fan-in-scaled
+  quantity, as muP's is per layer; quote gamma*, not beta. T2 passes and T3
+  fails: the optimum moves with scale, but not as sqrt; quote the fitted
+  exponent descriptively and register it before using it.
+* T2 fails: beta transfers as it stands at these scales.
+* T4 passes: at its own optimum a wider area completes more per (n/k)^2,
+  as Amendment 11 found for random patterns at the binary write.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until TV to T4 are evaluated and recorded below.
+
+    python -m research.runner learning-rate \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag learning-rate-20261001
