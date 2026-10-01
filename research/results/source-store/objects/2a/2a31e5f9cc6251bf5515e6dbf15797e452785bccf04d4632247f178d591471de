@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner learning-rate --distinct --registration research/notes/memory/PREREG_refraction_memory.md --tag learning-rate-distinct-20261001 --seeds 62 63 64 65 66 67 68 69 70 71 72 73 74 75 76 77 78 79 80 81 > a13.log 2>&1

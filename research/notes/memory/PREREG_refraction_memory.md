@@ -678,6 +678,11 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | T2 beta* falls with k p (A12) | strictly decreasing per n/k level | FAIL | 0.209 at (8000, 240), merged recall |
 | T3 gamma* within 25% (A12) | all five cells | FAIL | undefined; 1.47 |
 | T4 wider is better at the optimum (A12) | best completion / (n/k)^2 rises with k p | PASS | 0.66 / 1.12 / 2.79; 0.34 / 0.94 |
+| UV instrument (A13) | beta = 0.1 rank-1 within 10% of A7/A8, new brains | PASS | 0.968-1.058 |
+| U1 interior optimum (A13) | distinct completion peaks inside the grid, 7 cells | PASS | all seven |
+| U2 the law (A13) | gamma* within 15% of 0.29, 7 cells incl. 2 unseen | PASS | 0.257-0.303 |
+| U3 the exponent (A13) | 1/2 collapses best, CV < 0.10 | PASS | 0.052 (raw beta 0.213) |
+| U4 wider is better (A13) | best distinct completion / (n/k)^2 rises with k p | PASS | 0.41 to 2.46; 0.34, 0.94 |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -1623,3 +1628,69 @@ version 2), with four changes:
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until UV to U4 are evaluated and recorded below.
+
+### Amendment 13 result (2026-10-01)
+
+One run from a worktree pinned at e17cdd95, 20 new brains (seeds 62 to 81),
+seven cells, eleven learning rates, 69 minutes:
+[record](../../results/runs/memory.learning-rate/learning-rate-distinct-20261001/results.json),
+[log](../../results/logs/learning-rate-distinct-20261001.log). Distinct
+completion capacity for beta = 0.025 x 2^(i/4), i = 0..10 (0.025 to 0.1414):
+
+    (2000, 60)  0 0 0 0 0 390 457 385 290 225 197
+    (3000, 90)  0 0 0 0 812 845 622 443 326 265 222        unseen
+    (4000,120)  0 0 0 0 1245 1042 682 444 337 273 240
+    (6000,180)  0 0 0 2149 1641 993 598 432 350 282 249    unseen
+    (8000,240)  0 0 2729 2351 1305 846 495 417 336 285 255
+    (4000, 60)  0 0 0 0 0 0 1505 1254 1007 771 589
+    (8000,120)  0 0 0 0 4048 4157 3820 2905 1844 1312 1181
+
+    cell        k p   beta* measured  predicted  gamma*   best / (n/k)^2
+    (2000, 60)  30    0.0705          0.0778     0.264    0.411
+    (3000, 90)  45    0.0558          0.0630     0.257    0.760
+    (4000,120)  60    0.0532          0.0544     0.284    1.120
+    (6000,180)  90    0.0444          0.0442     0.291    1.934
+    (8000,240)  120   0.0377          0.0381     0.287    2.456
+    (4000, 60)  30    0.0752          0.0778     0.281    0.339
+    (8000,120)  60    0.0569          0.0544     0.303    0.935
+
+    UV  THE INSTRUMENT                                                PASS
+        rank-1 at beta = 0.1 on the new brains over Amendments 7/8:
+        1.032, 1.058, 0.968, 0.985.
+    U1  AN INTERIOR OPTIMUM                                           PASS
+    U2  THE LAW, gamma* within 15% of 0.29                            PASS
+        0.257 to 0.303; the unseen cells 0.257 and 0.291 (beta* 0.0558
+        against 0.063 predicted, 0.0444 against 0.044).
+    U3  THE EXPONENT                                                  PASS
+        coefficient of variation 0.213 / 0.101 / 0.052 / 0.155 / 0.273 at
+        exponents 0 / 0.25 / 0.5 / 0.75 / 1.
+    U4  WIDER IS BETTER AT THE OPTIMUM                                PASS
+        0.411 < 0.760 < 1.120 < 1.934 < 2.456; 0.339 < 0.935.
+
+**Reading.** Amendment 12's post hoc finding replicates on new brains, with
+completion that cannot count merged recall, and predicts the two cells it
+had not seen. The refracted memory's completion-optimal learning rate obeys
+ln(1 + beta*) = 0.29 / sqrt(k p / 2) across a fourfold range of fan-in: the
+per-item log-weight change that best serves recall shrinks as the square
+root of the number of cue synapses each neuron sums, the scaling a
+signal-against-connectivity-noise argument gives. It is a learning-rate rule
+in the sense of muP's per-layer rates, for one area and one fiber type.
+The adopted beta = 0.1 is above the completion optimum at every cell (by
+1.3 to 1.4x at k p = 30 and 2.7x at k p = 120), so the published ceilings are
+identification ceilings at an over-strong write. Two features of the curve
+matter for using the rule: completion switches on abruptly -- within one
+grid step (2^(1/4)) it goes from nothing to near its maximum (0 at 0.042 to
+812 at 0.05 at (3000, 90)) -- and from k p = 60 up the optimum sits at or
+one step above that onset: the best write is about the weakest one that
+completes.
+
+**Seen in the record, not registered.** At its optimum the distinct
+completion capacity does not follow (n/k)^2: it grows with k p at fixed
+n/k (0.41 to 2.46 (n/k)^2 at n/k = 33). Written as M* = C n^2 p / (k
+ln(n/k)), the sparse associative memory's synapse-count form, C is 0.0480
+and 0.0475 at k p = 30 and 0.0655 and 0.0654 at k p = 60 across the two n/k
+levels, rising to ~0.07 by k p = 90 to 120. If that holds, the refracted
+memory at its own best learning rate stores in proportion to its synapses
+(n^2 p) per bit of item (k ln(n/k)) -- a stronger and different law from
+the (n/k)^2 of the operating write. It needs its own registration, with
+cells that separate n^2 p / k from (n/k)^2 k p.

@@ -988,7 +988,19 @@ _RESULTS: List[Result] = [
               "item, inside a LOAD WINDOW whose lower edge also rises. The "
               "operating write (5-6 counts) sits between: its rank-1 ceiling "
               "obeys the n/k law and it completes little; the smallest write that "
-              "completes falls with k p (11 / 6 / 4 counts at k = 30 / 60 / 120).",
+              "completes falls with k p (11 / 6 / 4 counts at k = 30 / 60 / 120). "
+              "LEARNING RATE (Amendments 12-13, confirmed on new brains and two "
+              "unseen cells): the refracted memory's DISTINCT-completion-optimal "
+              "beta obeys ln(1 + beta*) = 0.29 / sqrt(k p / 2) (gamma* 0.257-0.303 "
+              "at seven cells, k p = 30-120; exponent 1/2 collapses beta* to CV "
+              "0.05 against 0.21 for beta itself) -- a fan-in-scaled learning "
+              "rate, the counterpart of muP's per-layer rate for one area. The "
+              "adopted beta = 0.1 is above it everywhere (1.3-2.7x), so the "
+              "ceilings above are identification ceilings at an over-strong "
+              "write; at the optimum the best distinct completion grows with k p "
+              "(0.41-2.46 (n/k)^2 at n/k = 33). Completion must be DISTINCT "
+              "(recovered and rank-1): above beta ~ 0.2 merged assemblies make "
+              "'completion' exceed identification.",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1022,7 +1034,11 @@ _RESULTS: List[Result] = [
                   "memory_write_strength.py --scan, 20 brains, seven cells (A11): "
                   "completion at the binary write / (n/k)^2 0.562 / 0.563 / 0.560 "
                   "at k = 60, 0.798 / 0.798 at k = 120; rank-1 window at one count "
-                  "per item [3310, 76028) at (8000, 60)"),
+                  "per item [3310, 76028) at (8000, 60)",
+                  "memory_learning_rate.py --distinct, 20 new brains, seven cells "
+                  "(A13): beta* 0.0705 / 0.0558 / 0.0532 / 0.0444 / 0.0377 at n/k = 33 "
+                  "(k p 30 / 45 / 60 / 90 / 120), 0.0752 / 0.0569 at n/k = 67; "
+                  "predicted 0.063 and 0.044 at the unseen (3000,90), (6000,180)"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -1048,6 +1064,10 @@ _RESULTS: List[Result] = [
                         "Amendment 9: real, clean, random, balanced and gated memories on one circuit, seven cells"),
             EvidenceRef("research/results/runs/memory.write-strength/write-strength-scan-20261001/results.json", "artifact",
                         "Amendment 11: identification and completion load windows across write strength, seven cells"),
+            EvidenceRef("research/results/runs/memory.learning-rate/learning-rate-20261001/results.json", "artifact",
+                        "Amendment 12: beta sweep on the real memory, five cells (T1-T3 failed: merged recall)"),
+            EvidenceRef("research/results/runs/memory.learning-rate/learning-rate-distinct-20261001/results.json", "artifact",
+                        "Amendment 13: distinct-completion beta sweep, new brains, seven cells incl. two unseen"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "
