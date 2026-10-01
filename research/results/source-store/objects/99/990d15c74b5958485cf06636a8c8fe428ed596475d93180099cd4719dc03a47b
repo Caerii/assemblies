@@ -1,0 +1,5 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner word-capacity-synapses --p 0.05 --tag word-capacity-synapses-p005-20261001 > wc.log 2>&1
+.venv\Scripts\python.exe -m research.runner word-capacity-synapses --p 0.025 --tag word-capacity-synapses-p0025-20261001 >> wc.log 2>&1
+.venv\Scripts\python.exe -m research.runner word-capacity-synapses --p 0.1 --tag word-capacity-synapses-p01-20261001 >> wc.log 2>&1

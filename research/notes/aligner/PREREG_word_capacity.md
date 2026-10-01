@@ -432,3 +432,58 @@ against.
 * A failed bar is recorded as failed and not moved after the data.
 
 The runs are UNJUDGED until L0 to L4 are evaluated and recorded below.
+
+### Amendment 4 result (2026-10-01)
+
+Three runs from a worktree pinned at 368db343, the registered twenty seeds,
+40 minutes in all:
+[p = 0.025](../../results/runs/aligner.word-capacity-synapses/word-capacity-synapses-p0025-20261001/results.json),
+[p = 0.05](../../results/runs/aligner.word-capacity-synapses/word-capacity-synapses-p005-20261001/results.json),
+[p = 0.1](../../results/runs/aligner.word-capacity-synapses/word-capacity-synapses-p01-20261001/results.json),
+[log](../../results/logs/word-capacity-synapses-20261001.log). V* (seeds
+censored below the grid in brackets) for beta = 0.025, 0.05, 0.1, 0.2, 0.4:
+
+    p = 0.025  A  <16(20)  <16(20)  36.1(3)  72.2   112.9
+               B  16.9(19) 95.6     119.5    153.9  184.2
+               C  97.9     295.8    282.0    304.0  243.4
+    p = 0.05   A  <16(20)  16.9(19) 73.8(1)  74.7   103.8
+               B  16.9(19) 202.6    166.4    159.2  163.0
+               C  294.9    516.8    324.4    278.9  178.4
+    p = 0.1    A  <16(20)  47.5(8)  99.3     66.1   76.7
+               B  35.6(14) 321.5    229.1    143.1  118.0
+               C  811.6(1) 707.8    314.6    171.4  139.6
+
+    L0  THE INSTRUMENT                                                PASS
+        p = 0.05, beta = 0.1 reproduces Part 2: 73.8, 166.4, 324.4.
+    L1  VOCABULARY IS SYNAPSE-LIMITED (at beta = 0.1)                 FAIL
+        B: x1.39 (0.025 -> 0.05) and x1.38 (0.05 -> 0.1); A excluded
+        at both doublings (censored seeds at p = 0.025 and 0.05).
+    L2  THE SAME LAW ACROSS n                                         PASS
+        judgeable only at p = 0.1: V* / (n p) = 0.99 (A) and 1.15 (B).
+    L3  AN INTERIOR BEST PLASTICITY                                   FAIL
+        A's best beta is the grid's top at p = 0.025 and 0.05; B's at
+        p = 0.025.
+    L4  THE BEST PLASTICITY FALLS WITH FAN-IN                         FAIL
+        undefined where L3 fails.
+
+**Reading.** At the registered plasticity the lexicon is not
+synapse-limited: doubling the fiber's p raises B's vocabulary by about 40%
+and leaves C's flat at the FEAT ceiling (~320). The registered beta = 0.1 is
+not a neutral choice, though: its distance from each lexicon's best rate
+changes with p and with the lexicon's size, which the two scaling bars
+ignored. The registered learning-rate prediction fails for a reason worth
+stating: this learner's best plasticity depends on the lexicon's SIZE at
+fixed fan-in (at p = 0.05, A is best at the grid's top, B and C near 0.05),
+which the fan-in rule of the refracted memory does not contain.
+
+**Post hoc, labelled, not adopted.** At each lexicon's best plasticity
+instead of 0.1, the largest vocabulary grows with p: C 304 -> 517 -> 812
+(x1.70, x1.57 per doubling, inside L1's band) and B 184 -> 203 -> 322 (the first is
+a lower bound: B's best beta at p = 0.025 is the grid's top); A's does not (113, 104, 99). The
+best plasticity falls as p rises for C (0.2, 0.05, at most 0.025) and for B
+(at least 0.4, 0.05, 0.06), and at fixed p it falls with lexicon size. So the
+larger lexicons look synapse-limited once each is written at its own best
+rate, the smallest does not, and the best rate depends on both fan-in and
+load -- steeper than the memory's square root. A registration that sweeps
+plasticity wide enough to contain every optimum, and judges vocabulary at
+the optimum, is the test this points to.
