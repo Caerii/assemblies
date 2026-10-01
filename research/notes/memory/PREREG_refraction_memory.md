@@ -664,6 +664,8 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | PE-S weight sensitivity (A9) | c +- 2 within 30% | FAIL | +66 to +89% at k = 60 |
 | PE-R gate replayed (A9) | within 10% of 2645 and 8666 | PASS | 0.980, 1.048 |
 | PE-6 gate lowers pair reuse (A9) | eta_gated > eta, lower sharing, failure load within [0.75, 1.33] | FAIL | 1.39 at (8000, 60) |
+| WS-V instrument (A10) | own-c ceiling replays A9 within 10% at every cell | FAIL | 16 vs 5043 and 20741 at k = 30 |
+| WS-1 .. WS-5 (A10) | -- | VOID | adaptive search assumed one crossing |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -1193,3 +1195,53 @@ The run is UNJUDGED until WS-V to WS-5 are evaluated and recorded below.
     python -m research.runner write-strength \
         --registration research/notes/memory/PREREG_refraction_memory.md \
         --tag write-strength-20260930
+
+### Amendment 10 result (2026-10-01): VOID, the instrument failed
+
+One run from a worktree pinned at 5c817ce0, 20 brains, seven cells, 68
+minutes: [record](../../results/runs/memory.write-strength/write-strength-20260930/results.json),
+[log](../../results/logs/write-strength-20260930.log).
+
+    WS-V  THE INSTRUMENT                                              FAIL
+          At the model's own c the rank-1 ceiling replays Amendment 9 at
+          (2000, 60) 825 / 818, (4000, 120) 743 / 762, (4000, 60) 3623 /
+          3583, (8000, 120) 3997 / 4088, (8000, 60) 15131 / 15288, but
+          reads "below the first checkpoint" (16) at (2000, 30) and
+          (4000, 30), where Amendment 9 measured 5043 and 20741.
+    WS-1 .. WS-5                                                      VOID
+
+**Why.** The adaptive search assumed one downward crossing: it halved
+toward 16 whenever its first checkpoint failed. For weak writes the rank-1
+curve is NOT monotone in load. It fails at low load and works at moderate
+load (Amendment 9's own c - 2 curve at (2000, 60) reads 0.83 at M = 256 and
+1.00 at 384 to 768 before falling), so every write that fails at the first
+checkpoint was read as failing everywhere: c <= 4 at k = 60, c <= 3 at
+k = 120, c <= 5 at k = 30, including the model's own c = 4 at both k = 30
+cells. The bars that read those c (WS-2, WS-3, WS-4, WS-5 and WS-V) cannot be
+judged, and by the registration a WS-V failure voids them all. Nothing is
+adopted.
+
+**What the record still shows (descriptive, from resolved curves only).**
+Ceilings per (n/k)^2, rank-1 / completion, at the model's own c and the
+binary end:
+
+    cell        own c   rank-1   completion   c = 32 rank-1   completion
+    (2000, 60)  5       0.743    0.015        0.610           0.563
+    (4000,120)  6       0.669    0.320        0.915           0.798
+    (4000, 60)  5       0.815    < 16         0.579           0.562
+    (8000,120)  6       0.899    0.420        0.841           0.798
+    (8000, 60)  5       0.851    < 16         0.566           0.561
+    (2000, 30)  4       VOID     VOID         0.394           0.296
+    (4000, 30)  4       VOID     VOID         0.362           0.281
+
+Completion rises with write strength at every cell and the binary write
+completes nearly every item it identifies (0.87 to 0.99 in regime, 0.75
+and 0.78 out of it). At c = 32 the
+completion ceiling is 0.28 to 0.30, 0.56 and 0.80 (n/k)^2 at k = 30, 60 and
+120, the same within each k across n: at the binary write the n/k-matched
+pairs DISAGREE (k = 120 stores 1.4x its k = 60 pair), so the n/k law of the
+operating write does not hold there. The smallest write whose completion
+ceiling exceeds 0.05 (n/k)^2 falls with k: c = 11 at k = 30, 6 at k = 60,
+4 at k = 120, within every n/k level. These are readings of a void
+study; Amendment 11 tests them on fresh patterns with an instrument that
+measures both edges of a load window.
