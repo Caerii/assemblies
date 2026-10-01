@@ -48,6 +48,38 @@ def _observations(star):
     return {"cells": cells}
 
 
+def _distinct_observations(star):
+    cells = {}
+    for (n, k) in lr.DISTINCT_CELLS:
+        sweep = {}
+        for beta in lr.DISTINCT_BETAS:
+            top = (n / k) ** 2 * (0.3 + 0.002 * k)
+            value = max(top * (1 - 0.4 * (math.log(beta) - math.log(star(n, k))) ** 2), 0.0)
+            window = {"never": value <= 0, "upper_censored": False, "upper": value,
+                      "lower": None, "last_above": value}
+            rank = {"never": False, "upper_censored": False,
+                    "upper": (lr.DISTINCT_CELLS[(n, k)] or 400.0) if beta == 0.1 else 500.0,
+                    "lower": None, "last_above": 0}
+            sweep[f"{beta:g}"] = {"beta": beta, "c_first_item": 5,
+                                  "windows": {"complete_distinct": window, "rank1": rank}}
+        cells[f"{n}/{k}"] = {"n": n, "k": k, "sweep": sweep}
+    return {"cells": cells}
+
+
+def test_distinct_bars_pass_on_the_predicted_law_and_fail_off_it():
+    assert 0.1 in lr.DISTINCT_BETAS and len(lr.DISTINCT_BETAS) == 11
+
+    def law(n, k):
+        return math.expm1(lr.GAMMA / math.sqrt(k * pe.P / 2))
+    bars = lr.evaluate_distinct(_distinct_observations(law))["bars"]
+    assert all(bars.values()), bars
+    linear = lr.evaluate_distinct(_distinct_observations(
+        lambda n, k: math.expm1(8.7 / (k * pe.P / 2))))["bars"]
+    assert not linear["U2"] and not linear["U3"]
+    fixed = lr.evaluate_distinct(_distinct_observations(lambda n, k: 0.06))["bars"]
+    assert not fixed["U2"] and not fixed["U3"]
+
+
 def test_a_fan_in_scaled_optimum_passes_and_a_fixed_one_fails():
     def scaled(n, k):
         return math.expm1(0.5 / math.sqrt(k * pe.P / 2))

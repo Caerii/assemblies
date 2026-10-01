@@ -1553,3 +1553,73 @@ step (sqrt 2) per doubling of k p as well. This is the shape the
 registration predicted, with the instrument it should have used;
 Amendment 13 tests it on fresh brains, at cells it did not see, with
 completion required to be distinct.
+
+## Amendment 13 (2026-10-01, before running): the fan-in-scaled learning rate, confirmed or not, on fresh brains and unseen cells
+
+Registered before any run of this amendment. Amendment 12's T1 to T3 failed
+because its completion criterion counted recall of MERGED assemblies; post
+hoc, with completion that is not above identification, gamma* =
+ln(1 + beta*) sqrt(k p / 2) was 0.285 to 0.309 at all five cells
+(coefficient of variation 0.032 at exponent 1/2). A rule chosen after the
+data cannot be adopted. This amendment is the confirmatory test: the
+completion criterion is fixed so it cannot count merged recall, the brains
+are new, and two cells are added that Amendment 12 never saw, where the law
+makes a PREDICTION rather than a fit.
+
+**Seen before registering:** Amendment 12's record and its post hoc
+analysis (above), the duplicate check, and one smoke run of this mode (VOID:
+3 brains, cap 64, (3000, 90), beta 0.05 / 0.1 / 0.1414: first-item counts
+4 / 6 / 6, every metric still above 0.5 at the cap).
+
+### Protocol
+
+As Amendment 12 (`memory_learning_rate.py`, now with `--distinct`, protocol
+version 2), with four changes:
+
+* DISTINCT COMPLETION: a recall counts as completing its item only if it
+  recovers at least 0.8 of it AND is nearer it than any other stored item.
+  Storing stops on rank-1 and distinct completion. Capacity is the distinct
+  completion window's upper edge.
+* FRESH BRAINS: seeds 62 to 81 (Amendments 7 to 12 used 42 to 61).
+* A FINER GRID: beta = 0.025 x 2^(i/4), i = 0..10 (0.025 to 0.1414; the
+  merged-recall region above it is dropped).
+* SEVEN CELLS, five at n/k = 33 with k p = 30, 45, 60, 90, 120 --
+  (2000, 60), (3000, 90), (4000, 120), (6000, 180), (8000, 240) -- and two
+  at n/k = 67, (4000, 60) and (8000, 120). (3000, 90) and (6000, 180) are
+  new; with gamma* = 0.29 the law predicts beta* = 0.063 and 0.044 there
+  (and 0.078, 0.054, 0.038, 0.078, 0.054 at the others).
+
+    python -m research.runner learning-rate --distinct \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag learning-rate-distinct-20261001 --seeds 62 63 64 65 66 67 68 69 70 \
+        71 72 73 74 75 76 77 78 79 80 81
+
+### Bars
+
+    UV  THE INSTRUMENT. At beta = 0.1 the rank-1 capacity of the new brains
+        is within 10% of Amendments 7 and 8's ceilings at the four cells
+        that have one. Failure voids U1 to U4.
+    U1  AN INTERIOR OPTIMUM of distinct completion at all seven cells.
+    U2  THE LAW. gamma* lies within 15% of 0.29 at all seven cells,
+        including the two the law has not seen.
+    U3  THE EXPONENT. Of the exponents 0, 0.25, 0.5, 0.75 and 1 in
+        ln(1 + beta*) (k p / 2)^a, a = 1/2 collapses beta* best across the
+        seven cells (smallest coefficient of variation), and below 0.10.
+    U4  WIDER IS BETTER AT THE OPTIMUM. Within each n/k level the best
+        distinct-completion capacity per (n/k)^2 strictly increases with
+        k p.
+
+### Interpretation, stated now
+
+* U1 to U3 pass: the refracted memory's learning rate is a fan-in-scaled
+  quantity. The adoptable statement is that the completion-optimal beta
+  satisfies ln(1 + beta*) = 0.29 / sqrt(k p / 2) across a fourfold range of
+  fan-in, and that the adopted beta = 0.1 is above the optimum everywhere
+  measured (the optimum is 0.078 at k p = 30). This is the assemblies
+  counterpart of a muP learning-rate rule, for one area and one fiber
+  type; transfer to multi-area circuits is not implied.
+* U2 fails at the unseen cells only: the post hoc fit does not predict.
+* U3 picks another exponent: report it; the law is not sqrt.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until UV to U4 are evaluated and recorded below.
