@@ -857,3 +857,142 @@ The register entry's provenance gap is narrowed accordingly, and its
 retained sensitivity checks now cover all seven cells. Still without runner
 provenance: the gated grid (Amendment 5), the strength grid (Amendment 6),
 the T sweep and the numpy mirror.
+
+## Amendment 9 (2026-09-30, before running): how much of the substrate's capacity each code realises
+
+Registered before any run of this amendment. It asks what the law's constant
+MEANS. The ceiling is ~0.35 to 0.50 (n/k)^2 assemblies; the classical
+associative memory (Willshaw) stores ln 2 (n/k)^2 = 0.69 (n/k)^2 random
+patterns at its information optimum, where half its synapses are
+potentiated. Whether that resemblance is a coincidence is decidable: write
+patterns that are NOT the network's own into the same circuit and read them
+the same way.
+
+**What was seen before registering (exploratory, labelled, nothing claimed).**
+A scratch diagnostic on 4 brains at (2000, 60), (4000, 120) and (4000, 60),
+32 recalls per checkpoint, grids 1.33 to 1.5x apart, gave, in (n/k)^2 units:
+the refracted memory 0.375 / 0.355 / 0.43; its own assemblies written
+without the transient winners 0.31 / 0.26 / 0.37; independent random
+k-subsets 0.75 / 0.65 / 0.83 with about half the synapses potentiated;
+usage-balanced subsets 1.66 / > 1.84 / 1.33. The refracted assemblies'
+neuron usage was MORE even than random (variance/mean 0.04 to 0.07), their
+mean pairwise overlap below chance, yet their pair sharing (below) was 1.9x
+random. The windows and bars below were set with these numbers in view;
+this amendment is the confirmatory test on 20 brains at every cell of the
+law, with the bars fixed now.
+
+### Protocol
+
+`research/experiments/memory_pattern_efficiency.py` through the shared
+runner (`python -m research.runner pattern-efficiency`), seeds 42 to 61,
+one run, all seven cells of the law, one GPU job, from a worktree pinned at
+the commit that registers this amendment. Every variant is read through the
+SAME circuit: the hashed presence matrix of the cell's brains, norm_init's
+in-degree division, the engine's potentiation table with the w_max = 20
+clip, a half cue (the first k/2 stored winners), 8 frozen k-WTA rounds with
+the bias masked, and the capacity study's rank-1 (argmax overlap against
+every stored item, ties to the lowest index), 32 sampled items per brain
+per checkpoint, the sample a function of M alone so variants at one M are
+read on the same items. The variants:
+
+    real         the refracted AssemblyMemory (0.5 beta, T = 8, ungated),
+                 the capacity study's store and stimuli, read from its own
+                 count matrix
+    gated        the same with the convergence gate, at (4000, 60) and
+                 (8000, 60)
+    clean        the real assemblies, synapses rebuilt from them alone
+    clean_gated  likewise for the gated assemblies
+    random       independent uniformly random k-subsets
+    random_cm2   random, with c - 2 counts per pair
+    random_cp2   random, with c + 2
+    balanced     each item takes the k least-used neurons, random tie-break
+
+A clean write puts c counts on every internal pair of every item, where c
+is the rounded mean count on the present internal pairs of the condition's
+first stored item across brains (what one item's write puts on its own
+assembly; 5 at k = 60 and 6 at k = 120 in the exploration). Checkpoints are
+the geometric grid 16, 24, 32, 48, ... restricted to a window in multiples
+of Amendment 8's ceiling (A7 for (4000, 60); Amendments 5 and 6's 2645 and
+8666 for the gated cells): real, gated and clean [0.25, 3], random
+[0.5, 8], balanced [1, 12]. M*_v is where the ensemble-mean rank-1 of
+variant v crosses 0.5 (`ceiling_from_curve`). Statistics, from the
+unclipped count matrix N = X^T X of each variant's patterns:
+
+    potentiated   fraction of present synapses with a nonzero count (the
+                  real and gated variants read their actual count matrix)
+    pair sharing  sum_{i != j} N_ij (N_ij - 1) / (M k (k - 1)): the mean
+                  number of other items sharing an internal synapse pair
+                  with an item; independent subsets expect
+                  (M - 1) k (k - 1) / (n (n - 1)); "excess" is the ratio
+    eta           M*_real / M*_random, the PATTERN EFFICIENCY
+
+Both statistics are interpolated at a variant's M* linearly in log2 M. A
+ceiling is RESOLVED when its curve starts above 0.5 and crosses inside the
+window. The in-regime cells (2000, 60), (4000, 120), (4000, 60),
+(8000, 120), (8000, 60) are judged; (2000, 30) and (4000, 30) are reported
+and not judged, as in Amendment 4. `evaluate()` in the module applies the
+bars below; it is tested to fail when the random memory is substituted for
+the real one.
+
+### Bars
+
+    PE-V  THE INSTRUMENT (gates every other bar). (a) At every real
+          checkpoint the module's own recall and this study's dense recall
+          give ensemble-mean rank-1 within 0.03. (b) M*_real is within 10%
+          of Amendment 8's value (A7's at (4000, 60)) at every cell. A
+          failure VOIDS the study; nothing below is judged.
+    PE-0  CALIBRATION AND TRUE NEGATIVE. Pair-sharing excess of the random
+          variant lies in [0.9, 1.1] at every cell and checkpoint, and the
+          random curve substituted for the real one fails PE-2.
+    PE-1  THE SUBSTRATE IS A WILLSHAW MEMORY. At every judged cell M*_random
+          is resolved, M*_random / (n/k)^2 lies in [0.5, 1.0] (ln 2 = 0.69),
+          and the potentiated fraction at M*_random lies in [0.40, 0.60].
+    PE-2  CONSTANT PATTERN EFFICIENCY. At every judged cell eta lies in
+          [0.35, 0.70], both ceilings resolved, and the largest eta is at
+          most 1.5 times the smallest.
+    PE-3  PAIR REUSE ACCOUNTS FOR THE GAP. At every judged cell the real
+          assemblies' pair-sharing excess at M*_real is at least 1.5, and
+          their absolute pair sharing at M*_real is within [0.75, 1.33] of
+          the random patterns' at M*_random -- both memories fail at the
+          same PAIR-level load.
+    PE-4  THE TRANSIENTS HELP. M*_real > M*_clean at every judged cell.
+    PE-5  BALANCED HEADROOM. M*_balanced >= 1.5 M*_random at every judged
+          cell (a balanced curve still above 0.5 at its last checkpoint
+          counts as that lower bound).
+    PE-S  WEIGHT SENSITIVITY. M*_random at c - 2 and at c + 2 each lie
+          within 30% of M*_random at c, at every judged cell.
+    PE-R  THE GATE REPLAYED. M*_gated within 10% of 2645 at (4000, 60) and
+          of 8666 at (8000, 60) (Amendments 5 and 6, legacy records).
+    PE-6  THE GATE LOWERS PAIR REUSE. At both gated cells: eta_gated > eta;
+          at the grid point both conditions share nearest M*_real, the
+          gated assemblies' pair sharing is below the ungated ones'; and
+          the gated pair sharing at M*_gated is within [0.75, 1.33] of the
+          random patterns' at M*_random.
+
+### Interpretation, stated now
+
+* PE-1 and PE-2 pass: the law is the substrate's Willshaw capacity times a
+  constant pattern efficiency, and P1 states it that way: random patterns
+  on this circuit store ~ln 2 (n/k)^2, the refracted memory realises eta
+  of it, the Hebbian control ~0.02 (Amendment 8's control ceilings over
+  this study's M*_random, reported, not judged).
+* PE-1 fails: the resemblance to Willshaw is not established on this
+  circuit; report M*_random and the potentiated fraction as measured.
+* PE-2 fails on range or constancy: no efficiency constant is quoted;
+  report eta per cell.
+* PE-3 passes: the residual gap is pair reuse, a second-order correlation
+  refraction's per-neuron penalty cannot see; a write-side mechanism that
+  penalises co-recruitment is the registered next question. PE-3 fails:
+  the gap is not explained by pair sharing and stays open.
+* PE-5 passes: an allocation that equalises usage stores beyond the
+  random-pattern figure on this circuit; the real memory already equalises
+  usage, so its headroom is the pair reuse.
+* PE-6 passes: the gate's +24 to 34% is reduced pair reuse. PE-R alone
+  passing moves the gated grids into runner provenance.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until PE-V to PE-6 are evaluated and recorded below.
+
+    python -m research.runner pattern-efficiency \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag pattern-efficiency-20260930
