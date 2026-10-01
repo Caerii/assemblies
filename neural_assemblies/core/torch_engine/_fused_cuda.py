@@ -186,12 +186,19 @@ __global__ void select_kernel(const float* __restrict__ x, int N, int K,
         return;
     }
     if (tid == 0) ovf[b] = 0;
-    for (int i = M + tid; i < CAPS; i += NTH) ck[i] = 0ULL;
+    // Sort the smallest power of two that holds the M candidates, not all
+    // CAPS slots: M is typically k plus a few ties (~60-100), and the full
+    // 2048-slot network was most of the kernel. The keys are unique and
+    // nonzero and the padding is 0, so the top K land in the same order at
+    // the top of the shorter array: the same winners, in the same order.
+    int P = 1;
+    while (P < M) P <<= 1;
+    for (int i = M + tid; i < P; i += NTH) ck[i] = 0ULL;
     __syncthreads();
 
-    for (int kk = 2; kk <= CAPS; kk <<= 1) {
+    for (int kk = 2; kk <= P; kk <<= 1) {
         for (int jj = kk >> 1; jj > 0; jj >>= 1) {
-            for (int i = tid; i < CAPS; i += NTH) {
+            for (int i = tid; i < P; i += NTH) {
                 const int ixj = i ^ jj;
                 if (ixj > i) {
                     const bool up = ((i & kk) == 0);
@@ -206,7 +213,7 @@ __global__ void select_kernel(const float* __restrict__ x, int N, int K,
     }
     int* ob = out + (long long)b * K;
     for (int s = tid; s < K; s += NTH)
-        ob[s] = 65535 - (int)(ck[CAPS - 1 - s] & 0xFFFFULL);
+        ob[s] = 65535 - (int)(ck[P - 1 - s] & 0xFFFFULL);
 }
 
 
@@ -866,6 +873,63 @@ __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
     float d = acc;
     if (invdj != nullptr) d *= invdj[(long long)b * N + j];
     out[idx] += d;
+}
+
+// FOUR COLUMNS PER THREAD (n a multiple of 4). One char4 load per row
+// fetches four adjacent counts and one presence word covers all four (j is a
+// multiple of 4, so bits j..j+3 share a word): a quarter of the load
+// instructions of `organ_drive_kernel`, and 128-byte warp transactions
+// instead of 32. Each column still sums its rows in row order with the same
+// predicate, so every column's float sequence -- and its drive -- is the
+// scalar kernel's.
+__global__ void organ_drive4_kernel(const int* __restrict__ S, int K,
+                                    const signed char* __restrict__ C,
+                                    const unsigned int* __restrict__ pres, int W,
+                                    const float* __restrict__ invdj,
+                                    const float* __restrict__ tab, int ntab, int tab_stride,
+                                    const int* __restrict__ bmap,
+                                    int V, int Npre, int N, float* __restrict__ out) {
+    const int N4 = N >> 2;
+    const long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
+    if (idx >= (long long)V * N4) return;
+    const int j = (int)(idx % N4) << 2, v = (int)(idx / N4);
+    const int b = bmap != nullptr ? bmap[v] : v;
+    const signed char* Cb = C + (long long)b * Npre * N;
+    const unsigned int* Pb = pres + (long long)b * Npre * W;
+    const float* Tb = tab + (long long)b * tab_stride;
+    const int* Sb = S + (long long)v * K;
+    const int wj = j >> 5, bj = j & 31;
+    float a0 = 0.0f, a1 = 0.0f, a2 = 0.0f, a3 = 0.0f;
+    for (int s0 = 0; s0 < K; s0 += ORGAN_CH) {
+        char4 cs[ORGAN_CH];
+        unsigned int nb[ORGAN_CH];
+#pragma unroll
+        for (int u = 0; u < ORGAN_CH; ++u) {
+            const int sl = s0 + u;
+            const int i = (sl < K) ? Sb[sl] : -1;
+            const unsigned int pw = (i >= 0) ? Pb[(long long)i * W + wj] : 0u;
+            nb[u] = (pw >> bj) & 0xFu;
+            cs[u] = nb[u] ? *reinterpret_cast<const char4*>(Cb + (long long)i * N + j)
+                          : make_char4(0, 0, 0, 0);                     // predicated
+        }
+#pragma unroll
+        for (int u = 0; u < ORGAN_CH; ++u) {
+            const int c0 = cs[u].x < ntab ? cs[u].x : ntab - 1;
+            const int c1 = cs[u].y < ntab ? cs[u].y : ntab - 1;
+            const int c2 = cs[u].z < ntab ? cs[u].z : ntab - 1;
+            const int c3 = cs[u].w < ntab ? cs[u].w : ntab - 1;
+            a0 += (nb[u] & 1u) ? Tb[c0] : 0.0f;
+            a1 += (nb[u] & 2u) ? Tb[c1] : 0.0f;
+            a2 += (nb[u] & 4u) ? Tb[c2] : 0.0f;
+            a3 += (nb[u] & 8u) ? Tb[c3] : 0.0f;
+        }
+    }
+    const long long o = (long long)v * N + j;
+    if (invdj != nullptr) {
+        const float* ib = invdj + (long long)b * N + j;
+        a0 *= ib[0]; a1 *= ib[1]; a2 *= ib[2]; a3 *= ib[3];
+    }
+    out[o] += a0; out[o + 1] += a1; out[o + 2] += a2; out[o + 3] += a3;
 }
 
 // one block per (brain, winner column): count the present rows in
@@ -1712,7 +1776,7 @@ void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Te
     TORCH_CHECK(C.scalar_type() == torch::kInt8, "counts are int8");
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1), W = pres.size(2);
     const int V = S.size(0);
-    TORCH_CHECK(out.size(0) == V && out.size(1) == N, "out: [V, N]");
+    TORCH_CHECK(out.size(0) == V && out.size(1) == N && out.is_contiguous(), "out: contiguous [V, N]");
     TORCH_CHECK(bmap.numel() ? bmap.numel() == V : V == B,
                 "without a brain map the rows are the brains");
     TORCH_CHECK(tab.dim() == 1 || (tab.dim() == 2 && tab.size(0) == B),
@@ -1720,8 +1784,19 @@ void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Te
     if (K == 0) return;
     const int ntab = (int)tab.size(tab.dim() - 1);
     const int stride = tab.dim() == 2 ? ntab : 0;
-    const long long tot = (long long)V * N;
     const int th = 256;
+    if (N % 4 == 0) {
+        const long long tot4 = (long long)V * (N / 4);
+        organ_drive4_kernel<<<(tot4 + th - 1) / th, th, 0, NA_STREAM>>>(
+            S.data_ptr<int>(), K, C.data_ptr<signed char>(),
+            reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
+            invdj.numel() ? invdj.data_ptr<float>() : nullptr,
+            tab.data_ptr<float>(), ntab, stride,
+            bmap.numel() ? bmap.data_ptr<int>() : nullptr,
+            V, Npre, N, out.data_ptr<float>());
+        return;
+    }
+    const long long tot = (long long)V * N;
     organ_drive_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
         S.data_ptr<int>(), K, C.data_ptr<signed char>(),
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,

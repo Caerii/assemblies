@@ -62,12 +62,33 @@ One sweep at (4000, 60, 0.5), seeds 142-161, rates 0.0442-0.0884 (five),
 | a8b95efe (before) | one rate at a time | 57.3 | -- |
 | this change | one rate at a time (`run_beta`) | 9.6 | identical, 9500 of 9500 scalars |
 | this change | the five rates in one launch (`run_betas`) | 4.8 | identical, 9500 of 9500 scalars |
+| + vectorized drive, short sort | the five rates in one launch | 2.9 | identical, 9500 of 9500 scalars |
 
 12x, bit-identical to the code that ran Amendments 12-17. A nine-rate grid
 (Amendment 17's) of 1024 items: 7.6 s, of which store 5.0 s and readings
 1.5 s. The GPU is now busy rather than waiting on the host: by kernel time,
 the organ drive is 44%, the k-WTA select 21% and the organ write 11%, and
 those three kernels are the next levers.
+
+**The kernels (second step).** The drive reads four adjacent columns per
+thread with one char4 load per row (a quarter of the load instructions,
+128-byte warp transactions); each column still sums its rows in row order,
+so its float sequence is unchanged. The k-WTA select bitonic-sorts the
+smallest power of two holding its candidates (typically 64-128) instead of
+all 2048 slots: unique nonzero keys and zero padding put the same top k at
+the top in the same order. Together: 4.8 s -> 2.9 s on the sweep (20x
+over a8b95efe), the nine-rate grid 7.6 s -> 5.3 s (store 3.5 s, readings
+0.9 s), readings still identical.
+
+**Where this sits (Little's law, L = lambda W).** A store round reads
+about 0.85 MB per brain at (4000, 60, 0.5) for about 0.16 MFLOP: 0.19
+FLOP/byte, 200x below the 3080's ridge point, so only bandwidth and latency
+matter. Before: L = 20 brains a launch, W = 1.4 ms a round (launches, three
+host syncs, Python), lambda = 14k brain-rounds/s. After batching and graph
+replay: L = 180, W = 0.61 ms, lambda = 295k/s. The bandwidth ceiling is
+760 GB/s / 0.85 MB = 894k/s. Past L* = lambda_max x W_min (about 45 brains
+at W_min ~ 50 us), more brains lengthen W instead of raising lambda: the
+launch is now kernel-bound, not overhead-bound.
 
 The count-saturation contract was tightened alongside
 (`count_saturation_is_exact`, VERIFICATION.md#contract-organ-count-saturation):
