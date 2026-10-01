@@ -88,9 +88,10 @@ inverse-exponentially in beta. Nobody measures what beta costs.
 This repository found the cost. The beta that maximises distinct completion
 obeys ln(1 + beta*) = 0.29 / sqrt(k p / 2) at p = 0.5, confirmed on new brains
 and at two cells it had not seen (Amendment 13), and the field's typical 0.1
-is 1.3 to 2.7 times too strong. Sparse connectivity raises the optimum
-(Amendment 14; Amendment 16 is testing the factor (1 - p) as this is written,
-with live readings in its favour).
+is 1.3 to 2.7 times too strong. With connectivity noise the law holds for
+p = 0.125 to 0.75: ln(1 + beta*) = 0.285 sqrt(2 (1 - p)) / sqrt(k p / 2)
+(Amendment 16, every bar passed, the dense-side ratio 0.707 against 0.71
+predicted).
 
 The connection to the theory: the projection-convergence thresholds of
 ITCS 2019 and COLT 2022 scale as roughly sqrt(ln n / (p k)). Measured against

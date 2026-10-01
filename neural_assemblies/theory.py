@@ -1005,9 +1005,16 @@ _RESULTS: List[Result] = [
               "learning rate the refracted memory completes 14-57x as many "
               "distinct items as the Hebbian control at every cell; at equal "
               "(n/k, k p) capacity is the same at p = 0.125, 0.25, 0.5 (within "
-              "8%) but sparse p wants a higher learning rate, so the "
-              "learning-rate law is stated for p = 0.5; whether capacity at the "
-              "optimum scales as n^2 p / (k ln(n/k)) or (n/k)^2 is NOT settled.",
+              "8%) but sparse p wants a higher learning rate; whether capacity at "
+              "the optimum scales as n^2 p / (k ln(n/k)) or (n/k)^2 is NOT "
+              "settled. THE LAW WITH CONNECTIVITY NOISE (Amendment 16, six "
+              "cells, p = 0.125-0.75): ln(1 + beta*) = 0.285 sqrt(2 (1 - p)) / "
+              "sqrt(k p / 2) -- the write clears the spread of the cue synapses "
+              "a neuron receives -- within 15% everywhere, including the dense "
+              "side (0.707 predicted 0.71); capacity at the optimum is the same "
+              "across p at equal fan-in. DEPTH (Amendment 15): at each number of "
+              "write rounds' own best rate capacity is the same (T = 6-16); the "
+              "per-round optimum falls faster than 1/T.",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1077,6 +1084,10 @@ _RESULTS: List[Result] = [
                         "Amendment 13: distinct-completion beta sweep, new brains, seven cells incl. two unseen"),
             EvidenceRef("research/results/runs/memory.recall-law/recall-law-20261001/results.json", "artifact",
                         "Amendment 14: refracted vs Hebbian on distinct completion, ten (n, k, p) cells"),
+            EvidenceRef("research/results/runs/memory.time-depth/time-depth-20261001/results.json", "artifact",
+                        "Amendment 15: write rounds T = 6-16, recall at 8 rounds"),
+            EvidenceRef("research/results/runs/memory.sparse-law/sparse-law-20261001/results.json", "artifact",
+                        "Amendment 16: the learning-rate law with connectivity noise, p = 0.125-0.75"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "

@@ -693,6 +693,11 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | D2 rescaled write transfers (A15) | law point within 15% across T | FAIL | T = 12, 16 far below |
 | D3 best rate as 1/T (A15) | T ln(1+beta*) within 20% | FAIL | T = 16 optimum at the grid's bottom |
 | D4 depth does not matter at the optimum (A15) | best capacity within 15% across T | PASS | within 9% at both cells |
+| SV instrument (A16) | A14 capacities within 15% on new brains | PASS | 0.974-1.018 |
+| S1 interior optimum (A16) | all six cells | PASS | all six |
+| S2 noise law (A16) | gamma_noise within 15%, tighter than gamma_plain | PASS | CV 0.081 vs 0.258 |
+| S3 dense side (A16) | beta*(p .75) / beta*(p .5) <= 0.85 | PASS | 0.707 (predicted 0.71) |
+| S4 capacity p-invariant (A16) | k p = 30 bests within 15% | PASS | 436-497 |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -2072,3 +2077,55 @@ sqrt(2 (1 - p)).
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until SV to S4 are evaluated and recorded below.
+
+### Amendment 16 result (2026-10-01)
+
+One run from a worktree pinned at ecd17c7a, 20 new brains (seeds 122 to
+141), six cells, 22 minutes:
+[record](../../results/runs/memory.sparse-law/sparse-law-20261001/results.json),
+[log](../../results/logs/sparse-law-20261001.log). Distinct-completion
+capacity on each cell's grid, and the optimum:
+
+    cell (n, k, p)      k p  beta*   gamma_plain  gamma_noise  best
+    (1333, 40, 0.75)    30   0.0493  0.186        0.264        492
+    (2000, 60, 0.5)     30   0.0698  0.261        0.261        497
+    (4000, 120, 0.25)   30   0.0951  0.352        0.287        436
+    (8000, 240, 0.125)  30   0.1144  0.420        0.317        489
+    (4000, 120, 0.5)    60   0.0497  0.266        0.266        1205
+    (8000, 240, 0.25)   60   0.0723  0.382        0.312        1129
+
+    SV  THE INSTRUMENT                                                PASS
+        best capacity over Amendment 14: 1.010, 0.986, 0.974, 0.998, 1.018.
+    S1  AN INTERIOR OPTIMUM                                           PASS
+    S2  THE NOISE LAW                                                 PASS
+        gamma_noise 0.261 to 0.317, within 15% of its mean 0.285;
+        coefficient of variation 0.081 against gamma_plain's 0.258.
+    S3  THE DENSE SIDE                                                PASS
+        beta* at p = 0.75 over p = 0.5: 0.707 (predicted 0.71; the
+        plain fan-in law predicts 1.0).
+    S4  CAPACITY IS p-INVARIANT AT EQUAL FAN-IN                       PASS
+        492, 497, 436, 489 at p = 0.75, 0.5, 0.25, 0.125 (within 9%).
+
+**Reading.** The learning-rate law needs the connectivity noise: the write
+that best serves distinct completion clears the spread of the number of cue
+synapses a neuron receives, sqrt(k p (1 - p) / 2), and
+
+    ln(1 + beta*) = 0.285 sqrt(2 (1 - p)) / sqrt(k p / 2)
+
+describes all six cells (p = 0.125 to 0.75, k p = 30 and 60) within 15%,
+including the dense side, where the sparse-side correction predicted the
+opposite of the plain law and was right to within 0.5%. Capacity at the
+optimum does not depend on p at fixed fan-in. A sparse, cortex-like area
+with the same fan-in stores as much as a dense one, but must be written with
+a learning rate set by its fan-in AND its sparseness. The residual is a slow
+rise of gamma_noise toward sparse p (0.26 to 0.32), not captured by the
+correction.
+
+**Seen in the record, not registered.** Against the form
+sqrt((1 - p) ln n / (p k)), which the projection-convergence thresholds of
+ITCS 2019 and COLT 2022 scale as (see
+[LITERATURE_SYNTHESIS.md](../LITERATURE_SYNTHESIS.md)), the six optima are
+0.201, 0.196, 0.209, 0.189, 0.223, 0.216 (coefficient of variation 0.057),
+the same 0.20 as Amendment 13's seven cells (0.031). The extra ln n absorbs
+part of the sparse-side residual. Whether the best learning rate is a fixed
+fraction of the convergence threshold is the registration this points to.
