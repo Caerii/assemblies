@@ -64,6 +64,7 @@ jobs:
           neural_assemblies/tests/test_time_depth.py
           neural_assemblies/tests/test_sparse_law.py
           neural_assemblies/tests/test_threshold_law.py
+          neural_assemblies/tests/test_collect.py
           neural_assemblies/tests/test_throughput_contract.py
           neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py

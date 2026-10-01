@@ -262,6 +262,15 @@ exactly one of the two forms. Store objects are marked `-text` in
 `validate_source_archive(..., deep=True)` also rebuilds the archive and
 requires the recorded digest.
 
+**Collecting a run from its pinned worktree.** A registered run executes in
+a worktree pinned at its registration commit, so its record, log and new
+store objects are untracked files there. `python -m research.collect
+--worktree PATH --log FILE:NAME RUN...` ([collect.py](collect.py)) copies the
+run directories (refusing a different existing copy), exactly the store
+objects their manifests name (each verified against its SHA-256 name), and
+the log; validates every record; and with `--clean` removes the worktree's
+copies only where they are untracked there and byte-identical here.
+
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,
 and never extracts or executes code. The runner also validates the archive before
