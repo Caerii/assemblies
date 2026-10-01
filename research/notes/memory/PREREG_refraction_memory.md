@@ -666,6 +666,13 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | PE-6 gate lowers pair reuse (A9) | eta_gated > eta, lower sharing, failure load within [0.75, 1.33] | FAIL | 1.39 at (8000, 60) |
 | WS-V instrument (A10) | own-c ceiling replays A9 within 10% at every cell | FAIL | 16 vs 5043 and 20741 at k = 30 |
 | WS-1 .. WS-5 (A10) | -- | VOID | adaptive search assumed one crossing |
+| XV instrument (A11) | own-c upper edge within 10% of A9, all cells | PASS | 0.978-1.012 |
+| X1 completion needs a strong write (A11) | c = 32 >= 1.5x own c | PASS | 1.9x to 37x; own c 0 at two cells |
+| X2 binary completes what it identifies (A11) | ratio >= 0.85 | PASS | 0.88-0.99 |
+| X3 separable law at binary write (A11) | within-k 15%, k = 120 >= 1.25x k = 60 | PASS | 0.560-0.563 vs 0.798; 1.42x |
+| X4 n/k law belongs to the operating write (A11) | own-c pairs in [0.8, 1.25], c = 32 pairs <= 0.8 | PASS | 1.11, 0.89; 0.68, 0.69 |
+| X5 weak writes have a load window (A11) | c = 3 lower edge, capacity above own c | PASS | 213-801 lower; 1.6-1.8x |
+| X6 smallest completing write falls with k p (A11) | strictly decreasing in k per n/k level | PASS | 11 / 6 / 4 |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -1198,7 +1205,7 @@ The run is UNJUDGED until WS-V to WS-5 are evaluated and recorded below.
 
 ### Amendment 10 result (2026-10-01): VOID, the instrument failed
 
-One run from a worktree pinned at 5c817ce0, 20 brains, seven cells, 68
+One run from a worktree pinned at 5c817ce0, 20 brains, seven cells, 8
 minutes: [record](../../results/runs/memory.write-strength/write-strength-20260930/results.json),
 [log](../../results/logs/write-strength-20260930.log).
 
@@ -1320,3 +1327,74 @@ never exceeds 0.5 has capacity 0.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until XV to X6 are evaluated and recorded below.
+
+### Amendment 11 result (2026-10-01)
+
+One run from a worktree pinned at 8921c957, 20 brains, seven cells, 14
+minutes: [record](../../results/runs/memory.write-strength/write-strength-scan-20261001/results.json),
+[log](../../results/logs/write-strength-scan-20261001.log). Load windows
+[lower, upper) in stored items; a lower edge of 0 means the metric already
+exceeds 0.5 at M = 16, and an upper edge of 0 means it never does:
+
+    cell        own c  rank-1 at c = 1 / 3 / own / 32          completion at own / 32
+    (2000, 60)  5      [842, 4982) [213, 1519) [0, 828) [0, 684)       17 / 624
+    (4000,120)  6      [885, 3117) [155, 1242) [0, 745) [0, 1009)      380 / 887
+    (4000, 60)  5      [1666, 19348) [407, 6328) [0, 3567) [0, 2572)    0 / 2500
+    (8000,120)  6      [1773, 10750) [339, 5135) [0, 4023) [0, 3723)    1887 / 3547
+    (8000, 60)  5      [3310, 76028) [801, 25420) [0, 15455) [0, 10069) 0 / 9964
+    out of regime:
+    (2000, 30)  4      [1569, 27004) [439, 7577) [284, 5010) [0, 1761)  0 / 1315
+    (4000, 30)  4      [2986, 106610) [840, 30135) [545, 20397) [0, 6503) 0 / 4965
+
+    XV  THE INSTRUMENT                                                PASS
+        own-c rank-1 upper edge over Amendment 9: 1.012, 0.978, 0.996,
+        0.984, 1.011; 0.993 and 0.983 out of regime.
+    X1  COMPLETION NEEDS A STRONG WRITE                               PASS
+        c = 32 over own c: 624 vs 17, 887 vs 380, 2500 vs 0, 3547 vs
+        1887, 9964 vs 0.
+    X2  THE BINARY WRITE COMPLETES WHAT IT IDENTIFIES                 PASS
+        0.91, 0.88, 0.97, 0.95, 0.99.
+    X3  A SEPARABLE LAW AT THE BINARY WRITE                           PASS
+        completion / (n/k)^2: 0.562, 0.563, 0.560 at k = 60; 0.798,
+        0.798 at k = 120; ratio 1.42.
+    X4  THE n/k LAW BELONGS TO THE OPERATING WRITE                    PASS
+        n/k-matched rank-1 ratios at own c 1.11 and 0.89; at c = 32 0.68
+        and 0.69.
+    X5  WEAK WRITES HAVE A LOAD WINDOW                                PASS
+        c = 3 lower edges 213, 407, 801; upper edges 1519, 6328, 25420
+        against own c's 828, 3567, 15455.
+    X6  THE SMALLEST COMPLETING WRITE FALLS WITH k p                  PASS
+        c = 11 at k = 30, 6 at k = 60, 4 at k = 120, in every n/k level.
+
+**Reading.** Amendment 10's descriptive readings replicate on fresh patterns
+with an instrument that sees both window edges; every bar passes. A
+recurrent area written with this multiplicative, clipped rule has two
+capacities that want opposite write strengths. COMPLETION (recovering at
+least 0.8 of an item from half of it) needs a strong write and is largest
+at the clipped, binary end, where it follows a separable law, ~g(k p)
+(n/k)^2 with g = 0.29, 0.56, 0.80 at k p = 15, 30, 60: there the n/k law
+fails, and k = 120 stores 1.42 times its n/k pair. IDENTIFICATION (the
+recall nearer the cued item than any other) grows as the write weakens, to
+4.3 to 4.5 (n/k)^2 at c = 1 and k = 60, but inside a load window whose
+lower edge also rises, and with almost no completion below c = 6 at
+k = 60 (17 items at most). The model's operating write (c = 5 or 6) sits between: its
+rank-1 ceiling obeys the n/k law (X4) and its completion is small. The
+write that completes at all falls with the cue synapses each neuron sums
+(X6). Amendment 9's "Willshaw" reference is the identification ceiling at
+the operating write; it is neither the circuit's recall capacity nor its
+identification capacity at other writes.
+
+**Seen in the record, not registered.** The lower edge of the
+identification window sits at a near-constant number of stored items PER
+NEURON, M k / n, across n and k at each write: ~22 to 27 at c = 1, ~10 to
+11 at c = 2, ~4.7 to 6.6 at c = 3, ~3 to 4.3 at c = 4 (e.g. at c = 2: 364, 673,
+1331 items at n = 2000, 4000, 8000 with k = 60 are 10.9, 10.1, 10.0 per
+neuron). A weak write's recall drifts off its item unless enough
+potentiation has accumulated on every neuron; this is a candidate for its
+own registration.
+
+**What this does not establish.** Identification and completion here are
+measured with independent random patterns on the memory's circuit, not
+with the refracted memory's own assemblies at other write strengths; and
+nothing here changes the write a model uses -- that is the per-fiber,
+fan-in-scaled learning rate X6 motivates, the registered next question.

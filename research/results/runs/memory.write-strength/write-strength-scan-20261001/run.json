@@ -1,0 +1,138 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "refracted": {
+        "arc_refraction_charge": 0.05,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "8921c957ad5399e797884fe2c75d121a82348a06",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "beta": 0.1,
+    "cap": 131072,
+    "cells": [
+      {
+        "k": 60,
+        "n": 2000
+      },
+      {
+        "k": 120,
+        "n": 4000
+      },
+      {
+        "k": 60,
+        "n": 4000
+      },
+      {
+        "k": 120,
+        "n": 8000
+      },
+      {
+        "k": 60,
+        "n": 8000
+      },
+      {
+        "k": 30,
+        "n": 2000
+      },
+      {
+        "k": 30,
+        "n": 4000
+      }
+    ],
+    "complete": 0.8,
+    "counts": [
+      1,
+      2,
+      3,
+      4,
+      5,
+      6,
+      8,
+      11,
+      16,
+      23,
+      32
+    ],
+    "device": "cuda",
+    "half_bar": 0.5,
+    "measurement_seed": 1234,
+    "p": 0.5,
+    "recall_sample": 32,
+    "rounds": 8,
+    "search": "scan",
+    "strength": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.write-strength",
+  "protocol_version": "2",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "39833c404cf344f2810c8c9fb01bc43cd0ed44300f94c17d108b2fc7cecf3bbb",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_write_strength.py",
+  "script_sha256": "06761e37772d6e98de02143c3230595fccd84b73b0d83e02ddb912e2893395b1",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "440196b47e262407d74fe5a1463b85c48624f0783e7b22ab3d31e01b6d40acdb"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "4270c3a7c9fc0a487a57467fadaaaf9bfa11c8eb5e3e81372221958a44ef90ea",
+  "started_utc": "2026-10-01T04:10:37.450221+00:00",
+  "tag": "write-strength-scan-20261001"
+}

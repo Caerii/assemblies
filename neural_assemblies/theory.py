@@ -978,7 +978,17 @@ _RESULTS: List[Result] = [
               "assemblies share synapse pairs 2.1-2.8x as much as random subsets "
               "and fail at 1.14-1.43x random's pair load; the gate's gain is "
               "carried by its assemblies (rewritten cleanly at equal write "
-              "strength they store +35-51%).",
+              "strength they store +35-51%). WRITE STRENGTH (Amendment 11, a "
+              "replication of Amendment 10's void record): on the same circuit "
+              "COMPLETION (>= 0.8 of an item from half of it) needs a strong "
+              "write and peaks at the clipped binary end, ~g(k p) (n/k)^2 with "
+              "g = 0.29 / 0.56 / 0.80 at k p = 15 / 30 / 60, where the n/k law "
+              "fails (k = 120 stores 1.42x its n/k pair); IDENTIFICATION (rank-1) "
+              "grows as the write weakens, to 4.3-4.5 (n/k)^2 at one count per "
+              "item, inside a LOAD WINDOW whose lower edge also rises. The "
+              "operating write (5-6 counts) sits between: its rank-1 ceiling "
+              "obeys the n/k law and it completes little; the smallest write that "
+              "completes falls with k p (11 / 6 / 4 counts at k = 30 / 60 / 120).",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1008,7 +1018,11 @@ _RESULTS: List[Result] = [
                   "M*/(n/k)^2 real / random / balanced at (2000,60) 0.394 / "
                   "0.736 / 1.629, (4000,120) 0.359 / 0.686 / 3.078, (4000,60) "
                   "0.432 / 0.806 / 1.384, (8000,120) 0.512 / 0.920 / 2.296, "
-                  "(8000,60) 0.403 / 0.860 / 1.167; gated 9078 and 2593"),
+                  "(8000,60) 0.403 / 0.860 / 1.167; gated 9078 and 2593",
+                  "memory_write_strength.py --scan, 20 brains, seven cells (A11): "
+                  "completion at the binary write / (n/k)^2 0.562 / 0.563 / 0.560 "
+                  "at k = 60, 0.798 / 0.798 at k = 120; rank-1 window at one count "
+                  "per item [3310, 76028) at (8000, 60)"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -1032,6 +1046,8 @@ _RESULTS: List[Result] = [
                         "3050-scalar per-seed comparison with the surviving n/k = 133 refracted file"),
             EvidenceRef("research/results/runs/memory.pattern-efficiency/pattern-efficiency-20260930/results.json", "artifact",
                         "Amendment 9: real, clean, random, balanced and gated memories on one circuit, seven cells"),
+            EvidenceRef("research/results/runs/memory.write-strength/write-strength-scan-20261001/results.json", "artifact",
+                        "Amendment 11: identification and completion load windows across write strength, seven cells"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "
