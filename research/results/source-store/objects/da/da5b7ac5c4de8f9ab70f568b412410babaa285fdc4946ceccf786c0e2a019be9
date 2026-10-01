@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner time-depth --registration research/notes/memory/PREREG_refraction_memory.md --tag time-depth-20261001 --seeds 102 103 104 105 106 107 108 109 110 111 112 113 114 115 116 117 118 119 120 121 > a15.log 2>&1

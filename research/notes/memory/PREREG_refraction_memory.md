@@ -688,6 +688,11 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | W2 synapse-count form (A14) | C within 15% and tighter than (n/k)^2, per block | FAIL | block B: CV 0.10 vs 0.07 |
 | W3 connectivity only as k p (A14) | capacity within 15% and same best beta | FAIL | capacity within 8%; best beta differs |
 | W4 learning-rate law at sparse p (A14) | best beta interior at p < 0.5 | FAIL | two at the sweep's top |
+| DV instrument (A15) | T = 8 replays A14 within 15% | PASS | 486, 1575 |
+| D1 old effect (A15) | beta 0.1: T = 16 below T = 8 | PASS | 86 vs 287; 207 vs 977 |
+| D2 rescaled write transfers (A15) | law point within 15% across T | FAIL | T = 12, 16 far below |
+| D3 best rate as 1/T (A15) | T ln(1+beta*) within 20% | FAIL | T = 16 optimum at the grid's bottom |
+| D4 depth does not matter at the optimum (A15) | best capacity within 15% across T | PASS | within 9% at both cells |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -1938,3 +1943,60 @@ vertex in log beta over the regular grid.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until DV to D4 are evaluated and recorded below.
+
+### Amendment 15 result (2026-10-01)
+
+One run from a worktree pinned at d5219e3a, 20 new brains (seeds 102 to
+121), two cells, four depths, 18 minutes:
+[record](../../results/runs/memory.time-depth/time-depth-20261001/results.json),
+[log](../../results/logs/time-depth-20261001.log). Distinct-completion
+capacity on each depth's grid (the extra beta = 0.1 point beside it):
+
+    (2000, 60)  T = 6   0.0742: 0    0.0883: 423  0.105: 453  0.125: 395  0.149: 315  0.177: 275   (0.1: 459)
+                T = 8   0.055: 0     0.0654: 486  0.0778: 424 0.0925: 320 0.11: 240   0.131: 206   (0.1: 287)
+                T = 12  0.0362: 421  0.043: 440   0.0512: 316 0.0609: 225 0.0724: 171 0.0861: 143  (0.1: 120)
+                T = 16  0.027: 515   0.0321: 402  0.0381: 271 0.0454: 172 0.054: 134  0.0642: 110  (0.1: 86)
+    (4000, 60)  T = 6   0.0742: 0    0.0883: 0    0.105: 1408 0.125: 1269 0.149: 1112 0.177: 900   (0.1: 1493)
+                T = 8   0.055: 0     0.0654: 1575 0.0778: 3*  0.0925: 1162 0.11: 871  0.131: 641   (0.1: 977)
+                T = 12  0.0362: 1540 0.043: 1554  0.0512: 1218 0.0609: 848 0.0724: 561 0.0861: 419 (0.1: 348)
+                T = 16  0.027: 1661  0.0321: 1359 0.0381: 1095 0.0454: 657 0.054: 426 0.0642: 314  (0.1: 207)
+
+    DV  THE INSTRUMENT                                                PASS
+        best at T = 8: 486 and 1575 against Amendment 14's 492 and 1616.
+    D1  THE OLD EFFECT                                                PASS
+        at beta = 0.1, T = 16 stores 86 and 207 against T = 8's 287 and 977.
+    D2  THE RESCALED WRITE TRANSFERS                                  FAIL
+        at the law point beta_T, T = 12 and 16 store 316 / 271 and
+        1218 / 1095 against T = 8's 424 and (*) 3.
+    D3  THE BEST RATE SCALES AS 1/T                                   FAIL
+        the T = 16 optimum is the grid's lowest point at both cells.
+    D4  DEPTH DOES NOT MATTER AT THE OPTIMUM                          PASS
+        best capacity 453 / 486 / 440 / 515 and 1408 / 1575 / 1554 /
+        1661 across T = 6, 8, 12, 16, within 9% of each cell's mean.
+
+(*) An instrument artifact, recorded and not corrected: the store at (4000,
+60), T = 8, beta = 0.0778 read distinct completion 0.55, 0.48, 0.49 at M =
+2, 3, 4 -- a recall sample of two to four items -- and the rule "two
+readings at or below 0.5 after one above" stopped it there. Its neighbours
+store 1575 and 1162. The same rule from M = 2 stopped eighteen Hebbian-
+control stores in Amendment 14 at M <= 16 (no refracted ones); the control's
+capacities are genuinely small there, but at worst they are understated,
+which can only have raised W1's multipliers, whose smallest (14x) is well
+clear of its 10x bar. Studies registered from here on hold the stop
+decision until M >= 32.
+
+**Reading.** Write rounds behave like depth in the sense that matters most:
+at its own best learning rate every depth from T = 6 to 16 stores the same
+(D4), so the old observation that 8 rounds beat 16 (D1, replicated) was
+over-writing at a fixed per-round rate, not a property of depth. The
+convergence gate's gain and "stronger beta hurts" read the same way. What
+fails is the specific rescaling: the per-round optimum falls FASTER than
+1/T -- T ln(1 + beta*) is 0.60, 0.51, 0.50 and at most 0.43 for T = 6, 8,
+12, 16 -- so later rounds count for more than earlier ones, as they would if
+an item spends its first rounds settling and only its last rounds writing
+the assembly it ends in. The first-item counts agree: at each depth's
+optimum the measured per-item write c ln(1 + beta) is 0.30 / 0.25 / 0.30 /
+0.21 and 0.30 / 0.19 / 0.21 / 0.13, closer to constant than T ln(1 + beta)
+but falling at T = 16, whose optimum the grid did not reach. Registering
+the invariant as "the write the final assembly receives", with a grid that
+contains the T = 16 optimum, is the next test of this line.
