@@ -342,3 +342,93 @@ uses the historical ten seeds for only A at FEAT 1000 x 50. All 70 accuracy
 values exactly match `word_capacity_ladder.json`, and the recomputed ceiling is
 51.895 +/- 11.498 with no censoring. It is VOID software evidence. The former
 direct `ladder()` path now raises and names the maintained runner.
+
+## Amendment 4 (2026-10-01, before running): is vocabulary synapse-limited, and does the lexicon's best learning rate scale with fan-in?
+
+Registered before any run of this amendment. Part 2 above found V*
+proportional to n_LEX (74, 166, 324 at n = 1000, 2000, 4000) and unmoved by
+k_LEX, and proposed that a word's capacity is a READOUT-through-a-fiber
+limit. The refraction-memory registration has since found
+(PREREG_refraction_memory.md, Amendments 13 and 14) that a recurrent
+memory's completion capacity, at its best learning rate, is governed by its
+synapses and its fan-in, and that the best learning rate scales as one over
+the square root of fan-in (at p = 0.5).
+
+A hetero-association signal-to-noise argument applied to the LEX -> FEAT
+fiber gives V* proportional to n_LEX p (the synapses a word's assembly can
+drive into FEAT), times a FEAT-side factor, and independent of k_LEX -- the
+two LEX-side facts Part 2 found. Its untested prediction is in p: if the
+lexicon is synapse-limited, V* doubles when the fiber's p doubles; if it is
+neuron-limited, V* does not move. This amendment tests that, and whether the
+lexicon's best plasticity falls with its fan-in k_LEX p as the memory's does.
+
+**A correction recorded here.** Before reading Part 1 again I had predicted
+V* proportional to n_LEX n_FEAT p. Part 1 already shows that FEAT size does
+not act that way -- V* rises and then FALLS along the FEAT ladder at fixed
+FEAT k, a readout floor -- so FEAT size is not varied here.
+
+**Seen before registering:** Part 2, the FEAT ladder, the refraction-memory
+amendments above, and a smoke run of this study (VOID: cell A, FEAT 1000 x
+50, V 8 and 16, three seeds, p = 0.05, beta = 0.1: type accuracy 0.94 to
+1.00, every seed above the 0.90 threshold at the top of that grid).
+
+### Protocol
+
+`research/experiments/word_capacity_synapses_run.py` through the shared
+runner (`python -m research.runner word-capacity-synapses --p P`), the
+registered learner, corpus, readout and ceiling reading of protocol 3.3
+unchanged except:
+
+* the connection probability p, one run per value: 0.025, 0.05, 0.1. It is
+  the probability of every fiber, with the stimulus anchor gain following as
+  1/p, as the registered learner sets it;
+* the plasticity beta, swept inside each run: 0.025, 0.05, 0.1, 0.2, 0.4
+  (the LEX -> FEAT fiber is the only one that learns; stimuli do not).
+
+Cells A (1000 x 50), B (2000 x 50) and C (4000 x 50); FEAT = 4000 x 100 (F*);
+V grid 16 to 1024; the registered twenty seeds (42, 1..19). At p = 0.05,
+beta = 0.1 each run reproduces Part 2's cells exactly. Three runs, from a
+worktree pinned at the commit registering this amendment, one GPU job.
+
+    python -m research.runner word-capacity-synapses --p 0.025 --tag word-capacity-synapses-p0025-20261001
+    python -m research.runner word-capacity-synapses --p 0.05  --tag word-capacity-synapses-p005-20261001
+    python -m research.runner word-capacity-synapses --p 0.1   --tag word-capacity-synapses-p01-20261001
+
+A (cell, p, beta) is FEAT-BOUND when its V* is at least 0.85 times cell C's at
+the same (p, beta) -- C, the largest lexicon, is the available proxy for the
+FEAT ceiling -- and is then excluded from L1 and L2, not counted for or
+against.
+
+### Bars
+
+    L0  THE INSTRUMENT. At p = 0.05, beta = 0.1, V* of A, B and C is within
+        1% of Part 2's (73.8, 166.4, 324.4). Failure voids L1 to L4.
+    L1  VOCABULARY IS SYNAPSE-LIMITED. At beta = 0.1, for cells A and B,
+        each doubling of p (0.025 -> 0.05 -> 0.1) multiplies V* by 1.6 to
+        2.5 (uncensored, not FEAT-bound).
+    L2  THE SAME LAW ACROSS n. At beta = 0.1 and each p where both are
+        usable, V* / (n_LEX p) of A and of B agree within 25%.
+    L3  AN INTERIOR BEST PLASTICITY. For A and B at every p, V* over beta
+        peaks strictly inside the grid.
+    L4  THE BEST PLASTICITY FALLS WITH FAN-IN. For A and B, beta* (a
+        parabola in log beta through the best grid point and its
+        neighbours) strictly decreases from p = 0.025 to 0.05 to 0.1, and
+        beta*(0.025) / beta*(0.1) is in [1.4, 2.8] (a square root predicts 2
+        over a fourfold fan-in).
+
+### Interpretation, stated now
+
+* L1 and L2 pass: a lexical area's vocabulary is set by the synapses its
+  words can use into the area they are read through, n_LEX p, not by its
+  neuron count as such; sizing a lexicon means sizing a fiber.
+* L1 fails with V* flat in p: the lexicon is neuron-limited; the
+  synapse-count reading of Part 2 is wrong.
+* L3 and L4 pass: the per-fiber, fan-in-scaled learning rate found in the
+  refracted memory also governs this learner's lexicon, a different
+  plasticity regime (unclipped, column-scaled) -- the strongest support yet
+  for setting plasticity per fiber in the language organ. L3 fails: this
+  learner's capacity does not depend on beta in the swept range (column
+  scaling may make it scale-free), which is itself a finding.
+* A failed bar is recorded as failed and not moved after the data.
+
+The runs are UNJUDGED until L0 to L4 are evaluated and recorded below.

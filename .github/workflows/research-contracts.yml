@@ -60,6 +60,7 @@ jobs:
           neural_assemblies/tests/test_write_strength.py
           neural_assemblies/tests/test_learning_rate.py
           neural_assemblies/tests/test_recall_law.py
+          neural_assemblies/tests/test_word_capacity_synapses.py
           neural_assemblies/tests/test_throughput_contract.py
           neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py
