@@ -107,6 +107,71 @@ def adaptive_ceiling(measure_at, metric, start, cap, cache):
         mean_at(3 * M // 4)
 
 
+def scan(measure_at, cap, give_up, cache):
+    """Amendment 11's instrument: every power of two from 16, read for BOTH
+    metrics, so a curve that fails at low load and works later is seen.
+
+    Doubling stops once some metric has been above 0.5 and both have then
+    been at or below it at two consecutive points, at `cap`, or at `give_up`
+    if neither metric has yet been above 0.5. Then the 1.5x point is added
+    inside every doubling across which either metric changes side of 0.5."""
+    metrics = ("rank1", "complete")
+
+    def means(M):
+        if M not in cache:
+            cache[M] = measure_at(M)
+        return {m: ensemble_from_values(cache[M][m]).mean for m in metrics}
+
+    M, seen, below = 16, False, 0
+    while M <= cap:
+        above = any(v > pe.HALF_BAR for v in means(M).values())
+        if above:
+            seen, below = True, 0
+        elif seen:
+            below += 1
+        if (seen and below >= 2) or (not seen and M >= give_up):
+            break
+        M *= 2
+    points = sorted(cache)
+    for a, b in zip(points, points[1:]):
+        if b == 2 * a:
+            ma, mb = means(a), means(b)
+            if any((ma[m] > pe.HALF_BAR) != (mb[m] > pe.HALF_BAR) for m in metrics):
+                means(3 * a // 2)
+
+
+def edges(points):
+    """Lower and upper edges of the load window where a metric exceeds 0.5,
+    interpolated in log2 M. `lower` is None when the curve already exceeds
+    0.5 at its first point; `upper` is None when it never does and
+    `upper_censored` when it still does at its last."""
+    import math
+    pts = sorted(points)
+    above = [i for i, (_, v) in enumerate(pts) if v > pe.HALF_BAR]
+
+    def cross(i, j):
+        (m0, v0), (m1, v1) = pts[i], pts[j]
+        t = 0.0 if v0 == v1 else (v0 - pe.HALF_BAR) / (v0 - v1)
+        t = min(max(t, 0.0), 1.0)
+        return 2.0 ** (math.log2(m0) + t * (math.log2(m1) - math.log2(m0)))
+
+    if not above:
+        return {"lower": None, "upper": None, "upper_censored": False, "never": True}
+    first, last = above[0], above[-1]
+    return {"lower": None if first == 0 else cross(first - 1, first),
+            "upper": None if last == len(pts) - 1 else cross(last, last + 1),
+            "upper_censored": last == len(pts) - 1, "never": False,
+            "last_above": pts[last][0]}
+
+
+def windows(cache):
+    out = {}
+    for metric in ("rank1", "complete"):
+        out[metric] = edges([(M, ensemble_from_values(r[metric]).mean)
+                             for M, r in cache.items()])
+    return out
+
+
 def ceilings(cache, seeds):
     out = {}
     for metric in ("rank1", "complete"):
@@ -116,14 +181,14 @@ def ceilings(cache, seeds):
 
 
 def summarise(cache, seeds):
-    return {"ceilings": ceilings(cache, seeds),
+    return {"ceilings": ceilings(cache, seeds), "windows": windows(cache),
             "ensembles": {M: {name: asdict(ensemble_from_values(values, keys=seeds, label=name))
                               for name, values in r.items()}
                           for M, r in sorted(cache.items())},
             "readings": {M: r for M, r in sorted(cache.items())}}
 
 
-def random_brains(n, k, seeds, cap, device):
+def random_brains(n, k, seeds, cap, device, salt="ws"):
     """Each brain's own independent random k-subsets, generated in chunks
     from a per-(seed, cell, chunk) generator so the set is a function of the
     brain alone."""
@@ -133,7 +198,7 @@ def random_brains(n, k, seeds, cap, device):
         parts = []
         for s in range(0, cap, pe.CHUNK):
             g = torch.Generator(device=device)
-            g.manual_seed(to_i32(_seeding.fnv1a_pair_seed(seed, f"ws/{n}/{k}/{s}", "A")) & 0x7FFFFFFF)
+            g.manual_seed(to_i32(_seeding.fnv1a_pair_seed(seed, f"{salt}/{n}/{k}/{s}", "A")) & 0x7FFFFFFF)
             m = min(pe.CHUNK, cap - s)
             parts.append(torch.rand(m, n, generator=g, device=device).topk(k, dim=1).indices)
         brains[b] = torch.cat(parts)
@@ -168,17 +233,24 @@ def experiment(record):
         c_model, pres_bits, invdj = circuit(n, k, seeds, device, profiles["refracted"])
         start = 1 << max(4, int(np.floor(np.log2(0.05 * (n / k) ** 2))))
         cap_k = cap if k <= 60 else cap // 2      # pattern memory at k = 120
-        brains = random_brains(n, k, seeds, cap_k, device)
+        search = parameters.get("search", "adaptive")
+        brains = random_brains(n, k, seeds, cap_k, device,
+                               salt="ws" if search == "adaptive" else "ws-scan")
+        give_up = 1 << int(np.ceil(np.log2(8 * (n / k) ** 2)))
         sweep = {}
         for c in parameters["counts"]:
             cache = {}
             def at(M, c=c):
                 return evaluate_at(M, brains, c, k, n, pres_bits, invdj, tab)
-            adaptive_ceiling(at, "rank1", start, cap_k, cache)
-            adaptive_ceiling(at, "complete", start, cap_k, cache)
+            if search == "adaptive":
+                adaptive_ceiling(at, "rank1", start, cap_k, cache)
+                adaptive_ceiling(at, "complete", start, cap_k, cache)
+            else:
+                scan(at, cap_k, give_up, cache)
             sweep[str(c)] = summarise(cache, seeds)
-            print(f"({n}, {k}) c={c}: rank-1 {sweep[str(c)]['ceilings']['rank1']['m_star']:.0f}, "
-                  f"completion {sweep[str(c)]['ceilings']['complete']['m_star']:.0f}", flush=True)
+            w = sweep[str(c)]["windows"]
+            print(f"({n}, {k}) c={c}: rank-1 window {w['rank1']['lower']} .. {w['rank1']['upper']}, "
+                  f"completion window {w['complete']['lower']} .. {w['complete']['upper']}", flush=True)
         del brains
         torch.cuda.empty_cache()
         cell = {"n": n, "k": k, "c_model": c_model, "cap": cap_k, "sweep": sweep}
@@ -257,6 +329,85 @@ def evaluate(observations, *, random_anchors=None):
     return out
 
 
+def evaluate_scan(observations, *, random_anchors=None):
+    """Amendment 11's bars, on window edges from the full scan."""
+    random_anchors = RANDOM_ANCHORS if random_anchors is None else random_anchors
+    cells = {(c["n"], c["k"]): c for c in observations["cells"].values()}
+    judged = [nk for nk in pe.IN_REGIME if nk in cells]
+    out = {"cells": {}, "bars": {}}
+
+    def win(nk, c, metric="rank1"):
+        return cells[nk]["sweep"][str(c)]["windows"][metric]
+
+    def upper(nk, c, metric="rank1"):
+        """Upper edge; 0 when the metric never exceeds 0.5; a censored edge
+        is its last point above (a lower bound)."""
+        w = win(nk, c, metric)
+        if w["never"]:
+            return 0.0
+        return w["last_above"] if w["upper_censored"] else w["upper"]
+
+    def sq(nk):
+        return (nk[0] / nk[1]) ** 2
+
+    for nk, cell in cells.items():
+        counts = sorted(int(c) for c in cell["sweep"])
+        out["cells"][f"{nk[0]}/{nk[1]}"] = {
+            "c_model": cell["c_model"],
+            "rank1": {c: {"lower": win(nk, c)["lower"], "upper": upper(nk, c),
+                          "censored": win(nk, c)["upper_censored"]} for c in counts},
+            "complete": {c: {"lower": win(nk, c, "complete")["lower"],
+                             "upper": upper(nk, c, "complete"),
+                             "censored": win(nk, c, "complete")["upper_censored"]}
+                         for c in counts},
+        }
+    own = {nk: cells[nk]["c_model"] for nk in cells}
+    out["bars"]["XV"] = all(
+        not win(nk, own[nk])["never"] and not win(nk, own[nk])["upper_censored"]
+        and abs(upper(nk, own[nk]) / random_anchors[nk] - 1) <= 0.10
+        for nk in cells if nk in random_anchors)
+    out["bars"]["X1"] = all(upper(nk, 32, "complete") >= 1.5 * upper(nk, own[nk], "complete")
+                            and upper(nk, 32, "complete") > 0 for nk in judged)
+    out["bars"]["X2"] = all(upper(nk, 32) > 0 and upper(nk, 32, "complete") / upper(nk, 32) >= 0.85
+                            for nk in judged)
+    k60 = [upper(nk, 32, "complete") / sq(nk) for nk in judged if nk[1] == 60]
+    k120 = [upper(nk, 32, "complete") / sq(nk) for nk in judged if nk[1] == 120]
+
+    def tight(values):
+        mean = sum(values) / len(values)
+        return all(abs(v / mean - 1) <= 0.15 for v in values), mean
+    ok60, m60 = tight(k60)
+    ok120, m120 = tight(k120)
+    out["binary_completion_per_nk2"] = {"k60": k60, "k120": k120}
+    out["bars"]["X3"] = ok60 and ok120 and m120 >= 1.25 * m60
+    pairs = (((2000, 60), (4000, 120)), ((4000, 60), (8000, 120)))
+    own_ratio = [upper(a, own[a]) / upper(b, own[b]) for a, b in pairs]
+    bin_ratio = [upper(a, 32) / upper(b, 32) for a, b in pairs]
+    out["pair_ratios"] = {"own": own_ratio, "binary": bin_ratio}
+    out["bars"]["X4"] = (all(0.8 <= r <= 1.25 for r in own_ratio)
+                         and all(r <= 0.8 for r in bin_ratio))
+    out["bars"]["X5"] = all(win(nk, 3)["lower"] is not None and not win(nk, 3)["never"]
+                            and upper(nk, 3) > upper(nk, own[nk])
+                            for nk in judged if nk[1] == 60)
+
+    def c_min(nk):
+        for c in sorted(int(x) for x in cells[nk]["sweep"]):
+            if upper(nk, c, "complete") > 0.05 * sq(nk):
+                return c
+        return None
+    levels = (((2000, 60), (4000, 120)), ((2000, 30), (4000, 60), (8000, 120)),
+              ((4000, 30), (8000, 60)))
+    mins = {f"{nk[0]}/{nk[1]}": c_min(nk) for nk in cells}
+    out["completion_c_min"] = mins
+
+    def falls(level):
+        values = [c_min(nk) for nk in level if nk in cells]
+        return (None not in values and len(values) == len(level)
+                and all(a > b for a, b in zip(values, values[1:])))
+    out["bars"]["X6"] = all(falls(level) for level in levels)
+    return out
+
+
 def plan(cells):
     return [{"n": n, "k": k} for n, k in cells]
 
@@ -267,6 +418,8 @@ def main(argv=None):
     ap.add_argument("--registration", required=True)
     ap.add_argument("--nk", help="n:k pairs (default: the seven cells of the law)")
     ap.add_argument("--device", default="cuda")
+    ap.add_argument("--scan", action="store_true",
+                    help="Amendment 11: full scan from 16 with both window edges")
     args = ap.parse_args(argv)
     cells = ([tuple(int(v) for v in pair.split(":")) for pair in args.nk.split(",")]
              if args.nk else list(CELLS))
@@ -277,7 +430,7 @@ def main(argv=None):
                                               gate=False, norm_init=True, synaptic_scaling=False),
     }
     path = run_experiment(
-        script=__file__, protocol="memory.write-strength", protocol_version="1",
+        script=__file__, protocol="memory.write-strength", protocol_version="2" if args.scan else "1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": plan(cells),
@@ -286,7 +439,7 @@ def main(argv=None):
                     "p": pe.P, "beta": pe.BETA, "w_max": pe.W_MAX, "rounds": pe.T,
                     "strength": pe.STRENGTH, "half_bar": pe.HALF_BAR,
                     "recall_sample": pe.RECALL_SAMPLE, "measurement_seed": pe.MEASUREMENT_SEED,
-                    "device": args.device},
+                    "device": args.device, "search": "scan" if args.scan else "adaptive"},
     )
     print(f"wrote {path}")
 

@@ -1245,3 +1245,78 @@ ceiling exceeds 0.05 (n/k)^2 falls with k: c = 11 at k = 30, 6 at k = 60,
 4 at k = 120, within every n/k level. These are readings of a void
 study; Amendment 11 tests them on fresh patterns with an instrument that
 measures both edges of a load window.
+
+## Amendment 11 (2026-10-01, before running): the write-strength sweep with an instrument that sees load windows
+
+Registered before any run of this amendment. It repeats Amendment 10's
+question with the instrument corrected. **Every bar below tests a pattern
+already SEEN** in Amendment 10's void record or in a smoke run, so a pass is
+a REPLICATION on fresh patterns with a sound instrument, not a prediction.
+Seen beforehand: the descriptive readings recorded under Amendment 10's
+result; Amendment 9's c - 2 curve; an exploratory CPU probe (Bernoulli
+presence, one brain) in which c = 3 recall holds 0.40 of the item after one
+round at every load but drifts to chance (0.04) by round eight at M <= 128
+and stops near 0.25 to 0.32 at M >= 256; and a smoke run of this instrument
+(VOID: 3 brains, cap 1024, (2000, 60), c in {1, 5, 32}) whose rank-1 window
+was [853, >= 1024) at c = 1, [16, 841) at c = 5 and [16, 685) at c = 32, and
+completion window [16, 20) at c = 5 and [16, 626) at c = 32.
+
+### Protocol
+
+As Amendment 10 (`memory_write_strength.py`, `--scan`, protocol version 2),
+with fresh patterns (generator salt `ws-scan`) and the instrument replaced:
+every power of two from 16 is read for both metrics, doubling stops once a
+metric has been above 0.5 and both have then been at or below it at two
+consecutive points (or at the cap, 131072 items, 65536 at k = 120, or at the
+first power of two at or above 8 (n/k)^2 if neither has yet risen), and the
+1.5x point is added inside every doubling where either metric changes side.
+Each metric's LOAD WINDOW is where its ensemble mean exceeds 0.5: a lower
+edge (absent when it already does at M = 16) and an upper edge (the last
+downward crossing; a curve still above 0.5 at its last point is censored and
+counted at that point). "Capacity" below is the upper edge; a metric that
+never exceeds 0.5 has capacity 0.
+
+    python -m research.runner write-strength --scan \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag write-strength-scan-20261001
+
+### Bars (judged cells: the five in regime unless stated)
+
+    XV  THE INSTRUMENT. At the model's own c the rank-1 upper edge is
+        resolved and within 10% of Amendment 9's random ceiling at all
+        seven cells (818, 762, 3583, 4088, 15288; 5043, 20741). Failure
+        voids X1..X6.
+    X1  COMPLETION NEEDS A STRONG WRITE. The completion capacity at c = 32
+        is positive and at least 1.5 times that at the model's own c.
+    X2  THE BINARY WRITE COMPLETES WHAT IT IDENTIFIES. At c = 32 completion
+        capacity over rank-1 capacity is at least 0.85.
+    X3  A SEPARABLE LAW AT THE BINARY WRITE. Completion capacity at c = 32
+        over (n/k)^2 is within 15% of its mean across the three k = 60
+        cells and across the two k = 120 cells, and the k = 120 mean is at
+        least 1.25 times the k = 60 mean.
+    X4  THE n/k LAW BELONGS TO THE OPERATING WRITE. At each cell's own c the
+        n/k-matched pairs ((2000, 60) with (4000, 120); (4000, 60) with
+        (8000, 120)) have rank-1 capacities within [0.8, 1.25] of each
+        other; at c = 32 both ratios (k = 60 over k = 120) are at most 0.8.
+    X5  WEAK WRITES HAVE A LOAD WINDOW. At the three k = 60 cells, c = 3
+        has a rank-1 lower edge (it fails at M = 16) and a rank-1 capacity
+        above that of the model's own c.
+    X6  THE SMALLEST COMPLETING WRITE FALLS WITH k p. Within each n/k level
+        ((2000, 60), (4000, 120); (2000, 30), (4000, 60), (8000, 120);
+        (4000, 30), (8000, 60)), the smallest c whose completion capacity
+        exceeds 0.05 (n/k)^2 strictly decreases as k rises. All seven cells.
+
+### Interpretation, stated now
+
+* X1 and X2: capacity quoted from identification alone flatters weak
+  writes; a memory that must COMPLETE wants the clipped, binary end.
+* X3 and X4: the n/k law is a property of the operating write strength,
+  not of the circuit; at the binary write capacity is g(k p) (n/k)^2.
+* X5: identification by a weak write is a load window, not a ceiling.
+* X6: the write a memory needs scales down with how many cue synapses each
+  neuron sums -- the quantity a per-fiber, fan-in-scaled learning rate
+  would hold fixed. A pass makes that parameterisation the next
+  registration.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until XV to X6 are evaluated and recorded below.

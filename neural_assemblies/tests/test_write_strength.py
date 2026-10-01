@@ -33,6 +33,39 @@ def test_adaptive_search_reports_a_censored_curve():
     assert ws.ceilings(cache, [1, 2, 3])["rank1"]["censored"]
 
 
+def _window(lo, hi):
+    """A metric above 0.5 only for lo <= M < hi: Amendment 10's failure."""
+    def measure(M):
+        value = 1.0 if lo <= M < hi else 0.0
+        return {"rank1": [value] * 3, "complete": [0.0] * 3}
+    return measure
+
+
+def test_scan_sees_a_load_window_the_adaptive_search_missed():
+    lo, hi = 300, 5000
+    adaptive = {}
+    ws.adaptive_ceiling(_window(lo, hi), "rank1", 128, 1 << 17, adaptive)
+    assert ws.ceilings(adaptive, [1, 2, 3])["rank1"]["below_at_first"]   # the defect
+    cache = {}
+    ws.scan(_window(lo, hi), 1 << 17, 1 << 14, cache)
+    w = ws.windows(cache)["rank1"]
+    assert not w["never"] and not w["upper_censored"]
+    assert 256 <= w["lower"] <= 512 and 4096 <= w["upper"] <= 8192
+
+
+def test_edges_of_monotone_never_and_censored_curves():
+    assert ws.edges([(16, 1.0), (32, 1.0), (64, 0.0)])["lower"] is None
+    assert ws.edges([(16, 0.0), (32, 0.2)])["never"]
+    censored = ws.edges([(16, 0.0), (32, 1.0), (64, 1.0)])
+    assert censored["upper_censored"] and censored["last_above"] == 64
+
+
+def test_scan_gives_up_on_a_metric_that_never_rises():
+    cache = {}
+    ws.scan(lambda M: {"rank1": [0.0] * 3, "complete": [0.0] * 3}, 1 << 17, 1024, cache)
+    assert max(cache) == 1024 and ws.windows(cache)["rank1"]["never"]
+
+
 def _sweep(shape, n, k):
     sweep = {}
     for c in ws.COUNTS:
