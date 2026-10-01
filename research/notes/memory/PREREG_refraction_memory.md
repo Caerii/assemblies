@@ -1694,3 +1694,99 @@ memory at its own best learning rate stores in proportion to its synapses
 (n^2 p) per bit of item (k ln(n/k)) -- a stronger and different law from
 the (n/k)^2 of the operating write. It needs its own registration, with
 cells that separate n^2 p / k from (n/k)^2 k p.
+
+## Amendment 14 (2026-10-01, before running): what the refracted memory recalls against the Hebbian control, and in which variables it scales
+
+Registered before any run of this amendment. P1's central sentence -- 0.345
+to 0.502 (n/k)^2 assemblies, 23 to 38 times the Hebbian ceiling, a function
+of n/k alone -- rests on rank-1 IDENTIFICATION at beta = 0.1. Amendments 11
+to 13 showed identification can grow while completion vanishes, that the
+n/k law belongs to the operating write, and that beta = 0.1 is 1.3 to 2.7
+times above the completion optimum, ln(1 + beta*) = 0.29 / sqrt(k p / 2). At
+that optimum Amendment 13 SAW, without registering it, distinct completion
+following the sparse associative memory's synapse-count form, M* = C n^2 p /
+(k ln(n/k)), with C matched across n/k at equal k p (0.0480 / 0.0475 at
+k p = 30; 0.0655 / 0.0654 at 60). This amendment asks, on the criterion P1
+must use, (i) whether the multiplier over the Hebbian control survives, (ii)
+whether the synapse-count form holds where it and (n/k)^2 disagree, and
+(iii) whether connectivity enters only through k p, including sparse p.
+
+**Seen before registering:** Amendments 11 to 13 and their records, and a
+smoke run of this study (VOID: 3 brains, cap 32, (8000, 240, 0.125) and
+(1000, 60, 0.5), the refracted memory at its predicted beta and the control
+at 0.1): the refracted memory completed above 0.5 to the cap at both; the
+control's distinct completion ended near 20 and 5 items.
+
+### Protocol
+
+`research/experiments/memory_recall_law.py` through the shared runner
+(`python -m research.runner recall-law`), seeds 82 to 101 (new brains), one
+run from a worktree pinned at the commit registering this amendment. Ten
+(n, k, p) cells in three blocks:
+
+    A  k p = 30, p = 0.5:   (1000, 60), (2000, 60), (4000, 60), (8000, 60)
+                            n/k = 16.7, 33, 67, 133
+    B  k p = 60, p = 0.5:   (2000, 120), (4000, 120), (8000, 120)
+                            n/k = 16.7, 33, 67
+    C  sparse, n/k = 33:    (4000, 120, 0.25), (8000, 240, 0.125)  k p = 30
+                            (8000, 240, 0.25)                      k p = 60
+
+Every cell satisfies k p >= 3 ln n. Two memories per cell, each swept over
+its own learning rates: the refracted AssemblyMemory (0.5 beta, T = 8,
+w_max = 20, arm B, ungated) at beta_pred x 2^(j/4), j = -2..2, with beta_pred
+= expm1(0.29 / sqrt(k p / 2)) (0.0778 at k p = 30, 0.0544 at 60); the
+Hebbian control (strength 0, otherwise identical) at beta = 0.0125, 0.025,
+0.05, 0.1, 0.2, 0.4. Recall is the module's own (masked for the refracted
+memory) half-cue recall on 32 sampled items per brain at every checkpoint of
+the geometric grid from M = 2. DISTINCT completion: the recall recovers at
+least 0.8 of the item AND is nearer it than any other stored item. The
+refracted memory stops on distinct completion (or gives up at 4 times the
+synapse-count guess 0.06 n^2 p / (k ln(n/k)) if it never rises), the
+control on rank-1 and distinct completion. A memory's CAPACITY at a cell is
+the largest distinct-completion upper edge over its sweep (a curve that
+never exceeds 0.5 is 0; the control's floor in the multiplier is 2, its
+first checkpoint). C = capacity / (n^2 p / (k ln(n/k))).
+
+    python -m research.runner recall-law \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag recall-law-20261001 --seeds 82 83 84 85 86 87 88 89 90 91 92 93 \
+        94 95 96 97 98 99 100 101
+
+### Bars
+
+    WV  THE INSTRUMENT. The refracted capacity at (2000, 60), (4000, 60),
+        (4000, 120), (8000, 120) at p = 0.5 is within 15% of Amendment 13's
+        best distinct completion there (457, 1505, 1245, 4157) on new
+        brains. Failure voids W1 to W4.
+    W1  THE MULTIPLIER ON RECALL. At every cell the refracted capacity is
+        at least 10 times the control's (each at its own best learning
+        rate).
+    W2  THE SYNAPSE-COUNT FORM. In block A and in block B separately, C is
+        within 15% of the block's mean at every cell, and C varies less
+        across the block (coefficient of variation) than capacity /
+        (n/k)^2 does.
+    W3  CONNECTIVITY ENTERS ONLY AS k p. Within each group of equal (n/k,
+        k p) and different p -- {(2000, 60, 0.5), (4000, 120, 0.25),
+        (8000, 240, 0.125)} and {(4000, 120, 0.5), (8000, 240, 0.25)} --
+        capacities are within 15% of the group mean and the best
+        learning rate is the same or an adjacent grid point.
+    W4  THE LEARNING-RATE LAW AT SPARSE p. At the three p < 0.5 cells the
+        refracted memory's best learning rate is interior to its sweep
+        (the optimum is within one grid step, 2^(1/4), of the law's prediction).
+
+### Interpretation, stated now
+
+* W1 passes: P1's multiplier is restated on recall, each memory at its own
+  optimum; the identification multiplier is reported beside it. W1 fails:
+  P1 may not claim a recall multiplier of that size.
+* W2 passes: at its optimal learning rate the refracted memory is a
+  synapse-limited associative memory, M* = C(k p) n^2 p / (k ln(n/k)), and
+  P1 quotes that law, with the (n/k)^2 law of the operating write as the
+  fixed-beta special case. W2 fails: the law stays (n/k)^2 g(k p) and the
+  synapse form is not quoted.
+* W3 and W4 pass: the memory and its learning-rate rule depend on
+  connectivity only through k p over p = 0.125 to 0.5, so a sparser,
+  cortex-like area behaves like a dense one with the same fan-in.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until WV to W4 are evaluated and recorded below.

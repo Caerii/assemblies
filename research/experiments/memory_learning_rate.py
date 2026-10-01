@@ -112,14 +112,21 @@ def readings(mem, St, M, n, k):
 
 
 def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
-             stop_on=("rank1", "complete")):
+             stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
+             grid_start=16, give_up=None):
+    """Store with the capacity study's stimuli and read every checkpoint.
+
+    Stops once a `stop_on` metric has been above 0.5 and all have then been
+    at or below it at two consecutive checkpoints, at `cap`, or -- when
+    `give_up` is set -- at the first checkpoint at or past it if none has
+    yet risen. `p`, `strength` and `grid_start` default to Amendments 12-13."""
     torch = pe._torch()
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
-    mem = AssemblyMemory(seeds_for(seeds), n, k, pe.P, beta=beta, w_max=pe.W_MAX,
-                         norm_init=True, synaptic_scaling=False, rounds=pe.T,
-                         strength=STRENGTH, gate=False, max_items=cap,
+    mem = AssemblyMemory(seeds_for(seeds), n, k, pe.P if p is None else p, beta=beta,
+                         w_max=pe.W_MAX, norm_init=True, synaptic_scaling=False,
+                         rounds=pe.T, strength=strength, gate=False, max_items=cap,
                          device=device, organ_semantics=organ_semantics)
-    grid = [m for m in pe.geometric_grid(16, cap)]
+    grid = [m for m in pe.geometric_grid(grid_start, cap)]
     stored, cache = [], {}
     seen, below, c = False, 0, None
     for a in range(cap):
@@ -138,6 +145,8 @@ def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
         elif seen:
             below += 1
         if seen and below >= 2:
+            break
+        if give_up is not None and not seen and M >= give_up:
             break
     del mem, stored
     torch.cuda.empty_cache()
