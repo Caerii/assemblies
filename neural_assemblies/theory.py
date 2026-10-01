@@ -1000,7 +1000,14 @@ _RESULTS: List[Result] = [
               "write; at the optimum the best distinct completion grows with k p "
               "(0.41-2.46 (n/k)^2 at n/k = 33). Completion must be DISTINCT "
               "(recovered and rank-1): above beta ~ 0.2 merged assemblies make "
-              "'completion' exceed identification.",
+              "'completion' exceed identification. ON RECALL (Amendment 14, ten "
+              "(n, k, p) cells, new brains): with each memory at its own best "
+              "learning rate the refracted memory completes 14-57x as many "
+              "distinct items as the Hebbian control at every cell; at equal "
+              "(n/k, k p) capacity is the same at p = 0.125, 0.25, 0.5 (within "
+              "8%) but sparse p wants a higher learning rate, so the "
+              "learning-rate law is stated for p = 0.5; whether capacity at the "
+              "optimum scales as n^2 p / (k ln(n/k)) or (n/k)^2 is NOT settled.",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1068,6 +1075,8 @@ _RESULTS: List[Result] = [
                         "Amendment 12: beta sweep on the real memory, five cells (T1-T3 failed: merged recall)"),
             EvidenceRef("research/results/runs/memory.learning-rate/learning-rate-distinct-20261001/results.json", "artifact",
                         "Amendment 13: distinct-completion beta sweep, new brains, seven cells incl. two unseen"),
+            EvidenceRef("research/results/runs/memory.recall-law/recall-law-20261001/results.json", "artifact",
+                        "Amendment 14: refracted vs Hebbian on distinct completion, ten (n, k, p) cells"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "

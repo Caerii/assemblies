@@ -683,6 +683,11 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | U2 the law (A13) | gamma* within 15% of 0.29, 7 cells incl. 2 unseen | PASS | 0.257-0.303 |
 | U3 the exponent (A13) | 1/2 collapses best, CV < 0.10 | PASS | 0.052 (raw beta 0.213) |
 | U4 wider is better (A13) | best distinct completion / (n/k)^2 rises with k p | PASS | 0.41 to 2.46; 0.34, 0.94 |
+| WV instrument (A14) | A13 capacities within 15% on new brains | PASS | 0.970-1.077 |
+| W1 recall multiplier (A14) | refracted >= 10x control, each at its best beta | PASS | 14.0-57.3 at ten cells |
+| W2 synapse-count form (A14) | C within 15% and tighter than (n/k)^2, per block | FAIL | block B: CV 0.10 vs 0.07 |
+| W3 connectivity only as k p (A14) | capacity within 15% and same best beta | FAIL | capacity within 8%; best beta differs |
+| W4 learning-rate law at sparse p (A14) | best beta interior at p < 0.5 | FAIL | two at the sweep's top |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -1790,3 +1795,71 @@ first checkpoint). C = capacity / (n^2 p / (k ln(n/k))).
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until WV to W4 are evaluated and recorded below.
+
+### Amendment 14 result (2026-10-01)
+
+One run from a worktree pinned at be8d44ef, 20 new brains (seeds 82 to
+101), ten cells, 27 minutes:
+[record](../../results/runs/memory.recall-law/recall-law-20261001/results.json),
+[log](../../results/logs/recall-law-20261001.log). Capacity is the best
+distinct-completion upper edge over each memory's own learning-rate sweep;
+C = capacity / (n^2 p / (k ln(n/k))):
+
+    cell (n, k, p)    block  refracted  best beta (index)  control  multiplier  C       /(n/k)^2
+    (1000, 60, .5)    A      133        0.0654 (1)         5        25.6        0.0450  0.479
+    (2000, 60, .5)    A      492        0.0654 (1)         16       31.2        0.0517  0.443
+    (4000, 60, .5)    A      1616       0.0654 (1)         63       25.5        0.0509  0.364
+    (8000, 60, .5)    A      4360       0.0654 (1)         312      14.0        0.0400  0.245
+    (2000, 120, .5)   B      303        0.0457 (1)         9        35.0        0.0511  1.090
+    (4000, 120, .5)   B      1208       0.0457 (1)         38       31.7        0.0635  1.087
+    (8000, 120, .5)   B      4138       0.0544 (2)         158      26.2        0.0652  0.931
+    (4000, 120, .25)  C      442        0.0925 (3)         19       23.4        0.0465  0.398
+    (8000, 240, .125) C      502        0.1100 (4)         19       26.1        0.0528  0.452
+    (8000, 240, .25)  C      1109       0.0769 (4)         19       57.3        0.0583  0.998
+
+    WV  THE INSTRUMENT                                                PASS
+        refracted capacity over Amendment 13: 1.077, 1.074, 0.970, 0.995.
+    W1  THE MULTIPLIER ON RECALL                                      PASS
+        14.0 to 57.3 at every cell (the control at its own best beta,
+        0.05 or 0.1).
+    W2  THE SYNAPSE-COUNT FORM                                        FAIL
+        block A: C within 15% of its mean (0.040 to 0.052) and tighter
+        than capacity / (n/k)^2 (CV 0.10 against 0.23); block B: C within
+        15% (0.051 to 0.065) but LOOSER than capacity / (n/k)^2 (CV 0.10
+        against 0.07).
+    W3  CONNECTIVITY ONLY AS k p                                      FAIL
+        capacities agree: 492 / 442 / 502 (within 8% of their mean) and
+        1208 / 1109 (within 5%); the best learning rates do not: grid
+        indices 1 / 3 / 4 and 1 / 4.
+    W4  THE LEARNING-RATE LAW AT SPARSE p                             FAIL
+        best beta at index 3, 4, 4 of 0..4: two of the three sparse cells
+        peak at the top of the sweep.
+
+**Reading.** P1's multiplier survives on the criterion it must use: with
+each memory at its own best learning rate, the refracted memory completes
+14 to 57 times as many distinct items as the Hebbian control at every one
+of ten cells (the smallest, 14x, at (8000, 60), where the control reaches
+312). The scaling law is not settled. At k p = 30 the synapse-count form
+describes the four cells better than (n/k)^2, but C is not flat -- it peaks
+at n/k = 33 to 67 (0.052, 0.051) and is lower at both ends (0.045, 0.040);
+at k p = 60, (n/k)^2 is the tighter description over n/k = 17 to 67. The
+two forms differ by a factor of ln(n/k), which changes only 1.7-fold over
+this range, so ten cells do not separate them; nothing is adopted. The
+sparse cells answer half of W3: at equal (n/k, k p) the CAPACITY is the same
+at p = 0.125, 0.25 and 0.5 (within 8%), so a sparser area with the same
+fan-in stores as much; but its best learning rate is higher.
+
+**Post hoc, labelled, not adopted.** The noise a write must beat is the
+spread of the number of cue synapses a neuron receives, k p (1 - p) / 2,
+not k p / 2. Scaling the learning-rate law by it predicts a best beta
+sqrt((1 - p) / 0.5) times the dense value: 1.22x at p = 0.25 and 1.32x at
+p = 0.125, i.e. 0.095 and 0.103 at k p = 30 (observed best 0.0925 and the
+grid's top, 0.11) and 0.066 at k p = 60, p = 0.25 (observed the top,
+0.077). This fits the direction and roughly the size (though this run's dense
+cells also peaked one grid step below the law's 0.078, at 0.0654, which the
+sparse optima overshoot by a further one to two steps); it needs its own
+registration with a sweep that extends above these optima. Also seen:
+judged on identification instead, with each memory at its best rate, the
+multiplier is smaller at the largest cell (15429 against 2499 rank-1 at
+(8000, 60), 6x), because a weakly written Hebbian control identifies far
+more than it completes.
