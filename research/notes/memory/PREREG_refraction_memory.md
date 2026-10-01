@@ -1100,3 +1100,96 @@ What this does not establish: the circuit's capacity at other write
 strengths, where the random-pattern reference moves (Amendment 10 sweeps
 it); and whether pair reuse is the CAUSE of the residual gap rather than a
 correlate (no manipulation of pair reuse alone was made).
+
+## Amendment 10 (2026-09-30, before running): the circuit's capacity across write strength
+
+Registered before any run of this amendment. Amendment 9's PE-S failed: the
+random-pattern ceiling that defines pattern efficiency moves +66 to +89% at
+k = 60 when each item is written two counts weaker. Potentiation is
+multiplicative and clipped, so a synapse shared by s items written c times
+each weighs min((1 + beta)^(c s), w_max): with beta = 0.1 and w_max = 20 the
+rule is nearly linear in s at c = 1, convex in the middle, and BINARY (1 or
+20) from c = 32 on, where one item already reaches the clip. This amendment
+traces the ceiling across that range so the reference Amendment 9 used is
+placed on its curve.
+
+**Seen before registering.** The bars below were drafted before a smoke run
+(VOID: 3 brains, cap 1024, c in {1, 5, 32}, cells (2000, 60) and (4000, 120)).
+Its readings, disclosed and not used to change any bar: c = 1 fails at the
+first checkpoint (rank-1 below 0.5 at M = 16) at both cells; c = 5 reached
+768 and 512, c = 32 679 and 512, both near the smoke cap.
+
+### Protocol
+
+`research/experiments/memory_write_strength.py` through the shared runner
+(`python -m research.runner write-strength`), seeds 42 to 61, all seven
+cells, one run from a worktree pinned at the commit registering this
+amendment. Per cell: the circuit (presence, in-degree, chain table, half-cue
+masked 8-round k-WTA recall, 32 sampled items per brain per checkpoint) as
+in Amendment 9; each brain's own independent random k-subsets, generated per
+(seed, cell) so the same patterns are read at every c (paired across c);
+c in {1, 2, 3, 4, 5, 6, 8, 11, 16, 23, 32}; the model's own c measured as in
+Amendment 9. Checkpoints per curve: from the power of two at or below
+0.05 (n/k)^2, halve while the ensemble mean is at or below 0.5 (to 16 at
+least), then double until it is, then add the 1.5x point in the bracket; the
+cap is 131072 items (65536 at k = 120). Two ceilings per c, where the
+ensemble mean crosses 0.5:
+
+    rank-1      the recall is nearer the cued item than any other stored
+                item (Amendment 9's criterion, IDENTIFICATION)
+    completion  the fraction of sampled items whose recall recovers at
+                least 0.8 of the item (COMPLETION); a curve already at or
+                below 0.5 at its first checkpoint counts as zero
+
+The potentiated fraction and pair sharing are recorded at every point.
+Judged cells are the five in regime; (2000, 30) and (4000, 30) are reported,
+and enter only WS-5.
+
+### Bars
+
+    WS-V  THE INSTRUMENT. At the model's own c the rank-1 ceiling is within
+          10% of Amendment 9's random ceiling at every cell (818, 762, 3583,
+          4088, 15288; 5043, 20741 out of regime). Fresh patterns and a
+          different grid, so agreement is not exact. Failure voids WS-1..5.
+    WS-1  THE BINARY END. At every judged cell the c = 32 rank-1 ceiling is
+          resolved and at least 1.2 times the ceiling at the model's own c:
+          a binary rule stores more than the operating write.
+    WS-2  AN INTERIOR MINIMUM. At every judged cell the smallest rank-1
+          ceiling over c in {4, 5, 6, 8, 11, 16}, times 1.2, is at most the
+          ceiling at c = 2 and at most the ceiling at c = 32: the convex
+          middle of the rule stores least.
+    WS-3  COMPLETION WANTS A STRONGER WRITE THAN IDENTIFICATION. At every
+          judged cell the c maximising the completion ceiling is larger
+          than the c maximising the rank-1 ceiling.
+    WS-4  THE n/k LAW BELONGS TO THE RULE. Calling the law "held" at c when
+          both n/k-matched pairs ((2000, 60) with (4000, 120); (4000, 60)
+          with (8000, 120)) have rank-1 ceilings within [0.8, 1.25] of each
+          other: it holds at c = 32 and at every model c of the judged
+          cells, and fails at c = 1 and c = 2.
+    WS-5  SENSITIVITY FALLS WITH k p. The span (largest over smallest rank-1
+          ceiling across c) is smaller at (4000, 120) than at (2000, 60),
+          smaller at (8000, 120) than at (4000, 60), and larger at
+          (2000, 30) than at (4000, 60).
+
+### Interpretation, stated now
+
+* WS-1 and WS-2 pass: the operating write sits in the rule's worst region;
+  the "Willshaw" figure of Amendment 9 is the circuit at its own strength,
+  and the circuit stores more under a clipped binary rule. Pattern
+  efficiency is then quoted against both references.
+* WS-1 fails: the binary end does not beat the operating write; the
+  operating point is not a disadvantaged one.
+* WS-3 passes: identification and completion prefer different write
+  strengths, and a capacity quoted from rank-1 alone flatters weak writes.
+* WS-4 passes: the n/k law is a property of saturating (clipped or
+  strong-enough) plasticity, not of the substrate at any write.
+* WS-5 passes: the dependence on write strength is a few-inputs effect
+  that fades as each neuron sums more cue synapses, and a write-strength
+  parameterisation that scales with k p is the registered next question.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until WS-V to WS-5 are evaluated and recorded below.
+
+    python -m research.runner write-strength \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag write-strength-20260930
