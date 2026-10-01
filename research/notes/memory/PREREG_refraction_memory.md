@@ -2129,3 +2129,80 @@ ITCS 2019 and COLT 2022 scale as (see
 the same 0.20 as Amendment 13's seven cells (0.031). The extra ln n absorbs
 part of the sparse-side residual. Whether the best learning rate is a fixed
 fraction of the convergence threshold is the registration this points to.
+
+## Amendment 17 (2026-10-01, before running): is the best learning rate a fixed fraction of the convergence threshold, above and below the regime floor?
+
+Registered before any run of this amendment. Read against the literature
+(research/notes/LITERATURE_SYNTHESIS.md), the completion-optimal learning
+rates of Amendments 13 and 16 are a near-constant fraction of
+
+    theta(n, k, p) = sqrt((1 - p) ln n / (p k)),
+
+the form the assembly calculus's projection-convergence thresholds (ITCS
+2019, COLT 2022) scale as: 0.20 with a coefficient of variation of 0.031
+over Amendment 13's seven cells and 0.057 over Amendment 16's six. That was
+seen after the data. This registers it, and carries it below the regime
+floor k p >= 3 ln n, into the fan-in range every published simulation runs
+at (k p = 1 to 10).
+
+**Seen before registering:** Amendments 13 to 16 and the post hoc fractions
+above; and a smoke run (VOID: 3 brains, cap 32): at the PNAS 2020 cell
+(n = 10000, k = 100, p = 0.01, k p = 1) at beta = 0.6039, distinct completion
+read 0.00 at every checkpoint from M = 2 to 16 while rank-1 read 0.65 to
+0.83; at (4000, 10, 0.5) (k p = 5) at beta = 0.1821, distinct completion read
+0.25 to 0.46, never above 0.5.
+
+### Protocol
+
+`research/experiments/memory_threshold_law.py` through the shared runner
+(`python -m research.runner threshold-law`), seeds 142 to 161 (new brains),
+one run from a worktree pinned at the commit registering this amendment. The
+refracted AssemblyMemory (0.5 beta, T = 8, w_max 20, arm B, ungated, the
+capacity study's stimuli) at ten cells:
+
+    p = 0.5, n = 4000:     k = 10, 20, 40 (below the floor, k p = 5-20)
+                           k = 60, 80, 160 (above it, k p = 30-80)
+    p = 0.05, n = 8000:    k = 100, 200, 400 (below, k p = 5-20)
+    PNAS 2020:             n = 10000, k = 100, p = 0.01 (below, k p = 1)
+
+Each swept over 0.2 theta x 2^(j/4), j = -4..4 (an octave either side of the
+fraction's prediction), at or above 0.025. Distinct completion and capacity
+as in Amendments 13 to 16; checkpoints from M = 2; no stop decision before
+M = 32; a cell whose completion never rises stops at min(4 x the synapse-count
+guess + 64, 8192) items. beta* is the parabola vertex in log beta; its
+FRACTION is beta* / theta.
+
+    python -m research.runner threshold-law \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag threshold-law-20261001 --seeds 142 143 144 145 146 147 148 149 150 \
+        151 152 153 154 155 156 157 158 159 160 161
+
+### Bars
+
+    TV  THE INSTRUMENT. The best capacity at (4000, 60, 0.5) is within 15% of
+        Amendment 14's 1616 on new brains. Failure voids T1 and T2.
+    T1  THE FRACTION ABOVE THE FLOOR. At the three cells with k p >= 3 ln n,
+        an interior optimum exists and its fraction lies within 15% of 0.20.
+    T2  THE FRACTION BELOW THE FLOOR. At least one of the seven cells below
+        the floor has an interior optimum, and at every one that does the
+        fraction lies within 25% of 0.20.
+
+Reported, not judged: every cell's best capacity per synapse-count scale,
+its rank-1 capacity, and which cells below the floor complete at all.
+
+### Interpretation, stated now
+
+* T1 passes: the completion-optimal learning rate of a refracted area is
+  0.20 of the convergence-threshold form, a rule from the field's own theory
+  that sets plasticity from (n, k, p) alone; it replaces the fitted constants
+  of Amendments 13 and 16 above the floor.
+* T2 passes: the rule extends to the fan-in the published simulations use.
+* T2 fails because no cell below the floor completes: the regimes the
+  literature runs at (k p = 1 to 10) do not support completion-grade memory
+  at any learning rate, only identification -- the published operations are
+  existence proofs at low load, as the synthesis argued.
+* T2 fails with interior optima at the wrong fraction: the rule is an
+  above-floor rule.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until TV, T1 and T2 are evaluated and recorded below.
