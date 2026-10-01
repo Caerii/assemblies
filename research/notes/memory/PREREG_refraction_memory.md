@@ -654,6 +654,16 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | RP-2 lost ceilings (A8) | inside the reported brackets | PASS | all seven, within 0.1% of the reports |
 | RP-3 law as cited (A8) | in-regime M*/(n/k)^2 in [0.35, 0.50] | FAIL | 0.345 and 0.502: the quoted range was rounded inward |
 | RP-4 live contrast (A8) | every brain >= 0.50 at M_s, six cells | PASS | minimum 0.938 |
+| PE-V instrument (A9) | recall agreement 0.03; M*_real within 10% of A8 | PASS | gap 0.000; 0.979-1.040 |
+| PE-0 calibration (A9) | random pair-sharing excess in [0.9, 1.1] | PASS | 0.998-1.001 |
+| PE-1 substrate is Willshaw (A9) | M*_random in [0.5, 1.0] (n/k)^2, potentiated [0.40, 0.60] | PASS | 0.69-0.92; 0.49-0.60 |
+| PE-2 constant efficiency (A9) | eta in [0.35, 0.70], max/min <= 1.5 | PASS | 0.47-0.56; 1.19 |
+| PE-3 pair reuse is the gap (A9) | excess >= 1.5, failure pair load within [0.75, 1.33] of random's | FAIL | 1.43 at (4000, 120) |
+| PE-4 transients help (A9) | M*_real > M*_clean | PASS | 1.17-1.47x |
+| PE-5 balanced headroom (A9) | M*_balanced >= 1.5 M*_random | FAIL | 1.36 at (8000, 60) |
+| PE-S weight sensitivity (A9) | c +- 2 within 30% | FAIL | +66 to +89% at k = 60 |
+| PE-R gate replayed (A9) | within 10% of 2645 and 8666 | PASS | 0.980, 1.048 |
+| PE-6 gate lowers pair reuse (A9) | eta_gated > eta, lower sharing, failure load within [0.75, 1.33] | FAIL | 1.39 at (8000, 60) |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -996,3 +1006,97 @@ The run is UNJUDGED until PE-V to PE-6 are evaluated and recorded below.
     python -m research.runner pattern-efficiency \
         --registration research/notes/memory/PREREG_refraction_memory.md \
         --tag pattern-efficiency-20260930
+
+### Amendment 9 result (2026-09-30)
+
+One run from a worktree pinned at 6b58b1df, 20 brains, seeds 42 to 61,
+all seven cells, 27 minutes:
+[record](../../results/runs/memory.pattern-efficiency/pattern-efficiency-20260930/results.json),
+[log](../../results/logs/pattern-efficiency-20260930.log). Write strength c
+measured from the first item: 5 at k = 60, 6 at k = 120, 4 at k = 30, and 5
+for the gated memory too. M* / (n/k)^2:
+
+    cell        real   clean  random  c-2     c+2     balanced  gated  eta   eta_gated
+    (2000, 60)  0.394  0.320  0.736   1.393   0.531   1.629            0.536
+    (4000,120)  0.359  0.244  0.686   0.887   0.635   3.078            0.523
+    (4000, 60)  0.432  0.371  0.806   1.463   0.613   1.384     0.583  0.536  0.724
+    (8000,120)  0.512  0.357  0.920   1.075   0.974   2.296            0.557
+    (8000, 60)  0.403  0.322  0.860   1.424   0.661   1.167     0.511  0.469  0.594
+    out of regime, reported:
+    (2000, 30)  0.354  0.335  1.135  >2.765   0.644   1.427            0.312
+    (4000, 30)  0.283  0.261  1.167  >1.843   0.637   1.335            0.243
+
+    PE-V  THE INSTRUMENT                                              PASS
+          (a) dense and module recall agree EXACTLY at every real
+          checkpoint (largest gap 0.000); (b) M*_real / Amendment 8:
+          1.016, 1.040, 0.979, 1.021, 1.025 (0.991, 1.059 out of regime).
+    PE-0  CALIBRATION AND TRUE NEGATIVE                               PASS
+          random pair-sharing excess 0.998 to 1.001 at every checkpoint.
+    PE-1  THE SUBSTRATE IS A WILLSHAW MEMORY                          PASS
+          M*_random 0.736, 0.686, 0.806, 0.920, 0.860 (n/k)^2; the
+          potentiated fraction there 0.516, 0.494, 0.548, 0.598, 0.571.
+    PE-2  CONSTANT PATTERN EFFICIENCY                                 PASS
+          eta 0.536, 0.523, 0.536, 0.557, 0.469; largest / smallest 1.19.
+    PE-3  PAIR REUSE ACCOUNTS FOR THE GAP                             FAIL
+          real pair-sharing excess at M*_real 2.17, 2.75, 2.14, 2.33,
+          2.65 (all >= 1.5); real pair sharing at M*_real over random's
+          at M*_random 1.15, 1.43, 1.14, 1.30, 1.23 -- (4000, 120) is
+          outside [0.75, 1.33].
+    PE-4  THE TRANSIENTS HELP                                         PASS
+          M*_real / M*_clean 1.23, 1.47, 1.17, 1.43, 1.25.
+    PE-5  BALANCED HEADROOM                                           FAIL
+          M*_balanced / M*_random 2.21, 4.49, 1.72, 2.50, 1.36 --
+          (8000, 60) is below 1.5.
+    PE-S  WEIGHT SENSITIVITY                                          FAIL
+          M*_random at c - 2: +89%, +29%, +81%, +17%, +66%; at c + 2:
+          -28%, -7%, -24%, +6%, -23%. Every k = 60 cell moves more than
+          30% two counts weaker.
+    PE-R  THE GATE REPLAYED                                           PASS
+          9078 / 8666 = 1.048 and 2593 / 2645 = 0.980.
+    PE-6  THE GATE LOWERS PAIR REUSE                                  FAIL
+          eta_gated > eta at both cells (0.724 > 0.536, 0.594 > 0.469);
+          pair sharing at the common checkpoint lower under the gate
+          (0.61 vs 1.00 at M = 2048; 0.73 vs 1.37 at M = 8192); gated
+          pair sharing at M*_gated over random's at M*_random 1.22 and
+          1.39 -- (8000, 60) is outside [0.75, 1.33].
+
+**Reading.** The law's constant decomposes as registered at every judged
+cell. Independent random k-subsets written into the same circuit at the
+model's own write strength fail at 0.69 to 0.92 (n/k)^2 with half of the
+present synapses potentiated (0.49 to 0.60): the circuit behaves like a
+Willshaw memory at its information-optimal load, which is why the ceiling
+is a function of n/k (the load is M (k/n)^2). The refracted memory realises
+a constant 0.47 to 0.56 of that, the Hebbian control 0.014 to 0.023
+(Amendment 8's control ceilings over this study's M*_random, reported):
+refraction raises the pattern efficiency from about 2% to about 50%.
+
+Three registered qualifications, all recorded as failures. (1) PE-S: the
+random-pattern figure is a property of the circuit AT ITS WRITE STRENGTH,
+not of the substrate alone. Potentiation is multiplicative, so a synapse
+shared by s items weighs (1 + beta)^(c s); weaker writes amplify shared
+pairs less, and at k = 60 two counts weaker raises the random ceiling
+66 to 89%. The movement shrinks as each neuron sums more cue synapses
+(k p / 2 = 7.5, 15, 30 at k = 30, 60, 120: > +144%, +66 to +89%, +17 to
++29%). "Pattern efficiency" is therefore defined against random patterns
+written as hard as the memory writes its own. (2) PE-3: the refracted
+assemblies share synapse pairs 2.1 to 2.8 times as much as random subsets,
+at every cell, but they fail at 1.14 to 1.43 times the pair sharing that
+random patterns fail at, not at the same load: pair reuse accounts for most
+of the gap, not all of it, and the real memory tolerates more of it than a
+clean write does (consistent with PE-4: its transient writes deepen its own
+basins). (3) PE-5 and PE-6 each fail at (8000, 60) only: balanced headroom
+is 1.36x there (1.7 to 4.5x elsewhere), and the gated memory fails at 1.39
+times random's pair load.
+
+The gate (PE-R) reproduces Amendments 5 and 6 at both cells, so those two
+gated ceilings now have runner provenance. Its gain is carried by its
+ASSEMBLIES, not a weaker write: the gated memory's first item is written as
+hard as the ungated one's (c = 5), its assemblies share fewer pairs at equal
+load, and rewritten cleanly at that same c they store 51% and 35% more than
+the ungated assemblies rewritten the same way (2493 vs 1648, 7697 vs 5718;
+reported, not a registered bar).
+
+What this does not establish: the circuit's capacity at other write
+strengths, where the random-pattern reference moves (Amendment 10 sweeps
+it); and whether pair reuse is the CAUSE of the residual gap rather than a
+correlate (no manipulation of pair reuse alone was made).

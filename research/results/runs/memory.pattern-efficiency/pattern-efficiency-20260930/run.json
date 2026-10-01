@@ -1,0 +1,390 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "gated": {
+        "arc_refraction_charge": 0.05,
+        "convergence_gate": true,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "refracted": {
+        "arc_refraction_charge": 0.05,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "6b58b1df9b101857a9a66a001fe9a380312e2623",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "beta": 0.1,
+    "cells": [
+      {
+        "grids": {
+          "balanced": [
+            512,
+            768,
+            1024,
+            1536,
+            2048,
+            3072,
+            4096
+          ],
+          "random": [
+            256,
+            384,
+            512,
+            768,
+            1024,
+            1536,
+            2048,
+            3072
+          ],
+          "real": [
+            128,
+            192,
+            256,
+            384,
+            512,
+            768,
+            1024
+          ]
+        },
+        "k": 60,
+        "n": 2000
+      },
+      {
+        "grids": {
+          "balanced": [
+            384,
+            512,
+            768,
+            1024,
+            1536,
+            2048,
+            3072,
+            4096
+          ],
+          "random": [
+            192,
+            256,
+            384,
+            512,
+            768,
+            1024,
+            1536,
+            2048
+          ],
+          "real": [
+            96,
+            128,
+            192,
+            256,
+            384,
+            512,
+            768,
+            1024
+          ]
+        },
+        "k": 120,
+        "n": 4000
+      },
+      {
+        "grids": {
+          "balanced": [
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384
+          ],
+          "gated": [
+            768,
+            1024,
+            1536,
+            2048,
+            3072,
+            4096,
+            6144
+          ],
+          "random": [
+            1024,
+            1536,
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288
+          ],
+          "real": [
+            512,
+            768,
+            1024,
+            1536,
+            2048,
+            3072,
+            4096
+          ]
+        },
+        "k": 60,
+        "n": 4000
+      },
+      {
+        "grids": {
+          "balanced": [
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384,
+            24576
+          ],
+          "random": [
+            1536,
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384
+          ],
+          "real": [
+            768,
+            1024,
+            1536,
+            2048,
+            3072,
+            4096,
+            6144
+          ]
+        },
+        "k": 120,
+        "n": 8000
+      },
+      {
+        "grids": {
+          "balanced": [
+            8192,
+            12288,
+            16384,
+            24576,
+            32768,
+            49152,
+            65536
+          ],
+          "gated": [
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384,
+            24576
+          ],
+          "random": [
+            4096,
+            6144,
+            8192,
+            12288,
+            16384,
+            24576,
+            32768,
+            49152
+          ],
+          "real": [
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384
+          ]
+        },
+        "k": 60,
+        "n": 8000
+      },
+      {
+        "grids": {
+          "balanced": [
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384
+          ],
+          "random": [
+            1024,
+            1536,
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288
+          ],
+          "real": [
+            512,
+            768,
+            1024,
+            1536,
+            2048,
+            3072,
+            4096
+          ]
+        },
+        "k": 30,
+        "n": 2000
+      },
+      {
+        "grids": {
+          "balanced": [
+            6144,
+            8192,
+            12288,
+            16384,
+            24576,
+            32768,
+            49152
+          ],
+          "random": [
+            3072,
+            4096,
+            6144,
+            8192,
+            12288,
+            16384,
+            24576,
+            32768
+          ],
+          "real": [
+            1536,
+            2048,
+            3072,
+            4096,
+            6144,
+            8192,
+            12288
+          ]
+        },
+        "k": 30,
+        "n": 4000
+      }
+    ],
+    "device": "cuda",
+    "half_bar": 0.5,
+    "measurement_seed": 1234,
+    "p": 0.5,
+    "recall_sample": 32,
+    "rounds": 8,
+    "strength": 0.5,
+    "w_max": 20.0,
+    "windows": {
+      "balanced": [
+        1.0,
+        12.0
+      ],
+      "random": [
+        0.5,
+        8.0
+      ],
+      "real": [
+        0.25,
+        3.0
+      ]
+    }
+  },
+  "protocol": "memory.pattern-efficiency",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "c5dd367996ccacd2d426ff85ccde827a8488c9f5be9924c68d513a3776e96ca5",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_pattern_efficiency.py",
+  "script_sha256": "b5bbe166c03a8e2a4fa00bb7a25aaea1118bc2415643cb9f3517285ffcbba8f3",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "3b925a6c39f6120a8da77cbe15fcc5863d168488913362bf408d931c4900922d"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "d6e990d31ad7b528092c4048b9121f719720d79df9bf72beaad7759cfd8c4deb",
+  "started_utc": "2026-10-01T03:08:55.941628+00:00",
+  "tag": "pattern-efficiency-20260930"
+}

@@ -1,0 +1,8 @@
+cell (2000, 60): real 438, clean 356, random 818, random_cm2 1548, random_cp2 590, balanced 1810
+cell (4000, 120): real 398, clean 271, random 762, random_cm2 985, random_cp2 706, balanced 3420
+cell (4000, 60): real 1921, clean 1648, gated 2593, clean_gated 2493, random 3583, random_cm2 6502, random_cp2 2722, balanced 6152
+cell (8000, 120): real 2277, clean 1587, random 4088, random_cm2 4779, random_cp2 4327, balanced 10205
+cell (8000, 60): real 7167, clean 5718, gated 9078, clean_gated 7697, random 15288, random_cm2 25307, random_cp2 11759, balanced 20752
+cell (2000, 30): real 1574, clean 1488, random 5043, random_cm2 12288, random_cp2 2861, balanced 6342
+cell (4000, 30): real 5031, clean 4636, random 20741, random_cm2 32768, random_cp2 11321, balanced 23731
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.pattern-efficiency\pattern-efficiency-20260930\results.json

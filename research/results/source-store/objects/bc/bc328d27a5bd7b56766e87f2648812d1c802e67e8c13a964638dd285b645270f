@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner pattern-efficiency --registration research/notes/memory/PREREG_refraction_memory.md --tag pattern-efficiency-20260930 > a9.log 2>&1

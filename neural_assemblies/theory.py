@@ -966,7 +966,19 @@ _RESULTS: List[Result] = [
               "(1919-1993, one bracket) at n/k = 67 -- the ceiling is the "
               "synaptic memory's, refraction only has to prevent merging while "
               "it is written; the churn transition is in (0.6, 0.7] beta at "
-              "T = 8.",
+              "T = 8. WHAT THE CONSTANT IS (Amendment 9): independent random "
+              "k-subsets written into the SAME circuit at the memory's own write "
+              "strength fail at 0.69-0.92 (n/k)^2 with half of the present "
+              "synapses potentiated (0.49-0.60), Willshaw's operating point -- "
+              "the n/k law is the load M (k/n)^2; the refracted memory realises "
+              "a constant 0.47-0.56 of that (PATTERN EFFICIENCY), the Hebbian "
+              "control 0.014-0.023. The reference is conditional on write "
+              "strength: two potentiation counts weaker moves the random-pattern "
+              "ceiling +66-89% at k = 60 and +17-29% at k = 120. The refracted "
+              "assemblies share synapse pairs 2.1-2.8x as much as random subsets "
+              "and fail at 1.14-1.43x random's pair load; the gate's gain is "
+              "carried by its assemblies (rewritten cleanly at equal write "
+              "strength they store +35-51%).",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -991,7 +1003,12 @@ _RESULTS: List[Result] = [
                   "gated T_max 16: 362 vs 4749",
                   "(8000, 60) gated T_max 8: 8666 [8192, 10240) vs 6995 (x1.24)",
                   "strength 0.3 / 0.4 / 0.5 / 0.6 beta at (4000, 60): 1986 / "
-                  "1919 / 1961 / 1993, all [1536, 2048)"),
+                  "1919 / 1961 / 1993, all [1536, 2048)",
+                  "memory_pattern_efficiency.py, 20 brains, seven cells (A9): "
+                  "M*/(n/k)^2 real / random / balanced at (2000,60) 0.394 / "
+                  "0.736 / 1.629, (4000,120) 0.359 / 0.686 / 3.078, (4000,60) "
+                  "0.432 / 0.806 / 1.384, (8000,120) 0.512 / 0.920 / 2.296, "
+                  "(8000,60) 0.403 / 0.860 / 1.167; gated 9078 and 2593"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -1013,11 +1030,14 @@ _RESULTS: List[Result] = [
                         "3615-scalar per-seed comparison with the surviving k-sweep control file"),
             EvidenceRef("research/results/comparisons/capacity-law-replay-L2-20260930.json", "comparison",
                         "3050-scalar per-seed comparison with the surviving n/k = 133 refracted file"),
+            EvidenceRef("research/results/runs/memory.pattern-efficiency/pattern-efficiency-20260930/results.json", "artifact",
+                        "Amendment 9: real, clean, random, balanced and gated memories on one circuit, seven cells"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "
-                        "data survives, every lost ceiling reproduced; the gated (Amendment 5), "
-                        "strength (Amendment 6) and T-sweep grids and the numpy mirror still "
+                        "data survives, every lost ceiling reproduced; the two gated ceilings "
+                        "are replayed within 5% (Amendment 9, PE-R); the strength "
+                        "(Amendment 6) and T-sweep grids and the numpy mirror still "
                         "predate immutable source records"),
         preconditions=("recurrent k-WTA area, weight clip, norm_init, no column "
                        "scaling (arm B); refraction strength 0.5 beta; T = 8 "
