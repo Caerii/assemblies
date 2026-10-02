@@ -271,6 +271,11 @@ objects their manifests name (each verified against its SHA-256 name), and
 the log; validates every record; and with `--clean` removes the worktree's
 copies only where they are untracked there and byte-identical here.
 
+**Replaying a run exactly.** `python -m research.replay RECORD [--cells n/k/p ...]`
+([replay.py](replay.py)) reruns a committed run from the inputs its record
+captured, on the current code, and passes only if the observations are identical
+after a JSON round trip: the gate for an engine change that claims to be exact.
+
 [Archive validation](source_archive.py) recomputes the inventory digest and both
 individual digests from archived bytes, rejects duplicate or unsafe member names,
 and never extracts or executes code. The runner also validates the archive before
