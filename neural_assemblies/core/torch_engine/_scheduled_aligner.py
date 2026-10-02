@@ -81,6 +81,11 @@ class ScheduledAligner:
     Specification: docs/reviews/whole-codebase/SEMANTIC_CARDS.md#contract-hashed-aligner
     """
 
+    #: return freed blocks to the driver after prepare. A runner with chunks
+    #: in flight on several streams turns it off: emptying the cache
+    #: synchronizes the device, stalling every stream.
+    release_cache = True
+
     mod: Any
     phon: Any
     featf: Any
@@ -123,16 +128,12 @@ class ScheduledAligner:
         self.feat = HashedArea(feat_n, feat_k,
                                pair_seeds(self.seeds, FEAT, FEAT),
                                device=device, tie_jitter=tie_jitter)
-        self.phon = [StimulusFiber(pair_seeds(self.seeds, wn, LEX), stim_size,
-                                   n, p, beta=0.0, w_max=None,
-                                   norm_init=norm_init, max_rounds=1,
-                                   device=device) for wn in wnames]
-        self.featf = [StimulusFiber(pair_seeds(self.seeds, fn, FEAT), feat_k,
-                                    feat_n, p, beta=0.0, w_max=None,
-                                    norm_init=norm_init, max_rounds=1,
-                                    device=device) for fn in fnames]
-        for f in self.phon + self.featf:
-            f.drive_gain = gain
+        # the anchors (one stimulus fiber per word and per feature) are built
+        # ONE AT A TIME in prepare() and dropped once cached: all of them at
+        # once were [B, V, n] + [B, F, feat_n] floats, most of a V = 1024 chunk
+        self._anchor = dict(stim_size=stim_size, n=n, feat_n=feat_n, feat_k=feat_k,
+                            p=p, norm_init=norm_init, gain=gain, device=device)
+        self._wnames, self._fnames = list(wnames), list(fnames)
         self.cross = PresentFiber(pair_seeds(self.seeds, LEX, FEAT), n,
                                   feat_n, p, beta=beta, norm_init=norm_init,
                                   synaptic_scaling=scaling,
@@ -142,6 +143,22 @@ class ScheduledAligner:
         #: brains per block in the persistent kernel (a warp each); None picks
         #: the most that fit the kernel's shared-memory budget
         self.warps_per_block = None
+
+    def _word_fiber(self, i):
+        a = self._anchor
+        f = StimulusFiber(pair_seeds(self.seeds, self._wnames[i], LEX), a["stim_size"],
+                          a["n"], a["p"], beta=0.0, w_max=None, norm_init=a["norm_init"],
+                          max_rounds=1, device=a["device"])
+        f.drive_gain = a["gain"]
+        return f
+
+    def _feature_fiber(self, f_index):
+        a = self._anchor
+        f = StimulusFiber(pair_seeds(self.seeds, self._fnames[f_index], FEAT), a["feat_k"],
+                          a["feat_n"], a["p"], beta=0.0, w_max=None,
+                          norm_init=a["norm_init"], max_rounds=1, device=a["device"])
+        f.drive_gain = a["gain"]
+        return f
 
     def _warps_per_block(self):
         """Mirror of the kernel's per-warp shared bytes (pr_warp_bytes)."""
@@ -155,16 +172,22 @@ class ScheduledAligner:
         return max(1, min(4, budget // per))
 
     # -- anchors -------------------------------------------------------------
-    def _select(self, area, drive, fibers):
+    def _select(self, area, drive, fibers, overflow=None):
+        """k-WTA of ``drive`` with the fibers' tie jitter. With ``overflow``
+        (a device scalar) the overflow check is deferred: the flag is folded
+        into it on the device, and the caller checks once after its loop --
+        a host read per word was a sync per word, V of them per chunk."""
         ranked = drive + area._jitter(fibers) if area.tie_jitter > 0 else drive
         sel, ovf = self.mod.topk_select(ranked, area.k)
-        if int(ovf.max()):
+        if overflow is not None:
+            torch_ops.maximum(overflow, ovf.max(), out=overflow)
+        elif int(ovf.max()):
             raise RuntimeError("k-WTA candidate set overflowed")
         return sel.to(torch_ops.int64)
 
     def prepare(self, features):
         """Cache every anchor. `features`: [B, I, F_per] int64, -1 padded."""
-        assert self.phon is not None and self.featf is not None
+        assert not self._prepared, "prepare runs once"
         B, dev = self.B, self.device
         self.features = features.to(dev)
         I, Fper = self.features.shape[1], self.features.shape[2]
@@ -172,47 +195,58 @@ class ScheduledAligner:
         # LEX winners per (brain, word)
         self.lex_cache = torch_ops.full((B, self.V, self.k), -1, dtype=torch_ops.int64,
                                     device=dev)
-        for i, ph in enumerate(self.phon):
+        overflow = torch_ops.zeros((), dtype=torch_ops.int32, device=dev)
+        for i in range(self.V):
+            ph = self._word_fiber(i)
             d = torch_ops.zeros(B, self.n, device=dev)
             ph.contribute(d)
-            self.lex_cache[:, i] = self._select(self.lex, d, [ph])
+            self.lex_cache[:, i] = self._select(self.lex, d, [ph], overflow)
+            # the jitter is cached by fiber identity and this fiber is about
+            # to be dropped: an id reused by the next word's fiber must not
+            # find this word's jitter (and V cached [B, n] jitters were
+            # another [B, V, n] of the card)
+            self.lex.__dict__.pop("_jitter_cache", None)
+        if int(overflow):
+            raise RuntimeError("k-WTA candidate set overflowed")
         # feature constants [B, F+1, feat_n] (slot F is the zero pad) -> bundle drive
         consts = torch_ops.zeros(B, self.F + 1, self.feat_n, device=dev)
-        for f, ff in enumerate(self.featf):
+        fseeds = []
+        for f in range(self.F):
+            ff = self._feature_fiber(f)
             ff.contribute(consts[:, f])
+            fseeds.append(ff.seeds.to(torch_ops.int64) & 0xFFFFFFFF)
         idx = torch_ops.where(self.features < 0,
                           torch_ops.full_like(self.features, self.F),
                           self.features)                     # [B, I, Fper]
         self.bundle_drive = consts[ar.view(B, 1, 1), idx].sum(dim=2)   # [B, I, feat_n]
+        del consts
         # salts: the seeds of the fibers that fire, XORed as HashedArea does
-        fseeds = torch_ops.stack([ff.seeds.to(torch_ops.int64) & 0xFFFFFFFF
-                              for ff in self.featf] +
-                             [torch_ops.zeros(B, dtype=torch_ops.int64, device=dev)],
-                             dim=1)                          # [B, F+1]
+        fseeds = torch_ops.stack(fseeds + [torch_ops.zeros(B, dtype=torch_ops.int64,
+                                                           device=dev)], dim=1)  # [B, F+1]
         salt = torch_ops.zeros(B, I, dtype=torch_ops.int64, device=dev)
         for s in range(Fper):
             salt = salt ^ fseeds[ar.view(B, 1), idx[:, :, s]]
         cross_salt = (self.cross.seeds.to(torch_ops.int64) & 0xFFFFFFFF).view(B, 1)
-        self.jit_anchor = _hash_jitter(salt, self.feat_n, self.tie_jitter, dev)
+        # FEAT winners per (brain, bundle) under the stimulus alone; the
+        # anchor jitter is dead once they are cached, before the cross
+        # jitter is made
+        jit_anchor = _hash_jitter(salt, self.feat_n, self.tie_jitter, dev)
+        self.feat_cache = torch_ops.full((B, I, self.feat_k), -1,
+                                     dtype=torch_ops.int64, device=dev)
+        for j in range(I):
+            ranked = self.bundle_drive[:, j] + jit_anchor[:, j]
+            sel, _ = self.mod.topk_select(ranked, self.feat_k)
+            self.feat_cache[:, j] = sel.to(torch_ops.int64)
+        del jit_anchor
         self.jit_cross = _hash_jitter(salt ^ cross_salt, self.feat_n,
                                       self.tie_jitter, dev)
         # the reconstruction readout fires the cross fiber ALONE, so its ties
         # break on a salt of the cross seeds only -- as HashedAligner's does
         self.jit_recon = _hash_jitter(cross_salt.view(B, 1), self.feat_n,
                                       self.tie_jitter, dev)[:, 0]   # [B, feat_n]
-        # FEAT winners per (brain, bundle) under the stimulus alone
-        self.feat_cache = torch_ops.full((B, I, self.feat_k), -1,
-                                     dtype=torch_ops.int64, device=dev)
-        for j in range(I):
-            ranked = self.bundle_drive[:, j] + self.jit_anchor[:, j]
-            sel, _ = self.mod.topk_select(ranked, self.feat_k)
-            self.feat_cache[:, j] = sel.to(torch_ops.int64)
-        # the anchors are cached: the fibers (one per word and per feature)
-        # and the prepare-time tensors are dead -- at V = 1024 and a wide
-        # FEAT they were most of the card
-        del consts, idx, fseeds, salt
-        self.phon, self.featf, self.jit_anchor = None, None, None
-        torch_ops.cuda.empty_cache()
+        del idx, fseeds, salt
+        if self.release_cache:
+            torch_ops.cuda.empty_cache()
         self._prepared = True
 
     # -- training ------------------------------------------------------------
@@ -240,7 +274,8 @@ class ScheduledAligner:
                 cf.invdj, cf.rel, float(cf.setpoint), self.rounds_word,
                 self.feat_k, cf.err, nsh, nnz, self._warps_per_block(),
                 1 if cf.absolute else 0)
-            torch_ops.cuda.synchronize()
+            # this stream only: concurrent chunks on other streams run on
+            torch_ops.cuda.current_stream().synchronize()
             cf.check()
             return
         ar = torch_ops.arange(B, device=dev)
@@ -268,15 +303,33 @@ class ScheduledAligner:
         stimulus-only assembly, per brain."""
         B, dev = self.B, self.device
         I = self.feat_cache.shape[1]
-        A = torch_ops.zeros(B, I, self.feat_n, device=dev)
-        A.scatter_(2, self.feat_cache.clamp_min(0), (self.feat_cache >= 0).float())
-        R = torch_ops.zeros(B, self.V, self.feat_n, device=dev)
+        if bool((self.feat_cache < 0).any()):
+            # a padded bundle slot: keep the dense form, whose scatter
+            # semantics at the pad are what the records were measured with
+            A = torch_ops.zeros(B, I, self.feat_n, device=dev)
+            A.scatter_(2, self.feat_cache.clamp_min(0), (self.feat_cache >= 0).float())
+            R = torch_ops.zeros(B, self.V, self.feat_n, device=dev)
+            for i in range(self.V):
+                R[:, i].scatter_(1, self._reconstruct(i), 1.0)
+            return torch_ops.einsum("bvn,bin->bvi", R, A) / self.feat_k
+        # Every bundle assembly is k distinct winners, so the overlap of word
+        # i's reconstruction with bundle j is how many of bundle j's winners
+        # it contains: a gather, not two dense [B, V, n] / [B, I, n] tensors
+        # (650 MB at V = 1024). The counts are the einsum's exact integers.
+        cells = self.feat_cache.reshape(B, I * self.feat_k)
+        out = torch_ops.empty(B, self.V, I, device=dev)
         for i in range(self.V):
-            d = torch_ops.zeros(B, self.feat_n, device=dev)
-            self.cross.contribute(d, self.lex_cache[:, i])
-            sel, _ = self.mod.topk_select(d + self.jit_recon, self.feat_k)
-            R[:, i].scatter_(1, sel.to(torch_ops.int64), 1.0)
-        return torch_ops.einsum("bvn,bin->bvi", R, A) / self.feat_k
+            mask = torch_ops.zeros(B, self.feat_n, dtype=torch_ops.bool, device=dev)
+            mask.scatter_(1, self._reconstruct(i), True)
+            out[:, i] = mask.gather(1, cells).view(B, I, self.feat_k).sum(2).float() / self.feat_k
+        return out
+
+    def _reconstruct(self, i):
+        """[B, feat_k] the cross fiber's reconstruction of word i (alone)."""
+        d = torch_ops.zeros(self.B, self.feat_n, device=self.device)
+        self.cross.contribute(d, self.lex_cache[:, i])
+        sel, _ = self.mod.topk_select(d + self.jit_recon, self.feat_k)
+        return sel.to(torch_ops.int64)
 
     def type_accuracy(self, targets, n_bundles, exposures, min_exposures):
         """Per-brain accuracy over words with enough exposures, argmax over

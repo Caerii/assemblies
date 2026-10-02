@@ -885,6 +885,7 @@ class StimulusFiber:
                    if norm_init else None)
         self.hi = (w_max * max(1.0, size * self.p)
                    if w_max is not None else float("inf"))
+        self._no_dj = torch_ops.zeros(0, dtype=torch_ops.float32, device=device)
 
     #: DRIVE GAIN: a multiplier on this stimulus's contribution, 1.0 by
     #: default. It is the ANCHOR SHARE knob ([[capacity-is-an-anchor-ratio]],
@@ -913,6 +914,12 @@ class StimulusFiber:
                 const = ((self.drive_gain, id(self.base), id(self.dj)), d)
                 self._const = const
             drive += const[1]
+            return
+        if self.base.is_cuda and drive.is_contiguous():
+            # one fused pass, the same float operations as the chain below
+            self.mod.stim_add(drive, self.base, self.gain, self.pot,
+                              float(self.hi), self.dj if self.dj is not None else self._no_dj,
+                              float(self.drive_gain))
             return
         top = self.gain.shape[-1] - 1
         d = self.base * (self.gain[self.pot.clamp_max(top)] if self.gain.dim() == 1
@@ -1049,6 +1056,7 @@ class HashedArea:
         #: compare the true drive); only the ORDER among exact ties changes.
         self.tie_jitter = float(tie_jitter or 0.0)
         self._cols = torch_ops.arange(n, dtype=torch_ops.int64, device=device)
+        self._no_f32 = torch_ops.zeros(0, dtype=torch_ops.float32, device=device)
         #: the largest deferred k-WTA overflow not yet checked, on the device
         self._overflow = torch_ops.zeros((), dtype=torch_ops.int32, device=device)
 
@@ -1130,6 +1138,19 @@ class HashedArea:
             return
         self.bias.scatter_add_(
             1, new, torch_ops.gather(raw, 1, new) * self.refracted_strength)
+
+    def _charge_and_record(self, raw, sel):
+        """``charge(raw, winners)`` and the ever-fired record in one pass
+        (the fused `charge` kernel: bias += raw * strength at the winners,
+        then ever = True), the same float operations as the two steps."""
+        strength = self.refracted_strength
+        per_brain = isinstance(strength, torch_ops.Tensor)
+        if self.bias is not None and not self.bias.is_contiguous():
+            self.bias = self.bias.contiguous()
+        self.mod.charge(self.bias if self.bias is not None else self._no_f32,
+                        raw.contiguous(), sel,
+                        strength.view(-1) if per_brain else self._no_f32,
+                        0.0 if per_brain else float(strength), self.ever)
 
     def inhibit(self):
         """Clear the assembly. The next round is driven by afferents alone."""
@@ -1241,7 +1262,7 @@ class HashedArea:
                 if active is None:
                     for f in fibers:
                         f.observe(rows_for.get(id(f), prev), new)
-                    self.charge(raw, new)
+                    self._charge_and_record(raw, sel)
                 else:
                     off = ~active.view(-1, 1)
                     new_m = new.masked_fill(off, -1)
@@ -1254,7 +1275,8 @@ class HashedArea:
                             1, new, torch_ops.gather(raw, 1, new)
                             * (self.refracted_strength * active.view(-1, 1)))
                     self.rounds_used += active.to(torch_ops.int64)
-                self.ever.scatter_(1, new, True)
+                if active is not None:
+                    self.ever.scatter_(1, new, True)
                 self.rounds_seen += 1
             self.winners = new
             self._push_lri(new)

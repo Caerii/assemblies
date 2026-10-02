@@ -161,43 +161,179 @@ def run_cell_scheduled(
         for task in tasks
     }
     curve = {V: [] for V in vs}
-    # a chunk holds ONE vocabulary size: every brain's bundle tensors are
-    # padded to the chunk's largest V, so mixing sizes pays the largest for all
+    for chunk, _bytes in _chunks(tasks, per_task, vs, protocol):
+        for V, acc in _run_chunk(name, chunk, feat, protocol, aligner_semantics):
+            curve[V].append(acc)
+    _print_curve(curve)
+    return curve
+
+
+def _chunks(tasks, per_task, vs, protocol):
+    """The launches of one cell, in order, with their estimated bytes. A
+    chunk holds ONE vocabulary size: every brain's bundle tensors are padded
+    to the chunk's largest V, so mixing sizes pays the largest for all."""
+    out = []
     for V in vs:
         chunk, used = [], 0
         for t in (t for t in tasks if t[0] == V):
             if chunk and used + per_task[t] > protocol.launch_budget_bytes:
-                _run_chunk(name, chunk, feat, curve, protocol, aligner_semantics)
+                out.append((chunk, used))
                 chunk, used = [], 0
             chunk.append(t)
             used += per_task[t]
         if chunk:
-            _run_chunk(name, chunk, feat, curve, protocol, aligner_semantics)
-    for V in vs:
-        print(f"      V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
+            out.append((chunk, used))
+    return out
+
+
+def _print_curve(curve, label=""):
+    for V in curve:
+        print(f"      {label}V={V:4d}: type-acc {' '.join(f'{a:.3f}' for a in curve[V])}"
               f"  (chance {1 / V:.3f})", flush=True)
-    return curve
 
 
-def _run_chunk(name, tasks, feat, curve, protocol, aligner_semantics=None):
+#: worker threads (one CUDA stream each)
+CONCURRENT_WORKERS = 8
+#: a chunk's MEASURED device peak over `_bytes_per_brain`'s estimate, with a
+#: margin: 0.76 to 1.00 at V = 256 and 1024 on cells A and C since `prepare`
+#: builds its anchors one at a time (1.58 to 2.23 before)
+PEAK_FACTOR = 1.15
+#: device memory left free beside the chunks in flight
+RESERVE_BYTES = 1 << 30
+
+
+def run_cells_concurrent(jobs, *, workers=CONCURRENT_WORKERS, budget_bytes=None):
+    """Every chunk of several scheduled cells, in flight together.
+
+    `jobs` maps a key to (name, seeds, protocol, aligner_semantics); returns
+    {key: curve}, each curve exactly what `run_cell_scheduled` returns.
+
+    THE TRAINING KERNEL RUNS ONE WARP PER BRAIN, so a 20-brain launch holds
+    20 warps of the ~3,000 the card can keep resident, and its time is set by
+    its step count alone (DESIGN_memory_throughput.md). Chunks of different
+    cells, rates and vocabulary sizes are independent, so they run on
+    separate CUDA streams (one per worker thread), as many at a time as the
+    byte budget allows; the longest chunks start first. Each chunk is built
+    and trained exactly as in the serial loop -- same brains, same padding,
+    same schedule -- so every accuracy is the serial one.
+
+    THE BUDGET IS THE CARD'S REAL FREE MEMORY. Admitting chunks against an
+    estimate that was half their real peak overcommitted the card, and on
+    Windows the driver then backs CUDA allocations with system memory instead
+    of failing: every chunk ran ~60x slower. A chunk is admitted at
+    PEAK_FACTOR times its estimate against the memory free at the start less
+    RESERVE_BYTES, and the allocator is capped there, so an overcommit raises
+    instead of paging."""
+    import threading
+    from concurrent.futures import ThreadPoolExecutor
+    import torch
+    from neural_assemblies.core.torch_engine._scheduled_aligner import ScheduledAligner
+
+    plan = []                                   # (key, index, chunk, bytes, name, ...)
+    for key, (name, seeds, protocol, semantics) in jobs.items():
+        if protocol.corpus_seed_scope != "per-brain":
+            raise ValueError("scheduled alignment requires a per-brain corpus protocol")
+        n, vs = protocol.cell(name).n, protocol.vocabulary_sizes
+        tasks = [(V, seed) for V in vs for seed in seeds]
+        per_task = {t: _bytes_per_brain(t[0], n, protocol.feature_area[0], protocol=protocol)
+                    for t in tasks}
+        for i, (chunk, used) in enumerate(_chunks(tasks, per_task, vs, protocol)):
+            plan.append((key, i, chunk, int(PEAK_FACTOR * used), name, protocol, semantics))
+    # longest first: the largest vocabulary is the longest schedule
+    plan.sort(key=lambda c: -max(V for V, _seed in c[2]))
+    gate = threading.Condition()
+    in_flight = [0]
+    local = threading.local()
+    results = {}
+
+    def run(item):
+        key, i, chunk, need, name, protocol, semantics = item
+        with gate:
+            gate.wait_for(lambda: in_flight[0] + need <= budget_bytes or in_flight[0] == 0)
+            in_flight[0] += need
+        try:
+            stream = getattr(local, "stream", None)
+            if stream is None:
+                stream = local.stream = torch.cuda.Stream()
+            with torch.cuda.stream(stream):
+                results[(key, i)] = _run_chunk(name, chunk, protocol.feature_area,
+                                               protocol, semantics, release_cache=False)
+            stream.synchronize()
+        finally:
+            with gate:
+                in_flight[0] -= need
+                gate.notify_all()
+
+    torch.cuda.empty_cache()
+    free, total = torch.cuda.mem_get_info()
+    budget = free - RESERVE_BYTES
+    if budget_bytes is not None:
+        budget = min(budget, budget_bytes)
+    if budget <= 0:
+        raise RuntimeError("no device memory free for the lexicon chunks")
+    budget_bytes = budget
+    torch.cuda.set_per_process_memory_fraction(
+        min(1.0, (torch.cuda.memory_reserved() + budget + RESERVE_BYTES // 2) / total))
+    previous = ScheduledAligner.release_cache
+    ScheduledAligner.release_cache = False
+    try:
+        with ThreadPoolExecutor(max_workers=workers) as pool:
+            for future in [pool.submit(run, item) for item in plan]:
+                future.result()
+    finally:
+        ScheduledAligner.release_cache = previous
+        torch.cuda.set_per_process_memory_fraction(1.0)
+    torch.cuda.empty_cache()
+    curves = {}
+    for key, (name, seeds, protocol, _semantics) in jobs.items():
+        curve = {V: [] for V in protocol.vocabulary_sizes}
+        i = 0
+        while (key, i) in results:
+            for V, acc in results[(key, i)]:
+                curve[V].append(acc)
+            i += 1
+        curves[key] = curve
+    return curves
+
+
+_TASKS: dict = {}
+
+
+def _task(V, seed, protocol):
+    """One brain's corpus, vocabulary, inventory and schedule. They depend on
+    (V, seed) and the protocol's corpus fields only -- not on the cell, the
+    connection probability or the plasticity -- so a study builds each once,
+    not once per rate and cell. Read-only once built."""
+    key = (V, seed, protocol.corpus_seed_offset, protocol.category_count,
+           protocol.exposures_per_referent, protocol.referents_per_scene,
+           protocol.training_seed_offset, protocol.corpus_seed_scope)
+    hit = _TASKS.get(key)
+    if hit is not None:
+        return hit
+    from neural_assemblies.core.torch_engine._scheduled_aligner import schedule_of
+    exp, targets, words, features = corpus(V, seed, protocol=protocol)
+    exposures = Counter(w for ws, _b in exp for w in ws)
+    inventory = sorted({b for _w, bs in exp for b in bs})
+    wi = {w: i for i, w in enumerate(words)}
+    bi = {b: j for j, b in enumerate(inventory)}
+    order = list(range(len(exp)))
+    random.Random(seed + protocol.training_seed_offset).shuffle(order)
+    task = dict(V=V, seed=seed, words=words, features=features, inventory=inventory,
+                targets=targets, exposures=exposures, sched=schedule_of(exp, wi, bi, order))
+    if len(_TASKS) > 4096:
+        _TASKS.clear()
+    _TASKS[key] = task
+    return task
+
+
+def _run_chunk(name, tasks, feat, protocol, aligner_semantics=None, *, release_cache=True):
     import torch
     from neural_assemblies.core.torch_engine._scheduled_aligner import (
         ScheduledAligner, pad_schedules, schedule_of)
     cell = protocol.cell(name)
     n, k, stim = cell.n, cell.k, cell.stimulus_size
     feat_n, feat_k = feat
-    per = []
-    for V, seed in tasks:
-        exp, targets, words, features = corpus(V, seed, protocol=protocol)
-        exposures = Counter(w for ws, _b in exp for w in ws)
-        inventory = sorted({b for _w, bs in exp for b in bs})
-        wi = {w: i for i, w in enumerate(words)}
-        bi = {b: j for j, b in enumerate(inventory)}
-        order = list(range(len(exp)))
-        random.Random(seed + protocol.training_seed_offset).shuffle(order)
-        per.append(dict(V=V, seed=seed, words=words, features=features,
-                        inventory=inventory, targets=targets,
-                        exposures=exposures, sched=schedule_of(exp, wi, bi, order)))
+    per = [_task(V, seed, protocol) for V, seed in tasks]
     Vmax = max(len(t["words"]) for t in per)
     Fmax = max(len(t["features"]) for t in per)
     Imax = max(len(t["inventory"]) for t in per)
@@ -239,10 +375,10 @@ def _run_chunk(name, tasks, feat, curve, protocol, aligner_semantics=None):
     print(f"    {name} n={n} k={k} s={stim} FEAT {feat_n}x{feat_k}: {B} brains "
           f"(V x seed) in one launch, {W.shape[1]} steps  "
           f"[{time.perf_counter() - t0:.0f}s]", flush=True)
-    for b, t in enumerate(per):
-        curve[t["V"]].append(float(acc[b]))
     del al
-    torch.cuda.empty_cache()
+    if release_cache:
+        torch.cuda.empty_cache()
+    return [(t["V"], float(acc[b])) for b, t in enumerate(per)]
 
 
 def run_cell(name, seeds, vs, engine="numpy", track_pinned=False,

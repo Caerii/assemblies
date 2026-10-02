@@ -10,10 +10,13 @@ The refracted-memory studies (PREREG_refraction_memory.md, Amendments 9 to
 17) spend their time in `memory_learning_rate.run_beta`: store items one at a
 time, read a sample of them back at every checkpoint, once per learning rate
 in the sweep, one rate after another. At the studies' sizes (n = 2000 to
-10000, 20 brains) a round reads a few MB, and the RTX 3080 ran at **36%
-utilization** through Amendment 17. The work was LATENCY-bound, not
+10000, 20 brains) a round reads a few MB. The work was LATENCY-bound, not
 bandwidth-bound ([[gpu-latency-chains-not-bandwidth]],
-[[gpu-lever-is-batching-not-the-kernel]]):
+[[gpu-lever-is-batching-not-the-kernel]]). (A first reading of 36% GPU
+utilization during Amendment 17 is not evidence for this: the desktop's own
+applications hold the card at 30-40% with nothing of ours running. The
+evidence is the speedup from batching below, which a bandwidth-bound
+workload would not show.)
 
 * about 17 kernel launches and their Python per round, 8 rounds per item;
 * three HOST SYNCS per item: the stimulus gain table copied from pageable
@@ -96,3 +99,46 @@ a chain table longer than the count range is exact when its clip binds by
 count 127. The memory's tables run to 256 rounds, and the old rule would
 have raised on every Hebbian-control store whose hub counts pass 127, now
 that `run_betas` checks the fiber at each checkpoint.
+
+**The fused round (third step).** Two kernels replace two chains of torch
+ops in the write, with the same float operations in the same order (the
+_rn intrinsics stop the compiler contracting a multiply and an add into one
+FMA): `stim_add`, the learned stimulus's priced drive (gather, multiply,
+clamp, divide, add), and `charge`, the refraction bias and the ever-fired
+record at the winners. 2.9 s -> 2.7 s on the sweep, identical readings.
+
+## The lexicon learner
+
+The word-capacity studies run the scheduled aligner, whose training kernel
+gives a brain ONE WARP and walks its whole schedule in one launch. A launch
+held one cell's 20 seeds at one vocabulary size: 20 warps, where the card
+keeps about 200 resident (its ~30 KB of shared memory per warp allows three
+per SM). A launch's time is its schedule length alone (36,864 steps, ~19 s
+at V = 1024), and the rates, cells and vocabulary sizes ran one after
+another: Amendment 5 measured 4.3 minutes per rate.
+
+`word_capacity.run_cells_concurrent` runs every chunk of a study at once on
+CUDA streams (one per worker thread; every kernel launches on torch's
+current stream), the longest first, each chunk built and trained exactly as
+the serial loop builds it. Two V = 1024 chunks: 27.2 s together against
+20.4 s for one.
+
+**The trap: the driver pages instead of failing.** The first concurrent run
+admitted chunks against `_bytes_per_brain`'s estimate, which was half their
+measured peak (1.58-2.23x), and the desktop holds ~2 GB of the card. On
+Windows the driver backs a CUDA allocation that does not fit with system
+memory rather than failing it (the sysmem fallback policy), and every chunk
+ran ~60x slower (990-1285 s for a 20 s chunk). Admission is now against the
+card's real free memory at the start, less a 1 GiB reserve, at PEAK_FACTOR
+times the estimate, and the allocator is capped there so an overcommit
+raises instead of paging.
+
+**Smaller chunks.** The peak was `prepare` holding every per-word and
+per-feature stimulus fiber at once ([B, V, n] + [B, F, feat_n] floats), the
+anchor and cross jitters together, and one cached [B, n] jitter per word.
+The anchors are now built one at a time and dropped, the jitter cache is
+cleared per word (it is keyed by fiber identity, so a reused id must not
+find the previous word's jitter), and each stage's inputs are freed once
+consumed; the readout gathers each word's winners at the bundles' winners
+instead of two dense [B, V, n] tensors. Measured peaks fell 2.0-2.6x (cell
+C, V = 1024: 3.56 -> 1.39 GiB), so more chunks fit in flight.

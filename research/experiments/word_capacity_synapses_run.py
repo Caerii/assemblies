@@ -89,12 +89,15 @@ def measure(record):
     profile = execution.profiles["default"].to_dict()
     protocol, betas = _validate({**record["parameters"], "mode": record["mode"]})
     sweep = {}
+    # every (rate, cell) in flight together on CUDA streams; each chunk is
+    # trained exactly as the serial loop trains it (DESIGN_memory_throughput.md)
+    selected_for = {beta: replace(protocol, plasticity=beta) for beta in betas}
+    all_curves = capacity.run_cells_concurrent({
+        (beta, name): (name, record["seeds"], selected_for[beta], profile)
+        for beta in betas for name in protocol.cells})
     for beta in betas:
-        selected = replace(protocol, plasticity=beta)
-        curves = {name: capacity.run_cell(name, record["seeds"], selected.vocabulary_sizes,
-                                          engine="scheduled", protocol=selected,
-                                          aligner_semantics=profile)
-                  for name in selected.cells}
+        selected = selected_for[beta]
+        curves = {name: all_curves[(beta, name)] for name in selected.cells}
         report = capacity.capacity_report(curves, record["seeds"], protocol=selected)
         sweep[f"{beta:g}"] = {
             "beta": beta,
