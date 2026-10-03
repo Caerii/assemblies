@@ -1,6 +1,6 @@
 \documentclass[11pt]{article}
 \usepackage[margin=1in]{geometry}
-\usepackage{amsmath,amssymb,amsthm,booktabs,microtype}
+\usepackage{amsmath,amssymb,amsthm,booktabs,microtype,graphicx}
 \usepackage[colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
 
 \theoremstyle{definition}
@@ -409,6 +409,56 @@ design choice. A time-varying schedule (high gain early to recruit, decaying
 later to protect what is stored) is the same statement along the training axis
 rather than the spatial one, and is the natural analogue of a
 neuromodulatory gating of plasticity.
+
+
+\section{The memory's phase diagram in the write--load plane}
+
+The sections above concern composition depth. The refracted assembly memory
+(\texttt{PREREG\_refraction\_memory.md}, Amendments 9--23) has a second phase
+structure, along the write strength $\beta$ and the load $M$ (items stored),
+measured with two order parameters at once: \emph{recall} $R_c$, the fraction
+of half-cued items whose read-out recovers at least $0.8$ of the item and is
+nearer it than any other stored item, and \emph{recognition} $R_r$, the
+fraction whose read-out is merely nearer the cued item than any other (rank-1).
+$R_r$ has a chance floor of $1/M$; it is read only from $M \ge 32$.
+
+\begin{figure}[h]
+\centering
+\includegraphics[width=\textwidth]{../experiments/figures/memory_phase_diagram.png}
+\caption{Load windows (where each order parameter exceeds $1/2$) against
+$\beta/\theta$, $\theta = \sqrt{(1-p)\ln n/(pk)}$, at $p = 1/2$, twenty brains per
+cell (Amendment 23 record; \texttt{memory\_phase\_diagram.py}). Blue:
+recognition; red: recall; dashed: the two onsets.}
+\end{figure}
+
+\begin{proposition}[Four regions, two onsets]\label{prop:phases} \MEASURED
+In every one of seven cells ($n = 2000$--$8000$, $k = 10$--$160$) the plane
+divides into: \emph{no memory} below a recognition onset $\beta_r$ (rank-1 at
+chance at every load); \emph{recognition only}, between $\beta_r$ and the
+recall onset $\beta_c$, and at loads past recall's window; \emph{recall}, inside
+the recall window above $\beta_c$; and \emph{lost}, past both windows' upper
+edges. Recall's window is nested inside recognition's at every rate. On a
+twelve-per-octave grid $\beta_c / \theta = 0.16$--$0.18$ at ten cells
+(Amendment 18). $\beta_r$ is $6$ to $40$ times weaker, and is not a fixed
+fraction of $\theta$: $\beta_r \approx 0.34/k$ at $n = 4000$ (Amendment 23).
+\end{proposition}
+
+\begin{proposition}[Both onsets are load-assisted]\label{prop:loadassist} \MEASURED
+At its onset rate, recall in a dense area ($p = 1/2$) holds only from
+$158$--$1098$ stored items on (Amendment 18); recognition, at its onset rate,
+only from $5200$--$7700$ stored items on, in every cell. Above each onset
+both edges of the window fall as $\beta$ rises: the strongest memory sits at
+the weakest write that works, once enough has been stored.
+\end{proposition}
+
+Proposition~\ref{prop:loadassist} is the least expected fact here and has no
+counterpart in the Hopfield phase diagram, whose retrieval phase is entered
+by \emph{lowering} the load. Here, at the onset, storing more items is what
+makes an item retrievable. A candidate mechanism, not established: a weak
+write leaves the read-out to the random connectome's own attractor, which is
+nearer no stored item; accumulated potentiation from many items flattens that
+landscape until each item's own increment decides the competition. It is the
+first target for the soft ($\tau > 0$) ensemble below.
 
 \section{Ensembles and entropy}
 
