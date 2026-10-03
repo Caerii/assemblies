@@ -1,0 +1,4 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner onset --registration research/notes/memory/PREREG_refraction_memory.md --tag onset-20261002-r3 --seeds 162 163 164 165 166 167 168 169 170 171 172 173 174 175 176 177 178 179 180 181
+.venv\Scripts\python.exe -m research.runner regimes --registration research/notes/memory/PREREG_refraction_memory.md --tag regimes-20261002-r3 --seeds 182 183 184 185 186 187 188 189 190 191 192 193 194 195 196 197 198 199 200 201

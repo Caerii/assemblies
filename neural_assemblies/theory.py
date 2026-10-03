@@ -1021,7 +1021,19 @@ _RESULTS: List[Result] = [
               "to k p = 5 but climbs at p = 0.05 (0.21 / 0.27 / 0.30 at k p = 20 "
               "/ 10 / 5), capacity is flat in k (1356-1452 at k = 10-40) and "
               "no longer p-invariant (201 vs 1356 at k p = 5), and the PNAS 2020 "
-              "cell (k p = 1) completes at no rate (rank-1 at most 112).",
+              "cell (k p = 1) completes at no rate (rank-1 at most 112). THE "
+              "ONSET (Amendment 18, ten cells, a 12-per-octave grid): the "
+              "weakest completing write is 0.16-0.18 theta everywhere (CV "
+              "0.041) -- dense and sparse, above and below the floor; in dense "
+              "areas it completes only after 158-1098 stored items and the best "
+              "write sits within a step of it, in sparse ones it completes at "
+              "once and the best write is 1.6-1.8x higher. REGIMES (Amendment "
+              "19): at fixed n and p, capacity at each cell's optimum is 1059-"
+              "1513 over k = 10-160 -- nearly k-independent, no law change at "
+              "the floor. RECOGNITION vs RECALL (Amendment 20): the ratio grows "
+              "as fan-in falls (Spearman -0.88); at the PNAS parameters recall "
+              "appears only from k p = 4 while recognition holds 114-207 items "
+              "from k p = 1.",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1063,7 +1075,15 @@ _RESULTS: List[Result] = [
                   "memory_threshold_law.py, 20 new brains, ten cells (A17): "
                   "beta*/theta 0.180 / 0.189 / 0.180 above the floor; 0.216 / "
                   "0.193 / 0.213 (p 0.5) and 0.211 / 0.270 / 0.296 (p 0.05) below; "
-                  "(10000, 100, 0.01) distinct completion 0 at every rate"),
+                  "(10000, 100, 0.01) distinct completion 0 at every rate",
+                  "memory_onset.py, 20 new brains, ten cells (A18): onset/theta "
+                  "0.170 x5, 0.180 x3, 0.160 x2; dense onset windows open at "
+                  "158-1098 items; best/onset 1.00-1.06 (dense, 5 of 6), 1.59-1.78 "
+                  "(p 0.05)",
+                  "memory_regimes.py, 20 new brains, fifteen cells (A19-20): "
+                  "capacity 1314/1148/1513/1383/1473/1392/1468/1239/1059 at "
+                  "n = 4000, k = 10-160; 508/1513/3222 at n = 2000/4000/8000, k = 20; "
+                  "rank-1 at its own best write >= 32768 at k p <= 10, 2511 at k p 80"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -1101,6 +1121,10 @@ _RESULTS: List[Result] = [
                         "Amendment 16: the learning-rate law with connectivity noise, p = 0.125-0.75"),
             EvidenceRef("research/results/runs/memory.threshold-law/threshold-law-20261001/results.json", "artifact",
                         "Amendment 17: the best rate as a fraction of the convergence threshold, k p = 1-80"),
+            EvidenceRef("research/results/runs/memory.onset/onset-20261002-r3/results.json", "artifact",
+                        "Amendment 18: the completion onset on a 12-per-octave grid, ten cells"),
+            EvidenceRef("research/results/runs/memory.regimes/regimes-20261002-r3/results.json", "artifact",
+                        "Amendments 19-20: capacity across k and n, recognition against recall"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "

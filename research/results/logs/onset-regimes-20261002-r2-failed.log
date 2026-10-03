@@ -1,0 +1,116 @@
+(2000, 60, 0.5) beta=0.0427 (0.120 theta): distinct [None, None]
+(2000, 60, 0.5) beta=0.0453 (0.127 theta): distinct [None, None]
+(2000, 60, 0.5) beta=0.0479 (0.135 theta): distinct [None, None]
+(2000, 60, 0.5) beta=0.0508 (0.143 theta): distinct [None, None]
+(2000, 60, 0.5) beta=0.0538 (0.151 theta): distinct [None, None]
+(2000, 60, 0.5) beta=0.057 (0.160 theta): distinct [None, None]
+(2000, 60, 0.5) beta=0.0604 (0.170 theta): distinct [294.6679156520477, 438.80728278801564]
+(2000, 60, 0.5) beta=0.064 (0.180 theta): distinct [59.9746885302981, 506.7195544511224]
+(2000, 60, 0.5) beta=0.0678 (0.190 theta): distinct [8.0, 475.85815301817587]
+(2000, 60, 0.5) beta=0.0718 (0.202 theta): distinct [None, 453.16011455805756]
+(2000, 60, 0.5) beta=0.0761 (0.214 theta): distinct [None, 426.49258023013374]
+(2000, 60, 0.5) beta=0.0806 (0.226 theta): distinct [None, 408.79999267890366]
+(2000, 60, 0.5) beta=0.0854 (0.240 theta): distinct [None, 357.7466365025337]
+(2000, 60, 0.5) beta=0.0905 (0.254 theta): distinct [None, 327.5156994499776]
+(2000, 60, 0.5) beta=0.0959 (0.269 theta): distinct [None, 305.77610954839383]
+(2000, 60, 0.5) beta=0.1016 (0.285 theta): distinct [None, 284.5938957902293]
+(2000, 60, 0.5) beta=0.1076 (0.302 theta): distinct [None, 263.65470382951315]
+(4000, 60, 0.5) beta=0.0446 (0.120 theta): distinct [None, None]
+(4000, 60, 0.5) beta=0.0473 (0.127 theta): distinct [None, None]
+(4000, 60, 0.5) beta=0.0501 (0.135 theta): distinct [None, None]
+(4000, 60, 0.5) beta=0.0531 (0.143 theta): distinct [None, None]
+(4000, 60, 0.5) beta=0.0562 (0.151 theta): distinct [None, None]
+(4000, 60, 0.5) beta=0.0596 (0.160 theta): distinct [None, None]
+(4000, 60, 0.5) beta=0.0631 (0.170 theta): distinct [714.0935273968055, 1594.235388604743]
+(4000, 60, 0.5) beta=0.0668 (0.180 theta): distinct [318.76673427567187, 1596.5187781935301]
+(4000, 60, 0.5) beta=0.0708 (0.190 theta): distinct [94.07336307000553, 1484.767596222283]
+(4000, 60, 0.5) beta=0.075 (0.202 theta): distinct [33.04090390147622, 1407.5501182120918]
+(4000, 60, 0.5) beta=0.0795 (0.214 theta): distinct [None, 1311.389734859554]
+(4000, 60, 0.5) beta=0.0842 (0.226 theta): distinct [None, 1266.0204816000273]
+(4000, 60, 0.5) beta=0.0892 (0.240 theta): distinct [None, 1204.3049190652664]
+(4000, 60, 0.5) beta=0.0945 (0.254 theta): distinct [None, 1128.8083975468705]
+(4000, 60, 0.5) beta=0.1002 (0.270 theta): distinct [None, 1001.8544063998224]
+(4000, 60, 0.5) beta=0.1061 (0.285 theta): distinct [None, 920.9670843092962]
+(4000, 60, 0.5) beta=0.1124 (0.302 theta): distinct [None, 840.3652012127889]
+(4000, 80, 0.5) beta=0.0386 (0.120 theta): distinct [None, None]
+(4000, 80, 0.5) beta=0.0409 (0.127 theta): distinct [None, None]
+(4000, 80, 0.5) beta=0.0434 (0.135 theta): distinct [None, None]
+(4000, 80, 0.5) beta=0.0459 (0.143 theta): distinct [None, None]
+(4000, 80, 0.5) beta=0.0487 (0.151 theta): distinct [None, None]
+(4000, 80, 0.5) beta=0.0516 (0.160 theta): distinct [None, None]
+(4000, 80, 0.5) beta=0.0546 (0.170 theta): distinct [614.484634424257, 1394.0631144944525]
+(4000, 80, 0.5) beta=0.0579 (0.180 theta): distinct [212.02328142106083, 1435.2141685349618]
+(4000, 80, 0.5) beta=0.0613 (0.190 theta): distinct [50.1721349188435, 1372.971616373575]
+(4000, 80, 0.5) beta=0.065 (0.202 theta): distinct [10.448465076814594, 1325.9401446395739]
+(4000, 80, 0.5) beta=0.0688 (0.214 theta): distinct [None, 1276.2904714890014]
+(4000, 80, 0.5) beta=0.0729 (0.226 theta): distinct [None, 1240.4849582066583]
+(4000, 80, 0.5) beta=0.0773 (0.240 theta): distinct [None, 1153.6963095819926]
+(4000, 80, 0.5) beta=0.0819 (0.254 theta): distinct [None, 1099.2992381123306]
+(4000, 80, 0.5) beta=0.0867 (0.269 theta): distinct [None, 967.5434040264422]
+(4000, 80, 0.5) beta=0.0919 (0.285 theta): distinct [None, 865.4581607700018]
+(4000, 80, 0.5) beta=0.0974 (0.302 theta): distinct [None, 745.746533412472]
+(4000, 160, 0.5) beta=0.0273 (0.120 theta): distinct [None, None]
+(4000, 160, 0.5) beta=0.0289 (0.127 theta): distinct [None, None]
+(4000, 160, 0.5) beta=0.0307 (0.135 theta): distinct [None, None]
+(4000, 160, 0.5) beta=0.0325 (0.143 theta): distinct [None, None]
+(4000, 160, 0.5) beta=0.0344 (0.151 theta): distinct [None, None]
+(4000, 160, 0.5) beta=0.0365 (0.160 theta): distinct [None, None]
+(4000, 160, 0.5) beta=0.0386 (0.170 theta): distinct [158.4853908306808, 1035.9699503844515]
+(4000, 160, 0.5) beta=0.0409 (0.180 theta): distinct [14.144083180860958, 1083.1881701665022]
+(4000, 160, 0.5) beta=0.0434 (0.191 theta): distinct [None, 993.2910303620861]
+(4000, 160, 0.5) beta=0.0459 (0.202 theta): distinct [None, 892.5310561156203]
+(4000, 160, 0.5) beta=0.0487 (0.214 theta): distinct [None, 808.3278053645373]
+(4000, 160, 0.5) beta=0.0516 (0.227 theta): distinct [None, 660.475653030234]
+(4000, 160, 0.5) beta=0.0546 (0.240 theta): distinct [None, 602.5333234975287]
+(4000, 160, 0.5) beta=0.0579 (0.254 theta): distinct [None, 534.7110587695493]
+(4000, 160, 0.5) beta=0.0613 (0.269 theta): distinct [None, 432.31439591381405]
+(4000, 160, 0.5) beta=0.065 (0.285 theta): distinct [None, 348.19813263960555]
+(4000, 160, 0.5) beta=0.0688 (0.302 theta): distinct [None, 314.45725460286036]
+(8000, 120, 0.5) beta=0.0328 (0.120 theta): distinct [None, None]
+(8000, 120, 0.5) beta=0.0348 (0.127 theta): distinct [None, None]
+(8000, 120, 0.5) beta=0.0369 (0.135 theta): distinct [None, None]
+(8000, 120, 0.5) beta=0.0391 (0.143 theta): distinct [None, None]
+(8000, 120, 0.5) beta=0.0414 (0.151 theta): distinct [None, None]
+(8000, 120, 0.5) beta=0.0438 (0.160 theta): distinct [None, None]
+(8000, 120, 0.5) beta=0.0464 (0.170 theta): distinct [1097.708506278531, 3396.9497246824276]
+(8000, 120, 0.5) beta=0.0492 (0.180 theta): distinct [499.8715267980253, 3972.218679816759]
+(8000, 120, 0.5) beta=0.0521 (0.190 theta): distinct [174.52915711674046, 4181.616453090678]
+(8000, 120, 0.5) beta=0.0552 (0.202 theta): distinct [41.22940005214353, 4242.732468126392]
+(8000, 120, 0.5) beta=0.0585 (0.214 theta): distinct [10.482964338245207, 4235.776315805086]
+(8000, 120, 0.5) beta=0.062 (0.227 theta): distinct [None, 4191.664326309367]
+(8000, 120, 0.5) beta=0.0657 (0.240 theta): distinct [None, 4120.770286692935]
+(8000, 120, 0.5) beta=0.0696 (0.254 theta): distinct [None, 3980.266736366886]
+(8000, 120, 0.5) beta=0.0737 (0.269 theta): distinct [None, 3705.128922872732]
+(8000, 120, 0.5) beta=0.0781 (0.285 theta): distinct [None, 3420.564324411763]
+(8000, 120, 0.5) beta=0.0828 (0.303 theta): distinct [None, 3183.0667552967293]
+Traceback (most recent call last):
+  File "<frozen runpy>", line 198, in _run_module_as_main
+  File "<frozen runpy>", line 88, in _run_code
+  File "C:\Github\assemblies-runs-20260930b\research\runner.py", line 634, in <module>
+    raise SystemExit(main())
+                     ^^^^^^
+  File "C:\Github\assemblies-runs-20260930b\research\runner.py", line 629, in main
+    module.main(args.arguments)
+  File "C:\Github\assemblies-runs-20260930b\research\experiments\memory_onset.py", line 197, in main
+    path = run_experiment(
+           ^^^^^^^^^^^^^^^
+  File "C:\Github\assemblies-runs-20260930b\research\runner.py", line 484, in run_experiment
+    return _reserve_and_measure(record, protocol=protocol, tag=tag,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\assemblies-runs-20260930b\research\runner.py", line 538, in _reserve_and_measure
+    measured = measure(snapshot_document(record))
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\assemblies-runs-20260930b\research\experiments\memory_onset.py", line 104, in experiment
+    results = lr.run_betas(n, k, grid, seeds, spec["cap"], device,
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\assemblies-runs-20260930b\research\experiments\memory_learning_rate.py", line 201, in run_betas
+    out += _run_launch(n, k, betas[g0:g0 + per], seeds, cap, device,
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\assemblies-runs-20260930b\research\experiments\memory_learning_rate.py", line 278, in _run_launch
+    mem.select(keep)
+  File "C:\Github\assemblies-runs-20260930b\neural_assemblies\core\torch_engine\_memory.py", line 285, in select
+    select(keep)
+  File "C:\Github\assemblies-runs-20260930b\neural_assemblies\core\torch_engine\_hashed.py", line 752, in select
+    self.C = self.C.index_select(0, keep)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 3.58 GiB. GPU 0 has a total capacity of 10.00 GiB of which 3.11 GiB is free. 8.34 GiB allowed; Of the allocated memory 5.54 GiB is allocated by PyTorch, with 21.85 MiB allocated in private pools (e.g., CUDA Graphs), and 190.52 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://docs.pytorch.org/docs/stable/notes/cuda.html#optimizing-memory-usage-with-pytorch-cuda-alloc-conf)

@@ -129,6 +129,12 @@ from 10 to 40); at p = 0.05 it completes 160-200 items on twice the neurons.
 The published operations are therefore identification-grade at the published
 parameters, and below the floor sparseness costs capacity even at equal fan-in.
 
+Amendment 20 sharpened this: across n = 10^4, p = 0.01, recall first appears
+at k p = 4 while recognition holds 114-207 items from k p = 1; and read at its
+own (much weaker) best write, recognition holds at least 32768 items where
+recall holds ~1300 (n = 4000, k p <= 10). The published regimes are
+recognition memories.
+
 ### 2.4 Per-fiber parameters are already used, by hand
 
 The acquisition and architecture papers state that p and beta "may vary from
@@ -207,6 +213,10 @@ square root of a neuron's fan-in.
    k p = 5, at p = 0.05 no (the fraction climbs to 0.30 at k p = 5), and at
    k p = 1 nothing completes. The optimum sits at the completion onset, the
    weakest write under which an item converges.
+   *Measured directly by Amendment 18:* on a twelve-per-octave grid the
+   onset is 0.16-0.18 theta at all ten cells (CV 0.04), dense and sparse,
+   above and below the floor; what differs between regimes is how far the
+   best write lies above it (one step dense, 1.6-1.8x sparse).
 2. **One capacity protocol for every anti-interference mechanism.** Refraction,
    E%-WTA, dendritic gating, and the saturating coin-flip rule, each at its own
    best beta, on distinct completion.

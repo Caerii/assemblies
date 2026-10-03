@@ -701,6 +701,19 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | TV instrument (A17) | (4000, 60, 0.5) within 15% of 1616 | PASS | 1589 (0.983) |
 | T1 threshold fraction above floor (A17) | beta*/theta within 15% of 0.20 at k p = 30, 40, 80 | PASS | 0.180, 0.189, 0.180 |
 | T2 threshold fraction below floor (A17) | >= 1 resolved; every resolved within 25% of 0.20 | FAIL | p 0.5: 0.19-0.22; p 0.05: 0.21, 0.27, 0.30; PNAS cell never completes |
+| OV instrument (A18) | (4000, 60, 0.5) within 15% of 1589 | PASS | 1597 |
+| O1 universal onset (A18) | onset/theta in [0.13, 0.21] at all ten, CV <= 0.10 | PASS | 0.160-0.180, CV 0.041 |
+| O2 dense onset load-assisted (A18) | onset window opens at >= 64 items, p = 0.5 | PASS | 158-1098 |
+| O3 sparse onset immediate (A18) | no lower edge at p = 0.05 | FAIL | none / 3 items |
+| O4 dense optimum at onset (A18) | best/onset <= 2^(1/4), p = 0.5 | FAIL | 1.00-1.06 at 5 cells; 1.1897 at (8000, 120) |
+| O5 sparse optimum above onset (A18) | best/onset >= 1.4, p = 0.05 | PASS | 1.78, 1.59 |
+| XV instrument (A19) | A17 capacities within 15% | PASS | 1.01, 1.12 |
+| X1 flat below floor (A19) | k = 10-40 within 15% of mean | FAIL | k = 14 at -16% |
+| X2 linear in n below floor (A19) | x1.6-2.5 per doubling | FAIL | x2.98, x2.13 |
+| X3 falling above floor (A19) | strictly decreasing, k=160 <= 0.8 k=56 | FAIL | rises 56 -> 80; 0.76 |
+| R1 gap grows as fan-in falls (A20) | Spearman(k p, R) <= -0.7 | PASS | -0.883 |
+| R2 recall needs fan-in (A20) | rank-1 >= 32 all; distinct 0 at kp 1, >= 32 at kp 8 | PASS | 114-207; 0; 40 |
+| R3 divergence large (A20) | R(k 10) >= 3 R(k 160) | FAIL | 1.78x |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -2501,3 +2514,161 @@ as its lower bound.
 
 The run is UNJUDGED until XV, X1 to X3 and R1 to R3 are evaluated and
 recorded below.
+
+### Amendment 18 result (2026-10-02)
+
+One run from a worktree pinned at b72d1b02 (this registration, 9fa58851,
+plus two engine changes that replay committed studies exactly: launches
+sized against the card's free memory, and in-place compaction when a sweep
+drops its finished rates), the registered seeds 162 to 181, 9 minutes:
+[record](../../results/runs/memory.onset/onset-20261002-r3/results.json),
+[log](../../results/logs/onset-regimes-20261002-r3.log).
+**Disclosed:** two earlier attempts on the same seeds were stopped. The
+first (tag `onset-20261002`, from 9fa58851) paged GPU memory to system RAM
+and was stopped after two cells
+([log](../../results/logs/onset-20261002-aborted.log)); the second
+(`onset-20261002-r2`, from feb649de) ran out of memory when dropping
+finished rates at (8000, 120, 0.5)
+([log](../../results/logs/onset-regimes-20261002-r2-failed.log)). Their
+reservations are kept. Every line the earlier attempts printed is
+reproduced exactly by this run.
+
+theta = sqrt((1 - p) ln n / (p k)); the onset is the weakest rate of the
+twelve-to-the-octave grid that completes at least 32 distinct items; its
+lower edge is the load at which that rate's completion window opens:
+
+    cell (n, k, p)      k p  onset/theta  lower edge  best   best/theta  best/onset
+    (2000, 60, 0.5)     30   0.170        295         507    0.180       1.060
+    (4000, 60, 0.5)     30   0.170        714         1597   0.180       1.059
+    (4000, 80, 0.5)     40   0.170        614         1435   0.180       1.060
+    (4000, 160, 0.5)    80   0.170        158         1083   0.180       1.060
+    (8000, 120, 0.5)    60   0.170        1098        4243   0.202       1.190
+    (8000, 240, 0.25)   60   0.180        17          1160   0.214       1.189
+    (4000, 10, 0.5)     5    0.180        961         1561   0.191       1.060
+    (4000, 20, 0.5)     10   0.180        633         1554   0.180       1.000
+    (8000, 100, 0.05)   5    0.160        none        199    0.285       1.782
+    (8000, 200, 0.05)   10   0.160        3           185    0.254       1.587
+
+    OV  THE INSTRUMENT                                                PASS
+        best at (4000, 60, 0.5): 1597 against Amendment 17's 1589.
+    O1  A UNIVERSAL ONSET                                             PASS
+        every onset found, 0.160 to 0.180 theta; mean 0.171, coefficient
+        of variation 0.041 (bar: [0.13, 0.21], CV <= 0.10).
+    O2  THE DENSE ONSET IS LOAD-ASSISTED                              PASS
+        at the six p = 0.5 cells the onset window opens at 158 to 1098
+        stored items (bar: >= 64).
+    O3  THE SPARSE ONSET IS IMMEDIATE                                 FAIL
+        (8000, 100, 0.05) completes from the first checkpoint; (8000, 200,
+        0.05)'s window opens at 3 items -- immediate in effect, but not
+        "no lower edge" as registered.
+    O4  THE DENSE OPTIMUM IS THE ONSET                                FAIL
+        best/onset 1.000 to 1.060 at five of the six p = 0.5 cells (the
+        best within one fine step of the onset); 1.190 at (8000, 120, 0.5),
+        where the best is exactly three steps (2^(1/4)) above the onset and
+        the grid's four-decimal rates make the ratio 1.1897 against the
+        bar's 1.1892.
+    O5  THE SPARSE OPTIMUM LIES ABOVE THE ONSET                       PASS
+        best/onset 1.78 and 1.59 at the two p = 0.05 cells (bar: >= 1.4).
+
+**Reading.** The weakest write under which the refracted memory completes
+its items is a fixed fraction of the convergence threshold, 0.16 to 0.18
+theta, at all ten cells: dense and sparse, above and below the floor, k p
+from 5 to 80. The convergence threshold the assembly-calculus theorems
+derive for projection is where completion begins -- the theorems' constant
+sets the memory's operating point, everywhere this repository has measured
+it.
+
+What differs between regimes is not the onset but what happens above it,
+and how the onset opens. In a dense area (p = 0.5) completion at the onset
+needs LOAD: the first several hundred items stored at that rate do not
+complete, later ones do (lower edges 158 to 1098; 295 and 714 at n = 2000
+and 4000 with k p = 30, 1098 at n = 8000), and the best capacity sits within one fine step of the onset at five
+of six cells. As p falls the load assistance vanishes -- 17 items at
+p = 0.25, 0 to 3 at p = 0.05 -- and the best write moves up, 1.6 to 1.8
+times the onset in the sparse cells. Amendment 17's T2 failure (the
+sparse cells' optimum at 0.27 to 0.30 theta) is this: a universal onset,
+with capacity that keeps rising above it in sparse areas. Amendments 13 to
+17's "0.20 theta" was the dense onset seen through a coarse grid: 0.17,
+one quarter-octave step below.
+
+Two bars fail on their letter, not their substance, and are recorded as
+failed: a 3-item lower edge where "none" was registered (O3), and a
+rounding of 0.0005 at a best exactly 2^(1/4) above its onset (O4).
+
+### Amendments 19 and 20 result (2026-10-02)
+
+One run from the worktree pinned at b72d1b02, the registered seeds 182 to
+201, 10 minutes:
+[record](../../results/runs/memory.regimes/regimes-20261002-r3/results.json),
+[log](../../results/logs/onset-regimes-20261002-r3.log) (after Amendment
+18's lines). **Disclosed:** an attempt from feb649de (`regimes-20261002-r2`)
+was stopped during its first cell when Amendment 18's run beside it failed;
+its reservation is kept. Each cell's capacity is its best distinct-completion
+capacity over its grid; rank-1 at 32768 is the cap (a lower bound, marked *);
+R is rank-1 over distinct capacity, both at the cell's recall-optimal rate:
+
+    cell (n, k, p)      k p  floor  distinct (rate)    rank-1 at own best    R
+    (4000, 10, 0.5)     5    below  1314 (0.180)       32768* (0.036)        2.97
+    (4000, 14, 0.5)     7    below  1148 (0.152)       32768* (0.031)        4.19
+    (4000, 20, 0.5)     10   below  1513 (0.128)       32768* (0.031)        3.22
+    (4000, 28, 0.5)     14   below  1383 (0.108)       29175 (0.031)         3.51
+    (4000, 40, 0.5)     20   below  1473 (0.090)       19880 (0.031)         2.87
+    (4000, 56, 0.5)     28   above  1392 (0.076)       14732 (0.026)         2.60
+    (4000, 80, 0.5)     40   above  1468 (0.057)       9959 (0.026)          2.46
+    (4000, 112, 0.5)    56   above  1239 (0.054)       5182 (0.031)          1.97
+    (4000, 160, 0.5)    80   above  1059 (0.040)       2511 (0.026)          1.67
+    (2000, 20, 0.5)     10   below  508 (0.122)        14368 (0.029)         3.61
+    (8000, 20, 0.5)     10   below  3222 (0.149)       32768* (0.045)        3.12
+    (10000, 100, 0.01)  1    below  0                  114 (0.342)           --
+    (10000, 200, 0.01)  2    below  3 (0.336)          179 (0.203)           44.9
+    (10000, 400, 0.01)  4    below  52 (0.423)         207 (0.144)           1.08
+    (10000, 800, 0.01)  8    below  40 (0.237)         137 (0.102)           1.43
+
+    XV  THE INSTRUMENT                                                PASS
+        1473 against 1452 at (4000, 40, 0.5); 1468 against 1312 at
+        (4000, 80, 0.5) (+12%).
+    X1  FLAT BELOW THE FLOOR                                          FAIL
+        1314, 1148, 1513, 1383, 1473 at k = 10 to 40 (mean 1366): k = 14
+        lies 16% below the mean (bar: 15%).
+    X2  LINEAR IN n BELOW THE FLOOR                                   FAIL
+        508, 1513, 3222 at n = 2000, 4000, 8000: x2.98 and x2.13 per
+        doubling (bar: 1.6 to 2.5); n-exponents 1.58 and 1.09.
+    X3  FALLING WITH k ABOVE THE FLOOR                                FAIL
+        1392, 1468, 1239, 1059 at k = 56, 80, 112, 160: not strictly
+        decreasing (k = 56 to 80 rises), though k = 160 is 0.76 of k = 56.
+    R1  THE GAP GROWS AS FAN-IN FALLS                                 PASS
+        Spearman of R with k p over the nine k-sweep cells: -0.883 (bar:
+        <= -0.7); R 2.9 to 4.2 below the floor, 1.7 to 2.6 above it.
+    R2  RECALL NEEDS FAN-IN, RECOGNITION DOES NOT                     PASS
+        PNAS family: rank-1 114, 179, 207, 137 items at k p = 1, 2, 4, 8;
+        distinct completion 0 at k p = 1 and 40 at k p = 8.
+    R3  THE DIVERGENCE IS LARGE                                       FAIL
+        R(k = 10) / R(k = 160) = 2.97 / 1.67 = 1.78 (bar: >= 3).
+
+**Reading (Amendment 19).** Capacity does not change law at the floor as
+registered. What the k sweep shows instead is that at fixed n and p, a
+memory written at its own best rate stores nearly the same number of items
+whatever its assembly size: 1059 to 1513 over a sixteen-fold range of k
+(k p 5 to 80), falling only at the largest assemblies, where the synapse-
+count form n^2 p / (k ln(n/k)) would fall about thirty-fold and (n/k)^2
+256-fold. Below the floor, capacity grows faster than linearly in n
+(exponent 1.6, then 1.1). Amendment 17's three-point flatness was the low
+end of this near-flat line, not a regime of its own.
+
+**Reading (Amendment 20).** Recognition and recall dissociate, and the
+dissociation deepens as fan-in falls (R1), though by less than registered
+at the recall-optimal write (R3: 1.8-fold, not 3). In the PNAS family recall
+appears only from k p = 4, while recognition holds 114 to 207 items from
+k p = 1 (R2): the parameters the published simulations use are a
+recognition memory.
+
+**Seen in the record, not registered.** Read each at its OWN best write,
+the two capacities part far more than R shows: recognition's best write is
+much weaker (0.03 to 0.05 against recall's 0.04 to 0.18), and there it
+holds at least 32768 items (the cap) at k p <= 10, 29175 at k p = 14, and
+falls to 2511 at k p = 80 -- at least 25 times recall's capacity below the
+floor against 2.4 times at k p = 80. A weakly connected memory written
+weakly is a vast recognition memory and a modest recall memory; the same
+memory written for recall gives up most of its recognition. Registering
+the two capacities each at its own optimum, with a cap high enough not to
+censor recognition, is what this points to.
