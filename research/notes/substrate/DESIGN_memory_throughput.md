@@ -142,3 +142,25 @@ find the previous word's jitter), and each stage's inputs are freed once
 consumed; the readout gathers each word's winners at the bundles' winners
 instead of two dense [B, V, n] tensors. Measured peaks fell 2.0-2.6x (cell
 C, V = 1024: 3.56 -> 1.39 GiB), so more chunks fit in flight.
+
+## Memory, not arithmetic (2026-10-02)
+
+Two failures cost more time than any kernel. (1) A launch sized against the
+organ fiber's fixed 6 GiB limit overran the 10 GB card once a sweep packed
+340 brains with their stored items and readings beside the desktop's ~2 GB;
+the Windows driver paged 2.08 GB of device memory to system RAM instead of
+failing, and the run slowed several-fold. Launches are now sized against
+`mem_get_info` (every brain's counts, connectome bits, state and stored
+items, plus the recall, gather and graph buffers), balanced, and the
+allocator is capped so an overcommit raises. (2) Dropping finished rates
+with `index_select` held a second copy of the count matrices (3.6 GiB at
+n = 8000); kept brains are now compacted forward in place, and stored items
+live in one buffer filled and compacted in place.
+
+**Weak writes.** int8 counts are exact only when the weight clip binds by
+count 127 (rates from ~0.024), and the chain table was capped at 256
+entries, past which a count is priced at the last, unclipped entry with no
+error. Below ~0.024 the fiber now uses int16 counts with a table one entry
+past the clip (`clip_count`); the kernels are templated on the count type,
+and a sweep's int16 rates launch apart from its int8 rates. Every rate used
+before keeps int8 and its table; committed studies replay identically.
