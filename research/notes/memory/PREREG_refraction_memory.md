@@ -2672,3 +2672,90 @@ weakly is a vast recognition memory and a modest recall memory; the same
 memory written for recall gives up most of its recognition. Registering
 the two capacities each at its own optimum, with a cap high enough not to
 censor recognition, is what this points to.
+
+## Amendment 21 (2026-10-02, before running): is capacity at the best write set by the in-degree d = n p alone?
+
+Registered before any run of this amendment. Read across the records of
+Amendments 13, 14, 16, 17, 18 and 19 after their bars were judged, the best
+distinct-completion capacity of the 46 cells with in-degree d = n p >= 1000
+(n 1333 to 8000, k 10 to 240, p 0.125 to 0.75, k p 5 to 120) follows
+
+    C = 0.0135 d^1.51                (log-scale residual sd 0.143, x1.15)
+
+and adding n/k to the fit barely helps (its exponent 0.08, residual x1.14).
+Amendment 16's four cells at d = 1000 (n 1333 to 8000, p 0.75 to 0.125)
+store 436 to 497 items; Amendment 19's (2000, 20, 0.5), also d = 1000,
+stores 508. Below d = 1000 the relation does not hold as written (d = 400 at
+p = 0.05 sits ~1.6x above it; at d = 100 recall barely exists), and cells
+with small n/k (<= 25) sit 20-35% below it. The synapse-count form of
+Amendment 14 (n^2 p / (k ln(n/k))) and (n/k)^2 both predict a strong fall
+with k at fixed n and p, which Amendment 19 did not find (1059 to 1513 over
+k = 10 to 160).
+
+If capacity at the optimum is set by the in-degree alone, what a refracted
+area can store is fixed by how many synapses each neuron receives from it --
+not by its assembly size, its neuron count or its connection probability
+separately -- and grows as d^1.5.
+
+**Seen before registering:** the records above and the fit; a smoke run
+(VOID: 3 brains, cap 32, two rates each at (2500, 25, 0.4) and (12000, 60,
+0.5), 0.18 and 0.20 theta): distinct completion's window opened only at
+(2500, 25, 0.4), 0.195 theta, with its upper edge at 24 items, below the
+cap.
+
+### Protocol
+
+`research/experiments/memory_degree_law.py` (`python -m research.runner
+degree-law`), seeds 202 to 221 (new brains), one run from a worktree pinned
+at the commit registering this amendment. The refracted AssemblyMemory
+(0.5 beta, T = 8, w_max 20, arm B, ungated, the capacity study's stimuli) at
+nine cells never measured, eight of them new and six at in-degrees never
+measured; within each in-degree n/k varies two- to fourfold, so a law in n/k
+and the in-degree law disagree at equal d:
+
+    d = 1000:  (2500, 25, 0.4)   n/k 100      (5000, 100, 0.2)   n/k 50
+    d = 1500:  (3000, 15, 0.5)   n/k 200      (6000, 60, 0.25)   n/k 100
+               (12000, 240, 0.125) n/k 50
+    d = 3000:  (6000, 30, 0.5)   n/k 200      (12000, 240, 0.25) n/k 50
+    d = 6000:  (12000, 60, 0.5)  n/k 200
+    the instrument: (4000, 60, 0.5)            (Amendment 18: 1597)
+
+each swept over theta x 0.15 x 2^(j/8) up to 0.30 theta (nine rates), theta
+= sqrt((1 - p) ln n / (p k)): Amendment 18 put every onset at 0.16 to 0.18
+theta and the best write within 1.8 times it. Distinct completion and
+capacity as in Amendments 13 to 20; checkpoints from M = 2; no stop before
+M = 32; cap 3 C_pred + 256; a rate that never completes stores to
+max(8192, 2 C_pred) items. Predictions, fixed now from C = 0.0135 d^1.51:
+
+    d = 1000: 457    d = 1500: 844    d = 3000: 2403    d = 6000: 6845
+
+    python -m research.runner degree-law \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag degree-law-20261002 --seeds 202 ... 221
+
+### Bars
+
+    DV  THE INSTRUMENT. The best capacity at (4000, 60, 0.5) lies within 15%
+        of Amendment 18's 1597. Failure voids D1 to D3.
+    D1  THE PREDICTION. At each of the eight new cells the best capacity lies
+        within 25% of its predicted value.
+    D2  THE IN-DEGREE ALONE. Within d = 1000, 1500 and 3000, each cell's best
+        capacity lies within 20% of its group's mean, while n/k varies two-
+        to fourfold.
+    D3  THE EXPONENT. The least-squares slope of log C on log d over the
+        eight new cells lies in [1.35, 1.65].
+
+### Interpretation, stated now
+
+* D1 to D3 pass: the capacity of a refracted area written at its best rate
+  is set by its neurons' in-degree, C ~ 0.0135 d^1.5, independent of
+  assembly size and of how n and p combine to give d; it replaces the
+  (n/k)^2 and synapse-count forms as the memory's scaling law.
+* D2 and D3 pass, D1 fails: the in-degree law holds with a different
+  constant or a drift outside the fitted range (d = 6000).
+* D2 fails: n/k (or p) matters at equal in-degree; the fit's d-alone form
+  was an artefact of which cells had been measured.
+* D3 fails: capacity is set by d but not as d^1.5 (the slope is reported).
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until DV and D1 to D3 are evaluated and recorded below.
