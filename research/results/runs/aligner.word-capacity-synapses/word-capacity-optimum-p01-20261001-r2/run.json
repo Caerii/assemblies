@@ -1,0 +1,180 @@
+{
+  "engine": "scheduled_aligner",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "alignment",
+    "profiles": {
+      "default": {
+        "anchor_gain": 10.0,
+        "anchor_normalization": "inverse-indegree",
+        "anchor_plasticity": "none",
+        "anchor_weight_ceiling": null,
+        "arithmetic": "float32",
+        "connectome": "fixed-hash-regenerated",
+        "cross_normalization": "inverse-indegree-with-column-scaling",
+        "cross_plasticity": "multiplicative-unbounded",
+        "cross_store": "present-only",
+        "cross_weight_ceiling": null,
+        "inference_schedule": "frozen-anchor-and-cross-readout",
+        "rounds_per_pair": 2,
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "tie_break": "deterministic-hash-jitter",
+        "training_schedule": "anchored-cross-situational"
+      }
+    }
+  },
+  "git_commit": "275a420135e964508c6e977f615315d1b9969549",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "betas": [
+      0.0125,
+      0.025,
+      0.05,
+      0.1,
+      0.2,
+      0.4,
+      0.8
+    ],
+    "protocol": {
+      "category_count": 4,
+      "ceiling_interior_band": [
+        0.1,
+        0.9
+      ],
+      "cell_definitions": {
+        "A": [
+          1000,
+          50,
+          50
+        ],
+        "B": [
+          2000,
+          50,
+          50
+        ],
+        "C": [
+          4000,
+          50,
+          50
+        ],
+        "D": [
+          4000,
+          100,
+          100
+        ],
+        "E": [
+          2000,
+          50,
+          100
+        ]
+      },
+      "cells": [
+        "A",
+        "B",
+        "C"
+      ],
+      "connection_probability": 0.1,
+      "connectome_seed_stride": 1000,
+      "corpus_seed_offset": 9001,
+      "corpus_seed_scope": "per-brain",
+      "early_stop_margin": 0.3,
+      "exposures_per_referent": 12,
+      "feature_area": [
+        4000,
+        100
+      ],
+      "feature_ladder": [
+        [
+          1000,
+          50
+        ],
+        [
+          2000,
+          50
+        ],
+        [
+          4000,
+          50
+        ],
+        [
+          8000,
+          50
+        ],
+        [
+          4000,
+          100
+        ],
+        [
+          8000,
+          100
+        ]
+      ],
+      "launch_budget_bytes": 4294967296,
+      "minimum_exposures": 3,
+      "plasticity": 0.1,
+      "referents_per_scene": 3,
+      "rounds_per_pair": 2,
+      "threshold": 0.9,
+      "training_seed_offset": 11,
+      "vocabulary_sizes": [
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024
+      ],
+      "w2_fail_tolerance": 0.4,
+      "w2_pass_tolerance": 0.25,
+      "w3_fail_ratio": 1.1,
+      "w3_pass_ratio": 1.3
+    }
+  },
+  "protocol": "aligner.word-capacity-synapses",
+  "protocol_version": "2",
+  "registration": "research/notes/aligner/PREREG_word_capacity.md",
+  "registration_sha256": "2683ac41aa1aef29035f599ce578b0997626c48ac10efe397278aa2c5185ce8f",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/word_capacity_synapses_run.py",
+  "script_sha256": "5f2dcd9ebe13bd6cf93bbeae85f97542fec2aa9583cfe5c9a243e63aef9b0d34",
+  "seeds": [
+    200,
+    201,
+    202,
+    203,
+    204,
+    205,
+    206,
+    207,
+    208,
+    209,
+    210,
+    211,
+    212,
+    213,
+    214,
+    215,
+    216,
+    217,
+    218,
+    219
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "aa43ec60affdea69120340d9864030c1f676c0302c24e9f0ae818a3e4409350b"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "4f2ca74893c9934f67447272954bd6151605aff3c52e83df7bd29eb28fcca82b",
+  "started_utc": "2026-10-02T23:54:11.389466+00:00",
+  "tag": "word-capacity-optimum-p01-20261001-r2"
+}

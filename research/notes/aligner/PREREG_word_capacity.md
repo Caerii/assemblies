@@ -548,3 +548,65 @@ the best grid point and its neighbours (undefined at a grid end).
 * A failed bar is recorded as failed and not moved after the data.
 
 The runs are UNJUDGED until M0 to M3 are evaluated and recorded below.
+
+### Amendment 5 result (2026-10-02)
+
+Three runs from a worktree pinned at 275a4201 (this registration, faec3df3,
+plus the concurrent lexicon engine, which had reproduced Amendment 4's
+p = 0.025 record exactly before this run), the registered seeds 200 to 219,
+18 minutes in all:
+[p = 0.025](../../results/runs/aligner.word-capacity-synapses/word-capacity-optimum-p0025-20261001-r2/results.json),
+[p = 0.05](../../results/runs/aligner.word-capacity-synapses/word-capacity-optimum-p005-20261001-r2/results.json),
+[p = 0.1](../../results/runs/aligner.word-capacity-synapses/word-capacity-optimum-p01-20261001-r2/results.json),
+[log](../../results/logs/word-capacity-optimum-20261001-r2.log).
+**Disclosed:** a first run from faec3df3 was stopped after 3 of its 21
+rates to move to the faster engine
+([log](../../results/logs/word-capacity-optimum-20261001-aborted.log); its
+tag reservation is kept, unused, at `word-capacity-optimum-p0025-20261001`).
+The rerun's first three rates reproduce that run's printed values exactly.
+The tags carry `-r2` because the runner never reuses a tag.
+
+Best vocabulary V* over the grid (its rate; seeds censored at the best
+point) and beta* (parabola vertex; - at a grid end):
+
+    cell   p = 0.025               p = 0.05                p = 0.1
+    A      119.4 (0.8, 0)  -       110.1 (0.8, 0)  -       80.3 (0.1, 1)   0.115
+    B      189.7 (0.4, 0)  0.480   190.2 (0.05, 0) 0.063   321.9 (0.05, 0) 0.059
+    C      304.4 (0.05, 0) 0.066   509.2 (0.05, 0) 0.051   777.5 (0.025, 0) 0.033
+
+    M0  THE INSTRUMENT                                                FAIL
+        at p = 0.05, beta = 0.1 on the new brains: A 58.1 against Part
+        2's 73.8 (-21%; seed 95% interval 43.1 to 73.1, three seeds
+        censored at the grid floor, values 16 to 130), B 154.2 against
+        166.4 (-7%), C 333.9 against 324.4 (+3%). M1 to M3 are void.
+    M1  SYNAPSE-LIMITED AT THE OPTIMUM                         FAIL (void)
+        A x0.92, x0.73; B x1.00, x1.69 per doubling of p.
+    M2  THE OPTIMUM FALLS WITH LOAD                            FAIL (void)
+        A's beta* is at the grid's top at p = 0.025 and 0.05; at p = 0.1,
+        A 0.115 > B 0.059 > C 0.033.
+    M3  THE OPTIMUM FALLS WITH FAN-IN                          FAIL (void)
+        A undefined at two p; B 0.480 > 0.063 > 0.059 and C 0.066 > 0.051
+        > 0.033 do fall.
+
+**Reading.** The instrument failed on the small lexicon: on new brains its
+vocabulary at the reference write spans 16 to 130 items across seeds, and
+Part 2's mean lies just outside the new seeds' interval. Nothing below is
+judged.
+
+**Seen in the record, not registered.** The largest lexicon behaves as the
+synapse-limited reading said: at its own best plasticity cell C holds 304,
+509 and 778 word types as p doubles (x1.67 and x1.53, inside M1's band),
+and its best rate falls with p (0.066, 0.051, 0.033). The smallest does
+not: cell A's best write sits at or above the grid's top (0.8) at
+p = 0.025 and 0.05, and its best vocabulary FALLS as p grows (119, 110, 80).
+The lexicon has two regimes, and what separates them is n_LEX p, the
+number of lexical neurons each feature neuron hears from: the best write
+leaves the grid's top and becomes a weak, interior optimum exactly when
+n_LEX p reaches about 100 -- A at p = 0.1 (n p = 100), B from p = 0.05
+(100, 200), C at every p (100 to 400) -- and B's best rate drops sevenfold
+across that line (0.48 to 0.063). Below the line, more connections do not
+buy vocabulary and the learner wants the strongest write; above it, the
+lexicon is synapse-limited at a weak optimum that falls with fan-in, as
+the refracted memory is above its own floor. A registration that tests
+the boundary directly (n_LEX p across 50 to 200 at fixed V, n and p varied
+separately) is what this points to.

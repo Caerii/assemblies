@@ -1,0 +1,1284 @@
+"""Composable pieces for an area whose connectome is GENERATED, not stored.
+
+WHY THIS SHAPE. The algebra composes, so the code should:
+
+    drive[j] = SUM over afferent FIBERS f of   norm_f(j) * SUM_{i in rows_f} w_f[i,j]
+
+and the engine already works this way -- `_norm_scale` is called per fiber,
+`_scale_columns_now` iterates the fibers of a target. So a fiber owns three
+things and an area owns none of them:
+
+    its BASE        a hash, `w[i,j] != 0 iff float24(fmix32(...)) < p`
+    its DEVIATIONS  what training changed, [[HEBB-OUTER-PRODUCT]]
+    its PRICE       the norm divisor, and the column scale if any
+
+Adding an input is then adding a fiber to a list, not adding a flag to a
+projection -- which is what `batched_project_hashed` had started to become.
+
+TWO KINDS OF FIBER, and the difference is not cosmetic. An area->area fiber is
+2-D and its deviations are keyed `(i, j)`. A stimulus fiber stores PRE-SUMMED
+input -- one weight per target neuron, equal to how many stimulus neurons wire
+to it -- so its deviations are keyed by `j` alone, its `w_max` cap is scaled by
+the initial magnitude `stim_size * p`, and its norm divisor is priced at the
+TARGET's n rather than its own size. Getting either wrong is silent and has a
+direction; see `AreaFiber.contribute` and `StimulusFiber.contribute`.
+
+THE DEVIATION STORE. Within one episode the co-firing record is a single
+64-bit round mask per neuron. At the end of the episode it is folded into a
+sorted (key, count) store via a GEMM and never walked again:
+
+    query cost   O(sum_{i in S} nnz_i)      -- the store, read BY ROW
+    versus       O(k n W), W = rounds / 64  -- a mask, which cannot say WHICH
+                                               cells are nonzero
+
+a ratio `n^2 T / (64 k^2)` that is independent of M ([[DRIVE-SPLIT]]) -- 8894x
+at n=16000, k=60, T=8. Keeping the mask across episodes made W grow with
+training length and a study's cost quadratic in it.
+"""
+from __future__ import annotations
+
+from ._torch_ops import torch_ops
+from typing import Any
+
+from . import _fused_cuda
+from .._homeostasis import column_scale, scaling_setpoint
+from .._pricing import (chain_table as _chain_table,
+                        count_saturation_is_exact,
+                        gain_table as _gain_table,
+                        relative_table as _rel_table)
+
+
+def per_brain(value, B):
+    """``value`` as a tuple of B floats when it is a sequence (one per brain),
+    else None: the scalar is shared and every caller keeps its scalar path.
+
+    A learning-rate sweep runs its rates as brains of ONE launch
+    (DESIGN_memory_throughput.md); each brain's arithmetic is the arithmetic
+    it would do alone, so a swept brain's trajectory equals its solo run's."""
+    if value is None or isinstance(value, (int, float)):
+        return None
+    values = tuple(float(v) for v in value)
+    if len(values) != B:
+        raise ValueError(f"{len(values)} per-brain values for {B} brains")
+    return values
+
+
+_GAIN_TABLES: dict = {}
+
+
+def _device_gain(betas, rounds, device):
+    """The stimulus gain table on the device: [rounds + 1] for one rate,
+    [B, rounds + 1] for one rate per brain. Read-only and cached: a stimulus
+    fiber is built per stored item, and copying its table from host memory
+    each time made every item wait for the GPU to drain."""
+    key = (betas, rounds, device)
+    table = _GAIN_TABLES.get(key)
+    if table is None:
+        if isinstance(betas, tuple):
+            import numpy as np
+            rows = {b: _gain_table(b, rounds) for b in set(betas)}
+            host = np.stack([rows[b] for b in betas])
+        else:
+            host = _gain_table(betas, rounds)
+        if len(_GAIN_TABLES) > 256:
+            _GAIN_TABLES.clear()
+        table = _GAIN_TABLES[key] = torch_ops.from_numpy(host).to(device)
+    return table
+
+
+def _local_index(idx):
+    """Map raw ids to per-brain local ids. ``idx`` [B, L] -> loc, values, W."""
+    B, L = idx.shape
+    srt, order = torch_ops.sort(idx, dim=1)
+    fresh = torch_ops.ones_like(srt, dtype=torch_ops.bool)
+    fresh[:, 1:] = srt[:, 1:] != srt[:, :-1]
+    loc_sorted = torch_ops.cumsum(fresh, dim=1) - 1
+    loc = torch_ops.empty_like(loc_sorted)
+    loc.scatter_(1, order, loc_sorted)
+    W = int(fresh.sum(1).max())
+    vals = torch_ops.full((B, W), -1, dtype=torch_ops.int64, device=idx.device)
+    vals.scatter_(1, loc_sorted, srt)      # duplicates write the same value
+    return loc, vals, W
+
+
+class RunStore:
+    """Sorted (key, count) runs of geometrically increasing size -- an LSM.
+
+    WHY NOT ONE SORTED ARRAY. Merging each episode into a single sorted store
+    re-sorts the WHOLE store every time, which is O(M^2) over a study: 15e9
+    sorted elements at M=255, B=16, against 0.94e9 for O(M log M). Keeping runs
+    and merging only when the last two become comparable sorts each element
+    about log2(M) times instead of M.
+
+    Reads search every run, but there are only ~log2(M) of them and a run
+    search is the same binary search the single array needed.
+
+    Counts are exact integers and a merge is integer addition, so the store is
+    exact however often it is reorganised ([[HEBB-OUTER-PRODUCT]]).
+    """
+
+    def __init__(self, device):
+        self.device = device
+        # Allocated lazily on the first episode; Any preserves the tensor
+        # device/dtype while making the lifecycle explicit to static checks.
+        self.keys: Any = None
+        self.cnts: Any = None
+        self.used = 0
+        self.offs = [0]
+        #: the largest per-cell count held anywhere in the store. A fiber's
+        #: chain table must extend past it; see `AreaFiber.end_episode`.
+        self.max_count = 0
+
+    @property
+    def nnz(self):
+        return self.used
+
+    @property
+    def nruns(self):
+        return len(self.offs) - 1
+
+    def _reserve(self, extra):
+        need = self.used + extra
+        cap = 0 if self.keys is None else self.keys.numel()
+        if need <= cap:
+            return
+        cap = max(need, 2 * cap, 1 << 16)
+        k = torch_ops.empty(cap, dtype=torch_ops.int64, device=self.device)
+        c = torch_ops.empty(cap, dtype=torch_ops.int32, device=self.device)
+        if self.used:
+            k[:self.used] = self.keys[:self.used]
+            c[:self.used] = self.cnts[:self.used]
+        self.keys, self.cnts = k, c
+
+    def append(self, nkey, ncnt):
+        """Add one episode's block, then collapse comparable tail runs."""
+        if nkey is None or nkey.numel() == 0:
+            return
+        order = torch_ops.argsort(nkey)
+        self.max_count = max(self.max_count, int(ncnt.max()))
+        self._reserve(nkey.numel())
+        a = self.used
+        self.keys[a:a + nkey.numel()] = nkey[order]
+        self.cnts[a:a + ncnt.numel()] = ncnt[order]
+        self.used = a + nkey.numel()
+        self.offs.append(self.used)
+        while len(self.offs) >= 3:
+            a, b, c = self.offs[-3], self.offs[-2], self.offs[-1]
+            if (b - a) > (c - b):
+                break
+            self._merge_tail(a, c)
+
+    def _merge_tail(self, a, c):
+        """Merge the last two runs in place; only the TAIL moves, so nothing
+        after them needs shifting."""
+        seg_k, seg_c = self.keys[a:c], self.cnts[a:c]
+        order = torch_ops.argsort(seg_k)
+        sk, sc = seg_k[order], seg_c[order]
+        uk, inv, _ = torch_ops.unique_consecutive(sk, return_inverse=True,
+                                              return_counts=True)
+        uv = torch_ops.zeros(uk.numel(), dtype=torch_ops.int32, device=self.device)
+        uv.scatter_add_(0, inv, sc)
+        self.max_count = max(self.max_count, int(uv.max()))
+        m = uk.numel()
+        self.keys[a:a + m] = uk
+        self.cnts[a:a + m] = uv
+        self.used = a + m
+        self.offs = self.offs[:-2] + [self.used]
+
+    def view(self):
+        """(keys, counts, run offsets) for the reader."""
+        return (self.keys[:self.used], self.cnts[:self.used],
+                torch_ops.tensor(self.offs, dtype=torch_ops.int64, device=self.device))
+
+
+class AreaFiber:
+    """An area -> area projection. Deviations are keyed ``(i, j)``.
+
+    Owns the column scale too, because substrate C scales THIS FIBER's stored
+    weights (`_scale_columns_now` iterates the target's fibers), not the
+    target's drive.
+    """
+
+    MAX_EPISODE_ROUNDS = 64
+
+    # Runtime-owned CUDA tensors and the compiled module are established by
+    # __init__ (some are intentionally lazy).  These declarations describe
+    # that state machine without erasing the Tensor annotations at call sites.
+    mod: Any
+    dj: Any
+    scale: Any
+    rel: Any
+    cmax: Any
+    _rowmask: Any
+    _colmask: Any
+    _scratch: Any
+    _cscratch: Any
+    _colmap: Any
+
+    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.0, w_max=None,
+                 norm_init=False, synaptic_scaling=False, max_rounds=64,
+                 device="cuda", scaling_allows_clip=False):
+        # COLUMN SCALING AND A WEIGHT CLIP DO NOT COMMUTE. The factored scale
+        # S_j = setpoint / M_j is exact only while no cell has ever been
+        # clipped: the engine clips per cell and rescales per column in an
+        # interleaved order that the count-then-apply form cannot reproduce.
+        # `_rescale` checks the SCALED value against w_max, which is not the
+        # same thing -- measured on the aligner at w_max=20, 217k of 742k
+        # cells were clipped while that check never fired, and the learner's
+        # reconstructions inverted. So the pair is refused here. The capacity
+        # protocol (T <= 8 rounds per item, counts far below the ~31 at which
+        # a 1.1 gain reaches 20) opts in explicitly; its four-arm parity test
+        # is what licenses that.
+        if synaptic_scaling and w_max is not None and not scaling_allows_clip:
+            raise ValueError(
+                "synaptic_scaling with a finite w_max: column scaling and the "
+                "clip do not commute, so the factored scale is exact only "
+                "while no cell is ever clipped. Run with w_max=None (scaling "
+                "bounds the weights itself), or pass scaling_allows_clip=True "
+                "for a protocol whose counts provably stay below the clip.")
+        self.mod = _fused_cuda.load()
+        if self.mod is None:
+            raise RuntimeError(f"fused kernels unavailable: "
+                               f"{_fused_cuda.last_error()}")
+        B = len(seeds)
+        self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
+        self.beta, self.w_max = float(beta), w_max
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
+        self.threshold = _fused_cuda.threshold_for(p)
+        self.device = device
+        self.learns = bool(beta)
+        self.tab = torch_ops.from_numpy(
+            _chain_table(beta, w_max, max_rounds)).to(device)
+        self.colids = torch_ops.arange(n_post, dtype=torch_ops.int32,
+                                   device=device).expand(B, n_post)
+        # `_pricing.inverse_indegree` prices unknown rows at
+        # `p * (n_pre - rows_known)`; a generated connectome HAS every row, so
+        # that term is identically zero and d_j is the TRUE in-degree. The
+        # defect class living on the estimate cannot occur here.
+        self.dj = (self.mod.hashed_indegree(self.seeds, n_post,
+                                            self.threshold, 1.0)
+                   if norm_init else None)
+        self.scale = (torch_ops.ones(B, n_post, dtype=torch_ops.float32, device=device)
+                      if synaptic_scaling else None)
+        # MAX-RELATIVE PRICING (see `_rel_table`). With scaling and no clip
+        # the absolute chain overflows float32 on long training; the relative
+        # form is the same number, bounded. `cmax` is each column's leading
+        # count, updated wherever the column is rescaled -- which is every
+        # column whose counts changed, since scaling touches the winner
+        # columns of every write.
+        self.relative = bool(synaptic_scaling) and w_max is None
+        if self.relative:
+            self.rel = torch_ops.from_numpy(_rel_table(beta, max_rounds)).to(device)
+            self.cmax = torch_ops.zeros(B, n_post, dtype=torch_ops.int32, device=device)
+        else:
+            self.rel = self.cmax = None
+        self.setpoint = scaling_setpoint(n_pre, self.p)
+        self.store = RunStore(device)
+        self._rowmask = self._colmask = None    # this episode only
+        self._scratch = None                    # count accumulator, cached
+        self._cscratch = self._colmap = None    # column-mass accumulators
+        self._prevs, self._news = [], []
+        self._t = 0
+
+    # -- reading ---------------------------------------------------------
+    def contribute(self, drive, rows):
+        """Add this fiber's drive for source winners ``rows`` [B, k_src].
+
+        THE CORRECTION IS NOT ADDITIVE ACROSS A SPLIT COUNT. Potentiation is
+        multiplicative, so a cell with c0 events in the store and c1 in the
+        current episode needs `tab[c0+c1]-1`, and `(tab[c0]-1)+(tab[c1]-1)` is
+        wrong by the cross term -- the same holds BETWEEN LSM runs. COUNTS are
+        additive ([[HEBB-OUTER-PRODUCT]]), so integer counts from every source
+        are accumulated into a scratch [B, k, n] first and `tab` is applied
+        ONCE per cell. Caught by engine parity at rel 2e-3; the
+        reference-based tests shared the flawed structure and passed.
+        """
+        if rows.shape[1] == 0:
+            return
+        r = rows.to(torch_ops.int32).contiguous()
+        d = self.mod.hashed_drive(r, self.seeds, self.n, self.threshold)
+        has_mask = self._rowmask is not None and self._t > 0
+        if self.store.nnz or has_mask:
+            k_src = int(r.shape[1])
+            need = self.B * k_src * self.n
+            if self._scratch is None or self._scratch.numel() < need:
+                self._scratch = torch_ops.zeros(need, dtype=torch_ops.int32,
+                                            device=self.device)
+            else:
+                self._scratch[:need].zero_()
+            sk, sc, so = (self.store.view() if self.store.nnz else
+                          (torch_ops.zeros(0, dtype=torch_ops.int64,
+                                       device=self.device),
+                           torch_ops.zeros(0, dtype=torch_ops.int32,
+                                       device=self.device),
+                           torch_ops.zeros(1, dtype=torch_ops.int64,
+                                       device=self.device)))
+            rm = (self._rowmask if has_mask else
+                  torch_ops.zeros(0, dtype=torch_ops.int64, device=self.device))
+            cm = (self._colmask if has_mask else
+                  torch_ops.zeros(0, dtype=torch_ops.int64, device=self.device))
+            if self.relative:
+                # d <- rel[cmax] * base + SUM_touched base * (rel[cmax-c] - rel[cmax])
+                d = d * self.rel[self.cmax.long()]
+                self.mod.dev_correct_rel(r, sk, sc, so, rm, cm,
+                                         self._scratch[:need].view(
+                                             self.B, k_src, self.n),
+                                         self.rel, self.cmax, self.seeds,
+                                         self.threshold, d)
+            else:
+                self.mod.dev_correct_exact(r, sk, sc, so, rm, cm,
+                                           self._scratch[:need].view(
+                                               self.B, k_src, self.n),
+                                           self.tab, self.seeds,
+                                           self.threshold, d)
+        elif self.relative:
+            d = d * self.rel[self.cmax.long()]
+        if self.scale is not None:
+            d = d * self.scale
+        if self.dj is not None:
+            d = d / self.dj
+        drive += d
+
+    def ensure_depth(self, depth):
+        """Extend the pricing tables to `depth` potentiations.
+
+        A cell can be potentiated once per round it co-fires in, so the depth a
+        training run needs is its TOTAL number of rounds -- a quantity the
+        fiber cannot know at construction and a learner only knows once it
+        sees its corpus. Measured on the aligner: a FEAT column in a frequent
+        bundle passed 2,000 co-firings inside one pass over 198 sentences and
+        walked off a 2,048-entry table. Cheap to extend (a few KB), and the
+        relative table underflows to 0 past ~900 anyway.
+        """
+        depth = int(depth)
+        if self.relative:
+            if self.rel.numel() < depth + 1:
+                self.rel = torch_ops.from_numpy(
+                    _rel_table(self.beta, depth)).to(self.device)
+                self.tab = self.rel          # the guard reads one table
+        elif self.tab.numel() < depth + 1:
+            self.tab = torch_ops.from_numpy(
+                _chain_table(self.beta, self.w_max, depth)).to(self.device)
+
+    # -- writing ---------------------------------------------------------
+    def begin_episode(self):
+        """One 64-bit round mask covers an episode; the store holds the rest."""
+        if not (self.learns or self.scale is not None):
+            return
+        self._rowmask = torch_ops.zeros(self.B, 1, self.n_pre, dtype=torch_ops.int64,
+                                    device=self.device)
+        self._colmask = torch_ops.zeros(self.B, 1, self.n, dtype=torch_ops.int64,
+                                    device=self.device)
+        self._prevs, self._news, self._t = [], [], 0
+
+    def observe(self, prev, new):
+        """Record one round's co-firing: source winners x target winners.
+
+        The ENGINE's pairing ([[HEBB-OUTER-PRODUCT]]) -- `hebbian_update` takes
+        the source's winners, and for a recurrent fiber `tgt.winners` is
+        assigned after, so it is prev x new.
+        """
+        if self._rowmask is None:
+            return
+        if self._t >= self.MAX_EPISODE_ROUNDS:
+            raise ValueError(
+                f"episode exceeds {self.MAX_EPISODE_ROUNDS} rounds: the "
+                "per-episode round mask is one 64-bit word")
+        bit = 1 << self._t
+        if prev.shape[1] and new.shape[1]:
+            rw, cw = self._rowmask[:, 0], self._colmask[:, 0]
+            rw.scatter_(1, prev, rw.gather(1, prev) | bit)
+            cw.scatter_(1, new, cw.gather(1, new) | bit)
+            if self.learns:
+                self._prevs.append(prev)
+                self._news.append(new)
+        self._t += 1
+        # SCALING FIRES ONLY WHEN THIS FIBER FIRED. The engine filters
+        # sourceless areas out of `from_areas` before plasticity, so on a
+        # stimulus-only round (empty prev -- the first round after inhibition)
+        # `_scale_columns_now` never runs. Rescaling there anyway sets the new
+        # winners' columns to setpoint/in-degree (0.93-1.08 at p=0.1), an ~8%
+        # drive divergence on exactly those columns -- caught by the four-arm
+        # engine-parity capacity test at ep0 t1.
+        if self.scale is not None and new.shape[1] and prev.shape[1]:
+            self._rescale(new)
+
+    def end_episode(self):
+        """Fold the episode into the store via a GEMM, then drop its mask.
+
+        THE TABLE MUST OUTRUN THE COUNTS. `max_rounds` sizes the chain table
+        -- the most potentiations one cell can ever receive -- NOT an episode.
+        `dev_correct_exact` clamps a count to the table's last entry, which is
+        silent: a fiber built with `max_rounds=1` and trained in 1-round
+        episodes read `tab[1]` for cells that had co-fired three times, and
+        its drive simply stopped growing (found by the aligner parity gate).
+        Refuse it here, where the store knows its largest count.
+        """
+        if self.learns and self._prevs:
+            self.store.append(*self._emit())
+            table = self.rel if self.relative else self.tab
+            if self.store.max_count >= table.numel():
+                raise ValueError(
+                    f"a cell has co-fired {self.store.max_count} times but "
+                    f"the chain table prices at most {table.numel() - 1}: "
+                    "size max_rounds by the TOTAL potentiations a cell can "
+                    "accumulate over training, not by the episode")
+        self._rowmask = self._colmask = None
+        self._prevs, self._news = [], []
+
+    # -- substrate C -----------------------------------------------------
+    def _rescale(self, cols):
+        """`w[:, j] *= setpoint / mass_j` on winner columns.
+
+        mass_j needs the TOTAL count per cell -- the correction's lesson
+        applies verbatim: counts are additive, `tab` is not
+        ([[HEBB-OUTER-PRODUCT]]). Counts from the store (one linear pass with
+        a column -> slot map; the store is row-keyed so a column cannot be
+        binary-searched) and the current mask are accumulated per cell, and
+        `tab` applied once. Column scaling still commutes with per-cell
+        potentiation, so the factored scale `S_j = setpoint / M_j` is exact --
+        only while the `w_max` clip never binds, checked against the ACTUAL
+        deepest cell.
+        """
+        c = cols.to(torch_ops.int32).contiguous()
+        B, K = c.shape
+        need = B * K * self.n
+        if self._cscratch is None or self._cscratch.numel() < need:
+            self._cscratch = torch_ops.zeros(need, dtype=torch_ops.int32,
+                                         device=self.device)
+        else:
+            self._cscratch[:need].zero_()
+        if self.store.nnz:
+            if self._colmap is None:
+                self._colmap = torch_ops.full((B, self.n), -1, dtype=torch_ops.int32,
+                                          device=self.device)
+            else:
+                self._colmap.fill_(-1)
+            self._colmap.scatter_(
+                1, cols, torch_ops.arange(K, dtype=torch_ops.int32,
+                                      device=self.device).expand(B, K))
+            sk, sc, _ = self.store.view()
+        else:
+            sk = torch_ops.zeros(0, dtype=torch_ops.int64, device=self.device)
+            sc = torch_ops.zeros(0, dtype=torch_ops.int32, device=self.device)
+        if self.relative:
+            mass, colmax = self.mod.column_mass_rel(
+                c, sk, sc,
+                self._colmap if self.store.nnz else sk.to(torch_ops.int32),
+                self._rowmask, self._colmask,
+                self._cscratch[:need].view(B, K, self.n),
+                self.rel, self.seeds, self.n, self.threshold)
+            self.cmax.scatter_(1, cols, colmax)
+            new = column_scale(mass, self.setpoint)
+            self.scale.scatter_(1, cols, new)
+            return
+        mass, cellmax = self.mod.column_mass_exact(
+            c, sk, sc,
+            self._colmap if self.store.nnz else sk.to(torch_ops.int32),
+            self._rowmask, self._colmask,
+            self._cscratch[:need].view(B, K, self.n),
+            self.tab, self.seeds, self.n, self.threshold)
+        new = column_scale(mass, self.setpoint)
+        self.scale.scatter_(1, cols, new)
+        if self.w_max is not None:
+            bound = float((cellmax * new).max().item())
+            if bound >= float(self.w_max):
+                raise RuntimeError(
+                    f"synaptic_scaling would cross w_max={self.w_max} "
+                    f"(bound {bound:.4g}): column scaling and the clip do not "
+                    "commute, so the factored form is no longer exact. Re-run "
+                    "with w_max=None or fewer rounds.")
+
+    def _emit(self):
+        """This episode's nonzero cells as (key, count), by GEMM.
+
+        Rounds with no source winners contribute nothing and are dropped -- an
+        inhibited area's first round is stimulus-only -- so per-round widths
+        differ and the round index is carried explicitly.
+        """
+        if len(self._prevs) != len(self._news):
+            raise RuntimeError("hashed fiber round histories must have equal length")
+        keep = [(a, b) for a, b in zip(self._prevs, self._news, strict=True)
+                if a.shape[1] and b.shape[1]]
+        if not keep:
+            return None, None
+        T, B, dev = len(keep), self.B, self.device
+
+        def ind(per_round):
+            cat = torch_ops.cat(per_round, dim=1)
+            rid = torch_ops.cat([
+                torch_ops.full((c.shape[1],), t, dtype=torch_ops.int64, device=dev)
+                for t, c in enumerate(per_round)])
+            loc, vals, W = _local_index(cat)
+            flat = torch_ops.zeros(B, T * W, device=dev)
+            flat.scatter_(1, rid.view(1, -1) * W + loc, 1.0)
+            return flat.view(B, T, W), vals, W
+
+        Rind, rows, _ = ind([a for a, _ in keep])
+        Cind, cols, _ = ind([b for _, b in keep])
+        counts = torch_ops.bmm(Rind.transpose(1, 2), Cind)      # [B, R, C]
+        bi, ri, ci = (counts > 0).nonzero(as_tuple=True)
+        if bi.numel() == 0:
+            return None, None
+        key = (bi.to(torch_ops.int64) * self.n_pre * self.n
+               + rows[bi, ri] * self.n + cols[bi, ci])
+        return key, counts[bi, ri, ci].to(torch_ops.int32)
+
+    @property
+    def nnz(self):
+        return self.store.nnz
+
+
+class PresentFiber:
+    """An area -> area fiber that stores only what EXISTS (DESIGN_present_only.md).
+
+    Same numbers as `AreaFiber` in its unclipped max-relative regime (and
+    as the retired dense-matrix fiber, gated identical at atol 0 before its
+    deletion -- DESIGN_present_only.md). Per (brain, row): the present columns with their
+    int16 counts, one packed 32-bit entry (column low, count high), padded
+    to ``DMAX`` -- the largest row degree -- with -1. Built once from the
+    presence bitmask (the hash's stored form). A round reads K row lists
+    instead of K x n_post counts, and the kernels give a brain ONE WARP
+    that walks the rows in order, so every column's sum is the same float
+    sequence as the dense kernel's.
+    """
+
+    MAX_BYTES = 4 << 30
+    MAX_COUNT = 32767
+    mod: Any
+    _nnz_of: Any
+    rel: Any
+    cmax: Any
+    dj: Any
+    invdj: Any
+    mass: Any
+    scale: Any
+
+    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1, norm_init=False,
+                 synaptic_scaling=True, w_max=None, max_rounds=4096,
+                 device="cuda"):
+        self.mod = _fused_cuda.load()
+        if self.mod is None:
+            raise RuntimeError(f"fused kernels unavailable: "
+                               f"{_fused_cuda.last_error()}")
+        B = len(seeds)
+        if n_post > 65535:
+            raise ValueError("n_post must fit the 16-bit column field")
+        # TWO REGIMES, one representation. With column scaling and no clip
+        # the price is MAX-RELATIVE (`_rel_table`, index cmax_j - c); without
+        # scaling it is ABSOLUTE by the engine's chain (`_chain_table`, clip
+        # included, index c). Scaling with a finite clip is refused as in
+        # `AreaFiber`: the two do not commute.
+        if synaptic_scaling and w_max is not None:
+            raise ValueError("synaptic_scaling with a finite w_max: column "
+                             "scaling and the clip do not commute (see AreaFiber)")
+        self.absolute = not synaptic_scaling
+        self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
+        self.beta, self.w_max = float(beta), w_max
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
+        self.threshold = _fused_cuda.threshold_for(p)
+        self.device = device
+        self.learns = bool(beta)
+        self.relative = True
+        pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
+        self.degree = self.mod.present_degree(pres)                  # [B, n_pre]
+        self.DMAX = max(int(self.degree.max()), 1)
+        need = B * n_pre * self.DMAX * 4
+        if need > self.MAX_BYTES:
+            raise ValueError(f"present-only lists would be {need / 2**30:.1f} "
+                             "GiB; use AreaFiber (the store) at this size")
+        self.ent = self.mod.present_fill(pres, n_post, self.DMAX)    # [B, n_pre, DMAX]
+        del pres
+        self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
+        self.max_rounds = int(max_rounds)
+        self.rel = self._table(self.max_rounds)
+        self.tab = self.rel
+        self._nnz_of = None
+        self.cmax = torch_ops.zeros(B, n_post, dtype=torch_ops.int32, device=device)
+        deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
+        self.dj = deg if norm_init else None
+        self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
+            0, dtype=torch_ops.float32, device=device)
+        self.scaling = bool(synaptic_scaling)
+        self.setpoint = scaling_setpoint(n_pre, self.p)
+        self.mass = deg.to(torch_ops.float64).clone()
+        self.scale = torch_ops.ones(B, n_post, dtype=torch_ops.float32, device=device)
+
+    # -- the lists, unpacked --------------------------------------------------
+    def columns(self):
+        """[B, n_pre, DMAX] int64 column per entry, -1 where padded."""
+        return torch_ops.where(self.ent == -1, torch_ops.full_like(self.ent, -1),
+                           self.ent & 0xFFFF).to(torch_ops.int64)
+
+    def counts(self):
+        """[B, n_pre, DMAX] int16 count per entry, 0 where padded."""
+        c = (self.ent >> 16) & 0xFFFF
+        return torch_ops.where(self.ent == -1, torch_ops.zeros_like(c), c).to(torch_ops.int16)
+
+    @property
+    def nnz(self):
+        return int((self.counts() > 0).sum())
+
+    @property
+    def store(self):
+        self.check()
+        class _S:                                   # the guard's interface
+            max_count = int(self.counts().max())
+        return _S()
+
+    def check(self):
+        """Raise if a kernel flagged an int16 count overflow (1) or a
+        selection that did not return k winners (2). One sync."""
+        code = int(self.err.item())
+        if code == 1:
+            raise OverflowError(f"a count passed {self.MAX_COUNT}: int16 counts "
+                                "cannot hold this schedule")
+        if code:
+            raise RuntimeError(f"present fiber kernel error {code}")
+
+    def _table(self, depth):
+        if self.absolute:
+            return torch_ops.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+        return torch_ops.from_numpy(_rel_table(self.beta, depth)).to(self.device)
+
+    def ensure_depth(self, depth):
+        depth = int(depth)
+        if self.rel.numel() < depth + 1:
+            self.rel = self._table(depth)
+            self.tab = self.rel
+            self._nnz_of = None
+
+    def price_head(self):
+        """(nnz, nsh): the table's nonzero head (past it the price IS zero,
+        so no lookup) and the part the kernels stage in shared memory."""
+        if self._nnz_of is None or self._nnz_of[0] is not self.rel:
+            nnz = int((self.rel > 0).sum())
+            self._nnz_of = (self.rel, nnz, min(nnz, 1024))
+        return self._nnz_of[1], self._nnz_of[2]
+
+    def contribute(self, drive, rows):
+        if rows.shape[1] == 0:
+            return
+        nnz, _ = self.price_head()
+        self.mod.present_drive(self.ent, rows.to(torch_ops.int32), self.cmax,
+                               self.scale, self.invdj, self.rel, nnz, drive,
+                               1 if self.absolute else 0)
+
+    def begin_episode(self):
+        pass
+
+    def observe(self, prev, new):
+        if not (self.learns and prev.shape[1] and new.shape[1]):
+            return
+        nnz, _ = self.price_head()
+        self.mod.present_write(prev.to(torch_ops.int32), new.to(torch_ops.int32),
+                               self.ent, self.cmax, self.mass, self.scale,
+                               self.rel, nnz, float(self.setpoint),
+                               1 if self.scaling else 0, self.err)
+
+    def end_episode(self):
+        pass
+
+
+class DenseOrganFiber:
+    """An area -> area fiber in the ORGAN's regime (DESIGN_sequence_port.md):
+    organ_p ~ 0.2, k ~ 200, n to 50,000. Present-only lists do not fit a row
+    of thousands of synapses; the int16 count MATRIX does, and at this
+    density its predicated loads use their sectors. Absolute pricing by the
+    engine's chain table (clip included), norm_init, no column scaling --
+    the same numbers as `AreaFiber` there. Rows and winners of -1 are
+    skipped: the dead-brain and per-brain-inhibit convention.
+    """
+
+    MAX_BYTES = 6 << 30
+    #: int8 counts: the chain table saturates at the clip (count ~31 at
+    #: beta 0.1, w_max 20), so a count never needs more than 7 bits, and
+    #: the matrix is half the size it was at int16 -- twice the brains per
+    #: launch at n = 10,000.
+    MAX_COUNT = 127
+    mod: Any
+    pres: Any
+    dj: Any
+    invdj: Any
+
+    def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1,
+                 w_max: float | None = 20.0,
+                 norm_init=True, max_rounds=4096, device="cuda"):
+        self.mod = _fused_cuda.load()
+        if self.mod is None:
+            raise RuntimeError(f"fused kernels unavailable: "
+                               f"{_fused_cuda.last_error()}")
+        B = len(seeds)
+        need = B * n_pre * (n_post * 1 + ((n_post + 31) // 32) * 4)
+        if need > self.MAX_BYTES:
+            raise ValueError(f"organ count matrices would be {need / 2**30:.1f} "
+                             "GiB; fewer brains per launch")
+        self.B, self.n_pre, self.n, self.p = B, n_pre, n_post, float(p)
+        #: one learning rate per brain, or None when they share `beta`
+        self.betas = per_brain(beta, B)
+        self.beta = None if self.betas else float(beta)
+        self.w_max = w_max
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
+        self.threshold = _fused_cuda.threshold_for(p)
+        self.device = device
+        self.learns = any(self.betas) if self.betas else bool(beta)
+        self.relative, self.absolute = False, True
+        self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
+        self.C = torch_ops.zeros(B, n_pre, n_post, dtype=torch_ops.int8, device=device)
+        self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
+        self.max_rounds = int(max_rounds)
+        self._no_map = torch_ops.zeros(0, dtype=torch_ops.int32, device=device)
+        self.tab = self._table(self.max_rounds)
+        deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
+        self.dj = deg if norm_init else None
+        self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
+            0, dtype=torch_ops.float32, device=device)
+
+    def _table(self, depth):
+        """The chain table: [depth + 1] shared, or [B, depth + 1] per brain."""
+        if self.betas is None:
+            return torch_ops.from_numpy(_chain_table(self.beta, self.w_max, depth)).to(self.device)
+        import numpy as np
+        rows = {b: _chain_table(b, self.w_max, depth) for b in set(self.betas)}
+        return torch_ops.from_numpy(np.stack([rows[b] for b in self.betas])).to(self.device)
+
+    def counts(self):
+        return self.C
+
+    def select(self, keep):
+        """Keep only the brains ``keep`` [B'] (indices), in that order: a
+        batched sweep drops the rates whose stores have finished."""
+        keep = torch_ops.as_tensor(keep, dtype=torch_ops.int64, device=self.device)
+        self.C = self.C.index_select(0, keep)
+        self.pres = self.pres.index_select(0, keep)
+        self.seeds = self.seeds.index_select(0, keep)
+        if self.dj is not None:
+            self.dj = self.dj.index_select(0, keep)
+            self.invdj = self.invdj.index_select(0, keep)
+        if self.betas is not None:
+            self.betas = tuple(self.betas[i] for i in keep.tolist())
+            self.tab = self.tab.index_select(0, keep)
+        self.B = int(keep.numel())
+
+    @property
+    def nnz(self):
+        return int((self.C > 0).sum())
+
+    @property
+    def store(self):
+        self.check()
+        class _S:
+            max_count = int(self.C.max())
+        return _S()
+
+    @property
+    def count_saturation_is_exact(self) -> bool:
+        """Specification: neural_assemblies/ir/VERIFICATION.md#contract-organ-count-saturation"""
+        tab = self.tab.cpu().numpy()
+        return all(count_saturation_is_exact(row, self.MAX_COUNT)
+                   for row in (tab if tab.ndim == 2 else [tab]))
+
+    def check(self):
+        code = int(self.err.item())
+        if code == 1:
+            if self.count_saturation_is_exact:
+                # The write kernel leaves a count at MAX_COUNT when the next
+                # potentiation would pass it, and the drive kernel prices
+                # every count at or beyond the table's last index with that
+                # entry, which is the clipped weight. A stored 127 and the true
+                # count therefore give identical drives: saturation is exact,
+                # and the flag is informational. Clear it and continue.
+                self.err.zero_()
+                return
+            raise OverflowError(
+                f"a count passed {self.MAX_COUNT} and the chain table is not "
+                "saturated at its last entry (no weight clip, or a table longer "
+                "than the count range), so the lost potentiations would have "
+                "changed a weight")
+        if code:
+            raise RuntimeError(f"organ fiber kernel error {code}")
+
+    def ensure_depth(self, depth):
+        depth = int(depth)
+        if self.tab.shape[-1] < depth + 1:
+            self.tab = self._table(depth)
+
+    def contribute(self, drive, rows, brains=None):
+        """Add this fiber's drive from ``rows`` [V, K] into ``drive`` [V, n].
+        ``brains`` [V] (int32) names the brain whose synapses each row reads;
+        omitted, row b is brain b."""
+        if rows.shape[1] == 0:
+            return
+        self.mod.organ_drive(rows.to(torch_ops.int32), self.C, self.pres, self.invdj,
+                             self.tab, self._no_map if brains is None else brains, drive)
+
+    def begin_episode(self):
+        pass
+
+    def observe(self, prev, new):
+        if not (self.learns and prev.shape[1] and new.shape[1]):
+            return
+        self.mod.organ_write(prev.to(torch_ops.int32), new.to(torch_ops.int32), self.C,
+                             self.pres, self.err)
+
+    def end_episode(self):
+        pass
+
+
+class StimulusFiber:
+    """A stimulus -> area projection. PRE-SUMMED: one weight per target.
+
+    TWO PRICES THAT ARE EASY TO GET WRONG, both taken from the engine:
+
+    * ``norm_init`` divides by ``d_j = deg_j + p * (tgt.n - stim_size)`` --
+      note ``tgt.n``, NOT the stimulus size. That puts the stimulus on the same
+      ``~n p`` divisor as the area fiber so the two are commensurable;
+      dividing by its own in-degree would make an untrained stimulus
+      contribute exactly 1.0 per touched neuron against an area contribution
+      of ~0.06, and the stimulus would decide every winner.
+    * ``w_max`` means "multiples of the INITIAL weight", and a stimulus weight
+      starts near ``stim_size * p``, not at 1. The cap is
+      ``w_max * max(1, stim_size * p)``.
+    """
+
+    mod: Any
+    base: Any
+    pot: Any
+    gain: Any
+    dj: Any
+    _const: Any
+
+    def __init__(self, seeds, size, n_post, p, *, beta=0.0, w_max=None,
+                 norm_init=False, max_rounds=64, device="cuda",
+                 zero_or_size=False):
+        self.mod = _fused_cuda.load()
+        B = len(seeds)
+        self.B, self.size, self.n, self.p = B, size, n_post, float(p)
+        self.seeds = torch_ops.as_tensor(seeds, dtype=torch_ops.int32, device=device)
+        self.threshold = _fused_cuda.threshold_for(p)
+        betas = per_brain(beta, B)
+        self.learns = bool(beta) if betas is None else any(betas)
+        if zero_or_size:
+            # THE ENGINE'S STIMULUS MODEL ([[add-stimulus-zero-or-size]]): a
+            # neuron's weight from a stimulus is `size` with probability p
+            # and 0 otherwise -- one Bernoulli draw, not a Binomial(size, p)
+            # count. A word's assembly is then the connected set, driven at
+            # `size` against fiber drives of ~k p w: the sharpness the organ's
+            # numbers rest on (materialized numpy 0.17-0.22 MRR on A3 against
+            # 0.12 with Binomial stimuli). The aligner's anchor gain 1/p is
+            # the same fact approximated by a scalar.
+            one = torch_ops.zeros(B, 1, dtype=torch_ops.int32, device=device)
+            self.base = self.mod.hashed_drive(one, self.seeds, n_post,
+                                              self.threshold) * float(size)
+        else:
+            rows = torch_ops.arange(size, dtype=torch_ops.int32,
+                                device=device).expand(B, size).contiguous()
+            self.base = self.mod.hashed_drive(rows, self.seeds, n_post,
+                                              self.threshold)
+        # an ANCHOR (beta = 0) never potentiates: no counter, no table -- with
+        # a fiber per word, the int64 counter was two thirds of the memory
+        self.pot = (torch_ops.zeros(B, n_post, dtype=torch_ops.int64, device=device)
+                    if self.learns else None)
+        self.gain = _device_gain(float(beta) if betas is None else betas,
+                                 int(max_rounds), str(device))
+        self.dj = ((self.base + self.p * (n_post - size)).clamp_min(1.0)
+                   if norm_init else None)
+        self.hi = (w_max * max(1.0, size * self.p)
+                   if w_max is not None else float("inf"))
+
+    #: DRIVE GAIN: a multiplier on this stimulus's contribution, 1.0 by
+    #: default. It is the ANCHOR SHARE knob ([[capacity-is-an-anchor-ratio]],
+    #: [[semantic-drive-share-is-the-lever]]): what an area forms as is decided
+    #: by how much of its drive the stimulus supplies against learned fibers.
+    #: The numpy engine's stimulus into a materialized area is 0-or-size, i.e.
+    #: a full-size weight where this fiber generates a Binomial(size, p) count
+    #: -- an accidental gain of ~1/p. Set explicitly rather than inherited.
+    drive_gain = 1.0
+
+    def contribute(self, drive, rows=None):
+        del rows  # Anchors use fixed hashed rows; shared hook carries rows for learned fibers.
+        if not self.learns:
+            # An anchor never potentiates, so its priced drive is a constant:
+            # one add per round instead of six launches (15% of a run).
+            const = self.__dict__.get("_const")
+            if const is None or const[0] != (self.drive_gain, id(self.base),
+                                             id(self.dj)):
+                d = self.base.clone()
+                if self.hi != float("inf"):
+                    d = d.clamp_max(self.hi)
+                if self.dj is not None:
+                    d = d / self.dj
+                if self.drive_gain != 1.0:
+                    d = d * self.drive_gain
+                const = ((self.drive_gain, id(self.base), id(self.dj)), d)
+                self._const = const
+            drive += const[1]
+            return
+        top = self.gain.shape[-1] - 1
+        d = self.base * (self.gain[self.pot.clamp_max(top)] if self.gain.dim() == 1
+                         else torch_ops.gather(self.gain, 1, self.pot.clamp_max(top)))
+        if self.hi != float("inf"):
+            d = d.clamp_max(self.hi)
+        if self.dj is not None:
+            d = d / self.dj
+        if self.drive_gain != 1.0:
+            d = d * self.drive_gain
+        drive += d
+
+    def begin_episode(self):
+        pass
+
+    def observe(self, prev, new):
+        del prev  # Anchor potentiation depends only on newly selected winners.
+        if self.learns and new.shape[1]:
+            # -1 winners are a brain whose rounds are over (a converged
+            # brain under `stop_when_stable`, a dead brain): no potentiation
+            self.pot.scatter_add_(1, new.clamp_min(0), (new >= 0).to(torch_ops.int64))
+
+    def end_episode(self):
+        pass
+
+
+def _raise_overflow(bad):
+    if bad:
+        raise RuntimeError(
+            f"k-WTA candidate set overflowed ({bad} candidates) -- the "
+            "drive is too flat for the histogram to narrow. Refusing "
+            "to return a truncated winner set.")
+
+
+class HashedArea:
+    """One area: its winners, its afferent fibers, and the k-WTA reading them.
+
+    The projection loop is the algebra, once:
+
+        for each round
+            drive = SUM over fibers of fiber.contribute(...)
+            winners = k-WTA(drive)
+            each fiber observes (its source winners, the new winners)
+
+    Nothing in here knows about `norm_init`, `w_max` or stimulus pricing --
+    those live in the fiber that owns them, which is why adding an input is
+    adding a fiber rather than a flag.
+    """
+
+    mod: Any
+
+    def __init__(self, n, k, seeds, device="cuda", refracted_strength=0.0,
+                 tie_jitter=0.0):
+        self.mod = _fused_cuda.load()
+        if self.mod is None:
+            raise RuntimeError(f"fused kernels unavailable: "
+                               f"{_fused_cuda.last_error()}")
+        self.n, self.k, self.B = n, k, len(seeds)
+        self.device = device
+        self.winners = torch_ops.zeros(self.B, 0, dtype=torch_ops.int64, device=device)
+        #: neurons that have EVER fired -- what `rows/n` reads. Tracked here
+        #: because the round masks are per-episode and get dropped.
+        self.ever = torch_ops.zeros(self.B, n, dtype=torch_ops.bool, device=device)
+        self.rounds_seen = 0
+        #: REFRACTION, the engine's `refracted` mode (`core/_homeostasis.py`).
+        #: A per-NEURON bias subtracted from drive before k-WTA and charged at
+        #: the winners as `raw_drive * strength`, gated on plasticity exactly
+        #: like the Hebbian write. It belongs to the area, not to a fiber: the
+        #: reference charges against the TOTAL raw input of the winner, and
+        #: the bias persists across `inhibit()` -- `RefractedArea.inhibit`
+        #: does not touch it, only `reset()` does. At strength == beta the
+        #: bias is the exact anti-Hebbian counterweight on a neuron's own
+        #: repeated input (net drive stays at its base value), and a handicap
+        #: on every other input; see PREREG_refraction_capacity.md.
+        strengths = per_brain(refracted_strength, self.B)
+        if strengths is None:
+            self.refracted_strength: Any = float(refracted_strength or 0.0)
+            charged = self.refracted_strength > 0
+        else:
+            # one strength per brain, [B, 1]: a swept learning rate carries
+            # its own 0.5 beta
+            self.refracted_strength = torch_ops.tensor(
+                strengths, dtype=torch_ops.float32, device=device).view(-1, 1)
+            charged = any(v > 0 for v in strengths)
+        self.bias = (torch_ops.zeros(self.B, n, dtype=torch_ops.float32, device=device)
+                     if charged else None)
+
+        #: LONG RANGE INHIBITION. PROVENANCE, checked against the clones and
+        #: NOT what I first wrote here: neither reference implements a
+        #: refractory period. In `mdabagia-nemo/brain.py` `inhibit()` is a
+        #: RESET (`clear_input(); activations = []`), and in
+        #: `dmitropolsky-assemblies` "inhibit" is AREA GATING for control flow.
+        #: Grepping both clones for refractory/steps_ago/recently-fired returns
+        #: nothing. So LRI-with-decay is THIS REPOSITORY'S OWN construction,
+        #: the same status as `ordered_recall` and `sequence_memorize`, and
+        #: porting it is not parity work. It is kept because RECOVERY is the
+        #: one ingredient the substrate lacks -- without it there is no decay
+        #: term anywhere, so idle spacing is a no-op by construction and the
+        #: refraction bias is not a relative refractory period in the
+        #: biological sense.
+        #:
+        #: It is NOT the refraction bias with a decay bolted on -- the two are
+        #: orthogonal and compose:
+        #:
+        #:   refraction   charges per WIN, in proportion to the raw drive,
+        #:                never recovers, and is gated on plasticity
+        #:   LRI          charges per STEP at a FIXED strength, recovers
+        #:                linearly over `period` steps, and applies on frozen
+        #:                reads too, exactly as the reference does
+        #:
+        #: A ring buffer of the last `period` winner sets; the penalty a neuron
+        #: carries is `strength * (1 - (age - 1) / period)` summed over every
+        #: slot it appears in, subtracted from drive before k-WTA.
+        self.lri_period, self.lri_strength = 0, 0.0
+        self._lri_hist = None
+        self._lri_pos, self._lri_filled = 0, 0
+        #: MASKED READOUT, the engine's `masked_readout`: a frozen projection
+        #: ranks the raw drive. `project(mask_bias=...)` overrides per call.
+        self.masked_readout = False
+        #: TIE JITTER, opt-in. The selector breaks exact ties by smallest
+        #: index -- canonical, and what every capacity result was measured
+        #: with. But a STIMULUS-driven area under norm_init has a drive with a
+        #: handful of distinct levels, so the k-WTA bar sits inside a tie
+        #: class ([[KWTA-TIE-FRAGILE]]): at n=1000 k=50 p=0.05 the numpy
+        #: engine's stimulus base leaves 41 neurons above the bar and 959 tied
+        #: at zero, so 9 of 50 winners are tie-fill. A canonical rule then
+        #: gives EVERY input the same low-index tie-fill, correlating assemblies
+        #: that should be independent -- measured on the aligner as word
+        #: assemblies that overlap across words and alignment that WORSENS with
+        #: training. With `tie_jitter > 0` the ranking adds a deterministic
+        #: per-(input pattern, column) offset below any real drive gap, so ties
+        #: break pseudo-randomly, differently for different inputs, and
+        #: reproducibly. The drive itself is untouched (parity replays still
+        #: compare the true drive); only the ORDER among exact ties changes.
+        self.tie_jitter = float(tie_jitter or 0.0)
+        self._cols = torch_ops.arange(n, dtype=torch_ops.int64, device=device)
+        #: the largest deferred k-WTA overflow not yet checked, on the device
+        self._overflow = torch_ops.zeros((), dtype=torch_ops.int32, device=device)
+
+    def _jitter(self, fibers):
+        """[B, n] offsets in [0, tie_jitter), keyed by the active fibers.
+
+        Cached per fiber combination: the value depends only on WHICH fibers
+        fire, and recomputing it was 24% of an aligner run (six launches per
+        round for a constant).
+        """
+        key = tuple(sorted(id(f) for f in fibers))
+        cache = self.__dict__.setdefault("_jitter_cache", {})
+        hit = cache.get(key)
+        if hit is not None:
+            return hit
+        salt = torch_ops.zeros(self.B, dtype=torch_ops.int64, device=self.device)
+        for f in fibers:
+            salt = salt ^ (f.seeds.to(torch_ops.int64) & 0xFFFFFFFF)
+        h = (self._cols.view(1, -1) ^ salt.view(-1, 1)) * 0x9E3779B1
+        h = (h ^ (h >> 15)) * 0x85EBCA6B
+        h = (h ^ (h >> 13)) & 0xFFFFFFFF
+        out = h.to(torch_ops.float32) * (self.tie_jitter / 4294967296.0)
+        cache[key] = out
+        return out
+
+    def apply_bias(self, raw):
+        """Net drive the k-WTA ranks: raw minus the accumulated bias."""
+        return raw if self.bias is None else raw - self.bias
+
+    def set_lri(self, refractory_period: int, inhibition_strength: float) -> None:
+        """Configure long range inhibition, or switch it off with a zero.
+
+        Mirrors `Brain.set_lri`, including its validation, so the two paths
+        cannot drift in what they accept.
+        """
+        from .._homeostasis import validate_lri_parameters
+        period, strength = validate_lri_parameters(refractory_period,
+                                                   inhibition_strength)
+        self.lri_period, self.lri_strength = period, strength
+        self._lri_pos, self._lri_filled = 0, 0
+        self._lri_hist = (
+            torch_ops.zeros(self.B, period, self.k, dtype=torch_ops.int64,
+                            device=self.device)
+            if period > 0 and strength > 0 else None)
+
+    def apply_lri(self, drive):
+        """Subtract the linearly decaying penalty of recently fired neurons.
+
+        Age 1 is the most recent step and pays the full strength; age `period`
+        pays `1 / period` of it; older is forgotten entirely. A neuron that
+        fired on several of those steps pays for EACH, which is what the
+        reference's per-slot loop does.
+        """
+        if self._lri_hist is None or self._lri_filled == 0:
+            return drive
+        penalty = torch_ops.zeros_like(drive)
+        for age in range(1, self._lri_filled + 1):
+            slot = (self._lri_pos - age) % self.lri_period
+            decay = 1.0 - (age - 1) / self.lri_period
+            penalty.scatter_add_(
+                1, self._lri_hist[:, slot],
+                torch_ops.full_like(penalty[:, :self.k],
+                                    self.lri_strength * decay))
+        return drive - penalty
+
+    def _push_lri(self, winners) -> None:
+        """Record this step's winners. Not gated on `freeze`: the reference
+        appends its history on every step, so a frozen read still inhibits."""
+        if self._lri_hist is None:
+            return
+        self._lri_hist[:, self._lri_pos] = winners
+        self._lri_pos = (self._lri_pos + 1) % self.lri_period
+        self._lri_filled = min(self._lri_filled + 1, self.lri_period)
+
+    def charge(self, raw, new):
+        """Charge the winners `raw * strength`, as `refraction_increment` does
+        (it reconstructs raw as net + bias; here raw is still at hand)."""
+        if self.bias is None:
+            return
+        self.bias.scatter_add_(
+            1, new, torch_ops.gather(raw, 1, new) * self.refracted_strength)
+
+    def inhibit(self):
+        """Clear the assembly. The next round is driven by afferents alone."""
+        self.winners = torch_ops.zeros(self.B, 0, dtype=torch_ops.int64,
+                                   device=self.device)
+
+    def inhibit_rows(self, mask):
+        """Clear the assembly of the brains in `mask` [B] only: their winner
+        rows become -1, which every fiber reads as "no source" -- the
+        per-brain sentence boundary of a scheduled organ."""
+        if self.winners.shape[1] == 0:
+            return
+        mask = torch_ops.as_tensor(mask, dtype=torch_ops.bool, device=self.device)
+        self.winners = self.winners.masked_fill(mask.view(-1, 1), -1)
+
+    def check_overflow(self):
+        """Raise if any deferred projection's k-WTA overflowed (one host
+        read). Call it before anything reads the winners as a result."""
+        bad = int(self._overflow)
+        if bad:
+            self._overflow.zero_()
+            _raise_overflow(bad)
+
+    def select(self, keep):
+        """Keep only the brains ``keep`` [B'] (indices), in that order. The
+        per-brain state goes with them; the round counters are shared."""
+        keep = torch_ops.as_tensor(keep, dtype=torch_ops.int64, device=self.device)
+        self.winners = self.winners.index_select(0, keep)
+        self.ever = self.ever.index_select(0, keep)
+        if self.bias is not None:
+            self.bias = self.bias.index_select(0, keep)
+        if isinstance(self.refracted_strength, torch_ops.Tensor):
+            self.refracted_strength = self.refracted_strength.index_select(0, keep)
+        if self._lri_hist is not None:
+            self._lri_hist = self._lri_hist.index_select(0, keep)
+        self.__dict__.pop("_jitter_cache", None)
+        self.B = int(keep.numel())
+
+    def project(self, rounds, fibers, *, rows_for=None, freeze=False,
+                stim_drive=None, return_drive=False, mask_bias=None,
+                manage_episodes=True, stop_when_stable=False, defer_overflow=False):
+        """Run ``rounds`` rounds with ``fibers`` afferent.
+
+        ``rows_for`` maps a fiber to its source winners; a fiber absent from it
+        is driven by THIS area's winners, i.e. recurrently.
+
+        ``mask_bias`` reads the SYNAPTIC memory alone: the refraction bias is
+        neither subtracted nor charged. Only meaningful with ``freeze`` -- it
+        is a probe of what the synapses hold with the intrinsic veto removed
+        (PREREG_refraction_capacity P1), not a mode the reference has.
+
+        ``manage_episodes=False`` leaves the fibers' episodes to the caller,
+        so several one-round calls can share ONE episode (one mask, one GEMM
+        fold into the store) -- a training step whose rounds interleave two
+        areas cannot be a single multi-round call here, and per-round episodes
+        cost a store append and merge each. Observe/charge still happen.
+
+        ``stop_when_stable`` gates the rounds PER BRAIN on convergence
+        (PREREG_refraction_memory.md Amendment 5): a brain's item is over at
+        the first round whose winner set equals the previous round's; that
+        round is written like any other, and from then on the brain keeps
+        its winners and writes nothing -- its rows and winners go to the
+        fibers as -1, the dead-brain convention, so the fibers must accept
+        -1 (the organ and stimulus fibers do; the store fibers do not). The
+        loop ends early when no brain is active. ``rounds`` is then the
+        CEILING T_max, and ``self.rounds_used`` [B] the rounds each brain
+        spent. A brain's rounds up to its convergence are bit-identical to
+        the ungated run's (tested).
+        """
+        rows_for = rows_for or {}
+        if mask_bias is None:
+            mask_bias = bool(self.masked_readout) and freeze
+        if mask_bias and not freeze:
+            raise ValueError("mask_bias is a READOUT option; pass freeze=True")
+        if not freeze and manage_episodes:
+            for f in fibers:
+                f.begin_episode()
+        drive = None
+        active = None
+        ovf_acc = None
+        if stop_when_stable:
+            active = torch_ops.ones(self.B, dtype=torch_ops.bool, device=self.device)
+            self.rounds_used = torch_ops.zeros(self.B, dtype=torch_ops.int64,
+                                           device=self.device)
+        for _ in range(rounds):
+            raw = torch_ops.zeros(self.B, self.n, dtype=torch_ops.float32,
+                              device=self.device)
+            for f in fibers:
+                f.contribute(raw, rows_for.get(id(f), self.winners))
+            if stim_drive is not None:
+                raw = raw + stim_drive
+            drive = raw if mask_bias else self.apply_bias(raw)
+            # LRI is not the refraction bias and `mask_bias` does not lift it:
+            # that option probes what the SYNAPSES hold with the intrinsic veto
+            # removed, and long range inhibition is extrinsic.
+            drive = self.apply_lri(drive)
+            ranked = (drive + self._jitter(fibers) if self.tie_jitter > 0
+                      else drive)
+            sel, ovf = self.mod.topk_select(ranked, min(self.k, self.n))
+            # the overflow flag is accumulated on the device and read ONCE
+            # after the rounds: a host sync per round was most of a step
+            ovf_acc = ovf if ovf_acc is None else torch_ops.maximum(ovf_acc, ovf)
+            new = sel.to(torch_ops.int64)
+            prev = self.winners
+            if active is not None and prev.shape[1] == new.shape[1]:
+                # a converged brain keeps its winners
+                new = torch_ops.where(active.view(-1, 1), new, prev)
+            if not freeze:
+                if active is None:
+                    for f in fibers:
+                        f.observe(rows_for.get(id(f), prev), new)
+                    self.charge(raw, new)
+                else:
+                    off = ~active.view(-1, 1)
+                    new_m = new.masked_fill(off, -1)
+                    for f in fibers:
+                        src = rows_for.get(id(f), prev)
+                        f.observe(src.masked_fill(off, -1) if src.shape[1] else src,
+                                  new_m)
+                    if self.bias is not None:
+                        self.bias.scatter_add_(
+                            1, new, torch_ops.gather(raw, 1, new)
+                            * (self.refracted_strength * active.view(-1, 1)))
+                    self.rounds_used += active.to(torch_ops.int64)
+                self.ever.scatter_(1, new, True)
+                self.rounds_seen += 1
+            self.winners = new
+            self._push_lri(new)
+            if active is not None:
+                if prev.shape[1] == new.shape[1]:
+                    same = (torch_ops.sort(new, dim=1).values
+                            == torch_ops.sort(prev, dim=1).values).all(dim=1)
+                    active = active & ~same
+                if not bool(active.any()):
+                    break
+        if ovf_acc is not None:
+            if defer_overflow:
+                # kept on the device until `check_overflow`: reading it here is
+                # a host sync per call, which stalls a store loop on every item.
+                # Updated IN PLACE, so a replayed CUDA graph accumulates into it.
+                torch_ops.maximum(self._overflow, ovf_acc.max(), out=self._overflow)
+            else:
+                _raise_overflow(int(ovf_acc.max()))
+        if not freeze and manage_episodes:
+            for f in fibers:
+                f.end_episode()
+        return (self.winners, drive) if return_drive else self.winners
+
+    @property
+    def fill(self):
+        """``rows/n``: the fraction of the area that has ever fired."""
+        return self.ever.sum(dim=1).float() / self.n
