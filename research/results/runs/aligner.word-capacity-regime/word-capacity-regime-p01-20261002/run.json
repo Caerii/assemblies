@@ -1,0 +1,192 @@
+{
+  "engine": "scheduled_aligner",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "alignment",
+    "profiles": {
+      "default": {
+        "anchor_gain": 10.0,
+        "anchor_normalization": "inverse-indegree",
+        "anchor_plasticity": "none",
+        "anchor_weight_ceiling": null,
+        "arithmetic": "float32",
+        "connectome": "fixed-hash-regenerated",
+        "cross_normalization": "inverse-indegree-with-column-scaling",
+        "cross_plasticity": "multiplicative-unbounded",
+        "cross_store": "present-only",
+        "cross_weight_ceiling": null,
+        "inference_schedule": "frozen-anchor-and-cross-readout",
+        "rounds_per_pair": 2,
+        "stimulus_drive": "fixed-bernoulli-afferent-count",
+        "tie_break": "deterministic-hash-jitter",
+        "training_schedule": "anchored-cross-situational"
+      }
+    }
+  },
+  "git_commit": "0d2c58ad7a2f7d915e1d629f20178c33781b4ca0",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "betas": [
+      0.0125,
+      0.025,
+      0.05,
+      0.1,
+      0.2,
+      0.4,
+      0.8
+    ],
+    "protocol": {
+      "category_count": 4,
+      "ceiling_interior_band": [
+        0.1,
+        0.9
+      ],
+      "cell_definitions": {
+        "A": [
+          1000,
+          50,
+          50
+        ],
+        "B": [
+          2000,
+          50,
+          50
+        ],
+        "C": [
+          4000,
+          50,
+          50
+        ],
+        "D": [
+          4000,
+          100,
+          100
+        ],
+        "E": [
+          2000,
+          50,
+          100
+        ],
+        "F": [
+          1400,
+          50,
+          50
+        ],
+        "G": [
+          2800,
+          50,
+          50
+        ]
+      },
+      "cells": [
+        "A",
+        "F",
+        "B",
+        "G",
+        "C"
+      ],
+      "connection_probability": 0.1,
+      "connectome_seed_stride": 1000,
+      "corpus_seed_offset": 9001,
+      "corpus_seed_scope": "per-brain",
+      "early_stop_margin": 0.3,
+      "exposures_per_referent": 12,
+      "feature_area": [
+        4000,
+        100
+      ],
+      "feature_ladder": [
+        [
+          1000,
+          50
+        ],
+        [
+          2000,
+          50
+        ],
+        [
+          4000,
+          50
+        ],
+        [
+          8000,
+          50
+        ],
+        [
+          4000,
+          100
+        ],
+        [
+          8000,
+          100
+        ]
+      ],
+      "launch_budget_bytes": 4294967296,
+      "minimum_exposures": 3,
+      "plasticity": 0.1,
+      "referents_per_scene": 3,
+      "rounds_per_pair": 2,
+      "threshold": 0.9,
+      "training_seed_offset": 11,
+      "vocabulary_sizes": [
+        16,
+        32,
+        64,
+        128,
+        256,
+        512,
+        1024
+      ],
+      "w2_fail_tolerance": 0.4,
+      "w2_pass_tolerance": 0.25,
+      "w3_fail_ratio": 1.1,
+      "w3_pass_ratio": 1.3
+    }
+  },
+  "protocol": "aligner.word-capacity-regime",
+  "protocol_version": "1",
+  "registration": "research/notes/aligner/PREREG_word_capacity.md",
+  "registration_sha256": "0171ef2d54cb84b42cac70d573db2ca1b0aad4da01b01fc54093585e0e59ff32",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/word_capacity_regime_run.py",
+  "script_sha256": "30630edb97cb40c4ae8251e30509b27bde3d9f9b934d0e8b475d680f0a759f1b",
+  "seeds": [
+    222,
+    223,
+    224,
+    225,
+    226,
+    227,
+    228,
+    229,
+    230,
+    231,
+    232,
+    233,
+    234,
+    235,
+    236,
+    237,
+    238,
+    239,
+    240,
+    241
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "ae12264d7005cc00af591054b8a95a9c16eced68c9650cea19da72b6ee5f9d29"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "bbec99b279630fd0e321ae27d07bbc60d105d73c235e5c522dce2c50957ee5c4",
+  "started_utc": "2026-10-03T03:35:16.015396+00:00",
+  "tag": "word-capacity-regime-p01-20261002"
+}
