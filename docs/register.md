@@ -19,6 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`WRITE-TIMING-DECIDES-ATTRACTOR`](#write-timing-decides-attractor) | MEASURED | hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst | In the refracted assembly memory WHEN the write happens decides what is stored. |
 | [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed_assembly_memory (HashedArea with AreaFiber/StimulusFiber); the registered twenty-brain run is a runner artifact, the wander diagnostic and the bias-readout numbers are logs | [MEASURED 2026-09-13 on two disjoint blocks of twenty registered brains, PREREG_refraction_convergence.md: a refracted RECURRENT area below the transition does not converge and hold. |
 | [`AC-CAP`](#ac-cap) | MEASURED | original capacity-note run: incompletely recorded (graded-similarity evidence compares explicit, materialized and sampled numpy_sparse); retained bracket: hashed_assembly_memory, the unrefracted Hebbian control arm of the paired capacity replay at (n, k) = (4000, 60) | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
 | [`RATE-HETEROGENEITY`](#rate-heterogeneity) | MEASURED | numpy_explicit (materialized copied-fiber protocol) | Learning rate is settable PER FIBER: copied fibers with identical pre/post activity at beta 0.06 and 0.005 diverge 14.35-fold after 50 updates without reaching the weight clip. |
@@ -463,6 +464,31 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Sensitivity gap.** Paired refracted-versus-control checks now cover all seven cells the law is fitted to (A7 at (4000, 60); Amendment 8 at the other six). The masked-vs-net veto, the convergence gate, the strength plateau and the cross-engine mirror still lack retained paired checks.
 
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
+
+## WRITE-TIMING-DECIDES-ATTRACTOR
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 25 (CV, W1-W4 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst
+
+**Claim.** In the refracted assembly memory WHEN the write happens decides what is stored. The round write, whose counts feed into the item's next round, converges the item onto one assembly and stores attractors (451-1442 items). The same counts written after the item store no attractor at any of 21 rates over 0.1-3.2 theta: refraction relocates the unwritten rounds every round, and what is stored is the item's TRAJECTORY (one frozen round from half of round t recovers 64-79% of round t+1). A burst-timing rule (deferred, symmetric, between neurons that fired twice) and a burst-gated online write store nothing.
+
+**Requires.**
+- refraction 0.5 beta charged every round, T = 8, w_max 20, norm_init; half-cue masked readout
+- burst = fired in at least 2 of the item's 8 rounds
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-25-result-2026-10-03
+
+**Evidence files.**
+- [research/results/runs/memory.write_rules/write-rules-20261003/results.json](../research/results/runs/memory.write_rules/write-rules-20261003/results.json) (artifact) â€” Amendment 25: four write rules at three cells, 20 brains, capacity and trajectory readings
+
+**Mechanism sensitivity.**
+- deferred write: one round from round t recovers round t+1, not round t at (2000, 60, 0.5) (Amendment 25): `observations/cells/2000~160~10.5/rules/deferred/trajectory/next/values` all-greater `observations/cells/2000~160~10.5/rules/deferred/trajectory/same/values` by at least 0.5, retained in [research/results/runs/memory.write_rules/write-rules-20261003/results.json](../research/results/runs/memory.write_rules/write-rules-20261003/results.json) and paired by `run/seeds`.
+- deferred write: one round from round t recovers round t+1, not round t at (4000, 20, 0.5) (Amendment 25): `observations/cells/4000~120~10.5/rules/deferred/trajectory/next/values` all-greater `observations/cells/4000~120~10.5/rules/deferred/trajectory/same/values` by at least 0.5, retained in [research/results/runs/memory.write_rules/write-rules-20261003/results.json](../research/results/runs/memory.write_rules/write-rules-20261003/results.json) and paired by `run/seeds`.
+- online write holds the item's rounds together, the deferred write does not at (4000, 160, 0.5) (Amendment 25): `observations/cells/4000~1160~10.5/rules/round/trajectory/own/values` all-greater `observations/cells/4000~1160~10.5/rules/deferred/trajectory/own/values` by at least 0.5, retained in [research/results/runs/memory.write_rules/write-rules-20261003/results.json](../research/results/runs/memory.write_rules/write-rules-20261003/results.json) and paired by `run/seeds`.
+
+**Caveat.** Three cells, all p = 0.5; the trajectory reading is at one rate (1.0 theta). Refraction's strength is tied to the write's (0.5 beta), so a burst rule with a decoupled or weaker refraction -- or a window short against the relocation period -- is untested. Developing retinogeniculate BTDP refines maps rather than storing items; the claim is about item storage in this circuit.
 
 ## REFRACTION-CANCELS-CONVERGENCE
 

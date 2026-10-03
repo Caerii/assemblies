@@ -1173,6 +1173,57 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
+        id="WRITE-TIMING-DECIDES-ATTRACTOR",
+        engine="hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst",
+        status=Status.MEASURED,
+        claim="In the refracted assembly memory WHEN the write happens decides what is "
+              "stored. The round write, whose counts feed into the item's next round, "
+              "converges the item onto one assembly and stores attractors (451-1442 "
+              "items). The same counts written after the item store no attractor at any "
+              "of 21 rates over 0.1-3.2 theta: refraction relocates the unwritten rounds "
+              "every round, and what is stored is the item's TRAJECTORY (one frozen round "
+              "from half of round t recovers 64-79% of round t+1). A burst-timing rule "
+              "(deferred, symmetric, between neurons that fired twice) and a burst-gated "
+              "online write store nothing.",
+        source="PREREG_refraction_memory.md Amendment 25 (CV, W1-W4 PASS)",
+        preconditions=("refraction 0.5 beta charged every round, T = 8, w_max 20, "
+                       "norm_init; half-cue masked readout",
+                       "burst = fired in at least 2 of the item's 8 rounds"),
+        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-25-result-2026-10-03",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/memory.write_rules/write-rules-20261003/results.json", "artifact",
+                        "Amendment 25: four write rules at three cells, 20 brains, capacity and trajectory readings"),
+        ),
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.write_rules/write-rules-20261003/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/2000~160~10.5/rules/deferred/trajectory/next/values",
+            control_path="observations/cells/2000~160~10.5/rules/deferred/trajectory/same/values",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="deferred write: one round from round t recovers round t+1, not round t at (2000, 60, 0.5) (Amendment 25)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.write_rules/write-rules-20261003/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/4000~120~10.5/rules/deferred/trajectory/next/values",
+            control_path="observations/cells/4000~120~10.5/rules/deferred/trajectory/same/values",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="deferred write: one round from round t recovers round t+1, not round t at (4000, 20, 0.5) (Amendment 25)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.write_rules/write-rules-20261003/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/4000~1160~10.5/rules/round/trajectory/own/values",
+            control_path="observations/cells/4000~1160~10.5/rules/deferred/trajectory/own/values",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="online write holds the item's rounds together, the deferred write does not at (4000, 160, 0.5) (Amendment 25)",
+        )),
+        caveat="Three cells, all p = 0.5; the trajectory reading is at one rate (1.0 "
+               "theta). Refraction's strength is tied to the write's (0.5 beta), so "
+               "a burst rule with a decoupled or weaker refraction -- or a window "
+               "short against the relocation period -- is untested. Developing "
+               "retinogeniculate BTDP refines maps rather than storing items; the "
+               "claim is about item storage in this circuit.",
+    ),
+    Result(
         id="REFRACTION-CANCELS-CONVERGENCE",
         engine="hashed_assembly_memory (HashedArea with AreaFiber/StimulusFiber); the registered twenty-brain run is a runner artifact, the wander diagnostic and the bias-readout numbers are logs",
         status=Status.MEASURED,

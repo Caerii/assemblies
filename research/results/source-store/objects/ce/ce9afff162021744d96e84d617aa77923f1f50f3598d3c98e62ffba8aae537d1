@@ -1,0 +1,180 @@
+name: Research contracts
+
+on:
+  pull_request:
+  push:
+    branches: [dev, master]
+
+permissions:
+  contents: read
+
+jobs:
+  cpu-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      # Full history: the evidence graph verifies each comparison receipt
+      # against `git show <commit>:research/compare_migration.py` at the
+      # commit that wrote it, which a depth-1 clone does not contain.
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - uses: astral-sh/setup-uv@v4
+      # The development environment installs the `gpu` group (CUDA torch, and
+      # CuPy on Linux) by default. This runner has no GPU, so it opts out and
+      # installs the CPU build of the SAME locked torch instead: research
+      # contracts build CPU tensors (state codes, chain tables), so the torch
+      # level runs here; CUDA and the fused kernels do not, and their tests
+      # skip with the reason. That also keeps the job off the 3 GB CUDA stack.
+      - run: uv sync --frozen --no-group gpu
+      # The strict setting below makes a failed install FAIL the torch tests
+      # instead of skipping them (neural_assemblies/tests/_devices.py).
+      - name: Install the CPU build of the locked torch
+        run: uv pip install "torch==2.12.1" --index-url https://download.pytorch.org/whl/cpu
+      - name: Reject unsafe research invocations and dead verification
+        env:
+          ASSEMBLIES_REQUIRE_DEVICE: torch
+        run: >-
+          uv run --no-sync --with pyright pytest -q
+          neural_assemblies/tests/test_device_gate.py
+          neural_assemblies/tests/test_research_contracts.py
+          neural_assemblies/tests/test_exact_engine_ladder.py
+          neural_assemblies/tests/test_sampled_fiber_learning.py
+          neural_assemblies/tests/test_exact_fiber_learning.py
+          neural_assemblies/tests/test_fiber_learning_contract.py
+          neural_assemblies/tests/test_reinforcement_contract.py
+          neural_assemblies/tests/test_winner_injection_contract.py
+          neural_assemblies/tests/test_brain_ir_execution.py
+          neural_assemblies/tests/test_projection_ir_execution.py
+          neural_assemblies/tests/test_engine_availability.py
+          neural_assemblies/tests/test_protocol_wire.py
+          neural_assemblies/tests/test_source_inventory.py
+          neural_assemblies/tests/test_legacy_result_storage.py
+          neural_assemblies/tests/test_legacy_aggregate_summary.py
+          neural_assemblies/tests/test_research_runner.py
+          neural_assemblies/tests/test_runner_registry_contract.py
+          neural_assemblies/tests/test_pattern_efficiency.py
+          neural_assemblies/tests/test_write_strength.py
+          neural_assemblies/tests/test_learning_rate.py
+          neural_assemblies/tests/test_recall_law.py
+          neural_assemblies/tests/test_word_capacity_synapses.py
+          neural_assemblies/tests/test_time_depth.py
+          neural_assemblies/tests/test_sparse_law.py
+          neural_assemblies/tests/test_threshold_law.py
+          neural_assemblies/tests/test_collect.py
+          neural_assemblies/tests/test_replay.py
+          neural_assemblies/tests/test_onset.py
+          neural_assemblies/tests/test_regimes.py
+          neural_assemblies/tests/test_degree_law.py
+          neural_assemblies/tests/test_word_capacity_regime.py
+          neural_assemblies/tests/test_recognition.py
+          neural_assemblies/tests/test_criticality.py
+          neural_assemblies/tests/test_write_rules.py
+          neural_assemblies/tests/test_throughput_contract.py
+          neural_assemblies/tests/test_active_evidence_graph.py
+          neural_assemblies/tests/test_horizon_null_contract.py
+          neural_assemblies/tests/test_horizon_runner_contract.py
+          neural_assemblies/tests/test_capacity_runner_contract.py
+          neural_assemblies/tests/test_research_harness.py
+          neural_assemblies/tests/test_winner_margin.py
+          neural_assemblies/tests/test_winner_policies.py
+          neural_assemblies/tests/test_phon_registration.py
+          neural_assemblies/tests/test_area_registration.py
+          neural_assemblies/tests/test_public_model_boundaries.py
+          neural_assemblies/tests/test_operation_semantic_cards.py
+          neural_assemblies/tests/test_operation_contract_objects.py
+          neural_assemblies/tests/test_projection_rounds_contract.py
+          neural_assemblies/tests/test_probe_state_contract.py
+          neural_assemblies/tests/test_temporal_position_audit.py
+          neural_assemblies/tests/test_temporal_observations.py
+          neural_assemblies/tests/test_temporal_position_runner.py
+          neural_assemblies/tests/test_historical_merge_trials.py
+          neural_assemblies/tests/test_historical_association_trials.py
+          neural_assemblies/tests/test_historical_noise_trials.py
+          neural_assemblies/tests/test_historical_projection_trials.py
+          neural_assemblies/tests/test_historical_scaling_trials.py
+          neural_assemblies/tests/test_historical_phase_trials.py
+          neural_assemblies/tests/test_historical_study_adapter.py
+          neural_assemblies/tests/test_noise_robustness.py
+          neural_assemblies/tests/test_seeded_observation.py
+          neural_assemblies/tests/test_context_noise_protocol.py
+          neural_assemblies/tests/test_context_choice.py
+          neural_assemblies/tests/test_nemo_arc_contract.py
+          neural_assemblies/tests/test_arc_markov_contract.py
+          neural_assemblies/tests/test_nemo_fsm.py
+          neural_assemblies/tests/test_word_problems.py
+          neural_assemblies/tests/test_cyclic_group_contract.py
+          neural_assemblies/tests/test_context_observation.py
+          neural_assemblies/tests/test_role_observation.py
+          neural_assemblies/tests/test_classification_observation.py
+          neural_assemblies/tests/test_classification_evidence.py
+          neural_assemblies/tests/test_clone_contract.py
+          neural_assemblies/tests/test_parser_fork_contract.py
+          neural_assemblies/tests/test_parser_cache_identity.py
+          neural_assemblies/tests/test_checkpoint_storage.py
+          neural_assemblies/tests/test_mixed_drive_indices.py
+          neural_assemblies/tests/test_explicit_input_contract.py
+          neural_assemblies/tests/test_explicit_projection.py
+          neural_assemblies/tests/test_erp_protocol.py
+          neural_assemblies/tests/test_cuda_toolchain.py
+          neural_assemblies/tests/test_parse_errors.py
+          neural_assemblies/tests/test_read_only_probes.py
+          neural_assemblies/tests/test_specification_links.py
+          neural_assemblies/tests/test_erp_context_reset_contract.py
+          neural_assemblies/tests/test_migration_comparison.py
+          neural_assemblies/tests/test_golden_comparator_contract.py
+          neural_assemblies/tests/test_theory_citations.py
+          neural_assemblies/tests/test_methodology_ratchet.py
+          neural_assemblies/tests/test_index_space_ratchet.py
+          neural_assemblies/tests/test_index_space_types.py
+          neural_assemblies/tests/test_coin_seed_contract.py
+          neural_assemblies/tests/test_coin_construction.py
+          neural_assemblies/tests/test_pfa_choice_contract.py
+          neural_assemblies/tests/test_pnas_roundtrip_contract.py
+          neural_assemblies/tests/test_pfa.py
+          neural_assemblies/tests/test_transition_contract.py
+          neural_assemblies/tests/test_transitions.py
+          neural_assemblies/tests/test_docs_examples_smoke.py
+          neural_assemblies/tests/test_execution_kinds.py
+          neural_assemblies/tests/test_refraction_convergence_instrument.py
+          neural_assemblies/tests/test_presentation_schedule.py
+          neural_assemblies/tests/test_presentation_schedule_parity.py
+          neural_assemblies/tests/test_refraction_period_law.py
+          neural_assemblies/tests/test_episode_tenure.py
+          neural_assemblies/tests/test_ordered_recall_advances.py
+          neural_assemblies/tests/test_autonomous_chain.py
+          neural_assemblies/tests/test_organ_count_saturation.py
+
+  lean-contracts:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: leanprover/lean-action@v1
+        with:
+          lake-package-directory: formal
+          use-mathlib-cache: "false"
+          # The action's own leanchecker step names the PACKAGE
+          # (assembly-contracts) as a module and finds nothing; the library
+          # is AssemblyIR, checked explicitly below.
+          leanchecker: "false"
+      - name: Re-check the built AssemblyIR environment with leanchecker
+        working-directory: formal
+        run: lake env leanchecker AssemblyIR
+      - name: Validate the shared explicit-round corpus in Lean
+        working-directory: formal
+        run: >-
+          lake exe check-wire-cases
+          ../neural_assemblies/ir/v1/explicit-round.cases.json
+
+  rust-ir:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate the shared protocol corpus
+        working-directory: crates
+        run: cargo test --locked -p assembly-ir

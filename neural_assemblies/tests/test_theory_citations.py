@@ -196,6 +196,9 @@ class TestTheoryCitations(unittest.TestCase):
             # 2026-09-13: integer arc load, whose check shows a SHORTER chain at
             # integer load beating a longer one at fractional load on every brain
             "SEQ-INTEGER-ARC-LOAD",
+            # 2026-10-03: the deferred write's trajectory (next over same on
+            # every brain) and the online write's held rounds (Amendment 25)
+            "WRITE-TIMING-DECIDES-ATTRACTOR",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

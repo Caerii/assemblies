@@ -723,6 +723,11 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | Q1 recognition outruns recall (A23) | ratio >= 2 at every cell | PASS | 15.0-86.3 |
 | Q2 gap widens as fan-in falls (A23) | Spearman <= -0.9 and k=10/k=160 >= 5 | FAIL | -0.90; 4.0x |
 | Q3 recognition wants a weaker write (A23) | recognition rate <= half recall's | PASS | 1/40-1/6 |
+| CV instrument (A25) | round write within [0.75, 1.10] of A18 | PASS | 0.89, 0.93, 0.98 |
+| W1 deferral abolishes the memory (A25) | deferred capacity 0 at every rate, every cell | PASS | 0 |
+| W2 burst write stores nothing (A25) | burst capacity 0 at every rate, every cell | PASS | 0 |
+| W3 burst gating costs capacity (A25) | online_burst <= half round's | PASS | 0 (abolished) |
+| W4 deferred write stores the trajectory (A25) | next >= 0.4, >= 5x same, own <= 0.1; round own >= 0.5 | PASS | next 0.64-0.79; own 0.002-0.022; round own 0.80-0.98 |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -3190,3 +3195,76 @@ in units of k; `online_burst`'s and `burst`'s trajectory readings.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until CV and W1 to W4 are evaluated and recorded below.
+
+### Amendment 25 result (2026-10-03)
+
+One run from a worktree pinned at 78b983e0, seeds 302 to 321:
+[record](../../results/runs/memory.write_rules/write-rules-20261003/results.json),
+[log](../../results/logs/memory-write-rules-20261003.log). Capacity at each
+rule's own best rate over 0.1 to 3.2 theta; trajectory readings at 1.0 theta
+(means over 20 brains):
+
+    cell (n, k, p)     rule           capacity (best rate/theta)   next    same    own
+    (2000, 60, 0.5)    round          451 (0.199)                  0.753   0.658   0.796
+                       online_burst   0                            0.500   0.528   0.433
+                       deferred       0                            0.642   0.028   0.020
+                       burst          0                            0.182   0.147   0.026
+    (4000, 20, 0.5)    round          1442 (0.200)                 0.999   0.982   0.982
+                       online_burst   0                            0.065   0.011   0.010
+                       deferred       0                            0.786   0.003   0.002
+                       burst          0                            0.060   0.010   0.003
+    (4000, 160, 0.5)   round          1062 (0.167)                 0.806   0.723   0.862
+                       online_burst   0                            0.611   0.584   0.542
+                       deferred       0                            0.765   0.027   0.022
+                       burst          0                            0.208   0.135   0.026
+
+    CV  THE INSTRUMENT                                                PASS
+        round write 451 / 1442 / 1062 against Amendment 18's 506.7 /
+        1553.6 / 1083.2: 0.89, 0.93, 0.98 (band [0.75, 1.10]).
+    W1  DEFERRAL ABOLISHES THE MEMORY                                 PASS
+        `deferred` capacity 0 at every rate of every cell.
+    W2  THE BURST WRITE STORES NOTHING                                PASS
+        `burst` capacity 0 at every rate of every cell.
+    W3  BURST GATING COSTS CAPACITY                                   PASS
+        `online_burst` capacity 0 at every cell (bar: <= half the round
+        write's) -- gating out the first firings does not cost capacity, it
+        abolishes it.
+    W4  A DEFERRED WRITE STORES THE TRAJECTORY                        PASS
+        `deferred`: next 0.64 to 0.79 (>= 0.4), 23 to 262 times same (>= 5),
+        own 0.002 to 0.022 (<= 0.1); `round` own 0.80 to 0.98 (>= 0.5).
+
+**Reading.** What the assembly memory stores is decided by WHEN it writes.
+The round write feeds each round's counts into the next round, the item's
+rounds converge onto one assembly (consecutive rounds overlap 0.80 to 0.98),
+and the memory holds attractors -- 451 to 1442 items. The same counts
+written after the item store no attractor at all, at any of 21 rates over
+a 32-fold range, at any load from two items: with nothing written during
+the item, refraction relocates the assembly every round (consecutive rounds
+overlap at chance, 0.002 to 0.022), and what the deferred write stores is
+the item's TRAJECTORY -- one frozen round from half of round t's winners
+recovers 64 to 79% of round t + 1's. The burst write, the BTDP rule
+(deferred, symmetric, once per item between neurons that fired twice),
+stores neither: its symmetric counts close the trajectory's chain into one
+union, from which a half cue of any one round recovers little (0.06 to
+0.21 of the next round, 0.01 to 0.15 of its own). And gating the online
+write on bursts abolishes the memory too: the write that converges an item
+is carried by neurons' FIRST firings, which refraction makes the common case.
+
+For burst-timing-dependent plasticity this is a constraint, not a verdict:
+a burst rule integrates over a window longer than the dynamics it shapes,
+which here are relocated by refraction every round. It can store
+attractors only if its window is short against the relocation period
+(1 round under the write's own refraction), or if something other than
+plasticity -- the round write's own feedback, here -- holds the assembly
+still while it writes. Developing retinogeniculate synapses, where BTDP was
+found, refine maps from slow retinal waves rather than store items; the
+memory reading is that such a rule shapes structure and a fast, online
+rule stores items.
+
+**Seen in the record, not registered.** `online_burst` holds the assembly
+together in proportion to k (own 0.01 at k = 20, 0.43 at k = 60, 0.54 at
+k = 160): with more winners a round, more neurons fire twice before
+refraction moves them, so more of the item is written. `burst`'s burst
+set at 1.0 theta is 0.76 k, 0.13 k and 0.86 k -- smaller than an
+assembly, the refraction cost of asking a neuron to fire twice -- and its
+next-round reading (0.06 to 0.21) is barely above its same-round one.

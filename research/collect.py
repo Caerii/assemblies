@@ -127,7 +127,8 @@ def main(argv=None):
                         help="remove the worktree's untracked copies once verified here")
     parser.add_argument("runs", nargs="+")
     args = parser.parse_args(argv)
-    logs = [tuple(item.split(":", 1)) for item in args.log]
+    # the NAME follows the LAST colon: a Windows log path has one of its own
+    logs = [tuple(item.rsplit(":", 1)) for item in args.log]
     if any(len(item) != 2 for item in logs):
         parser.error("--log takes WORKTREE_FILE:NAME")
     report = collect(args.worktree, args.runs, logs, clean=args.clean)

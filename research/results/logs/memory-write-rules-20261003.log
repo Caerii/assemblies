@@ -1,0 +1,25 @@
+(2000, 60, 0.5) round: best capacity 451.4
+(2000, 60, 0.5) round at 1.0 theta: next 0.753 same 0.658 own 0.796
+(2000, 60, 0.5) online_burst: best capacity 0.0
+(2000, 60, 0.5) online_burst at 1.0 theta: next 0.500 same 0.528 own 0.433
+(2000, 60, 0.5) deferred: best capacity 0.0
+(2000, 60, 0.5) deferred at 1.0 theta: next 0.642 same 0.028 own 0.020
+(2000, 60, 0.5) burst: best capacity 0.0
+(2000, 60, 0.5) burst at 1.0 theta: next 0.182 same 0.147 own 0.026
+(4000, 20, 0.5) round: best capacity 1441.9
+(4000, 20, 0.5) round at 1.0 theta: next 0.999 same 0.982 own 0.982
+(4000, 20, 0.5) online_burst: best capacity 0.0
+(4000, 20, 0.5) online_burst at 1.0 theta: next 0.065 same 0.011 own 0.010
+(4000, 20, 0.5) deferred: best capacity 0.0
+(4000, 20, 0.5) deferred at 1.0 theta: next 0.786 same 0.003 own 0.002
+(4000, 20, 0.5) burst: best capacity 0.0
+(4000, 20, 0.5) burst at 1.0 theta: next 0.060 same 0.010 own 0.003
+(4000, 160, 0.5) round: best capacity 1061.9
+(4000, 160, 0.5) round at 1.0 theta: next 0.806 same 0.723 own 0.862
+(4000, 160, 0.5) online_burst: best capacity 0.0
+(4000, 160, 0.5) online_burst at 1.0 theta: next 0.611 same 0.584 own 0.542
+(4000, 160, 0.5) deferred: best capacity 0.0
+(4000, 160, 0.5) deferred at 1.0 theta: next 0.765 same 0.027 own 0.022
+(4000, 160, 0.5) burst: best capacity 0.0
+(4000, 160, 0.5) burst at 1.0 theta: next 0.208 same 0.135 own 0.026
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.write_rules\write-rules-20261003\results.json

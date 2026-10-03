@@ -161,6 +161,23 @@ coin-flipping rule, which front-loads potentiation and then saturates, sits
 near the binary end and should favour completion -- a testable prediction from
 combining the two.
 
+The rule's TIMING matters as much as its shape. Burst-timing-dependent
+plasticity (Butts, Kanold & Shatz 2007, PLoS Biol 5:e61) potentiates
+retinogeniculate synapses by the coincidence of bursts over a window of
+about a second, order largely ignored; burst-dependent rules in cortex
+(Payeur et al. 2021, Nat Neurosci 24:1010) separate potentiation by bursts
+from depression by single events. In the refracted memory, a write that
+acts on the item as a whole -- the round write's own counts, deferred to the
+item's end, or a symmetric burst write -- stores no attractor at all, at any
+rate over a 32-fold range, while the same counts written round by round store
+451-1442 items (Amendment 25, [[WRITE-TIMING-DECIDES-ATTRACTOR]]). Without
+the write's feedback, refraction relocates the assembly every round, and a
+deferred write stores the item's trajectory instead (64-79% next-round
+recovery). Gating the online write on bursts abolishes the memory too: the
+write that converges an item is carried by first firings. A burst rule can
+store items only if its window is short against the relocation period, or
+if something else holds the assembly still while it writes.
+
 ### 2.6 Readout criteria decide what is claimed
 
 Readouts across the literature: overlap with stored assemblies (PNAS),
