@@ -747,10 +747,25 @@ class DenseOrganFiber:
 
     def select(self, keep):
         """Keep only the brains ``keep`` [B'] (indices), in that order: a
-        batched sweep drops the rates whose stores have finished."""
-        keep = torch_ops.as_tensor(keep, dtype=torch_ops.int64, device=self.device)
-        self.C = self.C.index_select(0, keep)
-        self.pres = self.pres.index_select(0, keep)
+        batched sweep drops the rates whose stores have finished.
+
+        The count matrices and connectome bits are COMPACTED IN PLACE when
+        ``keep`` ascends (as a sweep's does): each kept brain's slice is copied
+        forward over a dropped one, then the tensor is narrowed. index_select
+        allocated the kept copy while the old one lived -- at n = 8000 a 3.6
+        GiB second copy, which ran a full card out of memory."""
+        order = [int(i) for i in keep]
+        keep = torch_ops.as_tensor(order, dtype=torch_ops.int64, device=self.device)
+        if all(a < b for a, b in zip(order, order[1:])):
+            for j, src in enumerate(order):
+                if src != j:                      # src > j: slot j is free by now
+                    self.C[j].copy_(self.C[src])
+                    self.pres[j].copy_(self.pres[src])
+            self.C = self.C[:len(order)]
+            self.pres = self.pres[:len(order)]
+        else:
+            self.C = self.C.index_select(0, keep)
+            self.pres = self.pres.index_select(0, keep)
         self.seeds = self.seeds.index_select(0, keep)
         if self.dj is not None:
             self.dj = self.dj.index_select(0, keep)

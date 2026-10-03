@@ -226,7 +226,11 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
     caches = [{} for _ in range(G)]
     c = [None] * G
     seen, below = [False] * G, [0] * G
-    St = None                                     # [M, brains, k] int32, the stored items
+    # the stored items, [cap, brains, k] int32, allocated once at the cap (the
+    # launch's budget counts it) and filled in place: a cat per checkpoint and
+    # an index_select per drop each held a second copy beside the first
+    buffer = torch.empty(cap, len(brains) * G, k, dtype=torch.int32, device=device)
+    filled = 0
     pending = []
     for a in range(cap):
         if a % STIMULUS_BLOCK == 0:
@@ -248,10 +252,10 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
         if M not in grid:
             continue
         mem.check()
-        new = torch.stack(pending)
-        St = new if St is None else torch.cat([St, new])
+        buffer[filled:M] = torch.stack(pending)
+        filled = M
         pending = []
-        r = readings(mem, St, M, n, k, recall_rounds)
+        r = readings(mem, buffer[:M], M, n, k, recall_rounds)
         fill = mem.fill.cpu().numpy().tolist()
         finished = []
         for j, g in enumerate(active):
@@ -276,9 +280,13 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
             keep_rates = [j for j in range(len(active)) if j not in finished]
             keep = [j * S + b for j in keep_rates for b in range(S)]
             mem.select(keep)
-            St = St.index_select(1, torch.as_tensor(keep, device=St.device))
+            # compact the kept brains forward in place (keep ascends)
+            for j, src in enumerate(keep):
+                if src != j:
+                    buffer[:filled, j] = buffer[:filled, src]
+            buffer = buffer[:, :len(keep)]
             active = [active[j] for j in keep_rates]
-    del mem, St, pending
+    del mem, buffer, pending
     torch.cuda.empty_cache()
     return list(zip(c, caches))
 
