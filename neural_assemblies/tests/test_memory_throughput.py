@@ -138,7 +138,7 @@ def test_a_sweep_too_large_for_one_launch_is_split(mod, monkeypatch):
     profiles = {b: lr.profile(b) for b in betas}
     options = dict(stop_on=("complete_distinct",), grid_start=2, give_up=16)
     whole = lr.run_betas(N, K, betas, seeds, 32, "cuda", profiles, **options)
-    monkeypatch.setattr(lr, "launch_rates", lambda n, B: 2)
+    monkeypatch.setattr(lr, "launch_rates", lambda n, B, **_: 2)
     assert lr.run_betas(N, K, betas, seeds, 32, "cuda", profiles, **options) == whole
 
 

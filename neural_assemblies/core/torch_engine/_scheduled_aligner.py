@@ -144,21 +144,28 @@ class ScheduledAligner:
         #: the most that fit the kernel's shared-memory budget
         self.warps_per_block = None
 
-    def _word_fiber(self, i):
-        a = self._anchor
-        f = StimulusFiber(pair_seeds(self.seeds, self._wnames[i], LEX), a["stim_size"],
-                          a["n"], a["p"], beta=0.0, w_max=None, norm_init=a["norm_init"],
-                          max_rounds=1, device=a["device"])
-        f.drive_gain = a["gain"]
-        return f
+    #: elements of an anchor block ([anchors x B, n] floats, several live at once)
+    ANCHOR_BLOCK = 1 << 22
 
-    def _feature_fiber(self, f_index):
+    def _anchor_block(self, names, dst, size, n):
+        """The constant drives of several anchors at once: [len(names) * B, n],
+        row a * B + b = anchor a in brain b, and the fibers' seeds [rows].
+
+        One StimulusFiber over the anchors' seeds side by side: the hashed
+        drive, the in-degree divisor and the gain are per row, so each row is
+        the anchor's own fiber's drive -- one launch per block of anchors
+        instead of several per anchor, each a Python round trip."""
         a = self._anchor
-        f = StimulusFiber(pair_seeds(self.seeds, self._fnames[f_index], FEAT), a["feat_k"],
-                          a["feat_n"], a["p"], beta=0.0, w_max=None,
+        seeds = [s for name in names for s in pair_seeds(self.seeds, name, dst)]
+        f = StimulusFiber(seeds, size, n, a["p"], beta=0.0, w_max=None,
                           norm_init=a["norm_init"], max_rounds=1, device=a["device"])
         f.drive_gain = a["gain"]
-        return f
+        d = torch_ops.zeros(len(seeds), n, device=a["device"])
+        f.contribute(d)
+        return d, f.seeds
+
+    def _block(self, n):
+        return max(1, self.ANCHOR_BLOCK // (self.B * n))
 
     def _warps_per_block(self):
         """Mirror of the kernel's per-warp shared bytes (pr_warp_bytes)."""
@@ -195,26 +202,32 @@ class ScheduledAligner:
         # LEX winners per (brain, word)
         self.lex_cache = torch_ops.full((B, self.V, self.k), -1, dtype=torch_ops.int64,
                                     device=dev)
+        # words a block at a time: the drive of each word's anchor alone,
+        # its tie jitter (HashedArea._jitter's arithmetic on the anchor's
+        # seeds), and the k-WTA of every (word, brain) row in one launch
         overflow = torch_ops.zeros((), dtype=torch_ops.int32, device=dev)
-        for i in range(self.V):
-            ph = self._word_fiber(i)
-            d = torch_ops.zeros(B, self.n, device=dev)
-            ph.contribute(d)
-            self.lex_cache[:, i] = self._select(self.lex, d, [ph], overflow)
-            # the jitter is cached by fiber identity and this fiber is about
-            # to be dropped: an id reused by the next word's fiber must not
-            # find this word's jitter (and V cached [B, n] jitters were
-            # another [B, V, n] of the card)
-            self.lex.__dict__.pop("_jitter_cache", None)
+        step = self._block(self.n)
+        for i0 in range(0, self.V, step):
+            names = self._wnames[i0:i0 + step]
+            d, seeds = self._anchor_block(names, LEX, self._anchor["stim_size"], self.n)
+            if self.lex.tie_jitter > 0:
+                salt = (seeds.to(torch_ops.int64) & 0xFFFFFFFF).view(-1, 1)
+                d = d + _hash_jitter(salt, self.n, self.lex.tie_jitter, dev)[:, 0]
+            sel, ovf = self.mod.topk_select(d, self.k)
+            torch_ops.maximum(overflow, ovf.max(), out=overflow)
+            self.lex_cache[:, i0:i0 + len(names)] = (
+                sel.to(torch_ops.int64).view(len(names), B, self.k).permute(1, 0, 2))
         if int(overflow):
             raise RuntimeError("k-WTA candidate set overflowed")
         # feature constants [B, F+1, feat_n] (slot F is the zero pad) -> bundle drive
         consts = torch_ops.zeros(B, self.F + 1, self.feat_n, device=dev)
         fseeds = []
-        for f in range(self.F):
-            ff = self._feature_fiber(f)
-            ff.contribute(consts[:, f])
-            fseeds.append(ff.seeds.to(torch_ops.int64) & 0xFFFFFFFF)
+        step = self._block(self.feat_n)
+        for f0 in range(0, self.F, step):
+            names = self._fnames[f0:f0 + step]
+            d, seeds = self._anchor_block(names, FEAT, self.feat_k, self.feat_n)
+            consts[:, f0:f0 + len(names)] += d.view(len(names), B, self.feat_n).permute(1, 0, 2)
+            fseeds += list((seeds.to(torch_ops.int64) & 0xFFFFFFFF).view(len(names), B))
         idx = torch_ops.where(self.features < 0,
                           torch_ops.full_like(self.features, self.F),
                           self.features)                     # [B, I, Fper]
@@ -233,10 +246,12 @@ class ScheduledAligner:
         jit_anchor = _hash_jitter(salt, self.feat_n, self.tie_jitter, dev)
         self.feat_cache = torch_ops.full((B, I, self.feat_k), -1,
                                      dtype=torch_ops.int64, device=dev)
-        for j in range(I):
-            ranked = self.bundle_drive[:, j] + jit_anchor[:, j]
-            sel, _ = self.mod.topk_select(ranked, self.feat_k)
-            self.feat_cache[:, j] = sel.to(torch_ops.int64)
+        step = self._block(self.feat_n)
+        for j0 in range(0, I, step):
+            ranked = self.bundle_drive[:, j0:j0 + step] + jit_anchor[:, j0:j0 + step]
+            J = ranked.shape[1]
+            sel, _ = self.mod.topk_select(ranked.reshape(B * J, self.feat_n), self.feat_k)
+            self.feat_cache[:, j0:j0 + J] = sel.to(torch_ops.int64).view(B, J, self.feat_k)
         del jit_anchor
         self.jit_cross = _hash_jitter(salt ^ cross_salt, self.feat_n,
                                       self.tie_jitter, dev)

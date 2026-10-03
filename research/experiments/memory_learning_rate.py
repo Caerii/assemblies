@@ -133,12 +133,39 @@ def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
                      stop_on, **options)[0]
 
 
-def launch_rates(n, B):
-    """How many learning rates of B brains each one launch holds: the organ
-    fiber's count matrices and connectome bits under its byte limit."""
+#: device bytes a launch holds beside its brains: the batched recall's two
+#: passes of RECALL_BYTES and its bias copy, the readings' gather chunk, the
+#: CUDA graph pools and allocator slack
+LAUNCH_FIXED_BYTES = 3 << 29
+#: device memory left free (the desktop holds ~1-2 GB of the card)
+RESERVE_BYTES = 1 << 30
+
+
+def brain_bytes(n, k, cap):
+    """One brain's device bytes in a launch: int8 counts, connectome bits,
+    per-neuron state (bias, ever-fired, in-degree, drive rows) and its stored
+    items (int32, up to the cap)."""
+    return n * n + n * ((n + 31) // 32) * 4 + 32 * n + cap * k * 4
+
+
+def launch_rates(n, B, *, k=0, cap=0):
+    """How many learning rates of B brains each one launch holds.
+
+    Sized against the card's REAL free memory, not a fixed byte limit: a
+    launch of 340 brains at n = 4000 fit the organ fiber's 6 GiB limit, but
+    with its stored items, readings and the desktop's share the card ran
+    out, and on Windows the driver then pages device memory to system RAM
+    instead of failing -- the run slowed several-fold (Amendment 18's first
+    attempt, 2.08 GB paged)."""
+    import torch
     from neural_assemblies.core.torch_engine._hashed import DenseOrganFiber
-    per_brain = n * (n + ((n + 31) // 32) * 4)
-    return max(1, DenseOrganFiber.MAX_BYTES // (per_brain * B))
+    matrices = n * (n + ((n + 31) // 32) * 4)
+    by_limit = DenseOrganFiber.MAX_BYTES // (matrices * B)
+    torch.cuda.empty_cache()
+    free, _total = torch.cuda.mem_get_info()
+    room = free - RESERVE_BYTES - LAUNCH_FIXED_BYTES
+    by_memory = room // (brain_bytes(n, k, cap) * B) if room > 0 else 0
+    return max(1, min(by_limit, by_memory))
 
 
 def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
@@ -159,14 +186,24 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
     and a rate whose store has stopped is dropped from the launch. A brain's
     arithmetic is the arithmetic of its solo run, so every rate's readings
     equal its own run's (tested against the one-rate launch)."""
+    import torch
     betas = [float(b) for b in betas]
-    per = launch_rates(n, len(seeds))
+    per = launch_rates(n, len(seeds), k=k, cap=cap)
+    # equal launches: 17 rates at 15 a launch run as 9 + 8, not 15 + 2
+    per = -(-len(betas) // -(-len(betas) // per))
+    # an overcommit must raise, not page: cap the allocator at what is free
+    free, total = torch.cuda.mem_get_info()
+    torch.cuda.set_per_process_memory_fraction(
+        min(1.0, (torch.cuda.memory_reserved() + free - RESERVE_BYTES // 2) / total))
     out = []
-    for g0 in range(0, len(betas), per):
-        out += _run_launch(n, k, betas[g0:g0 + per], seeds, cap, device,
-                           organ_semantics, stop_on, p=p, strength=strength,
-                           grid_start=grid_start, give_up=give_up, rounds=rounds,
-                           recall_rounds=recall_rounds, stop_from=stop_from)
+    try:
+        for g0 in range(0, len(betas), per):
+            out += _run_launch(n, k, betas[g0:g0 + per], seeds, cap, device,
+                               organ_semantics, stop_on, p=p, strength=strength,
+                               grid_start=grid_start, give_up=give_up, rounds=rounds,
+                               recall_rounds=recall_rounds, stop_from=stop_from)
+    finally:
+        torch.cuda.set_per_process_memory_fraction(1.0)
     return out
 
 
