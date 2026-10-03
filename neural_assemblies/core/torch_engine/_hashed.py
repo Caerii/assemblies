@@ -1250,7 +1250,8 @@ class HashedArea:
 
     def project(self, rounds, fibers, *, rows_for=None, freeze=False,
                 stim_drive=None, return_drive=False, mask_bias=None,
-                manage_episodes=True, stop_when_stable=False, defer_overflow=False):
+                manage_episodes=True, stop_when_stable=False, defer_overflow=False,
+                observe=True, record=None, write=None):
         """Run ``rounds`` rounds with ``fibers`` afferent.
 
         ``rows_for`` maps a fiber to its source winners; a fiber absent from it
@@ -1317,10 +1318,19 @@ class HashedArea:
             if active is not None and prev.shape[1] == new.shape[1]:
                 # a converged brain keeps its winners
                 new = torch_ops.where(active.view(-1, 1), new, prev)
+            if record is not None:
+                record.append(new)
             if not freeze:
                 if active is None:
-                    for f in fibers:
-                        f.observe(rows_for.get(id(f), prev), new)
+                    # observe=False: the rounds run (refraction charged, the
+                    # ever-fired record kept) but no fiber writes; a caller that
+                    # writes once per item (the burst write) does so after.
+                    # `write(prev, new)` returns the (pre, post) rows this
+                    # round writes -- a rule that gates who may be written
+                    if observe:
+                        src, dst = (prev, new) if write is None else write(prev, new)
+                        for f in fibers:
+                            f.observe(rows_for.get(id(f), src), dst)
                     self._charge_and_record(raw, sel)
                 else:
                     off = ~active.view(-1, 1)

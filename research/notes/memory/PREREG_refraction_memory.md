@@ -2989,3 +2989,204 @@ best write falls as 1/k (0.034, 0.017, 0.012, 0.006, 0.003 for k = 10 to
 160): k beta, the total plasticity an item spends, is roughly constant
 (0.3 to 0.5) at recognition's optimum, where recall's optimum is a fixed
 fraction of the convergence threshold.
+
+## Amendment 24 (2026-10-03, before running): is the recall onset a phase transition? Finite-size scaling and critical slowing down
+
+Registered before any run of this amendment. Amendment 18 put recall's onset
+at 0.16 to 0.18 theta at ten cells, with capacity jumping from nothing to its
+maximum within one step of a twelve-per-octave grid, and the measured phase
+diagram (assembly_statmech.tex, Propositions on the write-load plane) shows it
+as the boundary of the recall region at every cell. A sharp jump is not yet a
+transition. Two signatures separate a phase transition from a threshold that
+only looks sharp at the sizes measured:
+
+* **The pseudo-critical point sharpens with size.** Each brain has its own
+  onset -- the weakest rate at which its own distinct completion exceeds one
+  half at some load of at least 32 items. At a transition the spread of these
+  onsets across brains shrinks as n grows and their mean converges.
+* **Critical slowing down.** The read-out's relaxation time grows on
+  approach to the onset from above. A probe before registering (5 brains,
+  (2000, 60, 0.5), 200 items, 32 frozen rounds) showed the read-out ends in a
+  2-cycle as often as at a fixed point: at beta = 0.1, 52% at a fixed point
+  and 92% at period <= 2 by round 31; at the onset rate (0.0604), 4% and 32%
+  -- most read-outs there reach no short orbit at all. Settling is therefore
+  defined as the first round whose winner set equals the one TWO rounds
+  before (a fixed point or a 2-cycle), and the share that never settles
+  within 32 rounds is reported.
+
+**Seen before registering:** Amendment 18's record and the phase diagram;
+the settling probe above; a smoke run (VOID: 3 brains, cap 32, two rates
+each at (2000, 60, 0.5) and (16000, 60, 0.5), 0.17-0.18 theta), whose
+read-outs, scored by the earlier fixed-point definition, never settled
+within 32 rounds -- the reason for the period-2 definition.
+
+### Protocol
+
+`research/experiments/memory_criticality.py` (`python -m research.runner
+criticality`), seeds 282 to 301 (new brains), one run from a worktree pinned
+at the commit registering this amendment. The refracted AssemblyMemory
+(0.5 beta, T = 8, w_max 20, arm B, ungated) at four cells of fixed fan-in
+k p = 30, p = 0.5, k = 60: n = 2000, 4000, 8000, 16000. Each is swept over
+theta x 0.14 x 2^(j/24) to 0.22 theta (24 rates to the octave, 16 rates).
+Distinct completion and capacity as in Amendments 13 to 21; checkpoints from
+M = 2, no stop before M = 32; cap 3 C_pred + 256 with C_pred = 0.0135 d^1.51
+(Amendment 21); a rate that never completes stores to max(8192, 2 C_pred).
+At every checkpoint every sampled cue is also read for 32 frozen rounds,
+separately from the registered 8-round read, for its settling round (the
+first round equal to the one two before; 33 if none) and whether it settles.
+
+A brain's onset is read from the record's per-seed values; the grid resolves
+onsets to about 0.005 theta (one step near 0.17 theta), so spreads at that
+floor are not distinguished. A rate's settling time is the mean settling round
+over the checkpoints inside its distinct-completion window.
+
+    python -m research.runner criticality \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag criticality-20261003 --seeds 282 ... 301
+
+### Bars
+
+    CV  THE INSTRUMENT. The best capacity at (4000, 60, 0.5) lies within 15%
+        of Amendment 18's 1597. Failure voids F1 to F3.
+    F1  THE ONSET SHARPENS. The across-brain standard deviation of the onset
+        (in units of theta) does not rise by more than 10% from one n to the
+        next, and at n = 16000 it is at most 0.6 of its value at n = 2000.
+    F2  THE ONSET CONVERGES. The mean onset lies in [0.13, 0.21] theta at
+        every n, and its value at n = 16000 lies within 10% of its value at
+        n = 8000.
+    F3  THE READ-OUT SLOWS AT THE ONSET. At every n, the settling time at
+        the onset rate (the weakest rate whose capacity reaches 32 items) is
+        at least 1.5 times the settling time half an octave above it.
+
+Reported, not judged: each rate's share of read-outs that never settle,
+by n.
+
+### Interpretation, stated now
+
+* F1 to F3 pass: the recall onset behaves as a phase transition -- a
+  pseudo-critical point that sharpens and converges with size, and a
+  relaxation time that grows on approach; 0.17 theta is a critical
+  coupling, not a fitted threshold, and the next step is its exponents.
+* F1 and F2 pass, F3 fails: a sharpening threshold without slowing -- a
+  first-order-like jump rather than a continuous transition.
+* F1 fails: the onset's spread does not shrink with size at this fan-in;
+  the jump is a threshold of the finite system.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until CV and F1 to F3 are evaluated and recorded below.
+
+## Amendment 25 (2026-10-03, before running): when must the write happen? Burst-timing-dependent plasticity and the two controls that take it apart
+
+Registered before any run of this amendment. The memory's write is
+spike-timing plasticity at the scale of one round: every round, a synapse
+whose pre fired the round before and whose post fires now gains a count, and
+the counts feed straight back into the item's next round. Burst-timing-
+dependent plasticity (Butts, Kanold & Shatz 2007, PLoS Biol 5:e61, at
+developing retinogeniculate synapses: potentiation by the coincidence of
+pre- and postsynaptic BURSTS over a window of about a second, order within
+it largely ignored) departs from it twice: it is gated on bursts and
+symmetric in time, and it acts on the item's activity as a whole rather than
+round by round. Four write rules separate the departures
+(`AssemblyMemory(write_rule=...)`, `burst_min = 2`):
+
+* `round` -- online, every firing, causal: the memory's write.
+* `online_burst` -- online and causal, but only between neurons that have
+  already fired twice in the item (the pre by the round before, the post
+  counting this round): burst gating alone. With `burst_min = 1` it is the
+  round write bit for bit (tested).
+* `deferred` -- the round write's own counts (pre the round before, post
+  now), written AFTER the item's eight rounds, so nothing written feeds back
+  into them: deferral alone. Its counts equal the recorded rounds'
+  transition counts (tested).
+* `burst` -- deferred and symmetric: one count, both directions, between
+  every two present neurons that fired in at least two of the item's rounds,
+  and one stimulus potentiation for each (the BTDP rule; tested).
+
+**Seen before registering** (5 brains, seeds 900 to 904, outside every
+registered set; (2000, 60, 0.5); disclosed in full):
+
+* A sweep of 0.1 to 3.2 theta (4 rates to the octave) stored to 1024 items:
+  the round write's capacity peaked at 439 (0.2 theta) and fell to zero
+  above 1.9 theta; `burst`, `deferred` and `online_burst` completed
+  nothing at any rate, at any load from M = 2.
+* After 200 items, half-cue reads of items 0 to 199: `burst` and `deferred`
+  read at chance (0.02 to 0.06 of the stored assembly, k/n = 0.03), whether
+  cued from the item's final winners or from its burst core; only 9 to 35% of
+  an item's final winners lie in its burst set. `online_burst` read 0.36
+  to 0.56 at 0.5 to 1 theta. Burst sets ran 1.6 k at 0.17 theta and 0.04 to
+  0.6 k at 1.5 theta (refraction suppresses re-firing).
+* One frozen round from half of round t's winners: under `deferred`, 0.54
+  to 0.63 of round t + 1's winners and 0.03 of round t's, while consecutive
+  rounds themselves overlap 0.02 to 0.04; under `round`, consecutive rounds
+  overlap 0.72 to 0.87.
+* A smoke run of the module (VOID: 3 brains, cap 32, two rates, two cells):
+  the pipeline end to end; nothing of it is evidence.
+
+The reading the probe suggests, registered here to be tested on new brains
+and cells: an online write converges the item's rounds onto one assembly
+and stores an ATTRACTOR; a deferred write -- whatever its window -- writes
+rounds that refraction has relocated every round, and stores the item's
+TRAJECTORY, a chain of near-disjoint patterns that a half cue of the last
+round cannot complete.
+
+### Protocol
+
+`research/experiments/memory_write_rules.py` (`python -m research.runner
+write_rules`), seeds 302 to 321 (new brains), one run from a worktree pinned
+at the commit registering this amendment. The refracted AssemblyMemory
+(0.5 beta, T = 8, w_max 20, arm B, ungated) at three of Amendment 18's cells:
+(2000, 60, 0.5), (4000, 20, 0.5), (4000, 160, 0.5). Each rule is swept over
+theta x 0.1 x 2^(j/4), j = 0 to 20 (0.1 to 3.2 theta), with distinct
+completion and capacity as in Amendments 13 to 21; checkpoints from M = 2,
+no stop before M = 32; cap 3 C_pred + 256 (Amendment 21's law); a rate that
+has never completed stops at the first checkpoint past 256 items. A rule's
+capacity is its best over its own grid.
+
+Trajectory reading, per rule at 1.0 theta: 200 items stored on fresh brains;
+for items 199, 150, 100 and 50, one frozen masked round from the first half
+of round t's winners (t = 0 to 6), scored as the fraction of round t + 1's
+winners recovered ("next") and of round t's ("same"), and the overlap of
+round t with round t + 1 themselves ("own"); means per brain over t and
+items, then over brains.
+
+    python -m research.runner write_rules \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag write-rules-20261003 --seeds 302 ... 321
+
+### Bars
+
+    CV  THE INSTRUMENT. The round write's best capacity at each cell lies
+        within [0.75, 1.10] of Amendment 18's (506.7, 1553.6, 1083.2); the
+        band is wider below because the quarter-octave grid's best rate can
+        sit an eighth of an octave off Amendment 18's optimum. Failure voids
+        W1 to W4.
+    W1  DEFERRAL ABOLISHES THE MEMORY. Under `deferred`, distinct completion
+        never exceeds one half at any rate of the grid, at every cell
+        (capacity 0).
+    W2  THE BURST WRITE STORES NOTHING. The same for `burst`.
+    W3  BURST GATING COSTS CAPACITY. `online_burst`'s best capacity is at
+        most half the round write's, at every cell.
+    W4  A DEFERRED WRITE STORES THE TRAJECTORY. At every cell, under
+        `deferred`: "next" >= 0.4, "next" >= 5 x "same", and "own" <= 0.1;
+        and under `round`, "own" >= 0.5.
+
+Reported, not judged: each rule's capacity curve; `burst`'s burst-set size
+in units of k; `online_burst`'s and `burst`'s trajectory readings.
+
+### Interpretation, stated now
+
+* W1, W2 and W4 pass: what the assembly memory stores is decided by WHEN it
+  writes, not by the window or symmetry of the rule. A write that feeds back
+  into the item's own rounds builds an attractor; a write after the item --
+  the regime of a rule that integrates over a burst window longer than the
+  dynamics -- stores a heteroassociative trajectory. A BTDP-like rule can
+  store attractors only if its window is short against the time the
+  assembly takes to relocate, or if something other than refraction holds
+  the assembly still while it writes.
+* W3 passes: the first firings carry much of the write that converges the
+  item; gating them out costs capacity even online.
+* W1 or W2 fails: a deferred write does store attractors at some rate, and
+  the probe's chance readings were a property of its cell or its load.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until CV and W1 to W4 are evaluated and recorded below.

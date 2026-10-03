@@ -460,6 +460,35 @@ nearer no stored item; accumulated potentiation from many items flattens that
 landscape until each item's own increment decides the competition. It is the
 first target for the soft ($\tau > 0$) ensemble below.
 
+
+\subsection{Toward deriving the onset}
+
+\begin{conjecture}[The onset is an extreme-value condition on $\ln n$]\label{conj:onset} \OPEN
+$\beta_c / \theta$ is a constant ($\approx 0.17$) because both the write's
+signal and the competitors' fluctuation scale as in $\theta$, with the
+\emph{union bound over all $n$ neurons} setting the extreme-value scale.
+\end{conjecture}
+
+Two readings of the records constrain any derivation. (i) The naive
+read-side argument --- a half-cue's members must out-drive the top $k$ of
+$n - k$ Gaussian competitors with spread $\sqrt{kp(1-p)/2}$, whose threshold
+sits $\sqrt{2\ln(n/k)}$ spreads up --- gives
+$\ln(1+\beta_c) \propto \sqrt{(1-p)\ln(n/k)/(pk)}$, so $\beta_c/\theta \propto
+\sqrt{\ln(n/k)/\ln n}$. Across Amendment 18's cells ($n/k$ from $25$ to $400$)
+that factor varies by $37\%$; the measured $\beta_c/\theta$ varies by $6\%$
+($0.16$--$0.18$). The data prefer $\ln n$: the union-bound scale of the
+projection-convergence theorems, not the $k$-of-$n$ quantile of one read.
+(ii) The first item's mean internal co-firing count during its write (a
+measure of how long its assembly held together) rises smoothly through the
+onset, from $2$--$3$ below it to $5$--$6$ well above, with no jump at the onset
+in any cell. The onset is therefore not the convergence of a single item's
+write. Together with Proposition~\ref{prop:loadassist} (the onset opens only
+after many items are stored), the noise that sets the onset is plausibly the
+crosstalk accumulated over many stored items, which would tie the onset to
+the in-degree law of Amendment 21. Registered next: whether the onset is a
+transition at all (Amendment 24: finite-size sharpening of the per-brain
+onset, and critical slowing of the read-out).
+
 \section{Ensembles and entropy}
 
 The configuration entropy of one area is

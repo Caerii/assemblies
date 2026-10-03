@@ -217,3 +217,97 @@ def test_a_weak_write_counts_past_127_on_a_table_that_reaches_its_clip(mod):
         counts = fiber.C[b][rows[b]].long().clamp_max(table.shape[-1] - 1)
         ref[b] = (table[counts] * present).sum(0) * fiber.invdj[b].double()
     assert torch.allclose(drive.double(), ref, rtol=1e-5, atol=1e-6)
+
+
+def test_settling_rounds_ride_along_without_changing_the_read(mod):
+    """``recall_many(settle=True)`` returns the same winners as the plain read,
+    and each cue's settling round (period <= 2) lies in [3, rounds + 1]."""
+    swept = _swept(0.5)
+    St = torch.stack([swept.store(_stim(a) * len(BETAS)) for a in range(16)])
+    cues = St[:, :, : K // 2].permute(1, 0, 2)
+    plain = swept.recall_many(cues, rounds=12)
+    winners, settled = swept.recall_many(cues, rounds=12, settle=True)
+    assert torch.equal(plain, winners)
+    assert settled.shape == cues.shape[:2]
+    assert int(settled.min()) >= 3 and int(settled.max()) <= 13
+
+
+def test_the_burst_write_counts_exactly_the_bursting_pairs(mod):
+    """After one item under the burst write, a synapse holds one count iff it
+    is present and both its ends fired in at least `burst_min` rounds -- in
+    both directions, the order of their firing ignored."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from research.experiments import memory_pattern_efficiency as pe
+    mem = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                         strength=0.5, max_items=64, write_rule="burst", burst_min=2)
+    mem.store(_stim(0))
+    burst = mem.last_burst
+    assert bool(burst.any()) and not bool(burst.all())
+    for b in range(SEEDS):
+        present = pe.presence_of(mem.fiber.pres, b, N)
+        expected = present & burst[b].view(-1, 1) & burst[b].view(1, -1)
+        assert torch.equal(mem.fiber.C[b] > 0, expected)
+        assert int(mem.fiber.C[b].max()) == 1
+
+
+def test_the_round_write_is_untouched_by_the_burst_option(mod):
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    a = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                       strength=0.5, max_items=64)
+    b = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                       strength=0.5, max_items=64, write_rule="round", burst_min=5)
+    for i in range(8):
+        assert torch.equal(a.store(_stim(i)), b.store(_stim(i)))
+    assert torch.equal(a.fiber.C, b.fiber.C)
+
+
+def test_online_burst_at_one_is_the_round_write(mod):
+    """Gating the round write on `burst_min` = 1 gates nothing: every pre
+    fired the round before and every post fires now."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    a = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                       strength=0.5, max_items=64)
+    b = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                       strength=0.5, max_items=64, write_rule="online_burst", burst_min=1)
+    for i in range(8):
+        assert torch.equal(a.store(_stim(i)), b.store(_stim(i)))
+    assert torch.equal(a.fiber.C, b.fiber.C)
+
+
+def test_online_burst_writes_only_between_neurons_that_burst(mod):
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from research.experiments import memory_pattern_efficiency as pe
+    mem = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                         strength=0.5, max_items=64, write_rule="online_burst", burst_min=2)
+    mem.store(_stim(0))
+    burst = mem.last_fired >= 2
+    for b in range(SEEDS):
+        written = mem.fiber.C[b] > 0
+        assert bool(written.any())
+        allowed = pe.presence_of(mem.fiber.pres, b, N) & burst[b].view(-1, 1) & burst[b].view(1, -1)
+        assert not bool((written & ~allowed).any())
+
+
+def test_the_deferred_write_counts_the_items_own_transitions(mod):
+    """After one item under the deferred write, a present synapse holds the
+    number of rounds whose pre fired the round before and whose post fired
+    in it -- the round write's counts, of rounds that ran without writing."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from research.experiments import memory_pattern_efficiency as pe
+    mem = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=T,
+                         strength=0.5, max_items=64, write_rule="deferred")
+    seen, project = [], mem.area.project
+
+    def recording(*args, **kwargs):
+        out = project(*args, **kwargs)
+        seen.extend(kwargs["record"])
+        return out
+    mem.area.project = recording
+    mem.store(_stim(0))
+    assert len(seen) == T
+    for b in range(SEEDS):
+        x = [torch.zeros(N, dtype=torch.float32, device=seen[0].device).index_fill_(0, r[b], 1.0)
+             for r in seen]
+        count = sum(torch.outer(x[t - 1], x[t]) for t in range(1, T))
+        present = pe.presence_of(mem.fiber.pres, b, N)
+        assert torch.equal(mem.fiber.C[b].to(torch.float32), count * present)

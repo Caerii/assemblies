@@ -89,7 +89,7 @@ STIMULUS_BLOCK = 1024
 GATHER_ELEMENTS = 1 << 25
 
 
-def readings(mem, St, M, n, k, recall_rounds=None):
+def readings(mem, St, M, n, k, recall_rounds=None, settle_rounds=None):
     """Per-brain rank-1, own overlap and completed fraction from the module's
     own masked recall on `sample_for(M)` (`recall_rounds` frozen rounds;
     default the write's). `St` is [M, B, k]. The sampled cues are read in
@@ -121,9 +121,17 @@ def readings(mem, St, M, n, k, recall_rounds=None):
             done[rows] += (o >= ws.COMPLETE).float()
             distinct[rows] += ((o >= ws.COMPLETE) & hit).float()
     S = len(sample)
-    return {"rank1": (hits / S).tolist(), "own": (own / S).tolist(),
-            "complete": (done / S).tolist(),
-            "complete_distinct": (distinct / S).tolist()}
+    out = {"rank1": (hits / S).tolist(), "own": (own / S).tolist(),
+           "complete": (done / S).tolist(),
+           "complete_distinct": (distinct / S).tolist()}
+    if settle_rounds:
+        # the read-out's relaxation time, from a separate longer read so the
+        # registered `recall_rounds` read above is untouched
+        _, settled = mem.recall_many(cues.to(torch.int64), rounds=settle_rounds, settle=True)
+        out["settle"] = settled.float().mean(dim=1).tolist()
+        # the share of read-outs that reach no fixed point or 2-cycle at all
+        out["unsettled"] = (settled > settle_rounds).float().mean(dim=1).tolist()
+    return out
 
 
 def run_beta(n, k, beta, seeds, cap, device, organ_semantics,
@@ -172,7 +180,8 @@ def launch_rates(n, B, *, k=0, cap=0, count_bytes=1):
 def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
               stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
               grid_start=16, give_up=None, rounds=None, recall_rounds=None,
-              stop_from=None, seen_from=None):
+              stop_from=None, seen_from=None, settle_rounds=None, write_rule="round",
+              burst_min=2):
     """Store with the capacity study's stimuli and read every checkpoint, for
     every rate in `betas`; returns [(c, cache)] in their order.
 
@@ -210,7 +219,8 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
                                    organ_semantics, stop_on, p=p, strength=strength,
                                    grid_start=grid_start, give_up=give_up, rounds=rounds,
                                    recall_rounds=recall_rounds, stop_from=stop_from,
-                                   seen_from=seen_from)
+                                   seen_from=seen_from, settle_rounds=settle_rounds,
+                                   write_rule=write_rule, burst_min=burst_min)
                 results.update(zip(chunk, done))
     finally:
         torch.cuda.set_per_process_memory_fraction(1.0)
@@ -219,7 +229,7 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
 
 def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
                 p, strength, grid_start, give_up, rounds, recall_rounds, stop_from,
-                seen_from=None):
+                seen_from=None, settle_rounds=None, write_rule="round", burst_min=2):
     torch = pe._torch()
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     S, G = len(seeds), len(betas)
@@ -229,7 +239,8 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
                          w_max=pe.W_MAX, norm_init=True, synaptic_scaling=False,
                          rounds=pe.T if rounds is None else rounds,
                          strength=strength, gate=False, max_items=cap, device=device,
-                         graphs=True,
+                         graphs=write_rule == "round", write_rule=write_rule,
+                         burst_min=burst_min,
                          organ_semantics=(organ_semantics[betas[0]] if G == 1
                                           else {b: organ_semantics[b] for b in betas}))
     grid = set(pe.geometric_grid(grid_start, cap))
@@ -266,7 +277,7 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
         buffer[filled:M] = torch.stack(pending)
         filled = M
         pending = []
-        r = readings(mem, buffer[:M], M, n, k, recall_rounds)
+        r = readings(mem, buffer[:M], M, n, k, recall_rounds, settle_rounds)
         fill = mem.fill.cpu().numpy().tolist()
         finished = []
         for j, g in enumerate(active):

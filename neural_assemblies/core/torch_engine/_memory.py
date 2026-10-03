@@ -74,7 +74,8 @@ class AssemblyMemory:
 
     def __init__(self, seeds, n, k, p, *, beta=0.1, w_max=20.0, norm_init=True,
                  synaptic_scaling=False, rounds=8, strength=0.5, gate=False,
-                 max_items=4096, device="cuda", organ_semantics=None, graphs=False):
+                 max_items=4096, device="cuda", organ_semantics=None, graphs=False,
+                 write_rule="round", burst_min=2):
         from ..semantics import OrganSemantics, describe_assembly_memory
 
         self.seeds = [int(s) for s in seeds]
@@ -128,8 +129,32 @@ class AssemblyMemory:
                                      device=device)
         self.items = 0
         self._last_used = None
-        #: replay each item's write as one CUDA graph (ungated stores only)
-        self.graphs = bool(graphs) and not self.gate
+        #: THE WRITE RULE. "round": every round, a synapse whose pre fired the
+        #: round before and whose post fires now gains a count (round-scale
+        #: spike timing, causal). "burst": the item's rounds run without a
+        #: write; then every synapse between two neurons that BURST during the
+        #: item -- fired in at least `burst_min` of its rounds -- gains one
+        #: count, in both directions (burst-timing-dependent plasticity, as at
+        #: retinogeniculate synapses: coincidence of bursts on a window, order
+        #: within it ignored). The stimulus fiber is written the same way.
+        #: The controls that separate the burst write's two departures from
+        #: the round write: "deferred" writes the round write's own counts
+        #: (pre the round before, post now) from the recorded rounds AFTER the
+        #: item, so nothing written feeds back into the item's rounds;
+        #: "online_burst" writes each round as the round write does but only
+        #: between neurons that have already fired `burst_min` times in the
+        #: item (the pre by the round before, the post counting this round).
+        #: online_burst with burst_min = 1 IS the round write (tested).
+        if write_rule not in ("round", "burst", "deferred", "online_burst"):
+            raise ValueError("write_rule must be round, burst, deferred or online_burst")
+        if write_rule != "round" and (gate or synaptic_scaling):
+            raise ValueError("the burst write runs ungated on the organ fiber")
+        self.write_rule, self.burst_min = write_rule, int(burst_min)
+        #: the last item's firing counts [B, n] and burst set (burst rules)
+        self.last_fired: Any = None
+        self.last_burst: Any = None
+        #: replay each item's write as one CUDA graph (ungated round writes only)
+        self.graphs = bool(graphs) and not self.gate and write_rule == "round"
         self._graph = None
         self._warm = None
 
@@ -163,12 +188,77 @@ class AssemblyMemory:
                              w_max=self.w_max, norm_init=self.norm_init,
                              max_rounds=self.rounds, device=self.device)
         self.area.inhibit()
+        if self.write_rule == "burst":
+            return self._store_burst(stim)
+        if self.write_rule == "deferred":
+            return self._store_deferred(stim)
+        if self.write_rule == "online_burst":
+            return self._store_online_burst(stim)
         # the overflow check waits for `check` (or the next read): a host
         # read per item stalled the store loop on every item
         win = self.area.project(self.rounds, [self.fiber, stim],
                                 stop_when_stable=self.gate, defer_overflow=True)
         self._last_used = (self.area.rounds_used.clone() if self.gate else None)
         self.items += 1
+        return win
+
+    def _store_burst(self, stim):
+        """The burst write: the item's rounds with refraction but no write,
+        then one count for every present synapse between two neurons that
+        fired in at least `burst_min` rounds (both directions), and one
+        stimulus potentiation for each such neuron."""
+        rounds = []
+        win = self.area.project(self.rounds, [self.fiber, stim], defer_overflow=True,
+                                observe=False, record=rounds)
+        fired = torch_ops.zeros(self.B, self.n, dtype=torch_ops.int32, device=self.area.device)
+        for w in rounds:
+            fired.scatter_add_(1, w, torch_ops.ones_like(w, dtype=torch_ops.int32))
+        burst = fired >= self.burst_min                                   # [B, n]
+        width = max(int(burst.sum(dim=1).max()), 1)
+        # the burst set as -1-padded rows: its members, lowest index first
+        order = torch_ops.argsort((~burst).to(torch_ops.int8), dim=1, stable=True)[:, :width]
+        members = torch_ops.where(torch_ops.gather(burst, 1, order), order,
+                                  torch_ops.full_like(order, -1))
+        self.fiber.observe(members, members)
+        stim.observe(None, members)
+        self._last_used = None
+        self.items += 1
+        self.last_burst, self.last_fired = burst, fired                   # [B, n]
+        return win
+
+    def _store_deferred(self, stim):
+        """The round write's counts, written after the item's rounds."""
+        rounds = []
+        win = self.area.project(self.rounds, [self.fiber, stim], defer_overflow=True,
+                                observe=False, record=rounds)
+        prev = torch_ops.zeros(self.B, 0, dtype=torch_ops.int64, device=self.area.device)
+        for new in rounds:
+            self.fiber.observe(prev, new)
+            stim.observe(prev, new)
+            prev = new
+        self._last_used = None
+        self.items += 1
+        return win
+
+    def _store_online_burst(self, stim):
+        """The round write between neurons that have burst so far."""
+        fired = torch_ops.zeros(self.B, self.n, dtype=torch_ops.int32, device=self.area.device)
+        ones = None
+
+        def write(prev, new):
+            nonlocal ones
+            # the pre's count is through the round before; the post's counts this round
+            pre = (prev.masked_fill(torch_ops.gather(fired, 1, prev) < self.burst_min, -1)
+                   if prev.shape[1] else prev)
+            ones = torch_ops.ones_like(new, dtype=torch_ops.int32) if ones is None else ones
+            fired.scatter_add_(1, new, ones)
+            post = new.masked_fill(torch_ops.gather(fired, 1, new) < self.burst_min, -1)
+            return pre, post
+
+        win = self.area.project(self.rounds, [self.fiber, stim], defer_overflow=True, write=write)
+        self._last_used = None
+        self.items += 1
+        self.last_fired = fired
         return win
 
     def _store_graphed(self, stim_seeds, size):
@@ -227,18 +317,29 @@ class AssemblyMemory:
                                  mask_bias=(None if masked is None
                                             else bool(masked) and self.refracted))
 
-    def recall_many(self, cues, *, masked=None, rounds=None):
+    def recall_many(self, cues, *, masked=None, rounds=None, settle=False):
         """``recall`` of S cues per brain at once: ``cues`` [B, S, m] ->
         [B, S, k]. Each cue is a VIRTUAL brain reading its brain's synapses
         (the organ fiber's brain map), so a checkpoint's reads are one pass
         instead of S. The rounds are ``recall``'s: frozen, nothing written or
         charged, the bias masked whenever refracted; a cue's result equals
-        ``recall`` of that cue alone."""
+        ``recall`` of that cue alone.
+
+        ``settle=True`` also returns [B, S] the SETTLING ROUND of each read-out:
+        the first round whose winner set equals the one two rounds before
+        (rounds + 1 if it never does) -- the read-out's relaxation time to a
+        fixed point or a period-2 orbit. Synchronous k-WTA read-outs end in
+        2-cycles as often as at fixed points (as synchronous dynamics with
+        symmetric weights must, by Goles' theorem; these weights are not
+        symmetric, and still mostly do), so "equal to the round before"
+        would miss most settled read-outs."""
         if rounds is not None and (type(rounds) is not int or rounds < 1):
             raise ValueError("recall rounds must be a positive integer")
         B, S, m = cues.shape
         self.area.check_overflow()
         if not isinstance(self.fiber, DenseOrganFiber):
+            if settle:
+                raise ValueError("settling rounds are read on the organ fiber")
             return torch_ops.stack([self.recall(cues[:, s], masked=masked, rounds=rounds)
                                     for s in range(S)], dim=1)
         area = self.area
@@ -248,7 +349,7 @@ class AssemblyMemory:
                 else bool(masked) and self.refracted)
         rounds = self.rounds if rounds is None else rounds
         per = max(1, RECALL_BYTES // (8 * self.n * B))      # cues per pass
-        out = []
+        out, settled_out = [], []
         for s0 in range(0, S, per):
             part = cues[:, s0:s0 + per]
             P = part.shape[1]
@@ -258,14 +359,25 @@ class AssemblyMemory:
                     else area.bias.index_select(0, brains.to(torch_ops.int64)))
             winners = part.reshape(B * P, m).to(torch_ops.int64)
             ovf_acc = None
-            for _ in range(rounds):
+            settled = (torch_ops.full((B * P,), rounds + 1, dtype=torch_ops.int64,
+                                      device=cues.device) if settle else None)
+            history = []                                  # the last two sorted winner sets
+            for r in range(rounds):
                 raw = torch_ops.zeros(B * P, self.n, dtype=torch_ops.float32,
                                       device=cues.device)
                 self.fiber.contribute(raw, winners, brains)
                 drive = raw if bias is None else raw - bias
                 sel, ovf = area.mod.topk_select(drive, min(self.k, self.n))
                 ovf_acc = ovf if ovf_acc is None else torch_ops.maximum(ovf_acc, ovf)
-                winners = sel.to(torch_ops.int64)
+                new = sel.to(torch_ops.int64)
+                if settle:
+                    ordered = torch_ops.sort(new, dim=1).values
+                    if len(history) == 2:
+                        same = (ordered == history[0]).all(dim=1)
+                        settled = torch_ops.where(same & (settled > rounds),
+                                                  torch_ops.full_like(settled, r + 1), settled)
+                    history = (history + [ordered])[-2:]
+                winners = new
             bad = int(ovf_acc.max()) if ovf_acc is not None else 0
             if bad:
                 raise RuntimeError(
@@ -273,6 +385,10 @@ class AssemblyMemory:
                     "drive is too flat for the histogram to narrow. Refusing "
                     "to return a truncated winner set.")
             out.append(winners.view(B, P, -1))
+            if settle:
+                settled_out.append(settled.view(B, P))
+        if settle:
+            return torch_ops.cat(out, dim=1), torch_ops.cat(settled_out, dim=1)
         return torch_ops.cat(out, dim=1)
 
     def select(self, keep):
