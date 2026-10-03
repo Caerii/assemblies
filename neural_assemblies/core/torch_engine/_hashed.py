@@ -86,6 +86,29 @@ def _device_gain(betas, rounds, device):
     return table
 
 
+def clip_count(beta, w_max, B=1):
+    """The count at which the weight clip binds -- the first c with
+    chain(1, c) == w_max under the engine's per-step multiply-and-clip --
+    for the largest such c over the brains' rates; None without a clip or
+    for a rate that never learns."""
+    if w_max is None:
+        return None
+    betas = per_brain(beta, B) or (float(beta),)
+    import math
+    worst = 0
+    for b in set(betas):
+        if b <= 0:
+            continue
+        guess = int(math.log(w_max) / math.log1p(b)) + 4
+        table = _chain_table(b, w_max, guess)
+        hits = [c for c in range(len(table)) if table[c] == table[-1]]
+        if table[-1] != table[-2]:
+            table = _chain_table(b, w_max, 2 * guess + 64)
+            hits = [c for c in range(len(table)) if table[c] == table[-1]]
+        worst = max(worst, hits[0])
+    return worst
+
+
 def _local_index(idx):
     """Map raw ids to per-brain local ids. ``idx`` [B, L] -> loc, values, W."""
     B, L = idx.shape
@@ -703,13 +726,33 @@ class DenseOrganFiber:
 
     def __init__(self, seeds, n_pre, n_post, p, *, beta=0.1,
                  w_max: float | None = 20.0,
-                 norm_init=True, max_rounds=4096, device="cuda"):
+                 norm_init=True, max_rounds=4096, device="cuda", count_dtype=None):
         self.mod = _fused_cuda.load()
         if self.mod is None:
             raise RuntimeError(f"fused kernels unavailable: "
                                f"{_fused_cuda.last_error()}")
         B = len(seeds)
-        need = B * n_pre * (n_post * 1 + ((n_post + 31) // 32) * 4)
+        # COUNT WIDTH: int8 wherever every brain's weight clip binds by count
+        # 127 (every rate from ~0.024 up: the tables and counts of every study
+        # before Amendment 22); int16 below, where a weak write's counts run
+        # on before the clip. The table then reaches the clip, so a count is
+        # priced exactly however far it runs (a table shorter than the clip
+        # would price every longer count at its last, unclipped, entry).
+        clip = clip_count(beta, w_max, B)
+        if count_dtype is None:
+            count_dtype = "int8" if clip is not None and clip <= 127 else (
+                "int16" if clip is not None else "int8")
+        if count_dtype not in ("int8", "int16"):
+            raise ValueError("count_dtype must be int8 or int16")
+        self.count_dtype = count_dtype
+        self.MAX_COUNT = 127 if count_dtype == "int8" else 32767
+        if clip is not None and clip > self.MAX_COUNT:
+            raise ValueError(f"the weight clip binds at count {clip}, past the "
+                             f"{count_dtype} range: counts would saturate inexactly")
+        if clip is not None and clip + 1 > int(max_rounds):
+            max_rounds = clip + 1                   # one entry past: the table reads saturated
+        width = 1 if count_dtype == "int8" else 2
+        need = B * n_pre * (n_post * width + ((n_post + 31) // 32) * 4)
         if need > self.MAX_BYTES:
             raise ValueError(f"organ count matrices would be {need / 2**30:.1f} "
                              "GiB; fewer brains per launch")
@@ -724,7 +767,8 @@ class DenseOrganFiber:
         self.learns = any(self.betas) if self.betas else bool(beta)
         self.relative, self.absolute = False, True
         self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
-        self.C = torch_ops.zeros(B, n_pre, n_post, dtype=torch_ops.int8, device=device)
+        self.C = torch_ops.zeros(B, n_pre, n_post, dtype=getattr(torch_ops, count_dtype),
+                                 device=device)
         self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
         self.max_rounds = int(max_rounds)
         self._no_map = torch_ops.zeros(0, dtype=torch_ops.int32, device=device)

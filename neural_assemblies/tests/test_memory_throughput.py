@@ -168,3 +168,52 @@ def test_a_graphed_store_equals_the_eager_store(mod, strength):
         assert torch.equal(graphed.bias, eager.bias)
     assert (graphed.items, graphed.area.rounds_seen) == (eager.items, eager.area.rounds_seen)
     graphed.check()
+
+
+def test_int16_counts_equal_int8_where_both_are_exact(mod):
+    """The count width changes storage, not arithmetic: at a rate whose clip
+    binds by count 127, int16 counts give the int8 run bit for bit."""
+    from neural_assemblies.core.torch_engine._hashed import DenseOrganFiber
+    runs = []
+    for dtype in ("int8", "int16"):
+        mem = _memory(0.1, _brains(), 0.5)
+        mem.fiber = DenseOrganFiber(mem.seeds, N, N, P, beta=0.1, w_max=20.0, norm_init=True,
+                                    max_rounds=256, device="cuda", count_dtype=dtype)
+        assert mem.fiber.C.dtype == getattr(torch, dtype)
+        won = [mem.store(_stim(a)) for a in range(16)]
+        runs.append((won, mem.fiber.C.to(torch.int32), mem.bias.clone(),
+                     mem.recall(won[3][:, : K // 2])))
+    (w8, c8, b8, r8), (w16, c16, b16, r16) = runs
+    assert all(torch.equal(a, b) for a, b in zip(w8, w16))
+    assert torch.equal(c8, c16) and torch.equal(b8, b16) and torch.equal(r8, r16)
+
+
+def test_a_weak_write_counts_past_127_on_a_table_that_reaches_its_clip(mod):
+    """Below rate ~0.024 the clip binds past count 127: the fiber widens to
+    int16 and its chain table reaches the clip, so no count is mispriced."""
+    from neural_assemblies.core.torch_engine._hashed import clip_count
+    # the Hebbian control: its hubs fire every round, so their counts pass 127
+    mem = _memory(0.005, _brains(), 0.0)
+    assert mem.fiber.count_dtype == "int16" and mem.fiber.MAX_COUNT == 32767
+    assert mem.fiber.tab.shape[-1] - 1 >= clip_count(0.005, 20.0) == 601
+    tab = mem.fiber.tab.cpu()
+    assert tab[-1] == tab[-2] == torch.tensor(20.0)
+    for a in range(8):
+        mem.store(_stim(a))
+    mem.check()
+    # counts far past 127 (planted), priced by the kernel as the table says
+    from research.experiments import memory_pattern_efficiency as pe
+    fiber = mem.fiber
+    gen = torch.Generator(device="cuda").manual_seed(7)
+    fiber.C.copy_(torch.randint(0, 1000, fiber.C.shape, generator=gen, device="cuda",
+                                dtype=torch.int16))
+    rows = torch.randint(0, N, (SEEDS, K), generator=gen, device="cuda")
+    drive = torch.zeros(SEEDS, N, device="cuda")
+    fiber.contribute(drive, rows)
+    ref = torch.zeros(SEEDS, N, device="cuda", dtype=torch.float64)
+    table = fiber.tab.double()
+    for b in range(SEEDS):
+        present = pe.presence_of(fiber.pres, b, N)[rows[b]]            # [K, N]
+        counts = fiber.C[b][rows[b]].long().clamp_max(table.shape[-1] - 1)
+        ref[b] = (table[counts] * present).sum(0) * fiber.invdj[b].double()
+    assert torch.allclose(drive.double(), ref, rtol=1e-5, atol=1e-6)

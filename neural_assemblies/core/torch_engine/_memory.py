@@ -57,6 +57,8 @@ def recurrent_fiber(seeds, n, p, *, beta, w_max, norm_init, synaptic_scaling,
     the scaling + clip opt-in there).
     """
     if not synaptic_scaling and w_max is not None:
+        # the table runs to 256 rounds, or to the clip when a weak write's
+        # clip binds later (DenseOrganFiber widens its counts and table then)
         return DenseOrganFiber(seeds, n, n, p, beta=beta, w_max=w_max,
                                norm_init=norm_init,
                                max_rounds=min(int(max_rounds), 256),

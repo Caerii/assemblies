@@ -835,8 +835,26 @@ __device__ __forceinline__ unsigned long long sched_key(float v, int j) {
 // brain its own (a learning-rate sweep batched into the brain axis). The
 // arithmetic per column is unchanged -- the same rows in the same order --
 // so a mapped or swept brain reads the drive it would read alone.
+// COUNT WIDTH. The organ fiber stores int8 counts (CMAX 127) wherever the
+// weight clip binds by count 127 -- every rate from ~0.024 up -- and int16
+// counts (CMAX 32767) below that, where a weak write's counts run on before
+// the clip. The kernels are templated on the count type; the int8
+// instantiation is the arithmetic the int8-only kernels did.
+template <typename CT> struct OrganCount;
+template <> struct OrganCount<signed char> {
+    typedef char4 vec4;
+    static __device__ __forceinline__ vec4 zero4() { return make_char4(0, 0, 0, 0); }
+    static constexpr int cmax = 127;
+};
+template <> struct OrganCount<short> {
+    typedef short4 vec4;
+    static __device__ __forceinline__ vec4 zero4() { return make_short4(0, 0, 0, 0); }
+    static constexpr int cmax = 32767;
+};
+
+template <typename CT>
 __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
-                                   const signed char* __restrict__ C,
+                                   const CT* __restrict__ C,
                                    const unsigned int* __restrict__ pres, int W,
                                    const float* __restrict__ invdj,
                                    const float* __restrict__ tab, int ntab, int tab_stride,
@@ -846,7 +864,7 @@ __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
     if (idx >= (long long)V * N) return;
     const int j = (int)(idx % N), v = (int)(idx / N);
     const int b = bmap != nullptr ? bmap[v] : v;
-    const signed char* Cb = C + (long long)b * Npre * N;
+    const CT* Cb = C + (long long)b * Npre * N;
     const unsigned int* Pb = pres + (long long)b * Npre * W;
     const float* Tb = tab + (long long)b * tab_stride;
     const int* Sb = S + (long long)v * K;
@@ -882,8 +900,9 @@ __global__ void organ_drive_kernel(const int* __restrict__ S, int K,
 // instead of 32. Each column still sums its rows in row order with the same
 // predicate, so every column's float sequence -- and its drive -- is the
 // scalar kernel's.
+template <typename CT>
 __global__ void organ_drive4_kernel(const int* __restrict__ S, int K,
-                                    const signed char* __restrict__ C,
+                                    const CT* __restrict__ C,
                                     const unsigned int* __restrict__ pres, int W,
                                     const float* __restrict__ invdj,
                                     const float* __restrict__ tab, int ntab, int tab_stride,
@@ -894,14 +913,14 @@ __global__ void organ_drive4_kernel(const int* __restrict__ S, int K,
     if (idx >= (long long)V * N4) return;
     const int j = (int)(idx % N4) << 2, v = (int)(idx / N4);
     const int b = bmap != nullptr ? bmap[v] : v;
-    const signed char* Cb = C + (long long)b * Npre * N;
+    const CT* Cb = C + (long long)b * Npre * N;
     const unsigned int* Pb = pres + (long long)b * Npre * W;
     const float* Tb = tab + (long long)b * tab_stride;
     const int* Sb = S + (long long)v * K;
     const int wj = j >> 5, bj = j & 31;
     float a0 = 0.0f, a1 = 0.0f, a2 = 0.0f, a3 = 0.0f;
     for (int s0 = 0; s0 < K; s0 += ORGAN_CH) {
-        char4 cs[ORGAN_CH];
+        typename OrganCount<CT>::vec4 cs[ORGAN_CH];
         unsigned int nb[ORGAN_CH];
 #pragma unroll
         for (int u = 0; u < ORGAN_CH; ++u) {
@@ -909,8 +928,9 @@ __global__ void organ_drive4_kernel(const int* __restrict__ S, int K,
             const int i = (sl < K) ? Sb[sl] : -1;
             const unsigned int pw = (i >= 0) ? Pb[(long long)i * W + wj] : 0u;
             nb[u] = (pw >> bj) & 0xFu;
-            cs[u] = nb[u] ? *reinterpret_cast<const char4*>(Cb + (long long)i * N + j)
-                          : make_char4(0, 0, 0, 0);                     // predicated
+            cs[u] = nb[u] ? *reinterpret_cast<const typename OrganCount<CT>::vec4*>(
+                                Cb + (long long)i * N + j)
+                          : OrganCount<CT>::zero4();                    // predicated
         }
 #pragma unroll
         for (int u = 0; u < ORGAN_CH; ++u) {
@@ -933,15 +953,16 @@ __global__ void organ_drive4_kernel(const int* __restrict__ S, int K,
 }
 
 // one block per (brain, winner column): count the present rows in
+template <typename CT>
 __global__ void organ_write_kernel(const int* __restrict__ P, int KP,
                                    const int* __restrict__ Wn, int KW,
-                                   signed char* __restrict__ C,
+                                   CT* __restrict__ C,
                                    const unsigned int* __restrict__ pres, int W,
                                    int Npre, int N, int* __restrict__ err) {
     const int b = blockIdx.x / KW, sw = blockIdx.x - b * KW;
     const int j = Wn[(long long)b * KW + sw];
     if (j < 0) return;
-    signed char* Cb = C + (long long)b * Npre * N;
+    CT* Cb = C + (long long)b * Npre * N;
     const unsigned int* Pb = pres + (long long)b * Npre * W;
     const int wj = j >> 5, bj = j & 31;
     for (int sl = threadIdx.x; sl < KP; sl += blockDim.x) {
@@ -949,8 +970,8 @@ __global__ void organ_write_kernel(const int* __restrict__ P, int KP,
         if (i < 0) continue;
         if (!((Pb[(long long)i * W + wj] >> bj) & 1u)) continue;
         const int c = (int)Cb[(long long)i * N + j] + 1;
-        if (c > ORGAN_CMAX) { atomicExch(err, 1); continue; }
-        Cb[(long long)i * N + j] = (signed char)c;
+        if (c > OrganCount<CT>::cmax) { atomicExch(err, 1); continue; }
+        Cb[(long long)i * N + j] = (CT)c;
     }
 }
 
@@ -1770,10 +1791,27 @@ torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post
     return out;
 }
 
+template <typename CT>
+static void organ_drive_t(torch::Tensor S, CT* Cp, torch::Tensor C, torch::Tensor pres,
+                          torch::Tensor invdj, torch::Tensor tab, torch::Tensor bmap,
+                          torch::Tensor out);
+
 void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj,
                  torch::Tensor tab, torch::Tensor bmap, torch::Tensor out) {
     S = S.contiguous(); tab = tab.contiguous(); bmap = bmap.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt8, "counts are int8");
+    TORCH_CHECK(C.scalar_type() == torch::kInt8 || C.scalar_type() == torch::kInt16,
+                "counts are int8 or int16");
+    if (C.scalar_type() == torch::kInt16) {
+        organ_drive_t<short>(S, C.data_ptr<short>(), C, pres, invdj, tab, bmap, out);
+        return;
+    }
+    organ_drive_t<signed char>(S, C.data_ptr<signed char>(), C, pres, invdj, tab, bmap, out);
+}
+
+template <typename CT>
+static void organ_drive_t(torch::Tensor S, CT* Cp, torch::Tensor C, torch::Tensor pres,
+                          torch::Tensor invdj, torch::Tensor tab, torch::Tensor bmap,
+                          torch::Tensor out) {
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), K = S.size(1), W = pres.size(2);
     const int V = S.size(0);
     TORCH_CHECK(out.size(0) == V && out.size(1) == N && out.is_contiguous(), "out: contiguous [V, N]");
@@ -1787,8 +1825,8 @@ void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Te
     const int th = 256;
     if (N % 4 == 0) {
         const long long tot4 = (long long)V * (N / 4);
-        organ_drive4_kernel<<<(tot4 + th - 1) / th, th, 0, NA_STREAM>>>(
-            S.data_ptr<int>(), K, C.data_ptr<signed char>(),
+        organ_drive4_kernel<CT><<<(tot4 + th - 1) / th, th, 0, NA_STREAM>>>(
+            S.data_ptr<int>(), K, Cp,
             reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
             invdj.numel() ? invdj.data_ptr<float>() : nullptr,
             tab.data_ptr<float>(), ntab, stride,
@@ -1797,8 +1835,8 @@ void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Te
         return;
     }
     const long long tot = (long long)V * N;
-    organ_drive_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
-        S.data_ptr<int>(), K, C.data_ptr<signed char>(),
+    organ_drive_kernel<CT><<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
+        S.data_ptr<int>(), K, Cp,
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
         invdj.numel() ? invdj.data_ptr<float>() : nullptr,
         tab.data_ptr<float>(), ntab, stride,
@@ -1893,11 +1931,19 @@ void charge(torch::Tensor bias, torch::Tensor raw, torch::Tensor sel, torch::Ten
 void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres,
                  torch::Tensor err) {
     P = P.contiguous(); Wn = Wn.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt8, "counts are int8");
+    TORCH_CHECK(C.scalar_type() == torch::kInt8 || C.scalar_type() == torch::kInt16,
+                "counts are int8 or int16");
     const int B = C.size(0), Npre = C.size(1), N = C.size(2), W = pres.size(2);
     const int KP = P.size(1), KW = Wn.size(1);
     if (KP == 0 || KW == 0) return;
-    organ_write_kernel<<<B * KW, 128, 0, NA_STREAM>>>(
+    if (C.scalar_type() == torch::kInt16) {
+        organ_write_kernel<short><<<B * KW, 128, 0, NA_STREAM>>>(
+            P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<short>(),
+            reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
+            Npre, N, err.data_ptr<int>());
+        return;
+    }
+    organ_write_kernel<signed char><<<B * KW, 128, 0, NA_STREAM>>>(
         P.data_ptr<int>(), KP, Wn.data_ptr<int>(), KW, C.data_ptr<signed char>(),
         reinterpret_cast<const unsigned int*>(pres.data_ptr<int>()), W,
         Npre, N, err.data_ptr<int>());

@@ -141,14 +141,15 @@ LAUNCH_FIXED_BYTES = 3 << 29
 RESERVE_BYTES = 1 << 30
 
 
-def brain_bytes(n, k, cap):
-    """One brain's device bytes in a launch: int8 counts, connectome bits,
-    per-neuron state (bias, ever-fired, in-degree, drive rows) and its stored
-    items (int32, up to the cap)."""
-    return n * n + n * ((n + 31) // 32) * 4 + 32 * n + cap * k * 4
+def brain_bytes(n, k, cap, count_bytes=1):
+    """One brain's device bytes in a launch: counts (int8, or int16 for a
+    weak write whose clip binds past count 127), connectome bits, per-neuron
+    state (bias, ever-fired, in-degree, drive rows) and its stored items
+    (int32, up to the cap)."""
+    return n * n * count_bytes + n * ((n + 31) // 32) * 4 + 32 * n + cap * k * 4
 
 
-def launch_rates(n, B, *, k=0, cap=0):
+def launch_rates(n, B, *, k=0, cap=0, count_bytes=1):
     """How many learning rates of B brains each one launch holds.
 
     Sized against the card's REAL free memory, not a fixed byte limit: a
@@ -159,12 +160,12 @@ def launch_rates(n, B, *, k=0, cap=0):
     attempt, 2.08 GB paged)."""
     import torch
     from neural_assemblies.core.torch_engine._hashed import DenseOrganFiber
-    matrices = n * (n + ((n + 31) // 32) * 4)
+    matrices = n * (n * count_bytes + ((n + 31) // 32) * 4)
     by_limit = DenseOrganFiber.MAX_BYTES // (matrices * B)
     torch.cuda.empty_cache()
     free, _total = torch.cuda.mem_get_info()
     room = free - RESERVE_BYTES - LAUNCH_FIXED_BYTES
-    by_memory = room // (brain_bytes(n, k, cap) * B) if room > 0 else 0
+    by_memory = room // (brain_bytes(n, k, cap, count_bytes) * B) if room > 0 else 0
     return max(1, min(by_limit, by_memory))
 
 
@@ -188,7 +189,10 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
     equal its own run's (tested against the one-rate launch)."""
     import torch
     betas = [float(b) for b in betas]
-    per = launch_rates(n, len(seeds), k=k, cap=cap)
+    from neural_assemblies.core.torch_engine._hashed import clip_count
+    clips = [clip_count(b, pe.W_MAX) for b in betas]
+    count_bytes = 2 if any(c is not None and c > 127 for c in clips) else 1
+    per = launch_rates(n, len(seeds), k=k, cap=cap, count_bytes=count_bytes)
     # equal launches: 17 rates at 15 a launch run as 9 + 8, not 15 + 2
     per = -(-len(betas) // -(-len(betas) // per))
     # an overcommit must raise, not page: cap the allocator at what is free
