@@ -489,6 +489,36 @@ the in-degree law of Amendment 21. Registered next: whether the onset is a
 transition at all (Amendment 24: finite-size sharpening of the per-brain
 onset, and critical slowing of the read-out).
 
+\begin{conjecture}[The onset is a saddle-node of the overlap map]\label{conj:saddle} \OPEN
+Let $F_\beta(m)$ be the overlap with a stored assembly after one frozen,
+masked round from a $k$-neuron state holding a fraction $m$ of it, the rest
+drawn from another stored item. Recall's onset is the saddle-node at which a
+stable fixed point $m_s$ near $1$ and an unstable one $m_u$ are born,
+$\max_m [F_\beta(m) - m] = 0$; half-cue completion turns on when $m_u$ falls to
+$1/2$. A saddle-node predicts the critical slowing of
+Amendment~24: passage through the bottleneck takes $\sim \pi/\sqrt{\beta - \beta_c}$
+rounds.
+\end{conjecture}
+
+An exploratory probe (not registered; 5 brains, $(4000, 60, 0.5)$, 300 items,
+every tenth item read) motivates it. From a cue of $mk$ members ALONE, $F$ is
+concave with a single stable fixed point that rises smoothly with $\beta$
+($\approx 0.5$ at $0.12\theta$, $\approx 0.85$ at $0.17\theta$) -- no transition,
+and in disagreement with the eight-round read (from a half cue, $0.04$ at
+$0.14\theta$). From a full $k$-neuron state, the rest random or another item's,
+$F$ is SIGMOIDAL: $F(m) < m$ for every $m$ up to $0.18\theta$ (every read-out
+decays), and by $0.20\theta$ a stable fixed point near $0.95$ coexists with an
+unstable one at $m_u \approx 0.50$ --- the size of the half cue. The clean-cue
+map misses the onset because the competitors that matter are the other stored
+assemblies a partial state also excites, not the background. The probe's
+item-averaged map places the bifurcation at $0.18$--$0.20\theta$, slightly
+above the measured onset ($0.16$--$0.18\theta$); the eight-round read rises over
+the same range as a sigmoid of the item mix, which suggests that items reach
+their own bifurcations at different rates (recent items earlier) and the
+onset is where the median item does. The derivation it asks for is a
+mean-field $F_\beta(m)$ for a clipped multiplicative count matrix under
+$k$-WTA, whose saddle-node gives $\beta_c/\theta$.
+
 \section{Ensembles and entropy}
 
 The configuration entropy of one area is
