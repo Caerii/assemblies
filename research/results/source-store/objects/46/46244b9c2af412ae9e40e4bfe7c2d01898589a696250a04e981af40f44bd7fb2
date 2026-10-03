@@ -172,7 +172,7 @@ def launch_rates(n, B, *, k=0, cap=0, count_bytes=1):
 def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
               stop_on=("rank1", "complete"), *, p=None, strength=STRENGTH,
               grid_start=16, give_up=None, rounds=None, recall_rounds=None,
-              stop_from=None, seen_from=None):
+              stop_from=None):
     """Store with the capacity study's stimuli and read every checkpoint, for
     every rate in `betas`; returns [(c, cache)] in their order.
 
@@ -209,8 +209,7 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
                 done = _run_launch(n, k, chunk, seeds, cap, device,
                                    organ_semantics, stop_on, p=p, strength=strength,
                                    grid_start=grid_start, give_up=give_up, rounds=rounds,
-                                   recall_rounds=recall_rounds, stop_from=stop_from,
-                                   seen_from=seen_from)
+                                   recall_rounds=recall_rounds, stop_from=stop_from)
                 results.update(zip(chunk, done))
     finally:
         torch.cuda.set_per_process_memory_fraction(1.0)
@@ -218,8 +217,7 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
 
 
 def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
-                p, strength, grid_start, give_up, rounds, recall_rounds, stop_from,
-                seen_from=None):
+                p, strength, grid_start, give_up, rounds, recall_rounds, stop_from):
     torch = pe._torch()
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     S, G = len(seeds), len(betas)
@@ -274,11 +272,7 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
             caches[g][M] = {name: values[part] for name, values in r.items()}
             caches[g][M]["fill"] = fill[part]
             means = [ensemble_from_values(caches[g][M][m]).mean for m in stop_on]
-            # a reading below `seen_from` items does not arm the stop: rank-1
-            # is right with probability 1/M by chance, the 0.5 bar at M = 2
-            # (Amendment 22's defect: a chance 0.53 at M = 2 stopped stores at
-            # M = 32 before their recognition windows opened)
-            if any(v > pe.HALF_BAR for v in means) and (seen_from is None or M >= seen_from):
+            if any(v > pe.HALF_BAR for v in means):
                 seen[g], below[g] = True, 0
             elif seen[g]:
                 below[g] += 1
