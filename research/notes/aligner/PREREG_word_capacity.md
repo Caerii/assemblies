@@ -610,3 +610,67 @@ lexicon is synapse-limited at a weak optimum that falls with fan-in, as
 the refracted memory is above its own floor. A registration that tests
 the boundary directly (n_LEX p across 50 to 200 at fixed V, n and p varied
 separately) is what this points to.
+
+## Amendment 6 (2026-10-02, before running): is the lexicon's plasticity regime set by n_LEX p?
+
+Registered before any run of this amendment. Amendment 5's bars were void
+(its instrument failed on the small lexicon), but its record showed, after
+the bars, two regimes split by n_LEX p -- the number of lexical neurons a
+feature neuron hears from. At n_LEX p <= 50 the best plasticity sat at the
+grid's top (0.4 to 0.8): cell A at p = 0.025 and 0.05 (n p = 25, 50), cell B
+at p = 0.025 (50). From n_LEX p = 100 it was a weak interior optimum: A at
+p = 0.1, B at 0.05 and 0.1, C at every p (best 0.025 to 0.1). At equal
+n_LEX p the best plasticity agreed within a factor of two across (n, p):
+0.8 / 0.4 at n p = 50, 0.1 / 0.05 / 0.05 at 100, 0.05 / 0.05 at 200.
+
+**Seen before registering:** Amendment 5's record and the readings above;
+a smoke run (VOID: 3 brains, cell A only, FEAT 1000 x 50, V 8 and 16,
+beta = 0.1 at p = 0.05): the ceiling sat above the smoke grid (16.0, all
+three seeds censored), as it must at that size.
+
+### Protocol
+
+`research/experiments/word_capacity_regime_run.py` (`python -m research.runner
+word-capacity-regime`), the scheduled aligner as Amendments 4 and 5 (FEAT
+4000 x 100, V 16 to 1024, the plasticity grid 0.0125 to 0.8 by factors of
+2), new brains (seeds 222 to 241), one run per p = 0.025, 0.05, 0.1 from a
+worktree pinned at the commit registering this amendment, five lexicons:
+
+    A (1000 x 50), F (1400 x 50), B (2000 x 50), G (2800 x 50), C (4000 x 50)
+
+F and G are new: with them n_LEX p takes the values 25, 35, 50, 70, 100,
+140, 200, 280 and 400, and five of them are reached by two or three
+different (n, p): 50, 70, 100, 140, 200. A cell's best plasticity is the
+grid rate of its largest V*.
+
+    python -m research.runner word-capacity-regime --p 0.025 \
+        --tag word-capacity-regime-p0025-20261002 --seeds 222 ... 241
+    (and --p 0.05, --p 0.1 with their tags)
+
+### Bars
+
+    EV  THE INSTRUMENT. At p = 0.05, beta = 0.1, cells B and C (the seed-
+        tight ones in Amendment 5) lie within 15% of Amendment 5's 154.2
+        and 333.9. Failure voids E1 and E2.
+    E1  THE BOUNDARY. Every (cell, p) with n_LEX p <= 50 has its best
+        plasticity at 0.4 or above; every one with n_LEX p >= 200 has it at
+        0.1 or below.
+    E2  n_LEX p, NOT n OR p. At each n_LEX p reached by more than one
+        (n, p) -- 50, 70, 100, 140, 200 -- the best plasticities agree within
+        a factor of two.
+
+Reported, not judged: the best plasticity at n_LEX p = 70 to 140 (where the
+regime turns), every cell's best vocabulary, and V*/(n p) at the optimum.
+
+### Interpretation, stated now
+
+* E1 and E2 pass: the lexicon's plasticity regime is set by how many
+  lexical neurons each feature neuron samples; below ~100 the learner wants
+  the strongest write and more synapses do not help, above it a weak write
+  that falls with fan-in, as the refracted memory's optimum does.
+* E1 passes, E2 fails: there are two regimes, but n and p do not enter only
+  as their product.
+* E1 fails: Amendment 5's split was a property of its three cells.
+* A failed bar is recorded as failed and not moved after the data.
+
+The runs are UNJUDGED until EV, E1 and E2 are evaluated and recorded below.
