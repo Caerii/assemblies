@@ -49,10 +49,16 @@ def _objects(run: Path) -> list[str]:
     return sorted({digest for _name, digest in read_manifest(run)["members"]})
 
 
-def _untracked(worktree: Path, path: Path) -> bool:
-    tracked = subprocess.run(["git", "-C", str(worktree), "ls-files", "--error-unmatch",
-                              str(path)], capture_output=True)
-    return tracked.returncode != 0
+def _tracked(worktree: Path) -> set:
+    """Every path the worktree's index tracks, in one call (a call per store
+    object was thousands of subprocesses per run)."""
+    listed = subprocess.run(["git", "-C", str(worktree), "ls-files", "-z"],
+                            capture_output=True, check=True).stdout
+    return {p for p in listed.decode("utf-8").split("\0") if p}
+
+
+def _untracked(tracked: set, path: Path) -> bool:
+    return path.as_posix() not in tracked
 
 
 def collect(worktree: Path, runs, logs=(), *, root: Path = ROOT, clean=False,
@@ -97,13 +103,14 @@ def collect(worktree: Path, runs, logs=(), *, root: Path = ROOT, clean=False,
         shutil.copyfile(src, dst)
         report["logs"].append((LOGS / name).as_posix())
     if clean and not report["errors"]:
+        tracked = _tracked(worktree)
         for rel in map(Path, report["runs"]):
-            if _untracked(worktree, rel) and _same_tree(worktree / rel, root / rel):
+            if _untracked(tracked, rel) and _same_tree(worktree / rel, root / rel):
                 shutil.rmtree(worktree / rel)
                 report["cleaned"].append(rel.as_posix())
             for digest in _objects(root / rel):
                 obj = STORE / digest[:2] / digest
-                if ((worktree / obj).exists() and _untracked(worktree, obj)
+                if ((worktree / obj).exists() and _untracked(tracked, obj)
                         and filecmp.cmp(worktree / obj, root / obj, shallow=False)):
                     (worktree / obj).unlink()
                     report["cleaned"].append(obj.as_posix())

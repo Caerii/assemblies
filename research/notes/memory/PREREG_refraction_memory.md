@@ -2288,3 +2288,216 @@ above the onset, so the vertex moves up, and that is the sparse cells'
 excess fraction. A registration that measures the onset directly (the
 weakest completing rate on a finer grid) and the capacity's rise above it,
 as separate quantities, is what this points to.
+
+## Amendment 18 (2026-10-02, before running): the completion onset -- where does the memory begin to complete, and is its best write the weakest that does?
+
+Registered before any run of this amendment. Amendment 17's record, read
+after its bars were judged, showed two things its bars did not ask about.
+At p = 0.5 the best capacity sits at the first rate of the grid that
+completes at all (4 of 6 cells) or one step above it. And the weakest
+completing rate completes only inside a load WINDOW: at (4000, 60, 0.5),
+completion holds between 869 and 1589 stored items at 0.168 theta and
+between 31 and 1388 one grid step up; at (4000, 20, 0.5) between 982 and
+1306. At p = 0.05 the first completing rate completes from the first
+checkpoint, and capacity keeps rising for three grid steps above it. On
+Amendment 17's grid (0.2 theta x 2^(j/4)) the first completing rate was
+0.168 theta at eight of ten cells and 0.200 theta at two ((4000, 10) and
+(4000, 40)): the onset brackets are (0.141, 0.168] and (0.168, 0.200].
+
+If the optimum IS the onset, the convergence threshold sets the memory's
+operating point, and the post hoc fraction 0.20 of Amendments 13-17 is the
+onset seen through a coarse grid. This measures the onset directly.
+
+**Seen before registering:** Amendment 17's record and the readings above;
+a smoke run (VOID: 3 brains, cap 32, give-up 16, two rates each at
+(4000, 60, 0.5) and (8000, 100, 0.05), 0.19 to 0.24 theta): no distinct
+completion window at either, as expected when completion near the onset
+opens only after hundreds of items.
+
+### Protocol
+
+`research/experiments/memory_onset.py` through the shared runner
+(`python -m research.runner onset`), seeds 162 to 181 (new brains), one run
+from a worktree pinned at the commit registering this amendment. The
+refracted AssemblyMemory (0.5 beta, T = 8, w_max 20, arm B, ungated, the
+capacity study's stimuli) at ten cells:
+
+    above the floor:  (2000, 60, 0.5), (4000, 60, 0.5), (4000, 80, 0.5),
+                      (4000, 160, 0.5), (8000, 120, 0.5), (8000, 240, 0.25)
+    below the floor:  (4000, 10, 0.5), (4000, 20, 0.5),
+                      (8000, 100, 0.05), (8000, 200, 0.05)
+
+each swept over theta x 0.12 x 2^(j/12) (twelve rates to the octave) up to
+0.30 theta above the floor and 0.40 theta below it, at or above 0.025.
+Distinct completion and capacity as in Amendments 13-17; checkpoints from
+M = 2; no stop decision before M = 32; a rate that never completes stores to
+8192 items before giving up, so a window that opens late is seen. The ONSET
+beta_on is a cell's weakest grid rate whose distinct-completion capacity is
+at least 32 items; the onset's LOWER EDGE is the load at which that rate's
+completion window opens (none if it completes from the first checkpoint);
+the BEST is the rate of largest capacity.
+
+    python -m research.runner onset \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag onset-20261001 --seeds 162 ... 181
+
+### Bars
+
+    OV  THE INSTRUMENT. The best capacity at (4000, 60, 0.5) is within 15% of
+        Amendment 17's 1589 on new brains. Failure voids O1 to O5.
+    O1  A UNIVERSAL ONSET. At every one of the ten cells the onset is found
+        (not at the grid's first rate) and beta_on / theta lies in
+        [0.13, 0.21], and across the ten the coefficient of variation of
+        beta_on / theta is at most 0.10.
+    O2  THE DENSE ONSET IS LOAD-ASSISTED. At every p = 0.5 cell the onset
+        rate's completion window opens at a load of at least 64 items.
+    O3  THE SPARSE ONSET IS IMMEDIATE. At both p = 0.05 cells the onset rate
+        completes from the first checkpoint (no lower edge).
+    O4  THE DENSE OPTIMUM IS THE ONSET. At every p = 0.5 cell the best rate
+        is at most 2^(1/4) beta_on.
+    O5  THE SPARSE OPTIMUM LIES ABOVE THE ONSET. At both p = 0.05 cells the
+        best rate is at least 1.4 beta_on.
+
+Reported, not judged: (8000, 240, 0.25)'s onset window and best/onset ratio
+(between the dense and sparse families), every rate's window, and the onset
+fraction's mean.
+
+### Interpretation, stated now
+
+* O1 passes: the weakest write under which an item's assembly completes is a
+  fixed fraction of the convergence threshold everywhere measured, above and
+  below the floor, dense and sparse: the threshold the theorems derive for
+  convergence is where completion begins.
+* O1 and O4 pass: in a dense area the best memory writes each item at the
+  weakest plasticity that still completes; the completion-optimal rate of
+  Amendments 13-17 is this onset seen on a coarse grid.
+* O2 passes: in a dense area completion at the onset NEEDS load -- the first
+  items do not complete, later ones do -- so stored items help later items
+  converge; O3 passes: a sparse area's onset needs none.
+* O5 passes and O4 passes: the sparse cells' higher optimal fraction
+  (Amendment 17's T2 failure) is capacity rising above a universal onset,
+  not a different onset.
+* O1 fails on the band but passes on the CV: the onset is universal at a
+  fraction other than the one Amendment 17's grid bracketed. O1 fails on the
+  CV: there is no universal onset.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until OV and O1 to O5 are evaluated and recorded below.
+
+## Amendment 19 (2026-10-02, before running): two capacity regimes -- does capacity change law at the floor?
+
+Registered before any run of this amendment, together with Amendment 20,
+which shares its run. Amendment 17's record showed, below the floor at
+n = 4000, p = 0.5, best distinct-completion capacities of 1356, 1382, 1452
+at k = 10, 20, 40: flat in k, where (n/k)^2 falls 16-fold over that range.
+Above the floor at the same n and p the capacities fell with k: 1589, 1312,
+1017 at k = 60, 80, 160. At equal fan-in (k p = 5) the sparse cell stored
+201 items on 8000 neurons against the dense cell's 1356 on 4000. If the law
+changes at the floor, capacity below it is not set by synapses per item but
+by something else -- most simply by neurons, linear in n and blind to k.
+
+**Seen before registering:** Amendments 14, 17 and the readings above;
+a smoke run (VOID: 3 brains, cap 32, give-up 16, two rates each at
+(4000, 10, 0.5) and (10000, 100, 0.01), 0.04 and 0.157 theta): distinct
+completion 0 everywhere; rank-1 3, 3 and 32 (the cap) items.
+
+### Protocol
+
+`research/experiments/memory_regimes.py` (`python -m research.runner
+regimes`), seeds 182 to 201 (new brains), one run, shared with Amendment 20.
+Fifteen cells:
+
+    the k sweep:     n = 4000, p = 0.5, k = 10, 14, 20, 28, 40 (below the
+                     floor) and 56, 80, 112, 160 (above it; the floor is
+                     k p = 24.9, k = 49.8)
+    the n sweep:     k = 20, p = 0.5, n = 2000, 4000, 8000 (k p = 10, below
+                     the floor at every n)
+    the PNAS family: n = 10000, p = 0.01, k = 100, 200, 400, 800 (Amendment 20)
+
+each swept over theta x 0.04 x 2^(j/4) below 0.14 theta and theta x 0.14 x
+2^(j/6) from 0.14 to 0.40 theta, at or above 0.025. A store runs until BOTH
+rank-1 and distinct completion have been above 0.5 and then at or below it
+twice (or to 32768 items; a rate on which neither rises stops at 8192);
+checkpoints from M = 2, no stop before M = 32. A cell's capacity is its
+best distinct-completion capacity over its grid.
+
+    python -m research.runner regimes \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag regimes-20261001 --seeds 182 ... 201
+
+### Bars
+
+    XV  THE INSTRUMENT. Best capacity within 15% of Amendment 17's at
+        (4000, 40, 0.5) (1452) and (4000, 80, 0.5) (1312). Failure voids
+        X1 to X3.
+    X1  FLAT BELOW THE FLOOR. At n = 4000, p = 0.5, k = 10, 14, 20, 28, 40,
+        every capacity lies within 15% of their mean.
+    X2  LINEAR IN n BELOW THE FLOOR. At k = 20, p = 0.5, capacity multiplies
+        by 1.6 to 2.5 from n = 2000 to 4000 and from 4000 to 8000.
+    X3  FALLING WITH k ABOVE THE FLOOR. At n = 4000, p = 0.5, capacity
+        strictly decreases over k = 56, 80, 112, 160, and capacity at
+        k = 160 is at most 0.8 of capacity at k = 56.
+
+### Interpretation, stated now
+
+* X1 and X2 pass: below the floor the memory is NEURON-limited -- capacity
+  is proportional to n and independent of k (and so of the synapses an item
+  can use) -- and above it SYNAPSE-limited; the floor k p = 3 ln n is a
+  change of law, not a degradation of one law.
+* X1 passes, X2 fails: flat in k below the floor, but not linear in n; the
+  limit is neither synapses nor neurons alone (its n-exponent is reported).
+* X1 fails: capacity below the floor depends on k; Amendment 17's flatness
+  was a three-point coincidence.
+* X3 passes: above the floor, at fixed n and p, more neurons per item cost
+  capacity even as fan-in grows.
+* A failed bar is recorded as failed and not moved after the data.
+
+## Amendment 20 (2026-10-02, before running): recognition against recall -- do they diverge as fan-in falls?
+
+Registered before any run, on Amendment 19's run. Amendment 17's record:
+below the floor at p = 0.5, rank-1 identification ran past the 8192-item
+cap at rates where distinct completion was zero; at the PNAS 2020 cell
+(k p = 1) the memory identified up to 112 items and completed none at any
+rate. Human memory dissociates the two -- recognition capacity far exceeds
+recall -- and the dual-process reading predicts that the gap grows as the
+substrate weakens. Here the substrate's strength is the fan-in k p.
+
+R is a cell's RATIO of rank-1 capacity to distinct-completion capacity,
+both read at the cell's completion-optimal rate (the best write for recall).
+A distinct-completed item is also rank-1, so R >= 1 by construction; the
+bars are about how R moves with fan-in, never about R >= 1.
+
+**Seen before registering:** as Amendment 19.
+
+### Protocol
+
+Amendment 19's run (identification's capacity is read because a store
+continues until rank-1 also falls). Rank-1 censored at 32768 items enters
+as its lower bound.
+
+### Bars
+
+    R1  THE GAP GROWS AS FAN-IN FALLS. Over the nine k-sweep cells, the
+        Spearman correlation of R with k p is at most -0.7.
+    R2  RECALL NEEDS FAN-IN, RECOGNITION DOES NOT. In the PNAS family
+        (n = 10000, p = 0.01), the best rank-1 capacity is at least 32 items
+        at all four cells; the best distinct-completion capacity is 0 at
+        k p = 1 and at least 32 items at k p = 8.
+    R3  THE DIVERGENCE IS LARGE. R at k = 10 (k p = 5) is at least 3 times
+        R at k = 160 (k p = 80).
+
+### Interpretation, stated now
+
+* R1 to R3 pass: recognition and recall dissociate in the substrate itself,
+  and the dissociation deepens as fan-in falls: a weakly connected area can
+  tell its items apart long after it can recall them; the regimes the
+  literature runs at (k p = 1 to 10) are recognition memories.
+* R2 passes alone: there is a fan-in threshold for recall that recognition
+  does not have, but the ratio does not trend smoothly.
+* R1 fails: recognition and recall track each other across fan-in; the
+  Amendment 17 readings were a stopping artefact (completion's stop censored
+  rank-1).
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until XV, X1 to X3 and R1 to R3 are evaluated and
+recorded below.
