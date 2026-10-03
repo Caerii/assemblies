@@ -59,8 +59,10 @@ def test_an_nk_squared_law_fails_x1():
     assert not out["bars"]["X1"]
 
 
-def test_a_constant_ratio_fails_r1_and_r3():
-    bars = rg.evaluate(_observations(_two_regimes, lambda n, k, p: 3.0))["bars"]
+def test_a_ratio_that_does_not_grow_as_fan_in_falls_fails_r1_and_r3():
+    # rising with k p, not constant: a constant ratio is computed as
+    # (d * r) / d, whose last bit wobbles, and Spearman would rank the wobble
+    bars = rg.evaluate(_observations(_two_regimes, lambda n, k, p: 2.0 + k * p / 100))["bars"]
     assert not bars["R1"] and not bars["R3"]
 
 

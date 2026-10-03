@@ -13,6 +13,13 @@ from research.experiments import memory_pattern_efficiency as pe
 pytestmark = pytest.mark.requires_torch
 
 
+def _not_falling(n, k):
+    """An optimum that does not fall with fan-in (the standard
+    parameterisation's prediction), rising slightly with k so that no
+    strict-decrease check can pass on rounding."""
+    return 0.06 * (1 + k / 2000)
+
+
 def test_optimum_finds_the_vertex_and_refuses_an_edge():
     betas = list(lr.BETAS)
     peak = 0.06
@@ -76,7 +83,11 @@ def test_distinct_bars_pass_on_the_predicted_law_and_fail_off_it():
     linear = lr.evaluate_distinct(_distinct_observations(
         lambda n, k: math.expm1(8.7 / (k * pe.P / 2))))["bars"]
     assert not linear["U2"] and not linear["U3"]
-    fixed = lr.evaluate_distinct(_distinct_observations(lambda n, k: 0.06))["bars"]
+    # an optimum that does not fall with fan-in (rising slightly with k): a
+    # constant one puts every cell's vertex at the same value up to the last
+    # bit of np.polyfit, which varies with the machine, on the knife edge of a
+    # strict-decrease bar
+    fixed = lr.evaluate_distinct(_distinct_observations(_not_falling))["bars"]
     assert not fixed["U2"] and not fixed["U3"]
 
 
@@ -85,5 +96,5 @@ def test_a_fan_in_scaled_optimum_passes_and_a_fixed_one_fails():
         return math.expm1(0.5 / math.sqrt(k * pe.P / 2))
     bars = lr.evaluate(_observations(scaled))["bars"]
     assert bars["TV"] and bars["T1"] and bars["T2"] and bars["T3"] and bars["T4"]
-    fixed = lr.evaluate(_observations(lambda n, k: 0.06))["bars"]
+    fixed = lr.evaluate(_observations(_not_falling))["bars"]
     assert fixed["T1"] and not fixed["T2"] and not fixed["T3"]
