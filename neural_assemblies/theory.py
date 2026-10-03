@@ -1037,7 +1037,11 @@ _RESULTS: List[Result] = [
               "the best write capacity is set by d = n p alone -- at equal d the "
               "cells agree within 11% while n/k varies fourfold -- and grows as "
               "d^1.5-1.7 (refit on 55 cells: C = 0.0099 d^1.554, x1.15); the "
-              "registered constants missed by 26% at d = 6000.",
+              "registered constants missed by 26% at d = 6000. TWO MEMORIES "
+              "(Amendment 23): each at its own best write, recognition holds "
+              "15-86x as many items as recall, at a write 6-40x weaker (int16 "
+              "counts); at fixed d recall stays put while recognition scales "
+              "with n/k and its best write as 1/k.",
         source="This repository; PREREG_refraction_memory.md (bars R1-R7, N1-N3, "
                "Q1-Q4, G1-G6, S8-S9).",
         evidence=("seq_capacity_scaling.py, arm B on the organ fiber, 20 brains, "
@@ -1090,7 +1094,10 @@ _RESULTS: List[Result] = [
                   "rank-1 at its own best write >= 32768 at k p <= 10, 2511 at k p 80",
                   "memory_degree_law.py, 20 new brains, nine cells (A21): d = 1000: "
                   "417/439; d = 1500: 971/811/944 (n/k 200/100/50); d = 3000: "
-                  "2871/2739; d = 6000: 8605; slope 1.669"),
+                  "2871/2739; d = 6000: 8605; slope 1.669",
+                  "memory_recognition.py v2, 20 new brains, seven cells (A23): "
+                  "recognition 81290/109640/51316/27917/12521 vs recall 1350/1292/"
+                  "1339/1299/837 at n = 4000, k = 10-160"),
         evidence_refs=(
             EvidenceRef("research/notes/memory/PREREG_refraction_memory.md", "registration"),
             EvidenceRef("research/results/runs/memory.capacity-scaling/capacity-record-consumed-20260910/results.json", "artifact",
@@ -1134,6 +1141,8 @@ _RESULTS: List[Result] = [
                         "Amendments 19-20: capacity across k and n, recognition against recall"),
             EvidenceRef("research/results/runs/memory.degree-law/degree-law-20261002/results.json", "artifact",
                         "Amendment 21: capacity at the best write against the in-degree d = n p"),
+            EvidenceRef("research/results/runs/memory.recognition/recognition-20261003-a23/results.json", "artifact",
+                        "Amendment 23: recognition and recall each at its own best write"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "
