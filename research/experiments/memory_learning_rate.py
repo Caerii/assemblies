@@ -188,27 +188,32 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
     arithmetic is the arithmetic of its solo run, so every rate's readings
     equal its own run's (tested against the one-rate launch)."""
     import torch
-    betas = [float(b) for b in betas]
     from neural_assemblies.core.torch_engine._hashed import clip_count
-    clips = [clip_count(b, pe.W_MAX) for b in betas]
-    count_bytes = 2 if any(c is not None and c > 127 for c in clips) else 1
-    per = launch_rates(n, len(seeds), k=k, cap=cap, count_bytes=count_bytes)
-    # equal launches: 17 rates at 15 a launch run as 9 + 8, not 15 + 2
-    per = -(-len(betas) // -(-len(betas) // per))
+    betas = [float(b) for b in betas]
+    # rates whose clip binds past count 127 need int16 counts: they launch
+    # apart from the int8 rates, which would otherwise pay double memory
+    wide = [b for b in betas if (clip_count(b, pe.W_MAX) or 0) > 127]
+    groups = [(g, 2 if g is wide else 1) for g in (wide, [b for b in betas if b not in wide]) if g]
     # an overcommit must raise, not page: cap the allocator at what is free
     free, total = torch.cuda.mem_get_info()
     torch.cuda.set_per_process_memory_fraction(
         min(1.0, (torch.cuda.memory_reserved() + free - RESERVE_BYTES // 2) / total))
-    out = []
+    results = {}
     try:
-        for g0 in range(0, len(betas), per):
-            out += _run_launch(n, k, betas[g0:g0 + per], seeds, cap, device,
-                               organ_semantics, stop_on, p=p, strength=strength,
-                               grid_start=grid_start, give_up=give_up, rounds=rounds,
-                               recall_rounds=recall_rounds, stop_from=stop_from)
+        for group, count_bytes in groups:
+            per = launch_rates(n, len(seeds), k=k, cap=cap, count_bytes=count_bytes)
+            # equal launches: 17 rates at 15 a launch run as 9 + 8, not 15 + 2
+            per = -(-len(group) // -(-len(group) // per))
+            for g0 in range(0, len(group), per):
+                chunk = group[g0:g0 + per]
+                done = _run_launch(n, k, chunk, seeds, cap, device,
+                                   organ_semantics, stop_on, p=p, strength=strength,
+                                   grid_start=grid_start, give_up=give_up, rounds=rounds,
+                                   recall_rounds=recall_rounds, stop_from=stop_from)
+                results.update(zip(chunk, done))
     finally:
         torch.cuda.set_per_process_memory_fraction(1.0)
-    return out
+    return [results[b] for b in betas]
 
 
 def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
