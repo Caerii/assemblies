@@ -1143,6 +1143,8 @@ _RESULTS: List[Result] = [
                         "Amendment 21: capacity at the best write against the in-degree d = n p"),
             EvidenceRef("research/results/runs/memory.recognition/recognition-20261003-a23/results.json", "artifact",
                         "Amendment 23: recognition and recall each at its own best write"),
+            EvidenceRef("research/results/runs/memory.criticality/criticality-20261003/results.json", "artifact",
+                        "Amendment 24: per-brain onsets at n = 2000-16000; onset converges at 0.163-0.170 theta"),
         ),
         provenance_gap=("the seven cells the law is fitted to are replayed under the runner "
                         "(Amendment 8 and A7): exact per-seed reproduction wherever legacy "

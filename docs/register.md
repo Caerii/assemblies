@@ -449,6 +449,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - [research/results/runs/memory.regimes/regimes-20261002-r3/results.json](../research/results/runs/memory.regimes/regimes-20261002-r3/results.json) (artifact) â€” Amendments 19-20: capacity across k and n, recognition against recall
 - [research/results/runs/memory.degree-law/degree-law-20261002/results.json](../research/results/runs/memory.degree-law/degree-law-20261002/results.json) (artifact) â€” Amendment 21: capacity at the best write against the in-degree d = n p
 - [research/results/runs/memory.recognition/recognition-20261003-a23/results.json](../research/results/runs/memory.recognition/recognition-20261003-a23/results.json) (artifact) â€” Amendment 23: recognition and recall each at its own best write
+- [research/results/runs/memory.criticality/criticality-20261003/results.json](../research/results/runs/memory.criticality/criticality-20261003/results.json) (artifact) â€” Amendment 24: per-brain onsets at n = 2000-16000; onset converges at 0.163-0.170 theta
 
 **Provenance gap.** the seven cells the law is fitted to are replayed under the runner (Amendment 8 and A7): exact per-seed reproduction wherever legacy data survives, every lost ceiling reproduced; the two gated ceilings are replayed within 5% (Amendment 9, PE-R); the strength (Amendment 6) and T-sweep grids and the numpy mirror still predate immutable source records
 

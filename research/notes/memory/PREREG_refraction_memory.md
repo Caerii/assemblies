@@ -728,6 +728,10 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | W2 burst write stores nothing (A25) | burst capacity 0 at every rate, every cell | PASS | 0 |
 | W3 burst gating costs capacity (A25) | online_burst <= half round's | PASS | 0 (abolished) |
 | W4 deferred write stores the trajectory (A25) | next >= 0.4, >= 5x same, own <= 0.1; round own >= 0.5 | PASS | next 0.64-0.79; own 0.002-0.022; round own 0.80-0.98 |
+| CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
+| F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
+| F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
+| F3 read-out slows at onset (A24) | settle(onset) >= 1.5 settle(half-octave up) | FAIL | 0.97-1.39; 42-88% never settle (tie-fragile instrument) |
 
 
 ## Runner migration reproduction (2026-09-10)
@@ -3079,6 +3083,61 @@ by n.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until CV and F1 to F3 are evaluated and recorded below.
+
+### Amendment 24 result (2026-10-06)
+
+One run from a worktree pinned at 78b983e0, seeds 282 to 301:
+[record](../../results/runs/memory.criticality/criticality-20261003/results.json),
+[log](../../results/logs/memory-criticality-20261003.log). Per-brain onsets
+in units of theta (20 of 20 brains have one at every cell); settling times
+in rounds (33 = never settled in 32):
+
+    n        best capacity   onset mean   onset sd   settle at onset   settle half-octave up   ratio
+    2000     496             0.1680       0.0031     21.40             19.32                   1.11
+    4000     1613            0.1627       0.0035     21.71             22.33                   0.97
+    8000     4543            0.1656       0.0041     22.99             18.62                   1.23
+    16000    12973           0.1704       0.0030     22.56             16.23                   1.39
+
+    CV  THE INSTRUMENT                                                PASS
+        1613 at (4000, 60, 0.5) against Amendment 18's 1597 (+1%).
+    F1  THE ONSET SHARPENS                                            FAIL
+        sd 0.0031, 0.0035, 0.0041, 0.0030: rises 17% from 4000 to 8000
+        (bar: no rise over 10%), and 16000's is 0.97 of 2000's (bar <= 0.6).
+    F2  THE ONSET CONVERGES                                           PASS
+        means 0.163 to 0.170 theta (band [0.13, 0.21]); 16000 / 8000 = 1.029
+        (bar: within 10%).
+    F3  THE READ-OUT SLOWS AT THE ONSET                               FAIL
+        ratios 0.97 to 1.39 (bar: >= 1.5 at every n).
+
+**Reading.** The onset converges: a critical coupling of 0.163 to 0.170
+theta at every size over an eightfold range of n, with no drift between the
+two largest. Both failures say the instruments could not see the
+transition, not that it is absent.
+
+F1: at every n the brains' onsets lie within about one grid step of one
+another (sd 0.003 to 0.004 theta, about 2% of the onset; the step near
+0.17 theta is 0.005 theta). The onset is already as sharp as this grid
+resolves at n = 2000, so any sharpening with size lies below its
+resolution. A finite-size study of this onset needs a grid that resolves
+0.001 theta, or a per-brain bisection, around the onset.
+
+F3: the period <= 2 settling time is dominated by read-outs that never
+settle. The share that reaches no fixed point or 2-cycle within 32 rounds is
+0.42 to 0.88 at every rate of every cell, well above the onset too, and it
+falls smoothly with the write, with no feature at the onset. Read-outs that
+complete their item (distinct completion above one half) keep changing a few
+marginal winners round after round: exact-set statistics are tie-fragile, as
+the exact@L tables of the sequence studies were. The registered measure
+therefore cannot carry critical slowing either way. The saddle-node
+conjecture (assembly_statmech.tex) predicts slowing in the OVERLAP: the
+rounds a read-out takes for its overlap with the stored item to stop
+changing. That is a different instrument, and a separate registration.
+
+**Seen in the record, not registered.** Capacity at fixed k = 60, p = 0.5
+rises 3.25x, 2.82x, 2.86x per doubling of n (Amendment 21's in-degree law
+predicts 457, 1303, 3711, 10568; measured 496, 1613, 4543, 12973, i.e. 9 to
+24% above it, with the excess growing with n). The unsettled share at a
+given fraction of theta is higher at larger n.
 
 ## Amendment 25 (2026-10-03, before running): when must the write happen? Burst-timing-dependent plasticity and the two controls that take it apart
 
