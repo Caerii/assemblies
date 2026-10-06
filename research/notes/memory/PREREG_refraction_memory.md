@@ -3327,3 +3327,118 @@ refraction moves them, so more of the item is written. `burst`'s burst
 set at 1.0 theta is 0.76 k, 0.13 k and 0.86 k -- smaller than an
 assembly, the refraction cost of asking a neuron to fire twice -- and its
 next-round reading (0.06 to 0.21) is barely above its same-round one.
+
+## Amendment 26 (2026-10-06, before running): sequences from adaptation -- replay, the switch, and sequence capacity
+
+Registered before any run of this amendment. Amendment 25 found that the
+round write's own counts, written after the item, store no attractor but the
+item's trajectory: refraction relocates the unwritten activity every round,
+and one frozen round from half of round t recovers 64 to 79% of round t + 1.
+A one-step read is not yet a sequence memory. This amendment asks three
+things of the same circuit:
+
+* **Replay.** From half of an item's FIRST state, does the area run through
+  the item's states in order, by itself -- frozen, masked rounds, each fed
+  the previous round's winners, nothing from the stimulus?
+* **The switch.** With the write kept online, does the refraction-to-
+  plasticity ratio s / beta decide what is stored? Below the churn
+  transition (s ~ 0.8 beta, REFRACTION-CANCELS-CONVERGENCE) the online write
+  converges an item onto one assembly; above it the activity moves every
+  round as it is written, which by Amendment 25's reading should store the
+  trajectory.
+* **Sequence capacity, and its law.** How many stored sequences does the
+  area replay, and does that number follow n / k (a Willshaw-type
+  heteroassociative count) or the in-degree d = n p (Amendment 21's law for
+  the attractor memory)?
+
+**Seen before registering** (5 brains, seeds 900 to 904, (4000, 60, 0.5),
+T = 8 unless stated; disclosed in full):
+
+* Replay length after 200 items (fraction of the 7 steps): deferred write at
+  1.0 theta: 1.00 (overlap rising along the chain, 0.79 to 0.97); online
+  write at s = 1.5 beta and 3.0 beta, 1.0 theta: 0.96 and 0.93, during-write
+  consecutive overlap 0.02 and 0.00; at 0.5 theta every sequence arm
+  replayed at most one step. Online write at s = 0.5 and 0.8 beta: own
+  0.77 to 0.93 (the item holds still; replay trivially follows it).
+* At T = 16 (1.0 theta): deferred, s = 0.5 beta: 13.55 of 15 steps;
+  deferred, s = 1.5 beta: 4.0; online, s = 1.5 beta: 3.45; online at s =
+  0.5 to 0.8 beta: the item dwells, relocates near the clip period, and the
+  masked replay follows the dwell but never the hop.
+* Sequence capacity of the deferred write (replay over 16 items spread over
+  the stored ones): full replay to M = 400 and below 0.3 by M = 800 at 1.0,
+  1.4 and 2.0 theta; at 0.7 theta never above 0.64. The attractor control
+  at 0.2 theta read 0.75 at M = 1600 and 0.40 at 3200.
+* A smoke run of the module (VOID: 3 brains, one rate per arm, (2000, 60,
+  0.5), to 64 items): the pipeline end to end.
+
+### Protocol
+
+`research/experiments/memory_sequences.py` (`python -m research.runner
+sequences`), seeds 322 to 341 (new brains), one run from a worktree pinned
+at the commit registering this amendment. The AssemblyMemory (T = 8, w_max
+20, arm B, ungated, masked readout) at three cells chosen so that two laws
+make opposite predictions: (2000, 60, 0.5) and (4000, 120, 0.5) share
+n / k = 33; (4000, 60, 0.5) and (4000, 120, 0.5) share d = 2000. Three arms:
+
+    deferred-s0.5   write_rule "deferred", s = 0.5 beta, rates 0.5, 0.7, 1.0,
+                    1.4, 2.0, 2.8 theta
+    round-s1.5      write_rule "round",    s = 1.5 beta, the same rates
+    round-s0.5      write_rule "round",    s = 0.5 beta, 0.2 theta (control)
+
+Each rate stores items and is read at checkpoints 32 x 2^(j/4) items (to
+16384). At each checkpoint 16 items spread evenly over those stored are
+replayed: half of the item's round-0 winners, then seven frozen masked
+rounds; an item's replay length is the number of steps before its overlap
+with its own round j first falls below 0.5, over 7. The control arm reads
+8-round half-cue completion of the item's last round instead. A rate stops
+two checkpoints after its mean read has fallen to 0.25 or below, having
+been above 0.5; or past 1024 items if it never rose above 0.5. Capacity is
+the load at which the mean read falls through 0.5, log-interpolated (0 if
+it never rose). During-write consecutive overlap ("own") is the mean
+overlap of round t with t + 1 over items 16 to 31 and t = 0 to 6, at each
+rate (every rate stores at least 32 items). An arm's PEAK READ is its
+largest mean read over every checkpoint of every rate: the mechanism,
+whatever the cell's capacity.
+
+    python -m research.runner sequences \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag sequences-20261006 --seeds 322 ... 341
+
+### Bars
+
+    S1  THE DEFERRED WRITE IS A SEQUENCE MEMORY. At every cell, the deferred
+        arm's peak read (mean replay length) is at least 0.9, and its own
+        is at most 0.1 at every rate.
+    S2  ADAPTATION SWITCHES THE MEMORY TYPE. At every cell, the online arm
+        at s = 1.5 beta has own at most 0.1 at every rate and a peak read of
+        at least 0.7; the control (s = 0.5 beta) has own at least 0.5.
+    S3  SEQUENCE CAPACITY FOLLOWS n / k. The deferred arm's best capacity at
+        (2000, 60) is within 25% of its value at (4000, 120), and at
+        (4000, 60) at least twice it.
+    S3d SEQUENCE CAPACITY FOLLOWS THE IN-DEGREE. The deferred arm's best
+        capacity at (4000, 60) is within 25% of its value at (4000, 120),
+        and at (2000, 60) at most half of it.
+
+S3 and S3d cannot both pass; both may fail. Reported, not judged: each
+arm's capacity curve over rates; the online arm's capacity against the
+deferred arm's; sequence capacity in transitions (7 per item) against the
+attractor control's in items.
+
+### Interpretation, stated now
+
+* S1 and S2 pass: one recurrent area with one causal Hebbian rule is an
+  attractor memory or a sequence memory according to whether its
+  plasticity, while it writes, outpaces the adaptation that moves its
+  activity -- s / beta below or above the churn transition, or the write
+  online or deferred. Sequences then need no dedicated connectivity,
+  asymmetric rule, or delay line: adaptation supplies the motion and the
+  ordinary write records it.
+* S3 passes: a sequence is stored as heteroassociative pairs and its
+  capacity is Willshaw's, set by the code's sparsity n / k. S3d passes:
+  sequences share the attractor memory's in-degree law, and what limits
+  both is how many synapses a neuron receives.
+* S1 fails: the deferred write's trajectory reading does not extend to
+  autonomous replay at these cells.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until S1 to S3d are evaluated and recorded below.
