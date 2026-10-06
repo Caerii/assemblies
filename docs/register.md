@@ -19,6 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`ADAPTATION-SWITCHES-MEMORY-TYPE`](#adaptation-switches-memory-type) | MEASURED | hashed AssemblyMemory (arm B, ungated, masked readout), write_rule round / deferred, refraction strength s | One recurrent area and one causal Hebbian rule store attractors or sequences according to whether the activity holds still while it is written. |
 | [`WRITE-TIMING-DECIDES-ATTRACTOR`](#write-timing-decides-attractor) | MEASURED | hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst | In the refracted assembly memory WHEN the write happens decides what is stored. |
 | [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed_assembly_memory (HashedArea with AreaFiber/StimulusFiber); the registered twenty-brain run is a runner artifact, the wander diagnostic and the bias-readout numbers are logs | [MEASURED 2026-09-13 on two disjoint blocks of twenty registered brains, PREREG_refraction_convergence.md: a refracted RECURRENT area below the transition does not converge and hold. |
 | [`AC-CAP`](#ac-cap) | MEASURED | original capacity-note run: incompletely recorded (graded-similarity evidence compares explicit, materialized and sampled numpy_sparse); retained bracket: hashed_assembly_memory, the unrefracted Hebbian control arm of the paired capacity replay at (n, k) = (4000, 60) | Assembly capacity is EXTENSIVE: about M_max ~ 1.15 n/k distinct assemblies per area. |
@@ -465,6 +466,32 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Sensitivity gap.** Paired refracted-versus-control checks now cover all seven cells the law is fitted to (A7 at (4000, 60); Amendment 8 at the other six). The masked-vs-net veto, the convergence gate, the strength plateau and the cross-engine mirror still lack retained paired checks.
 
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
+
+## ADAPTATION-SWITCHES-MEMORY-TYPE
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 26 (S1, S2 PASS; S3, S3d FAIL)
+
+**Engine / substrate.** hashed AssemblyMemory (arm B, ungated, masked readout), write_rule round / deferred, refraction strength s
+
+**Claim.** One recurrent area and one causal Hebbian rule store attractors or sequences according to whether the activity holds still while it is written. Online under refraction weaker than plasticity (s = 0.5 beta) the item's rounds converge (consecutive overlap 0.71-0.85) and the area stores attractors; online under refraction stronger than plasticity (s = 1.5 beta), or written after the item, the activity moves every round (overlap <= 0.05) and the area replays the stored trajectory from half of its first state, all seven steps, by itself: 207-950 sequences of eight states at three cells.
+
+**Requires.**
+- T = 8 rounds per item, w_max 20, norm_init; replay = frozen masked rounds from half of round 0, each fed the previous round's winners
+- write at least ~0.7-1.0 theta: no sequence is stored at 0.5 theta
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-26-result-2026-10-06
+
+**Evidence files.**
+- [research/results/runs/memory.sequences/sequences-20261006/results.json](../research/results/runs/memory.sequences/sequences-20261006/results.json) (artifact) â€” Amendment 26: three arms at three cells, 20 brains, replay capacity and during-write overlap
+- [research/results/runs/memory.write_rules/write-rules-20261003/results.json](../research/results/runs/memory.write_rules/write-rules-20261003/results.json) (artifact) â€” Amendment 25: the deferred write's one-step trajectory reading
+
+**Mechanism sensitivity.**
+- online write at s = 0.5 beta holds the item's rounds, at s = 1.5 beta they move, at (4000, 60, 0.5) (Amendment 26): `observations/cells/4000~160~10.5/arms/round-s0.5/rates/0.07436/own/values` all-greater `observations/cells/4000~160~10.5/arms/round-s1.5/rates/0.52052/own/values` by at least 0.5, retained in [research/results/runs/memory.sequences/sequences-20261006/results.json](../research/results/runs/memory.sequences/sequences-20261006/results.json) and paired by `run/seeds`.
+- online write at s = 0.5 beta holds the item's rounds, at s = 1.5 beta they move, at (2000, 60, 0.5) (Amendment 26): `observations/cells/2000~160~10.5/arms/round-s0.5/rates/0.07118/own/values` all-greater `observations/cells/2000~160~10.5/arms/round-s1.5/rates/0.35592/own/values` by at least 0.5, retained in [research/results/runs/memory.sequences/sequences-20261006/results.json](../research/results/runs/memory.sequences/sequences-20261006/results.json) and paired by `run/seeds`.
+- deferred write replays the stored trajectory at 1.4 theta, not at 0.5 theta, at (4000, 60, 0.5), 32 items (Amendment 26): `observations/cells/4000~160~10.5/arms/deferred-s0.5/rates/0.52052/ensembles/32/replay/values` all-greater `observations/cells/4000~160~10.5/arms/deferred-s0.5/rates/0.1859/ensembles/32/replay/values` by at least 0.5, retained in [research/results/runs/memory.sequences/sequences-20261006/results.json](../research/results/runs/memory.sequences/sequences-20261006/results.json) and paired by `run/seeds`.
+
+**Caveat.** Sequence capacity follows neither n/k nor the in-degree alone (S3, S3d fail); three cells give C ~ d^1.05 (n/k)^0.75 exactly, untested. The replay criterion is overlap with the item's own state, not distinct against other items' -- a distinctness read is owed. The control and the online arm differ in rate as well as s. All cells p = 0.5, T = 8.
 
 ## WRITE-TIMING-DECIDES-ATTRACTOR
 

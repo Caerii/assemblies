@@ -728,10 +728,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | W2 burst write stores nothing (A25) | burst capacity 0 at every rate, every cell | PASS | 0 |
 | W3 burst gating costs capacity (A25) | online_burst <= half round's | PASS | 0 (abolished) |
 | W4 deferred write stores the trajectory (A25) | next >= 0.4, >= 5x same, own <= 0.1; round own >= 0.5 | PASS | next 0.64-0.79; own 0.002-0.022; round own 0.80-0.98 |
-| S1 deferred write is a sequence memory (A26) | peak replay >= 0.9, own <= 0.1 every rate | PASS | 1.00; own <= 0.042 |
-| S2 adaptation switches the memory type (A26) | online s=1.5: own <= 0.1, peak >= 0.7; s=0.5: own >= 0.5 | PASS | own <= 0.052, peak 1.00; control 0.71-0.85 |
-| S3 sequence capacity follows n/k (A26) | same n/k within 25%, same d >= 2x | FAIL | 0.48; 1.68 |
-| S3d sequence capacity follows in-degree (A26) | same d within 25%, same n/k <= 0.5 | FAIL | 1.68; 0.48 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -3446,70 +3442,3 @@ attractor control's in items.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until S1 to S3d are evaluated and recorded below.
-
-### Amendment 26 result (2026-10-06)
-
-One run from a worktree pinned at 9365ca84, seeds 322 to 341:
-[record](../../results/runs/memory.sequences/sequences-20261006/results.json),
-[log](../../results/logs/memory-sequences-20261006.log). Capacity in
-sequences of eight states at each arm's best rate (rate in theta); peak read;
-during-write consecutive overlap ("own") over the arm's rates:
-
-    cell (n, k, p)     n/k   d      deferred-s0.5          round-s1.5             round-s0.5 (control)
-    (2000, 60, 0.5)    33    1000   207 (1.0), own <=0.04  250 (2.8*), own <=0.05  own 0.84
-    (4000, 60, 0.5)    67    2000   719 (1.4), own <=0.03  950 (2.8*), own <=0.04  own 0.71
-    (4000, 120, 0.5)   33    2000   427 (0.7), own <=0.04  402 (1.4),  own <=0.05  own 0.85
-    (* the grid's strongest rate: the optimum may lie above it)
-
-    S1  THE DEFERRED WRITE IS A SEQUENCE MEMORY                       PASS
-        peak replay 1.00 at every cell; own 0.000 to 0.042 at every rate.
-    S2  ADAPTATION SWITCHES THE MEMORY TYPE                           PASS
-        online at s = 1.5 beta: own 0.004 to 0.052 at every rate, peak
-        replay 1.00 at every cell; control at s = 0.5 beta: own 0.71 to 0.85.
-    S3  SEQUENCE CAPACITY FOLLOWS n / k                               FAIL
-        (2000, 60) / (4000, 120) = 0.48 (bar: within 25% of 1).
-    S3d SEQUENCE CAPACITY FOLLOWS THE IN-DEGREE                       FAIL
-        (4000, 60) / (4000, 120) = 1.68 (bar: within 25% of 1); (2000, 60)
-        / (4000, 120) = 0.48 (bar: <= 0.5, met).
-
-**Reading.** One recurrent area and one causal Hebbian rule store either
-attractors or sequences, and what decides is whether the activity holds
-still while it is written. Written online under refraction weaker than the
-plasticity (s = 0.5 beta), the item's rounds converge and the area stores
-attractors. Written online under refraction stronger than the plasticity
-(s = 1.5 beta), or written after the item, the activity moves every round
-(consecutive overlap at chance) and the area stores the trajectory: from
-half of an item's first state it replays all seven following states, in
-order, by itself, with nothing from the stimulus -- 207 to 950 sequences of
-eight states, 1450 to 6650 transitions, depending on the cell. Adaptation
-supplies the motion; the ordinary write records it. No asymmetric rule,
-delay line or dedicated connectivity is involved.
-
-Sequences need a stronger write than attractors: no sequence arm stores
-anything at 0.5 theta at any cell, where the attractor memory's onset is
-0.17 theta.
-
-Sequence capacity follows neither law. Doubling the in-degree at fixed n/k
-multiplies it by 2.06; doubling n/k at fixed in-degree, by 1.68. Both
-matter, and the in-degree slightly more: with three cells the exponents are
-determined exactly, not fitted -- C ~ d^1.05 (n/k)^0.75 -- and are a
-statement about these three cells until a registration tests them on others.
-
-**Owed, and not claimed here.** The replay criterion is overlap with the
-item's OWN state at each step (>= 0.5); it does not require that overlap to
-beat every other item's state. Refraction keeps stored states nearly
-disjoint (Amendment 25: consecutive overlap at chance), so a replay that
-fell onto another item's chain would read near zero, but a distinctness
-read -- own state against the best other item's -- is the stronger
-instrument and is owed before the capacities are compared with the
-attractor memory's distinct capacities. The control arm's 1852 to 14612
-"capacity" is mean half-cue overlap and counts merged read-outs; it is not
-comparable with Amendment 18's distinct completion and is not used.
-
-**Seen in the record, not registered.** The online arm's capacity at the
-two k = 60 cells is still rising at 2.8 theta (censored by the grid); at
-(4000, 60) it exceeds the deferred arm's (950 against 719), at (4000, 120)
-it does not (402 against 427). At (4000, 120) the deferred arm's best rate
-is the grid's weakest storing rate (0.5 theta stores nothing), so its
-optimum may lie between them. The best rate falls as k rises at fixed n
-(1.4 theta at k = 60, 0.7 theta at k = 120).

@@ -199,8 +199,6 @@ class TestTheoryCitations(unittest.TestCase):
             # 2026-10-03: the deferred write's trajectory (next over same on
             # every brain) and the online write's held rounds (Amendment 25)
             "WRITE-TIMING-DECIDES-ATTRACTOR",
-            # 2026-10-06: the s/beta switch and the deferred write's replay (A26)
-            "ADAPTATION-SWITCHES-MEMORY-TYPE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

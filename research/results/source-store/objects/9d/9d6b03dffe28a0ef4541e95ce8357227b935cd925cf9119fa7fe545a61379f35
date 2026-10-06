@@ -1175,58 +1175,6 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
-        id="ADAPTATION-SWITCHES-MEMORY-TYPE",
-        engine="hashed AssemblyMemory (arm B, ungated, masked readout), write_rule round / deferred, refraction strength s",
-        status=Status.MEASURED,
-        claim="One recurrent area and one causal Hebbian rule store attractors or "
-              "sequences according to whether the activity holds still while it is "
-              "written. Online under refraction weaker than plasticity (s = 0.5 beta) "
-              "the item's rounds converge (consecutive overlap 0.71-0.85) and the area "
-              "stores attractors; online under refraction stronger than plasticity "
-              "(s = 1.5 beta), or written after the item, the activity moves every round "
-              "(overlap <= 0.05) and the area replays the stored trajectory from half of "
-              "its first state, all seven steps, by itself: 207-950 sequences of eight "
-              "states at three cells.",
-        source="PREREG_refraction_memory.md Amendment 26 (S1, S2 PASS; S3, S3d FAIL)",
-        preconditions=("T = 8 rounds per item, w_max 20, norm_init; replay = frozen masked "
-                       "rounds from half of round 0, each fed the previous round's winners",
-                       "write at least ~0.7-1.0 theta: no sequence is stored at 0.5 theta"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-26-result-2026-10-06",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.sequences/sequences-20261006/results.json", "artifact",
-                        "Amendment 26: three arms at three cells, 20 brains, replay capacity and during-write overlap"),
-            EvidenceRef("research/results/runs/memory.write_rules/write-rules-20261003/results.json", "artifact",
-                        "Amendment 25: the deferred write's one-step trajectory reading"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.sequences/sequences-20261006/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~160~10.5/arms/round-s0.5/rates/0.07436/own/values",
-            control_path="observations/cells/4000~160~10.5/arms/round-s1.5/rates/0.52052/own/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="online write at s = 0.5 beta holds the item's rounds, at s = 1.5 beta they move, at (4000, 60, 0.5) (Amendment 26)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.sequences/sequences-20261006/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/2000~160~10.5/arms/round-s0.5/rates/0.07118/own/values",
-            control_path="observations/cells/2000~160~10.5/arms/round-s1.5/rates/0.35592/own/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="online write at s = 0.5 beta holds the item's rounds, at s = 1.5 beta they move, at (2000, 60, 0.5) (Amendment 26)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.sequences/sequences-20261006/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~160~10.5/arms/deferred-s0.5/rates/0.52052/ensembles/32/replay/values",
-            control_path="observations/cells/4000~160~10.5/arms/deferred-s0.5/rates/0.1859/ensembles/32/replay/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="deferred write replays the stored trajectory at 1.4 theta, not at 0.5 theta, at (4000, 60, 0.5), 32 items (Amendment 26)",
-        )),
-        caveat="Sequence capacity follows neither n/k nor the in-degree alone (S3, S3d "
-               "fail); three cells give C ~ d^1.05 (n/k)^0.75 exactly, untested. The "
-               "replay criterion is overlap with the item's own state, not distinct "
-               "against other items' -- a distinctness read is owed. The control and "
-               "the online arm differ in rate as well as s. All cells p = 0.5, T = 8.",
-    ),
-    Result(
         id="WRITE-TIMING-DECIDES-ATTRACTOR",
         engine="hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst",
         status=Status.MEASURED,
