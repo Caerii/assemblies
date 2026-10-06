@@ -3513,3 +3513,15 @@ it does not (402 against 427). At (4000, 120) the deferred arm's best rate
 is the grid's weakest storing rate (0.5 theta stores nothing), so its
 optimum may lie between them. The best rate falls as k rises at fixed n
 (1.4 theta at k = 60, 0.7 theta at k = 120).
+
+**Post hoc, exploratory (2026-10-06; 5 brains, seeds 900 to 904, not the
+registered brains; deferred write at (4000, 60, 0.5), 1.4 theta).** The owed
+distinctness read, made once: replay's overlap with the item's own state
+against its best overlap with ANY other stored state (every round of every
+item). At M = 200: own 0.95, best other 0.10, own the best in 100% of steps;
+at M = 600: 0.53 against 0.11, 95%; at M = 1000, past capacity: 0.18
+against 0.41, 32% -- the replay is captured by other items' states, not
+merely weakened. Replay is forward only: one frozen round from half of round
+t recovers 0.57 to 0.84 of round t + 1 and 0.01 of round t - 1. A
+registration on fresh brains would make the distinctness a claim; until
+then it is a probe.
