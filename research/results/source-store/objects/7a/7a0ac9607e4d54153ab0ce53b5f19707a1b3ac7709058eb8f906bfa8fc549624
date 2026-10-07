@@ -207,8 +207,6 @@ class TestTheoryCitations(unittest.TestCase):
             "RECOVERY-SETS-SEQUENCE-LENGTH",
             # 2026-10-07: a balanced chain goes back where a forward-heavy one does not (A32)
             "BIDIRECTIONAL-RECALL-BY-LRI",
-            # 2026-10-07: plans replay whole with the C -> S links and not without (A33)
-            "SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

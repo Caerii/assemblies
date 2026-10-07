@@ -19,6 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
 | [`SEQUENCE-TILING-DEADLINE`](#sequence-tiling-deadline) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta, beta = theta | A refracted area writes a single sequence onto neurons that have never fired until none remain: the sequence tiles the area, the fresh pool is empty at element n/k, and replay breaks at multiples of n/k (49 of 51 breaks within two steps). |
@@ -470,6 +471,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Sensitivity gap.** Paired refracted-versus-control checks now cover all seven cells the law is fitted to (A7 at (4000, 60); Amendment 8 at the other six). The masked-vs-net veto, the convergence gate, the strength plateau and the cross-engine mirror still lack retained paired checks.
 
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
+
+## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 33 (H1-H4 PASS)
+
+**Engine / substrate.** two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks
+
+**Claim.** Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. The links from plan positions to chunk starts carry it, and under load they give way first; doubling both areas relieves them.
+
+**Requires.**
+- chunk starts linked by construction (the circuit does not find chunk boundaries itself); fixed chunk length on a two-clock recall
+- each area as in ADAPTATION-SWITCHES-MEMORY-TYPE: beta = theta, refraction 0.5 beta recovering over 33 rounds
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-33-result-2026-10-07
+
+**Evidence files.**
+- [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) (artifact) â€” Amendment 33: three loads, links 0 and 2, two area pairs, 20 brains
+
+**Mechanism sensitivity.**
+- plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (4000, 2000) (Amendment 33): `observations/cells/4000~12000/links/8~16~12/0/whole/values` all-greater `observations/cells/4000~12000/links/8~16~10/0/whole/values` by at least 0.5, retained in [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) and paired by `run/seeds`.
+- plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (8000, 4000) (Amendment 33): `observations/cells/8000~14000/links/8~16~12/0/whole/values` all-greater `observations/cells/8000~14000/links/8~16~10/0/whole/values` by at least 0.5, retained in [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) and paired by `run/seeds`.
+
+**Caveat.** Two levels, p = 0.5, no noise, chunks of 12 and plans of 5 or 8; the recall's clock (one chunk-area step per chunk) is given, not generated.
 
 ## BIDIRECTIONAL-RECALL-BY-LRI
 

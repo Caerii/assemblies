@@ -1,0 +1,13 @@
+(S 4000, C 2000) load [8, 6] link 0: whole 0.00, starts 0.00, chain 1.00
+(S 4000, C 2000) load [8, 6] link 2: whole 1.00, starts 1.00, chain 1.00
+(S 4000, C 2000) load [32, 32] link 0: whole 0.00, starts 0.00, chain 1.00
+(S 4000, C 2000) load [32, 32] link 2: whole 0.95, starts 1.00, chain 1.00
+(S 4000, C 2000) load [64, 96] link 0: whole 0.00, starts 0.00, chain 0.96
+(S 4000, C 2000) load [64, 96] link 2: whole 0.34, starts 0.78, chain 0.96
+(S 8000, C 4000) load [8, 6] link 0: whole 0.00, starts 0.00, chain 1.00
+(S 8000, C 4000) load [8, 6] link 2: whole 1.00, starts 1.00, chain 1.00
+(S 8000, C 4000) load [32, 32] link 0: whole 0.00, starts 0.00, chain 1.00
+(S 8000, C 4000) load [32, 32] link 2: whole 1.00, starts 1.00, chain 1.00
+(S 8000, C 4000) load [64, 96] link 0: whole 0.00, starts 0.00, chain 1.00
+(S 8000, C 4000) load [64, 96] link 2: whole 0.94, starts 1.00, chain 1.00
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.hierarchy\hierarchy-20261007\results.json

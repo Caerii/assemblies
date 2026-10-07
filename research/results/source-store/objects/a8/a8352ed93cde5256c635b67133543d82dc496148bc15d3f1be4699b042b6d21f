@@ -1175,45 +1175,6 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
-        id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
-        engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
-        status=Status.MEASURED,
-        claim="Two areas replay sequences of sequences: chunks written once into a "
-              "sequence area are replayed in whatever order a plan in a chunk area "
-              "dictates -- every plan whole, every brain, from the plan's first state "
-              "alone -- with plans that share chunks kept apart by the chunk area and the "
-              "content shared through the sequence area. The links from plan positions "
-              "to chunk starts carry it, and under load they give way first; doubling "
-              "both areas relieves them.",
-        source="PREREG_refraction_memory.md Amendment 33 (H1-H4 PASS)",
-        preconditions=("chunk starts linked by construction (the circuit does not find "
-                       "chunk boundaries itself); fixed chunk length on a two-clock recall",
-                       "each area as in ADAPTATION-SWITCHES-MEMORY-TYPE: beta = theta, "
-                       "refraction 0.5 beta recovering over 33 rounds"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-33-result-2026-10-07",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.hierarchy/hierarchy-20261007/results.json", "artifact",
-                        "Amendment 33: three loads, links 0 and 2, two area pairs, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.hierarchy/hierarchy-20261007/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~12000/links/8~16~12/0/whole/values",
-            control_path="observations/cells/4000~12000/links/8~16~10/0/whole/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (4000, 2000) (Amendment 33)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.hierarchy/hierarchy-20261007/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8000~14000/links/8~16~12/0/whole/values",
-            control_path="observations/cells/8000~14000/links/8~16~10/0/whole/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (8000, 4000) (Amendment 33)",
-        )),
-        caveat="Two levels, p = 0.5, no noise, chunks of 12 and plans of 5 or 8; the "
-               "recall's clock (one chunk-area step per chunk) is given, not generated.",
-    ),
-    Result(
         id="BIDIRECTIONAL-RECALL-BY-LRI",
         engine="hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed",
         status=Status.MEASURED,

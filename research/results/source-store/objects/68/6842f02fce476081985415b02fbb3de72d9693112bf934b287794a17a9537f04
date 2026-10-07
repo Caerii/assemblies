@@ -753,10 +753,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | Q1 balanced chain both ways (A32) | 2 + 3: four reads >= 0.9 | PASS | 1.00 everywhere |
 | Q2 stronger direction wins (A32) | 2 + 2 forward only; 0 + 2 backward only | PASS | back 0.05-0.33; forward 0.09-0.23 |
 | Q3 no LRI no direction, balanced (A32) | 2 + 3 forward without LRI <= 0.5 | PASS | 0.02 |
-| H1 sequences of sequences (A33) | (8, 6) link 2: every plan whole >= 0.9 | PASS | 1.00 both cells |
-| H2 the links carry it (A33) | link 0: starts <= 0.1 everywhere | PASS | 0.00 |
-| H3 plans sharing a run stay apart (A33) | shared-run plans chain, whole >= 0.9 | PASS | 1.00 |
-| H4 links give way first, larger pair relieves (A33) | starts < chain - 0.1; larger +0.1 | PASS | 0.78 vs 0.96; 1.00 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4329,43 +4325,3 @@ cells.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until H1 to H4 are evaluated and recorded below.
-
-### Amendment 33 result (2026-10-07)
-
-One run from a worktree pinned at 0f95af53, seeds 462 to 481:
-[record](../../results/runs/memory.hierarchy/hierarchy-20261007/results.json),
-[log](../../results/logs/memory-hierarchy-20261007.log). Means over the plans
-read (whole-plan replay, chunk starts, chunk-order chain):
-
-    load (chunks, plans), link   (S, C) = (4000, 2000)    (8000, 4000)
-    (8, 6), 0                    0.00, 0.00, 1.00          0.00, 0.00, 1.00
-    (8, 6), 2                    1.00, 1.00, 1.00          1.00, 1.00, 1.00
-    (32, 32), 0                  0.00, 0.00, 1.00          0.00, 0.00, 1.00
-    (32, 32), 2                  0.95, 1.00, 1.00          1.00, 1.00, 1.00
-    (64, 96), 0                  0.00, 0.00, 0.96          0.00, 0.00, 1.00
-    (64, 96), 2                  0.34, 0.78, 0.96          0.94, 1.00, 1.00
-
-    H1  SEQUENCES OF SEQUENCES                                         PASS
-        load (8, 6), link 2: every plan 1.00 at both cells.
-    H2  THE LINKS CARRY IT                                             PASS
-        link 0: chunk starts 0.00 for every plan, every load, both cells.
-    H3  PLANS SHARING A RUN STAY APART                                 PASS
-        the two plans sharing a run of two chunks: chain and whole 1.00.
-    H4  THE LINKS GIVE WAY FIRST, AND A LARGER PAIR RELIEVES THEM      PASS
-        (64, 96) at (4000, 2000): starts 0.78 against chain 0.96; at
-        (8000, 4000): starts 1.00 (and whole 0.94).
-
-**Reading.** Two areas do what one could not. Chunks of 12 elements, each
-written once into the sequence area, are replayed in whatever order a plan in
-the chunk area dictates: every plan, every brain, both cells, at the light
-load -- 60 elements in plan order from the plan's first state alone, with no
-outside guidance. Plans that share chunks stay apart because the chunk area
-codes each occurrence on its own neurons, and the content stays shared
-because the sequence area stores it once. A new plan over known chunks costs
-only its chunk order. Without the links from plan positions to chunk starts
-nothing is evoked at any load. Under load the first thing to give way is
-those links -- many plan positions pointing at one chunk start begin to evoke
-the wrong one (0.78 at 96 plans) while the chunk area still holds every
-plan's order (0.96) -- and doubling both areas removes it (1.00). The chunk
-starts were linked by construction: the circuit does not yet find a chunk's
-boundaries itself.
