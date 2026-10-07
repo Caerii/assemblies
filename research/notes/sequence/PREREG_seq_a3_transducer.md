@@ -324,3 +324,33 @@ distinct state carrying no information the current word does not -- is
 expected to stand, but H1 and H4 are judged on a cell whose divisor was
 wrong. They are UNSETTLED until the two cells are rerun under the fix on the
 same 20 seeds with the bars unchanged, registered before that run.
+
+## Amendment 4 (2026-10-07, before running): the hashed organ again, on the corrected divisor
+
+Registered before the run it names, after the corrigendum above. The
+induced arm is rerun on the corrected engine (dc92d895), with nothing else
+changed: the same three cells (n_arc = 2,000, 10,000, 50,000), the same 20
+seeds (42 to 61, so the same corpora and connectomes), the CONTEXT arm on
+the same seeds, H4 and the state-blind audit at the best cell by mean, and
+the bars H1 to H5 exactly as registered. One run from a worktree pinned at
+the commit registering this amendment:
+
+    python -m research.runner a3-transducer --arm induced --with-context \
+        --tag a3-induced-20261007-a35 --seeds 42 ... 61
+
+**Judged on this run.** H1 to H5 as registered. The result above stays
+recorded as a run whose 2,000 and 50,000 cells had the wrong divisor; where
+the two runs disagree on a bar, this run's verdict is the study's.
+
+**Control, reported not judged.** The n_arc = 10,000 cell is square, so its
+divisor did not change; it is expected to read 0.2054 again unless something
+else in the organ's path has changed since 2026-09-04, which the run would
+then show.
+
+**Prediction, stated now.** The fibers into ARC are its only area inputs, so
+the uniform part of the error cannot change a k-WTA; the defective divisor
+counted mostly rows that do not exist, so it replaced each neuron's own
+in-degree correction with one nearly unrelated to it -- a per-neuron gain
+error of about two percent at organ_p = 0.2 and n_pre = 10,000. Expected:
+each cell moves by less than its confidence interval (about 0.01), and the
+verdicts stand -- H5 pass, H1 pass, H2 and H3 fail, H4 pass.
