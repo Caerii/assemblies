@@ -1175,43 +1175,6 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
-        id="SEQUENCE-MEMORY-ROBUSTNESS",
-        engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 33 rounds, beta = theta",
-        status=Status.MEASURED,
-        claim="The refracted sequence memory's length limit is a budget of elements, spent "
-              "alike on one long sequence or many short ones (0.81-1.08 of the single-"
-              "sequence limit); replay loses nothing with up to 7% of its winners replaced "
-              "at random at every step, derails at a horizon at 10% that a twice-larger "
-              "area pushes out about sixfold, and starts from a cue a quarter wrong.",
-        source="PREREG_refraction_memory.md Amendment 34 (N1-N4 PASS)",
-        preconditions=("noise = random replacement of a fraction of each replay step's "
-                       "winners; the cue is half of the first state",
-                       "two cells, k = 60, p = 0.5"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-34-result-2026-10-07",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.robustness/robustness-20261007/results.json", "artifact",
-                        "Amendment 34: many sequences, activity noise, corrupted cues, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.robustness/robustness-20261007/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~160~10.5/noise/0.05/values",
-            control_path="observations/cells/4000~160~10.5/noise/0.2/values",
-            relation="all-greater", minimum_effect=300,
-            mechanism="replay survives 5% activity noise per step and derails within a few steps at 20%, at (4000, 60, 0.5) (Amendment 34)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.robustness/robustness-20261007/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8000~160~10.5/noise/0.05/values",
-            control_path="observations/cells/8000~160~10.5/noise/0.2/values",
-            relation="all-greater", minimum_effect=300,
-            mechanism="replay survives 5% activity noise per step and derails within a few steps at 20%, at (8000, 60, 0.5) (Amendment 34)",
-        )),
-        caveat="The noise model is uniform random replacement; the mechanism of the 10% "
-               "horizon is not identified (the onset of neuron reuse did not predict it in "
-               "the probe). Synaptic noise and noise during writing are untested.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,

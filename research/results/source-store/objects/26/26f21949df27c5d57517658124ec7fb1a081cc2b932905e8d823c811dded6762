@@ -757,10 +757,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | H2 the links carry it (A33) | link 0: starts <= 0.1 everywhere | PASS | 0.00 |
 | H3 plans sharing a run stay apart (A33) | shared-run plans chain, whole >= 0.9 | PASS | 1.00 |
 | H4 links give way first, larger pair relieves (A33) | starts < chain - 0.1; larger +0.1 | PASS | 0.78 vs 0.96; 1.00 |
-| N1 many sequences share one budget (A34) | budget in [0.6, 1.6] of A29 | PASS | 1.08; 0.81 |
-| N2 small noise harmless (A34) | nu 0.05: >= 18/20 full | PASS | 20/20 both cells |
-| N3 larger area doubles noise horizon (A34) | median(8000) >= 2 median(4000) at nu 0.1 | PASS | 232 vs 39 |
-| N4 cue may be a quarter wrong (A34) | eta 0.25: >= 0.9 | PASS | 1.00 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4442,37 +4438,3 @@ whole many-sequence curve.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until N1 to N4 are evaluated and recorded below.
-
-### Amendment 34 result (2026-10-07)
-
-One run from a worktree pinned at da3d3bbf, seeds 482 to 501:
-[record](../../results/runs/memory.robustness/robustness-20261007/results.json),
-[log](../../results/logs/memory-robustness-20261007.log).
-
-    MANY (sequences of 32; mean replay)   (4000, 60, 0.5)        (8000, 60, 0.5)
-    M = 45 / 64 / 91 / 128 / 181          1.00 / 0.98 / 0.13 /   1.00 / 1.00 / 1.00 /
-                                          0.03 / --              1.00 / 0.44
-    budget (elements) / A29 limit          2501 / 2309 = 1.08     5578 / 6890 = 0.81
-
-    NOISE (first-miss median of 399)      nu = 0.05: 399, 399; 0.07: 399, 399;
-                                          0.1: 39, 232; 0.2: 3.5, 3.3
-    CUE (mean replay)                     eta = 0.25: 1.00, 1.00; 0.5: 0.45, 0.05
-
-    N1  MANY SEQUENCES SHARE ONE BUDGET                                PASS
-        1.08 and 0.81 of the single-sequence limit (band [0.6, 1.6]).
-    N2  SMALL NOISE IS HARMLESS                                        PASS
-        nu = 0.05: 20 of 20 brains replay all 399 steps at both cells.
-    N3  A LARGER AREA DOUBLES THE NOISE HORIZON                        PASS
-        nu = 0.1: median first miss 232 against 39 (5.9 times).
-    N4  A CUE MAY BE A QUARTER WRONG                                   PASS
-        eta = 0.25: 1.00 at both cells.
-
-**Reading.** The length limit of Amendment 29 is a budget of elements: one
-area spends it the same way on one long sequence or on many short ones --
-2501 elements as 32-element sequences against a 2309-element single sequence
-at (4000, 60); 5578 against 6890 at (8000, 60). Replay survives activity
-noise up to about 7% of its winners replaced at every step with no loss at
-all; at 10% it holds for a while and then derails, at a horizon a larger
-area pushes out almost sixfold; at 20% it derails within a few steps. A cue
-a quarter wrong works; a cue half wrong fails. Robustness, like length, is
-bought with neurons.

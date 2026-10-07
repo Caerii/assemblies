@@ -209,8 +209,6 @@ class TestTheoryCitations(unittest.TestCase):
             "BIDIRECTIONAL-RECALL-BY-LRI",
             # 2026-10-07: plans replay whole with the C -> S links and not without (A33)
             "SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
-            # 2026-10-07: 5% noise harmless, 20% derails (A34)
-            "SEQUENCE-MEMORY-ROBUSTNESS",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

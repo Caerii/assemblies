@@ -19,6 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`SEQUENCE-MEMORY-ROBUSTNESS`](#sequence-memory-robustness) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 33 rounds, beta = theta | The refracted sequence memory's length limit is a budget of elements, spent alike on one long sequence or many short ones (0.81-1.08 of the single-sequence limit); replay loses nothing with up to 7% of its winners replaced at random at every step, derails at a horizon at 10% that a twice-larger area pushes out about sixfold, and starts from a cue a quarter wrong. |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -471,6 +472,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Sensitivity gap.** Paired refracted-versus-control checks now cover all seven cells the law is fitted to (A7 at (4000, 60); Amendment 8 at the other six). The masked-vs-net veto, the convergence gate, the strength plateau and the cross-engine mirror still lack retained paired checks.
 
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
+
+## SEQUENCE-MEMORY-ROBUSTNESS
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 34 (N1-N4 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 33 rounds, beta = theta
+
+**Claim.** The refracted sequence memory's length limit is a budget of elements, spent alike on one long sequence or many short ones (0.81-1.08 of the single-sequence limit); replay loses nothing with up to 7% of its winners replaced at random at every step, derails at a horizon at 10% that a twice-larger area pushes out about sixfold, and starts from a cue a quarter wrong.
+
+**Requires.**
+- noise = random replacement of a fraction of each replay step's winners; the cue is half of the first state
+- two cells, k = 60, p = 0.5
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-34-result-2026-10-07
+
+**Evidence files.**
+- [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) (artifact) â€” Amendment 34: many sequences, activity noise, corrupted cues, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- replay survives 5% activity noise per step and derails within a few steps at 20%, at (4000, 60, 0.5) (Amendment 34): `observations/cells/4000~160~10.5/noise/0.05/values` all-greater `observations/cells/4000~160~10.5/noise/0.2/values` by at least 300, retained in [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) and paired by `run/seeds`.
+- replay survives 5% activity noise per step and derails within a few steps at 20%, at (8000, 60, 0.5) (Amendment 34): `observations/cells/8000~160~10.5/noise/0.05/values` all-greater `observations/cells/8000~160~10.5/noise/0.2/values` by at least 300, retained in [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) and paired by `run/seeds`.
+
+**Caveat.** The noise model is uniform random replacement; the mechanism of the 10% horizon is not identified (the onset of neuron reuse did not predict it in the probe). Synaptic noise and noise during writing are untested.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner robustness --registration research/notes/memory/PREREG_refraction_memory.md --tag robustness-20261007 --seeds 482 483 484 485 486 487 488 489 490 491 492 493 494 495 496 497 498 499 500 501 > C:\Github\assemblies-runs-20260930b\a34.log 2>&1

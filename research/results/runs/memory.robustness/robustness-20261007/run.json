@@ -1,0 +1,174 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.3718": {
+        "arc_refraction_charge": 0.1859,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.38702": {
+        "arc_refraction_charge": 0.19351,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "da3d3bbf882b92d3d28282305a400da654e11349",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "beta": 0.3718,
+        "k": 60,
+        "m_ladder": [
+          8,
+          11,
+          16,
+          23,
+          32,
+          45,
+          64,
+          91,
+          128,
+          181,
+          256,
+          362,
+          512,
+          724,
+          1024
+        ],
+        "n": 4000,
+        "noise_len": 400,
+        "p": 0.5
+      },
+      {
+        "beta": 0.38702,
+        "k": 60,
+        "m_ladder": [
+          8,
+          11,
+          16,
+          23,
+          32,
+          45,
+          64,
+          91,
+          128,
+          181,
+          256,
+          362,
+          512,
+          724,
+          1024
+        ],
+        "n": 8000,
+        "noise_len": 400,
+        "p": 0.5
+      }
+    ],
+    "device": "cuda",
+    "draws": 4,
+    "etas": [
+      0.25,
+      0.5
+    ],
+    "noise_seed": 11,
+    "nus": [
+      0.05,
+      0.07,
+      0.1,
+      0.2
+    ],
+    "seq_len": 32,
+    "strength": 0.5,
+    "tau": 33,
+    "w_max": 20.0
+  },
+  "protocol": "memory.robustness",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "26f21949df27c5d57517658124ec7fb1a081cc2b932905e8d823c811dded6762",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_robustness.py",
+  "script_sha256": "373cc0112d8d090e4937ff1865d26e3fbc29715bcf58e510829da2cd0e8d2071",
+  "seeds": [
+    482,
+    483,
+    484,
+    485,
+    486,
+    487,
+    488,
+    489,
+    490,
+    491,
+    492,
+    493,
+    494,
+    495,
+    496,
+    497,
+    498,
+    499,
+    500,
+    501
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "7053dca42814b793d0001efd2ab7b37c5d44f5f461e8f420b0f30bef6a49b36c"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "441179772e1dfcc824a40227bd572285187972756aafb3fe9c2fd9d225f89cb2",
+  "started_utc": "2026-10-07T08:18:08.169051+00:00",
+  "tag": "robustness-20261007"
+}
