@@ -524,6 +524,74 @@ its settling instrument (exact winner set at period $\le 2$) could not test
 the slowing, because $42$--$88\%$ of read-outs never settle exactly even
 where they complete. The prediction stands for the overlap's relaxation.
 
+\section{Attractor or sequence: the margin identity}
+
+Amendments~25 and~26 of the memory registration found that one area and one
+causal Hebbian rule store attractors or replayable sequences according to
+whether the activity holds still while it is written, and that the
+refraction-to-plasticity ratio $s/\beta$ is the switch when the write stays
+online. This section derives where the switch must lie and records where it
+was measured.
+
+Write $\mathrm{raw}_j(t)$ for neuron $j$'s total input at round $t$ (from the
+previous round's winners and the stimulus), $b_j(t)$ for its refraction bias,
+and $\mathrm{net}_j = \mathrm{raw}_j - b_j$ for what $k$-WTA ranks. Every win
+charges $b_j \mathrel{+}= s\,\mathrm{raw}_j$; every synapse whose pre fired the
+round before and whose post fires now is multiplied by $1 + \beta$, below the
+clip.
+
+\begin{proposition}[The margin identity]\label{prop:margin} \PROVED
+Let $j$ win rounds $t$ and $t+1$, and let a fraction $q_j$ of
+$\mathrm{raw}_j(t)$ arrive through synapses that were potentiated at round $t$
+(sources that won both rounds $t-1$ and $t$, stimulus included). Below the
+clip,
+\[
+\mathrm{net}_j(t+1) - \mathrm{net}_j(t) = (\beta\, q_j - s)\,\mathrm{raw}_j(t)
+\]
+when the active sources repeat, while a neuron that has not won keeps its
+net unchanged. In particular, for a converged assembly ($q_j = 1$ for every
+member, fixed stimulus) members gain margin over every non-member when
+$s < \beta$, hold it exactly at $s = \beta$, and lose it at $(s - \beta)\,
+\mathrm{raw}_j$ per round when $s > \beta$: \emph{no assembly is a stable
+fixed point of the online write when refraction outpaces plasticity}, and the
+activity must move.
+\end{proposition}
+
+\begin{proof}
+Below the clip a potentiated synapse's weight is multiplied by $1+\beta$, so
+the potentiated part of $\mathrm{raw}_j$ grows by $\beta q_j \mathrm{raw}_j$
+when the same sources fire again; the bias grows by $s\,\mathrm{raw}_j$. A
+neuron that did not win has no potentiated input synapse and no bias charge
+from that round. At $q_j = 1$ the identity reduces to the repository's
+$\mathrm{net}_{t+1} - \mathrm{net}_t = (\beta - s)\,\mathrm{raw}_t$
+(\texttt{REFRACTION-CANCELS-CONVERGENCE}).
+\end{proof}
+
+The proposition fixes an upper bound: an online write can store attractors
+only for $s < \beta$. Formation sits below it, because the assembly is not
+yet converged when it must start to gain margin: the members' $q_j$ during
+formation is below one, and the condition is $s < \beta\, \bar q$ with
+$\bar q$ the potentiated fraction the forming assembly actually has.
+
+\paragraph{Measured (exploratory, 5 brains, not registered).} The
+during-write consecutive overlap falls through one half at
+$s^*/\beta = 0.81$ to $0.92$ in all nine conditions probed ($(n,k,p) =
+(4000,60,0.5)$, $(2000,60,0.5)$, $(4000,120,0.5)$, each at $0.5$, $1$ and
+$2\,\theta$; $T = 8$): items hold ($0.73$--$0.96$) below $s/\beta = 0.8$ and
+move every round ($\le 0.21$) at $s/\beta \ge 0.95$. The boundary lies just
+below $s = \beta$, as the proposition requires, and rises weakly with the
+write. The simplest zero-parameter guess -- that $\bar q$ is the
+unrefracted formation's early consecutive overlap -- fails: those overlaps
+are $0.2$ to $0.6$ in the first rounds and their trend in $\beta$ is
+opposite to that of $s^*$. Deriving $\bar q$, and with it $s^*/\beta$, needs
+the formation dynamics, not one round of them.
+
+\begin{conjecture}[A near-universal switch]\label{conj:switch} \OPEN
+In the regime $kp \ge 3\ln n$ and below the clip, the online write's switch
+from attractors to sequences lies at $s^*/\beta \in [0.8, 0.95]$,
+independent of $n$, $k$ and $p$, and moves toward $1$ as the write strengthens.
+\end{conjecture}
+
 \section{Ensembles and entropy}
 
 The configuration entropy of one area is
