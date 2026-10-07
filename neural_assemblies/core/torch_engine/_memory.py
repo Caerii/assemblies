@@ -183,7 +183,8 @@ class AssemblyMemory:
             return self._store_graphed(stim_seeds, size)
         return self._store(stim_seeds, size)
 
-    def store_sequence(self, element_seeds, rounds_per_element=1, stim_size=None):
+    def store_sequence(self, element_seeds, rounds_per_element=1, stim_size=None,
+                       bias_reset=None, return_fresh=False):
         """Write one CHOSEN sequence per brain: element e's stimulus (hash-
         generated from ``element_seeds[e]`` [B]) fires for ``rounds_per_element``
         rounds alongside recurrence, the area inhibited once before the first
@@ -191,20 +192,33 @@ class AssemblyMemory:
         element e - 1's winners and the write records that transition
         (``sequence_memorize`` with Phase B only, on this substrate).
         Returns the elements' last-round winners [L, B, k] and every round's
-        winners [L * rounds_per_element, B, k]."""
+        winners [L * rounds_per_element, B, k].
+
+        ``bias_reset``: zero the refraction bias before every element whose
+        index is a positive multiple of it (a refraction that recovers).
+        ``return_fresh``: also return [L, B] the share of each element's last-
+        round winners that had never fired before the element began."""
         if self.write_rule != "round" or self.gate:
             raise ValueError("a chosen sequence is written by the ungated round write")
         size = self.k if stim_size is None else int(stim_size)
         self.area.inhibit()
-        states, rounds = [], []
-        for seeds in element_seeds:
+        states, rounds, fresh = [], [], []
+        for e, seeds in enumerate(element_seeds):
+            if bias_reset and e and e % int(bias_reset) == 0 and self.area.bias is not None:
+                self.area.bias.zero_()
+            ever = self.area.ever.clone() if return_fresh else None
             stim = StimulusFiber(seeds, size, self.n, self.p, beta=self.beta,
                                  w_max=self.w_max, norm_init=self.norm_init,
                                  max_rounds=rounds_per_element, device=self.device)
-            states.append(self.area.project(rounds_per_element, [self.fiber, stim],
-                                            defer_overflow=True, record=rounds))
+            win = self.area.project(rounds_per_element, [self.fiber, stim],
+                                    defer_overflow=True, record=rounds)
+            states.append(win)
+            if return_fresh:
+                fresh.append((~torch_ops.gather(ever, 1, win)).float().mean(dim=1))
         self._last_used = None
         self.items += 1
+        if return_fresh:
+            return torch_ops.stack(states), torch_ops.stack(rounds), torch_ops.stack(fresh)
         return torch_ops.stack(states), torch_ops.stack(rounds)
 
     def _store(self, stim_seeds, size):

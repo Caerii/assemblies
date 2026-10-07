@@ -3685,3 +3685,77 @@ failures.
    code's sparsity.
 
 A failed bar is recorded as failed and not moved.
+
+## Amendment 28 (2026-10-06, before running): the tiling deadline
+
+Registered before any run of this amendment. Amendment 27 found that a
+refracted area's single sequence breaks, on replay, at step n/k on nearly
+every brain at the cells with n/k >= 67 (post hoc, 0.96 to 1.02 n/k). The
+reading offered there: refraction charges every winner a bias that never
+decays, so each new element is drawn from neurons that have never fired; the
+sequence TILES the area, and at n/k elements the fresh pool is empty.
+
+**Seen before registering** (exploratory, 5 brains, seeds 900 to 904,
+(4000, 60, 0.5), beta = theta, L = 200, disclosed in full): with refraction
+at 0.5 beta the share of each element's winners that had never fired was
+1.00 at elements 10 and 40, 0.98 at 60, 0.58 at 66, 0.03 at 70 and 0.00 from
+80 on; replay broke at 66 and 132 on two brains and ran all 199 steps on
+three. With the bias zeroed every 30 elements the fresh share fell
+gradually (0.55 at 40, 0.31 at 60) and all five brains replayed all 199
+steps. The one-step transition read (one frozen round from the true state)
+showed no dip at n/k (0.65 at 60, 0.72 at 66, 0.80 at 70): the break is in
+the chained replay, not in a single weak transition. A smoke run of the
+module (VOID: 3 brains, L = 24) ran the pipeline.
+
+### Protocol
+
+`research/experiments/memory_tiling.py` (`python -m research.runner
+tiling`), seeds 362 to 381 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Four cells: (2000, 60, 0.5),
+(4000, 60, 0.5), (8000, 60, 0.5), (4000, 30, 0.5) (n/k = 33, 67, 133, 133).
+At each, beta = theta, refraction 0.5 beta, one chosen sequence per brain of
+L = 4 n/k elements written one round per element (`store_sequence`), in two
+arms: refracted, and reset (the bias zeroed before every element whose
+index is a positive multiple of floor(n / 2k)). Per element, the share of
+its winners that had never fired before it (`return_fresh`); per brain, the
+replay's first-break step (half of element 0, frozen masked rounds, own
+overlap >= 0.3; L - 1 if it never breaks).
+
+    python -m research.runner tiling \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag tiling-20261006 --seeds 362 ... 381
+
+### Bars
+
+    D1  THE SEQUENCE TILES THE AREA. Refracted arm, every cell: the mean
+        fresh share is at least 0.95 at every element up to 0.9 n/k and at
+        most 0.10 at every element from 1.1 to 1.5 n/k.
+    D2  REPLAY BREAKS ON THE DEADLINE. Refracted arm, pooled over cells: of
+        the brains whose replay breaks before the end (at least 10 such
+        brains, else the bar is void), at least 80% break within
+        max(0.05 n/k, 2) steps of a positive multiple of n/k.
+    D3  A RECOVERING BIAS REMOVES THE DEADLINE. Reset arm: mean replay
+        fraction (first-break step over L - 1) at least 0.9 at every cell,
+        and at least 0.3 above the refracted arm's at the two n/k = 133
+        cells.
+
+Reported, not judged: the whole fresh-share curves; the per-brain break
+steps; the reset arm's fresh share.
+
+### Interpretation, stated now
+
+* D1 to D3 pass: the refracted area's sequence memory is limited by a
+  deadline set by the code's sparsity alone -- a single sequence exhausts the
+  area's fresh neurons at n/k elements and replay breaks at the wraps --
+  and a refraction that recovers removes it. The cumulative, never-decaying
+  bias of the reference RefractedArea is then the limit, and adaptation
+  with a finite time constant the remedy.
+* D1 passes, D2 fails: the area tiles, but replay breaks are not tied to the
+  wraps; the deadline in Amendment 27 was a coincidence of these cells.
+* D3 fails at (2000, 60, 0.5): its sequence (133 elements) is more than three
+  times its Hebbian limit (Amendment 27: 38), and a reset that lets neurons
+  be reused gradually may meet the Hebbian merging limit instead. Stated now
+  as the risk.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until D1 to D3 are evaluated and recorded below.

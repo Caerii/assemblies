@@ -331,3 +331,21 @@ def test_a_chosen_sequence_writes_its_element_transitions(mod):
         count = sum(torch.outer(x[t - 1], x[t]) for t in range(1, 5))
         present = pe.presence_of(mem.fiber.pres, b, N)
         assert torch.equal(mem.fiber.C[b].to(torch.float32), count * present)
+
+
+def test_store_sequence_options_leave_the_plain_write_untouched(mod):
+    """return_fresh only reads; bias_reset larger than L never fires: both
+    give the plain store_sequence bit for bit. A reset that fires changes
+    the refracted sequence."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    def mem():
+        return AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True,
+                              rounds=1, strength=0.5, max_items=8)
+    elements = [_stim(e) for e in range(12)]
+    a, b, c = mem(), mem(), mem()
+    sa, _ = a.store_sequence(elements)
+    sb, _, fresh = b.store_sequence(elements, bias_reset=100, return_fresh=True)
+    assert torch.equal(sa, sb) and torch.equal(a.fiber.C, b.fiber.C)
+    assert fresh.shape == (12, SEEDS) and bool((fresh[0] == 1).all())
+    sc, _ = c.store_sequence(elements, bias_reset=3)
+    assert not torch.equal(sa, sc)
