@@ -301,3 +301,26 @@ phase-exact 0.2596; phase minus bigram +0.0188 [-0.0385, 0.0710]
 (Student t, 20 seeds). The ceiling is reported, not judged: no bar was
 registered for it, and the interval includes zero, which is what Amendment
 3 concluded from the printed means.
+
+## Corrigendum (2026-10-07): the 2,000 and 50,000 cells ran on a mis-scaled divisor
+
+An engine audit (PREREG_refraction_memory.md, Amendment 35) found that the
+norm_init divisor of a generated organ fiber between areas of DIFFERENT sizes
+was the in-degree over the target's n_post rows, not over the source's n_pre
+rows as the reference's column-sum normalization gives. A square fiber was
+exact. The hashed organ's result above ran LEX (10,000) and STATE (10,000,
+induced) against ARC of 2,000, 10,000 and 50,000 neurons, so:
+
+* the n_arc = 10,000 cell, Amendment 2 (n_arc = 10,000) and every temporal
+  run on this organ (n = n_arc = n_state) are square and EXACT;
+* the n_arc = 2,000 and 50,000 cells are NOT. At 50,000 the fibers into ARC
+  were divided by an in-degree about five times too large and ARC -> STATE by
+  one about five times too small, which moves those fibers' drive against the
+  stimuli's. H1 and H4 were judged at the best cell by mean, 50,000.
+
+The 10,000 cell carries the reading of the result (0.2054, against the best
+cell's 0.2075, and "the curve is flat above 10,000"), so the conclusion -- a
+distinct state carrying no information the current word does not -- is
+expected to stand, but H1 and H4 are judged on a cell whose divisor was
+wrong. They are UNSETTLED until the two cells are rerun under the fix on the
+same 20 seeds with the bars unchanged, registered before that run.

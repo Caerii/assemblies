@@ -278,7 +278,7 @@ class AreaFiber:
         # `p * (n_pre - rows_known)`; a generated connectome HAS every row, so
         # that term is identically zero and d_j is the TRUE in-degree. The
         # defect class living on the estimate cannot occur here.
-        self.dj = (self.mod.hashed_indegree(self.seeds, n_post,
+        self.dj = (self.mod.hashed_indegree(self.seeds, n_pre, n_post,
                                             self.threshold, 1.0)
                    if norm_init else None)
         self.scale = (torch_ops.ones(B, n_post, dtype=torch_ops.float32, device=device)
@@ -618,7 +618,7 @@ class PresentFiber:
         self.tab = self.rel
         self._nnz_of = None
         self.cmax = torch_ops.zeros(B, n_post, dtype=torch_ops.int32, device=device)
-        deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
+        deg = self.mod.hashed_indegree(self.seeds, n_pre, n_post, self.threshold, 1.0)
         self.dj = deg if norm_init else None
         self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
             0, dtype=torch_ops.float32, device=device)
@@ -773,7 +773,7 @@ class DenseOrganFiber:
         self.max_rounds = int(max_rounds)
         self._no_map = torch_ops.zeros(0, dtype=torch_ops.int32, device=device)
         self.tab = self._table(self.max_rounds)
-        deg = self.mod.hashed_indegree(self.seeds, n_post, self.threshold, 1.0)
+        deg = self.mod.hashed_indegree(self.seeds, n_pre, n_post, self.threshold, 1.0)
         self.dj = deg if norm_init else None
         self.invdj = (1.0 / deg) if norm_init else torch_ops.zeros(
             0, dtype=torch_ops.float32, device=device)

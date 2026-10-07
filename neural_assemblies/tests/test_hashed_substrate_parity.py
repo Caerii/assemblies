@@ -86,7 +86,7 @@ def _replay(mod, n, p, beta, T, pair, prevs, news, norm_init, scaling, w_max):
     scale = (torch.ones(1, n, dtype=torch.float32, device=DEV)
              if scaling else None)
     setpoint = max(float(n) * float(p), 1e-12)
-    dj = mod.hashed_indegree(seeds_t, n, thr, 1.0) if norm_init else None
+    dj = mod.hashed_indegree(seeds_t, n, n, thr, 1.0) if norm_init else None
     colids = torch.arange(n, dtype=torch.int32, device=DEV).view(1, n)
     hist, out = [], []
     for t in range(T):
@@ -161,7 +161,7 @@ def test_norm_init_divisor_has_no_unknown_rows_term(mod):
     n, p, seed = 2048, 0.5, 12345
     thr = _fused_cuda.threshold_for(p)
     seeds_t = torch.tensor([_to_i32(seed)], dtype=torch.int32, device=DEV)
-    got = mod.hashed_indegree(seeds_t, n, thr, 1.0)[0].cpu().numpy()
+    got = mod.hashed_indegree(seeds_t, n, n, thr, 1.0)[0].cpu().numpy()
     ref = np_seed_indegree(n, p, seed)
     assert np.array_equal(got.astype(np.int64), ref.astype(np.int64))
     assert abs(got.mean() - n * p) < 0.05 * n * p
@@ -234,7 +234,7 @@ def test_stimulus_pricing_reproduces_numpy_sparse(mod, norm_init, n, k, p):
     tab = torch.from_numpy(_chain_table(beta, w_max, T)).to(DEV)
     gpow = torch.from_numpy(_gain_table(beta, T)).to(DEV)
     colids = torch.arange(n, dtype=torch.int32, device=DEV).view(1, n)
-    dj = mod.hashed_indegree(a_s, n, thr, 1.0) if norm_init else None
+    dj = mod.hashed_indegree(a_s, n, n, thr, 1.0) if norm_init else None
     sbase = torch.from_numpy(stim0.astype(np.float32)).to(DEV).view(1, -1)
     spot = torch.zeros(1, n, dtype=torch.int64, device=DEV)
     sdj = (sbase + p * (n - k)).clamp_min(1.0) if norm_init else None

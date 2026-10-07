@@ -4476,3 +4476,80 @@ all; at 10% it holds for a while and then derails, at a horizon a larger
 area pushes out almost sixfold; at 20% it derails within a few steps. A cue
 a quarter wrong works; a cue half wrong fails. Robustness, like length, is
 bought with neurons.
+
+## Amendment 35 (2026-10-07, before running): an engine audit -- an independent oracle, a defect in fibers between areas of different sizes, and Amendment 33 again
+
+Registered before the rerun it names. Every sequence study from Amendment 26
+on rests on paths added to `AssemblyMemory` during this program
+(`store_sequence`, the recovering bias, `bias_reset`, forward and reverse
+counts, `prime_lri`) and on the one-round masked `recall` that replays them.
+Their tests were RELATIONS (an option that never fires leaves the write bit
+for bit; a decay of 1 is the cumulative bias); none said the write computes
+what the registrations say it computes. So the memory was written again.
+
+**The oracle** (`neural_assemblies/tests/test_memory_oracle.py`): float64
+numpy, dense matrices, from the stated semantics -- drive, k-WTA with the
+lowest index on a tie, the count write, the stimulus potentiation, the bias
+decayed at every writing round and charged s raw at the winners, the masked
+one-round recall -- with none of the engine's kernels, chain tables or count
+storage; only the connectome's hash is shared. It runs in lockstep with the
+engine, predicting each round's winners from the engine's previous ones.
+Over the cumulative bias, the recovering bias (tau = 33; tau = 8 at two
+rounds per element), a reset bias, the Hebbian control, a two-way chain and
+a stimulus of 45 at (600, 30, 0.5), and over 200 elements at (4000, 60, 0.5)
+-- three tiling wraps, the clip binding -- the engine's winners are the
+oracle's at every one of about 2,900 rounds and recalls but one, a near tie
+at float32 rounding; the counts are equal and the bias agrees to 1e-4.
+
+**The defect.** Checking the fiber that Amendment 33 adds between its two
+areas found one. The norm_init divisor of a generated organ fiber
+(`DenseOrganFiber`; `AreaFiber` and `PresentFiber` share it) was the
+in-degree counted over rows [0, n_post) where the reference divides by the
+fiber's own column sum, the in-degree over its n_pre source rows
+(`.reference/mdabagia-nemo/brain.py`, `normalize`). The kernel took one size
+for both. Measured: n_pre 2000 -> n_post 4000, the divisor 2.00 times the
+true in-degree on average and correlated 0.71 with it neuron by neuron;
+4000 -> 2000, 0.50 times, 0.70; a square fiber exact. Both parity gates of
+the sequence port ran with norm_init off, so neither could see it. Fixed:
+the kernel takes n_pre and n_post. A square fiber is unchanged bit for bit
+(the exact replays of onset-20261002-r3 and of robustness-20261007 at
+(4000, 60, 0.5) are identical under the fix).
+
+**Scope.** In this program only Amendment 33 has a fiber between areas of
+different sizes (C -> S, 2000 -> 4000 and 4000 -> 8000); every memory area's
+own fiber is square, so Amendments 24 to 32 and 34 are untouched. Elsewhere:
+the A3 transducer's n_arc = 2000 and 50,000 cells (PREREG_seq_a3_transducer.md,
+where it is disclosed; its 10,000 cell and its Amendment 2 are square).
+The arc-FSM studies ran norm_init off; the high-order and temporal-position
+transducers are square.
+
+### Protocol
+
+Amendment 33's protocol unchanged -- `python -m research.runner hierarchy`,
+the same cells, loads, links, plans and bars -- on the SAME seeds, 462 to
+481, so the same brains and plans and only the C -> S divisor differs; one
+run from a worktree pinned at the commit registering this amendment, tag
+hierarchy-20261007-a35.
+
+    python -m research.runner hierarchy \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag hierarchy-20261007-a35 --seeds 462 ... 481
+
+### Bars
+
+H1 to H4 exactly as registered in Amendment 33, judged on this run. The
+claim SEQUENCES-OF-SEQUENCES-ACROSS-AREAS stands if all four pass and is
+restated to what passes if not; the first run stays recorded, as a run on
+the defective divisor.
+
+### Prediction, stated now
+
+When a plan position evokes a chunk start, the C -> S fiber is S's only
+input, so the uniform part of the error (a factor of two) cannot change a
+k-WTA; what remains is a per-neuron error of one to two percent in the
+divisor, against learned links up to twenty times the base weight. Expected:
+H1 to H4 pass again, the readings within a few hundredths of Amendment 33's;
+the reading most likely to move is H4's chunk starts at (64, 96) on
+(4000, 2000), 0.78, where links compete.
+
+The rerun is UNJUDGED until H1 to H4 are evaluated and recorded below.

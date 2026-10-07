@@ -276,14 +276,19 @@ __global__ void dev_correct_kernel(
 // column does not exist yet; the second term is an unbiased estimate of the
 // rows that have not appeared. THAT TERM IS IDENTICALLY ZERO HERE. A generated
 // connectome has every row from the start, so rows_known == n_pre and
-//     d_j = #{ i in [0, n) : cell (i, j) is present }
-// is the TRUE in-degree, not an estimate. The whole defect class that lives on
+//     d_j = #{ i in [0, n_pre) : cell (i, j) is present }
+// is the TRUE in-degree, not an estimate. The rows run over the SOURCE area,
+// n_pre, and the columns over the target, n_post. Until 2026-10-07 this kernel
+// took one n for both, so a fiber between areas of different sizes divided by
+// the in-degree from n_post rows -- n_post / n_pre times too large on average
+// and only ~0.7 correlated with the true one (PREREG_refraction_memory.md,
+// Amendment 35). Square fibers were exact and are unchanged. The whole defect class that lives on
 // the estimate -- pricing unknown rows at the brain's p instead of the fiber's
 // (79fba4f, a 6.15x over-scale) -- cannot occur in this path.
 //
 // One thread per (b, j), n hashes each. This is O(B * n^2) and is computed
 // ONCE per brain set, not per round: the connectome does not change.
-__global__ void indegree_kernel(const int* __restrict__ seeds, int B, int N,
+__global__ void indegree_kernel(const int* __restrict__ seeds, int B, int Npre, int N,
                                 int threshold, float floor_,
                                 float* __restrict__ out) {
     long long idx = blockIdx.x * (long long)blockDim.x + threadIdx.x;
@@ -291,7 +296,7 @@ __global__ void indegree_kernel(const int* __restrict__ seeds, int B, int N,
     int b = (int)(idx / N), j = (int)(idx - (long long)b * N);
     unsigned int ch = ((unsigned int)j * 2246822519u) ^ (unsigned int)seeds[b];
     int d = 0;
-    for (int i = 0; i < N; ++i) {
+    for (int i = 0; i < Npre; ++i) {
         unsigned int h = ac_fmix32(((unsigned int)i * 2654435761u) ^ ch);
         if ((h & 0x00FFFFFFu) < (unsigned int)threshold) ++d;
     }
@@ -600,7 +605,7 @@ torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds,
 }
 
 
-torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n_pre, int64_t n, int64_t threshold, double floor_);
 std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
                  torch::Tensor colmask, torch::Tensor tab,
@@ -622,7 +627,7 @@ void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids,
 }
 
 
-torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n,
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n_pre, int64_t n,
                               int64_t threshold, double floor_) {
     seeds = seeds.contiguous();
     const int B = seeds.size(0);
@@ -631,7 +636,7 @@ torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n,
     const long long tot = (long long)B * n;
     const int th = 256;
     indegree_kernel<<<(tot + th - 1) / th, th, 0, NA_STREAM>>>(
-        seeds.data_ptr<int>(), B, (int)n, (int)threshold, (float)floor_,
+        seeds.data_ptr<int>(), B, (int)n_pre, (int)n, (int)threshold, (float)floor_,
         out.data_ptr<float>());
     return out;
 }
@@ -2074,7 +2079,7 @@ std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K) {
 
 _CPP = r"""
 torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds, int64_t n, int64_t threshold);
-torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n, int64_t threshold, double floor_);
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n_pre, int64_t n, int64_t threshold, double floor_);
 std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
 void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
 void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
