@@ -1,0 +1,110 @@
+{
+  "engine": "hashed_transducer",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "default": {
+        "arc_refraction_charge": 0.1,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-state-advancing-emission",
+        "organ": "sequence-transducer",
+        "prediction_gain": 0.0,
+        "state_code": "induced-assembly",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "deterministic-hash-jitter",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 1e-06,
+        "training_schedule": "grounded-teacher-forced-transduction"
+      }
+    }
+  },
+  "git_commit": "1fa506d0acd152ad238d6969de6901e196cff9a7",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "arm": "induced",
+    "beta": 0.1,
+    "cells": [
+      2000,
+      10000,
+      50000
+    ],
+    "corpus": "study4-template",
+    "gain": 1.0,
+    "gains": null,
+    "gap": null,
+    "ground_rounds": 5,
+    "horizons": null,
+    "k": 200,
+    "max_potentiations": 64,
+    "n": 10000,
+    "n_arc": 10000,
+    "n_test": 25,
+    "n_train": 200,
+    "organ_p": 0.2,
+    "p": 0.05,
+    "reference": null,
+    "strength": 0.1,
+    "tie_seed": 0,
+    "train_rounds": 3,
+    "vocab_size": 50,
+    "with_context": true
+  },
+  "protocol": "sequence.a3-transducer",
+  "protocol_version": "2",
+  "registration": "research/notes/sequence/PREREG_seq_a3_transducer.md",
+  "registration_sha256": "bf0ce982e0eba42a5718ecbff98dc597a9e851038071b3d8d2d2c4a1c1f6db91",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/seq_a3_transducer.py",
+  "script_sha256": "e813fc06831e6ed074e569a29858255aa7847821a95024aa2dfe48813d113398",
+  "seeds": [
+    42,
+    43,
+    44,
+    45,
+    46,
+    47,
+    48,
+    49,
+    50,
+    51,
+    52,
+    53,
+    54,
+    55,
+    56,
+    57,
+    58,
+    59,
+    60,
+    61
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "c399a82817672b5aca933817578fe3308505987afb40067def59f9dbdb2cc24e"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "b24c5a4d7026424f0c58a6b66cb8708d68116db8ff452053f237ea718e0aeec5",
+  "started_utc": "2026-10-07T17:31:00.641872+00:00",
+  "tag": "a3-induced-20261007-a35"
+}

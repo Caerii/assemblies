@@ -1,0 +1,156 @@
+=== A3 on the hashed organ (PREREG amendment 2026-09-04) ===
+    seeds 42..61 (20)  n=10000 k=200 p=0.05 organ_p=0.2
+
+  [H5 null] beta = 0 -- must not beat the unigram baseline
+      n_arc=10000 beta=0.0 seeds 42..50 (9 brains, 1063 train steps)  [17s]
+      n_arc=10000 beta=0.0 seeds 51..59 (9 brains, 1066 train steps)  [16s]
+      n_arc=10000 beta=0.0 seeds 60..61 (2 brains, 1052 train steps)  [15s]
+    null(beta=0): 0.0903 +/- 0.0079 (n=20, 0.0709..0.1362)
+    H5 PASS (upper 0.0982 vs unigram 0.1178)
+
+  [sweep] the n_arc curve, reported whole
+      n_arc=2000 beta=0.1 seeds 42..61 (20 brains, 1066 train steps)  [23s]
+    a3(n_arc=2000): 0.1607 +/- 0.0065 (n=20, 0.1345..0.1865)
+      n_arc=10000 beta=0.1 seeds 42..50 (9 brains, 1063 train steps)  [23s]
+      n_arc=10000 beta=0.1 seeds 51..59 (9 brains, 1066 train steps)  [23s]
+      n_arc=10000 beta=0.1 seeds 60..61 (2 brains, 1052 train steps)  [23s]
+    a3(n_arc=10000): 0.2049 +/- 0.0092 (n=20, 0.1710..0.2576)
+      n_arc=50000 beta=0.1 seeds 42..42 (1 brains, 1056 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 43..43 (1 brains, 1058 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 44..44 (1 brains, 1040 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 45..45 (1 brains, 1041 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 46..46 (1 brains, 1063 train steps)  [29s]
+      n_arc=50000 beta=0.1 seeds 47..47 (1 brains, 1048 train steps)  [33s]
+      n_arc=50000 beta=0.1 seeds 48..48 (1 brains, 1040 train steps)  [32s]
+      n_arc=50000 beta=0.1 seeds 49..49 (1 brains, 1058 train steps)  [24s]
+      n_arc=50000 beta=0.1 seeds 50..50 (1 brains, 1047 train steps)  [27s]
+      n_arc=50000 beta=0.1 seeds 51..51 (1 brains, 1041 train steps)  [32s]
+      n_arc=50000 beta=0.1 seeds 52..52 (1 brains, 1066 train steps)  [30s]
+      n_arc=50000 beta=0.1 seeds 53..53 (1 brains, 1042 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 54..54 (1 brains, 1045 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 55..55 (1 brains, 1048 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 56..56 (1 brains, 1052 train steps)  [32s]
+      n_arc=50000 beta=0.1 seeds 57..57 (1 brains, 1051 train steps)  [34s]
+      n_arc=50000 beta=0.1 seeds 58..58 (1 brains, 1059 train steps)  [26s]
+      n_arc=50000 beta=0.1 seeds 59..59 (1 brains, 1049 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 60..60 (1 brains, 1037 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 61..61 (1 brains, 1052 train steps)  [21s]
+    a3(n_arc=50000): 0.2088 +/- 0.0112 (n=20, 0.1636..0.2489)
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+
+    best cell by mean: n_arc=50000
+
+  [CONTEXT] #14's accumulator (numpy), the same seeds, in a pool
+[done ('context', 55, 0, 0.1)]
+[done ('context', 47, 0, 0.1)]
+[done ('context', 54, 0, 0.1)]
+[done ('context', 43, 0, 0.1)]
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+[done ('context', 53, 0, 0.1)]
+[done ('context', 50, 0, 0.1)]
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+[done ('context', 44, 0, 0.1)]
+[done ('context', 51, 0, 0.1)]
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+[done ('context', 49, 0, 0.1)]
+C:\Github\assemblies-runs-20260930b\neural_assemblies\core\brain.py:1265: RuntimeWarning: Recurrent projection into 'CONTEXT' uses the sampled numpy connectome. Sequence-dynamics numbers are void until rerun materialized or on a fixed-connectome engine (numpy_exact or the hashed substrate). See research/notes/sequence/PREREG_sampler_audit.md. Use Brain.materialize_area before training if materialized semantics are intended, or explicitly select sampled_recurrence_policy='acknowledged' for a deliberate sampled-engine comparison.
+  batch_results = self._engine.project_into_batch(
+[done ('context', 48, 0, 0.1)]
+[done ('context', 46, 0, 0.1)]
+[done ('context', 42, 0, 0.1)]
+[done ('context', 45, 0, 0.1)]
+[done ('context', 52, 0, 0.1)]
+[done ('context', 57, 0, 0.1)]
+[done ('context', 60, 0, 0.1)]
+[done ('context', 56, 0, 0.1)]
+[done ('context', 59, 0, 0.1)]
+[done ('context', 58, 0, 0.1)]
+[done ('context', 61, 0, 0.1)]
+    context(#14): 0.1099 +/- 0.0091 (n=20, 0.0643..0.1466)
+    a3(n_arc=50000) - context: 0.0989 +/- 0.0157 (n=20, 0.0170..0.1454)
+
+  [H4 + audit] state overlap at the best cell; state-blind arm
+      n_arc=50000 beta=0.1 seeds 42..42 (1 brains, 1056 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 43..43 (1 brains, 1058 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 44..44 (1 brains, 1040 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 45..45 (1 brains, 1041 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 46..46 (1 brains, 1063 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 47..47 (1 brains, 1048 train steps)  [20s]
+      n_arc=50000 beta=0.1 seeds 48..48 (1 brains, 1040 train steps)  [20s]
+      n_arc=50000 beta=0.1 seeds 49..49 (1 brains, 1058 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 50..50 (1 brains, 1047 train steps)  [19s]
+      n_arc=50000 beta=0.1 seeds 51..51 (1 brains, 1041 train steps)  [19s]
+      n_arc=50000 beta=0.1 seeds 52..52 (1 brains, 1066 train steps)  [20s]
+      n_arc=50000 beta=0.1 seeds 53..53 (1 brains, 1042 train steps)  [19s]
+      n_arc=50000 beta=0.1 seeds 54..54 (1 brains, 1045 train steps)  [18s]
+      n_arc=50000 beta=0.1 seeds 55..55 (1 brains, 1048 train steps)  [20s]
+      n_arc=50000 beta=0.1 seeds 56..56 (1 brains, 1052 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 57..57 (1 brains, 1051 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 58..58 (1 brains, 1059 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 59..59 (1 brains, 1049 train steps)  [20s]
+      n_arc=50000 beta=0.1 seeds 60..60 (1 brains, 1037 train steps)  [19s]
+      n_arc=50000 beta=0.1 seeds 61..61 (1 brains, 1052 train steps)  [19s]
+    state_overlap: 0.0663 +/- 0.0067 (n=20, 0.0536..0.1083)
+      n_arc=50000 beta=0.1 seeds 42..42 (1 brains, 1056 train steps)  [25s]
+      n_arc=50000 beta=0.1 seeds 43..43 (1 brains, 1058 train steps)  [24s]
+      n_arc=50000 beta=0.1 seeds 44..44 (1 brains, 1040 train steps)  [25s]
+      n_arc=50000 beta=0.1 seeds 45..45 (1 brains, 1041 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 46..46 (1 brains, 1063 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 47..47 (1 brains, 1048 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 48..48 (1 brains, 1040 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 49..49 (1 brains, 1058 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 50..50 (1 brains, 1047 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 51..51 (1 brains, 1041 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 52..52 (1 brains, 1066 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 53..53 (1 brains, 1042 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 54..54 (1 brains, 1045 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 55..55 (1 brains, 1048 train steps)  [20s]
+      n_arc=50000 beta=0.1 seeds 56..56 (1 brains, 1052 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 57..57 (1 brains, 1051 train steps)  [21s]
+      n_arc=50000 beta=0.1 seeds 58..58 (1 brains, 1059 train steps)  [25s]
+      n_arc=50000 beta=0.1 seeds 59..59 (1 brains, 1049 train steps)  [22s]
+      n_arc=50000 beta=0.1 seeds 60..60 (1 brains, 1037 train steps)  [23s]
+      n_arc=50000 beta=0.1 seeds 61..61 (1 brains, 1052 train steps)  [25s]
+    state-blind: 0.2172 +/- 0.0136 (n=20, 0.1571..0.2806)
+    a3 - state-blind: -0.0084 +/- 0.0084 (n=20, -0.0489..0.0231)
+
+=== BARS ===
+  FAIL  H2 beats no-context model
+  FAIL  H3 beats bigram optimum
+  PASS  H4 state does not collapse
+  PASS  H1 beats #14 CONTEXT (paired)
+C:\Github\assemblies-runs-20260930b\research\results\runs\sequence.a3-transducer\a3-induced-20261007-a35\results.json
