@@ -1,0 +1,154 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.3718": {
+        "arc_refraction_charge": 0.1859,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.38702": {
+        "arc_refraction_charge": 0.19351,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "6fc3c85a40f504d78098636034b2a97732d4a3ea",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "beta": 0.3718,
+        "gaps": [
+          0,
+          600
+        ],
+        "k": 60,
+        "n": 4000,
+        "p": 0.5,
+        "shared": [
+          1,
+          4,
+          16
+        ],
+        "taus": [
+          "0",
+          "33",
+          "inf"
+        ]
+      },
+      {
+        "beta": 0.38702,
+        "gaps": [
+          0,
+          600
+        ],
+        "k": 60,
+        "n": 8000,
+        "p": 0.5,
+        "shared": [
+          1,
+          4,
+          16
+        ],
+        "taus": [
+          "0",
+          "33",
+          "inf"
+        ]
+      }
+    ],
+    "device": "cuda",
+    "prefix": 3,
+    "strength": 0.5,
+    "suffix": 3,
+    "w_max": 20.0
+  },
+  "protocol": "memory.context",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "62fd835cec3f8ca81f028030426c4cd09505f4b615b887d6e6ffdee80c968130",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_context.py",
+  "script_sha256": "da33b2f880bf3d2f4b57fe237923256c05903137fd32dc80452a98f340a55a4c",
+  "seeds": [
+    402,
+    403,
+    404,
+    405,
+    406,
+    407,
+    408,
+    409,
+    410,
+    411,
+    412,
+    413,
+    414,
+    415,
+    416,
+    417,
+    418,
+    419,
+    420,
+    421
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "1e784e5fc001af9a1fb162244bbd00384f8b8a09848606f5a95f7db6728a9f60"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "6a84a6d8f21c1521315018dc21cd4b5e210a3b34fa9bd9ad1251079bb72965d5",
+  "started_utc": "2026-10-07T06:58:47.748755+00:00",
+  "tag": "context-20261007"
+}

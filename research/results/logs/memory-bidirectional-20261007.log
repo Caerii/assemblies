@@ -1,0 +1,9 @@
+(4000, 60, 0.5) reverse 0: forward_masked 1.00, forward_lri 1.00, backward_lri 0.00, middle_backward 0.00, middle_forward 1.00
+(4000, 60, 0.5) reverse 1: forward_masked 0.02, forward_lri 1.00, backward_lri 0.01, middle_backward 0.01, middle_forward 1.00
+(4000, 60, 0.5) reverse 2: forward_masked 0.01, forward_lri 0.08, backward_lri 1.00, middle_backward 1.00, middle_forward 0.10
+(4000, 60, 0.5) reverse 3: forward_masked 0.01, forward_lri 0.02, backward_lri 1.00, middle_backward 1.00, middle_forward 0.03
+(8000, 60, 0.5) reverse 0: forward_masked 1.00, forward_lri 1.00, backward_lri 0.00, middle_backward 0.00, middle_forward 1.00
+(8000, 60, 0.5) reverse 1: forward_masked 0.02, forward_lri 1.00, backward_lri 0.00, middle_backward 0.01, middle_forward 1.00
+(8000, 60, 0.5) reverse 2: forward_masked 0.01, forward_lri 0.25, backward_lri 1.00, middle_backward 1.00, middle_forward 0.29
+(8000, 60, 0.5) reverse 3: forward_masked 0.01, forward_lri 0.08, backward_lri 1.00, middle_backward 1.00, middle_forward 0.14
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.bidirectional\bidirectional-20261007\results.json
