@@ -1,0 +1,13 @@
+(2000, 60, 0.5) hebbian: limit 38 (0.0681 p (n/k)^2)
+(2000, 60, 0.5) refracted: limit 520 (0.9367 p (n/k)^2)
+(4000, 120, 0.5) hebbian: limit 49 (0.0874 p (n/k)^2)
+(4000, 120, 0.5) refracted: limit 1488 (2.6777 p (n/k)^2)
+(4000, 60, 0.5) hebbian: limit 193 (0.0866 p (n/k)^2)
+(4000, 60, 0.5) refracted: limit 418 (0.1880 p (n/k)^2)
+(4000, 60, 0.25) hebbian: limit 97 (0.0870 p (n/k)^2)
+(4000, 60, 0.25) refracted: limit 395 (0.3552 p (n/k)^2)
+(8000, 60, 0.5) hebbian: limit 939 (0.1057 p (n/k)^2)
+(8000, 60, 0.5) refracted: limit 305 (0.0344 p (n/k)^2)
+(4000, 30, 0.5) hebbian: limit 562 (0.0632 p (n/k)^2)
+(4000, 30, 0.5) refracted: limit 322 (0.0362 p (n/k)^2)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.sequence-length\sequence-length-20261006\results.json

@@ -732,10 +732,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | S2 adaptation switches the memory type (A26) | online s=1.5: own <= 0.1, peak >= 0.7; s=0.5: own >= 0.5 | PASS | own <= 0.052, peak 1.00; control 0.71-0.85 |
 | S3 sequence capacity follows n/k (A26) | same n/k within 25%, same d >= 2x | FAIL | 0.48; 1.68 |
 | S3d sequence capacity follows in-degree (A26) | same d within 25%, same n/k <= 0.5 | FAIL | 1.68; 0.48 |
-| L1 Hebbian sequence limit is Willshaw's (A27) | L_H / (p (n/k)^2) in [0.06, 0.12] | PASS | 0.063-0.106 |
-| L2 sequence limit follows n/k (A27) | equal-n/k pairs within 30% | FAIL | 22%; 67% |
-| L3 Hebbian failure is a cliff (A27) | ensemble >= 0.9 at L_H/sqrt2, <= 0.2 at sqrt2 L_H | FAIL | 3 cells; all-or-none per brain (post hoc) |
-| L4 refraction extends the limit (A27) | L_R >= 2 L_H every cell | FAIL | 2.2-31x at n/k <= 67; 0.33, 0.57 at n/k = 133 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -3618,70 +3614,3 @@ limit (breaks along the chain against collapse).
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until L1 to L4 are evaluated and recorded below.
-
-### Amendment 27 result (2026-10-06)
-
-One run from a worktree pinned at 75fe2ac6, seeds 342 to 361:
-[record](../../results/runs/memory.sequence-length/sequence-length-20261006/results.json),
-[log](../../results/logs/memory-sequence-length-20261006.log). Length limits
-(elements) and the Hebbian constant L_H / (p (n/k)^2):
-
-    cell (n, k, p)     n/k   d      Hebbian L_H   constant   refracted L_R   L_R / L_H
-    (2000, 60, 0.5)    33    1000   38            0.068      520             13.8
-    (4000, 120, 0.5)   33    2000   49            0.087      1488            30.6
-    (4000, 60, 0.5)    67    2000   193           0.087      418             2.17
-    (4000, 60, 0.25)   67    1000   97            0.087      395             4.08
-    (8000, 60, 0.5)    133   4000   939           0.106      305             0.33
-    (4000, 30, 0.5)    133   2000   562           0.063      322             0.57
-
-    L1  THE HEBBIAN LIMIT IS WILLSHAW'S                               PASS
-        0.063 to 0.106 at every cell (band [0.06, 0.12]).
-    L2  n/k, NOT THE IN-DEGREE                                        FAIL
-        n/k = 33: 38 against 49 (22%, within 30%); n/k = 133: 939 against
-        562 (67%).
-    L3  THE HEBBIAN FAILURE IS A CLIFF                                FAIL
-        the ensemble curve is not within a factor sqrt 2 of 0.9 and 0.2 at
-        three cells ((4000, 120), (4000, 60, 0.5), (8000, 60)).
-    L4  REFRACTION EXTENDS THE LIMIT                                  FAIL
-        2.2 to 31 times at the four cells with n/k <= 67; 0.33 and 0.57 at
-        the two with n/k = 133.
-
-**Reading.** Without refraction, one area holds a single autonomous
-sequence of 0.063 to 0.106 p (n/k)^2 elements: the Willshaw count for
-heteroassociative pairs, with p entering exactly (193 at p = 0.5, 97 at
-0.25). n/k carries it at the dense pair but not at the sparse one, where
-doubling the in-degree at fixed n/k multiplied the limit by 1.67 (L2 fails).
-Refraction lengthens the limit 2 to 31 times where the code is dense
-(n/k <= 67) and SHORTENS it where it is sparse (n/k = 133): at
-(8000, 60, 0.5) the refracted area replays 305 elements against the
-Hebbian 939. Refraction removes the merging cliff and introduces a limit of
-its own.
-
-**Post hoc, from the record (not registered).** Two structures explain the
-failures.
-
-1. *The Hebbian collapse is all-or-none in every brain.* Only 0.0 to 5.6% of
-   per-brain replay fractions lie strictly between 0.1 and 0.9: a brain
-   replays its whole sequence or fails from the first steps. Brains collapse
-   at different lengths (per-brain cliffs span 1.3 to 2.3-fold, e.g. 861 to
-   1218 at (8000, 60)), which spreads the ENSEMBLE curve over more than the
-   sqrt 2 window L3 allowed. L3 read the ensemble; the cliff it was written
-   for is per brain.
-
-2. *The refracted chain breaks at a deadline: step n/k.* At the four cells
-   with n/k >= 67 the median break step (elements replayed before the first
-   miss, on brains that break) is 0.96 to 1.02 n/k on every ladder point
-   inspected -- 130 and 132 at n/k = 133, 64 to 68 at n/k = 67 -- with a
-   spread of a few steps across twenty brains. At the two n/k = 33 cells the
-   first breaks also sit near n/k (minimum 33 to 37) and later ones near
-   2 to 3 n/k. Step n/k is when a sequence of k-neuron states has used about
-   n neurons: every neuron has then fired about once and carries a
-   refraction bias. A reading to test, not a finding: before that step the
-   write picks each next state from neurons with no bias, by the previous
-   state's drive; after it, every candidate carries a bias and the choice is
-   made partly by bias, so the transition written is weak and the replay
-   breaks there. It is the same kind of weight-arithmetic deadline as the
-   refraction period law (REFRACTION-CANCELS-CONVERGENCE), set here by the
-   code's sparsity.
-
-A failed bar is recorded as failed and not moved.

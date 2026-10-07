@@ -323,8 +323,13 @@ Still needed:
 - Done 2026-10-06: a chosen sequence written one round per element at a
   write near theta recalls 7 of 7 steps on 17 of 20 seeds through the
   calculus's own operation, where eight rounds per element advance 0
-  (`ORDERED-RECALL-BY-TRANSITIONS`). Next: the sequence-length limit, posed
-  at the write this construction needs.
+  (`ORDERED-RECALL-BY-TRANSITIONS`).
+- Done 2026-10-06, the sequence-length limit (Amendment 27): without
+  refraction one area replays a single sequence of 0.063 to 0.106 p (n/k)^2
+  elements and loses it all at once (L1 passes; per brain the failure is
+  all-or-none); refraction lengthens the limit 2 to 31 times at n/k <= 67
+  and shortens it at n/k = 133, where the refracted chain breaks at step
+  n/k on nearly every brain (post hoc). Next: register that deadline.
 - The boundary in s / beta, derived: the identity
   net_{t+1} - net_t = (beta - s) raw_t puts cancellation at s = beta, the
   churn transition was measured near 0.8 beta, and how the boundary moves

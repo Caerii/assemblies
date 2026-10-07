@@ -508,6 +508,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Evidence files.**
 - [research/results/runs/memory.sequences/sequences-20261006/results.json](../research/results/runs/memory.sequences/sequences-20261006/results.json) (artifact) â€” Amendment 26: three arms at three cells, 20 brains, replay capacity and during-write overlap
 - [research/results/runs/memory.write_rules/write-rules-20261003/results.json](../research/results/runs/memory.write_rules/write-rules-20261003/results.json) (artifact) â€” Amendment 25: the deferred write's one-step trajectory reading
+- [research/results/runs/memory.sequence-length/sequence-length-20261006/results.json](../research/results/runs/memory.sequence-length/sequence-length-20261006/results.json) (artifact) â€” Amendment 27: one chosen sequence per brain; Hebbian limit 0.063-0.106 p (n/k)^2, refracted limit set by a break at step n/k
 
 **Mechanism sensitivity.**
 - online write at s = 0.5 beta holds the item's rounds, at s = 1.5 beta they move, at (4000, 60, 0.5) (Amendment 26): `observations/cells/4000~160~10.5/arms/round-s0.5/rates/0.07436/own/values` all-greater `observations/cells/4000~160~10.5/arms/round-s1.5/rates/0.52052/own/values` by at least 0.5, retained in [research/results/runs/memory.sequences/sequences-20261006/results.json](../research/results/runs/memory.sequences/sequences-20261006/results.json) and paired by `run/seeds`.

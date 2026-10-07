@@ -1229,8 +1229,6 @@ _RESULTS: List[Result] = [
                         "Amendment 26: three arms at three cells, 20 brains, replay capacity and during-write overlap"),
             EvidenceRef("research/results/runs/memory.write_rules/write-rules-20261003/results.json", "artifact",
                         "Amendment 25: the deferred write's one-step trajectory reading"),
-            EvidenceRef("research/results/runs/memory.sequence-length/sequence-length-20261006/results.json", "artifact",
-                        "Amendment 27: one chosen sequence per brain; Hebbian limit 0.063-0.106 p (n/k)^2, refracted limit set by a break at step n/k"),
         ),
         sensitivity_checks=(SensitivityCheck(
             artifact="research/results/runs/memory.sequences/sequences-20261006/results.json",
