@@ -75,7 +75,7 @@ class AssemblyMemory:
     def __init__(self, seeds, n, k, p, *, beta=0.1, w_max=20.0, norm_init=True,
                  synaptic_scaling=False, rounds=8, strength=0.5, gate=False,
                  max_items=4096, device="cuda", organ_semantics=None, graphs=False,
-                 write_rule="round", burst_min=2):
+                 write_rule="round", burst_min=2, bias_decay=None):
         from ..semantics import OrganSemantics, describe_assembly_memory
 
         self.seeds = [int(s) for s in seeds]
@@ -122,6 +122,10 @@ class AssemblyMemory:
         # the memory's reads are masked by default: the store is read through
         # the veto or not at all
         self.area.masked_readout = self.strength > 0
+        #: the refraction's recovery per writing round (None: never recovers)
+        self.area.bias_decay = None if bias_decay is None else float(bias_decay)
+        if bias_decay is not None and graphs:
+            raise ValueError("a decaying bias is not captured by the CUDA-graph store")
         self.fiber = recurrent_fiber(self.seeds, self.n, self.p, beta=self.beta,
                                      w_max=w_max, norm_init=norm_init,
                                      synaptic_scaling=synaptic_scaling,

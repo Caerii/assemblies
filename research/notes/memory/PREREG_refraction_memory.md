@@ -3805,3 +3805,83 @@ This resolves Amendment 27's L4 failure: the refracted limit fell with n at
 fixed k because the deadline n/k grows more slowly than the Hebbian
 limit's p (n/k)^2, and at n/k = 133 the first wrap comes before the
 Hebbian cliff.
+
+## Amendment 29 (2026-10-07, before running): a refraction that recovers -- the recovery time sets the sequence-length limit
+
+Registered before any run of this amendment. Amendments 27 and 28 measured
+the two ends of one knob. With no refraction the single-sequence limit is a
+merging cliff near 0.09 p (n/k)^2; with the reference's cumulative bias,
+which never decays, the sequence tiles the area and replay breaks at n/k.
+A bias that decays by exp(-1/tau) every writing round
+(`AssemblyMemory(bias_decay=...)`; the area's `bias_decay`) spans both:
+decay 0 is the unrefracted area bit for bit, decay 1 the cumulative bias bit
+for bit (tested). The exact replay gate after the engine change reproduces
+onset-20261002-r3 at (2000, 60, 0.5) identically.
+
+**Seen before registering** (exploratory, 5 brains on seeds 900 to 904,
+beta = theta, s = 0.5 beta, one chosen sequence per brain, one round per
+element; disclosed in full). Mean replay fraction at L = 4 n/k and 8 n/k:
+
+    tau     (4000, 60, 0.5)   (8000, 60, 0.5)
+    1       0.21 / 0.00       1.00 / 0.20
+    4       1.00 / 0.00       1.00 / 1.00
+    16-133  1.00 / 1.00       1.00 / 1.00
+    266     1.00 / 0.82       0.85 / 1.00
+    inf     0.70 / 0.33       0.25 / 0.12
+
+and, at tau = 16, 33, 67: 1.00 at L = 1067 and 0.00 to 0.42 at 2133 at
+(4000, 60, 0.5); at tau = 33 and 67, 1.00 at L = 4267 and 0.00 at 8533 at
+(8000, 60, 0.5). A smoke run of the module (VOID: 3 brains, three ladder
+points, three taus at (2000, 60, 0.5)) ran the pipeline.
+
+### Protocol
+
+`research/experiments/memory_recovery.py` (`python -m research.runner
+recovery`), seeds 382 to 401 (new brains), one run from a worktree pinned
+at the commit registering this amendment. Amendment 28's four cells:
+(2000, 60, 0.5), (4000, 60, 0.5), (8000, 60, 0.5), (4000, 30, 0.5)
+(n/k = 33, 67, 133, 133). beta = theta, s = 0.5 beta, w_max 20, norm_init,
+one chosen sequence per brain written one round per element, replay from
+half of element 0 by frozen masked rounds, replay fraction = elements
+matched in order (own overlap >= 0.3) before the first miss over L - 1.
+Recovery times tau = 0, 1, 2, 4, 8, 16, 32, 64, 128, 256, 512 rounds and
+infinity (no decay). For each, L on the ladder 16 x 2^(j/2) to 16384, stopping
+after two consecutive points with mean below 0.2 (or the first, if it never
+rose above 0.5); the LENGTH LIMIT is where the mean falls through 0.5,
+log-interpolated.
+
+    python -m research.runner recovery \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag recovery-20261007 --seeds 382 ... 401
+
+### Bars
+
+    B1  RECOVERY BEATS BOTH ENDS. At every cell the limit at the best tau is
+        at least twice the larger of the Hebbian (tau = 0) and cumulative
+        (tau = infinity) limits.
+    B2  THE OPTIMUM IS INTERIOR. At every cell the best tau is neither 0 nor
+        the largest finite tau of the grid (512).
+    B3  THE UPPER EDGE SCALES WITH n/k. The largest tau whose limit is at
+        least half the best lies within [0.5, 4] n/k at every cell.
+    B4  THE LIMIT AT THE BEST tau GROWS AS (n/k)^2. best / (n/k)^2 varies by
+        at most a factor 1.5 across the four cells.
+
+Reported, not judged: every tau's limit and curve; the best limit's constant
+in (n/k)^2 and in p (n/k)^2; the lower edge.
+
+### Interpretation, stated now
+
+* B1 to B4 pass: the length of a sequence one area can recall by itself is
+  set by how fast its adaptation recovers. Too fast and states merge (the
+  Hebbian cliff); too slow and the area is used up (the tiling deadline);
+  in between, the limit rises severalfold above both, with an upper edge
+  set by n/k, and grows as the square of the code's sparsity -- a capacity
+  of the synapses, reached once neither failure mode intervenes.
+* B3 fails: the window's upper edge is not set by the tiling scale.
+* B4 fails: the best limit follows a different law; the curves say which.
+* The risks stated now: (2000, 60, 0.5) was not probed, and its cumulative
+  limit (Amendment 27: 520) is already 14 times its Hebbian one, so B1 there
+  is the closest; (4000, 30, 0.5) was not probed either.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until B1 to B4 are evaluated and recorded below.

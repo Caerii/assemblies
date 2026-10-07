@@ -349,3 +349,23 @@ def test_store_sequence_options_leave_the_plain_write_untouched(mod):
     assert fresh.shape == (12, SEEDS) and bool((fresh[0] == 1).all())
     sc, _ = c.store_sequence(elements, bias_reset=3)
     assert not torch.equal(sa, sc)
+
+
+def test_a_decaying_bias_spans_hebbian_to_cumulative(mod):
+    """bias_decay = 1 is the cumulative bias bit for bit; bias_decay = 0
+    zeroes the bias before every round's selection, so the winners and counts
+    are the unrefracted area's; in between it changes the sequence."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    def mem(strength, decay=None):
+        return AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True,
+                              rounds=1, strength=strength, max_items=8, bias_decay=decay)
+    elements = [_stim(e) for e in range(12)]
+    plain, one, zero, hebb, mid = mem(0.5), mem(0.5, 1.0), mem(0.5, 0.0), mem(0.0), mem(0.5, 0.9)
+    sp, _ = plain.store_sequence(elements)
+    s1, _ = one.store_sequence(elements)
+    assert torch.equal(sp, s1) and torch.equal(plain.fiber.C, one.fiber.C)
+    s0, _ = zero.store_sequence(elements)
+    sh, _ = hebb.store_sequence(elements)
+    assert torch.equal(s0, sh) and torch.equal(zero.fiber.C, hebb.fiber.C)
+    sm, _ = mid.store_sequence(elements)
+    assert not torch.equal(sm, sp)

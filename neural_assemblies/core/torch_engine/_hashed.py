@@ -1098,6 +1098,11 @@ class HashedArea:
         #: MASKED READOUT, the engine's `masked_readout`: a frozen projection
         #: ranks the raw drive. `project(mask_bias=...)` overrides per call.
         self.masked_readout = False
+        #: A refraction that RECOVERS: at the start of every non-frozen round
+        #: the bias is multiplied by this factor (exp(-1 / tau) for a recovery
+        #: time of tau rounds). None -- the reference's cumulative bias, which
+        #: never decays -- leaves every operation untouched.
+        self.bias_decay = None
         #: TIE JITTER, opt-in. The selector breaks exact ties by smallest
         #: index -- canonical, and what every capacity result was measured
         #: with. But a STIMULUS-driven area under norm_init has a drive with a
@@ -1296,6 +1301,8 @@ class HashedArea:
             self.rounds_used = torch_ops.zeros(self.B, dtype=torch_ops.int64,
                                            device=self.device)
         for _ in range(rounds):
+            if self.bias_decay is not None and not freeze and self.bias is not None:
+                self.bias.mul_(self.bias_decay)
             raw = torch_ops.zeros(self.B, self.n, dtype=torch_ops.float32,
                               device=self.device)
             for f in fibers:
