@@ -4369,3 +4369,72 @@ the wrong one (0.78 at 96 plans) while the chunk area still holds every
 plan's order (0.96) -- and doubling both areas removes it (1.00). The chunk
 starts were linked by construction: the circuit does not yet find a chunk's
 boundaries itself.
+
+## Amendment 34 (2026-10-07, before running): robustness -- many sequences, activity noise, corrupted cues
+
+Registered before any run of this amendment. Every earlier sequence study
+stored one sequence per brain and replayed it noiselessly. At the recovery
+time that maximised length (tau = 33, Amendment 29), this amendment asks
+whether many sequences share the single-sequence budget, how much activity
+noise during replay the memory tolerates, and how much of a cue may be wrong.
+
+**Seen before registering** (exploratory, 5 brains on seeds 900 to 904;
+disclosed in full). (4000, 60, 0.5): M sequences of 32 replayed 1.00 at
+M = 1, 8, 32, 0.98 at M = 64 (2048 elements), 0.04 at M = 128 (4096). On one
+sequence of L = 200, a fraction nu of every replay step's winners replaced at
+random: first-miss median 199 (none) at nu = 0.02 and 0.05, 47 at 0.1
+(quartiles 40 to 49), 5 at 0.2; one step from a state with 10% noise read
+0.94 of the next state, 30% noise 0.81, and a chained trace at 10% held 0.86
+to 0.89 per step -- the losses are rare derailments, not decay. A half cue
+with 25% of its neurons wrong replayed 1.00, with 50% wrong 0.02. On
+L = 400 at nu = 0.1: tau = 33 first-miss median 42 at (4000, 60) and 110 at
+(8000, 60); tau = 8 43 and none; the cumulative bias 43 and 81 (and at
+nu = 0.07 it broke at 57 and 114, near 0.86 n/k, where the recovering arms
+did not break). The step at which reuse begins (fresh share below 0.9) did
+not predict the noisy first miss. A smoke run of the module (VOID: 3 brains,
+two ladder points, L = 40) ran the pipeline.
+
+### Protocol
+
+`research/experiments/memory_robustness.py` (`python -m research.runner
+robustness`), seeds 482 to 501 (new brains), one run from a worktree pinned
+at the commit registering this amendment. Cells (4000, 60, 0.5) and
+(8000, 60, 0.5); beta = theta, refraction 0.5 beta recovering over 33 rounds.
+MANY: M chosen sequences of 32 elements per brain on the ladder
+8 x 2^(j/2), the mean replay fraction over up to 16 of them, stopping after
+two points below 0.2; the BUDGET is 32 times the M at which the mean falls
+through 0.5. NOISE: one sequence of L = 400; nu = 0, 0.05, 0.07, 0.1, 0.2;
+each brain's first-miss step, mean over four noise draws (seeded). CUE:
+eta = 0.25 and 0.5 of the half cue replaced; the replay fraction.
+
+    python -m research.runner robustness \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag robustness-20261007 --seeds 482 ... 501
+
+### Bars
+
+    N1  MANY SEQUENCES SHARE ONE BUDGET. At each cell the many-sequence
+        budget lies within [0.6, 1.6] of Amendment 29's single-sequence best
+        limit (2309 and 6890).
+    N2  SMALL NOISE IS HARMLESS. nu = 0.05: at least 18 of 20 brains replay
+        all 399 steps at both cells.
+    N3  A LARGER AREA DOUBLES THE NOISE HORIZON. nu = 0.1: the median
+        first-miss step at (8000, 60) is at least twice that at (4000, 60).
+    N4  A CUE MAY BE A QUARTER WRONG. eta = 0.25: mean replay fraction >= 0.9
+        at both cells.
+
+Reported, not judged: every nu's first-miss distribution; eta = 0.5; the
+whole many-sequence curve.
+
+### Interpretation, stated now
+
+* N1 to N4 pass: the length limit of Amendment 29 is a budget of elements,
+  spent the same way by one long sequence or many short ones; replay
+  survives a few percent of its winners being wrong at every step and a cue
+  a quarter wrong; and a larger area pushes the noisy horizon out, so
+  robustness, like length, is bought with neurons.
+* N1 fails: many sequences cost more (or less) than their elements.
+* N3 fails: the noisy horizon does not scale with the area.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until N1 to N4 are evaluated and recorded below.
