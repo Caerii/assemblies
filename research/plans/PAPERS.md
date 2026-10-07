@@ -336,6 +336,15 @@ Still needed:
   replays 4 n/k elements whole on every brain. Next: a bias that DECAYS
   with a time constant (the biological form), and why replay breaks at the
   wrap when the one-step transition there is not weak.
+- Done 2026-10-07 (Amendments 29 to 34): recovery sets the length limit
+  (`RECOVERY-SETS-SEQUENCE-LENGTH`: 6890 elements at (8000, 60), the best
+  limit following the in-degree); context by refraction (A30); balanced
+  two-way recall steered by LRI (`BIDIRECTIONAL-RECALL-BY-LRI`); sequences
+  of sequences across two areas (`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`);
+  robustness (`SEQUENCE-MEMORY-ROBUSTNESS`). P7 now has a result section per
+  capacity. Next: the circuit finding chunk boundaries itself (here they
+  are given), noise during writing and on synapses, and the switch
+  conjecture at new cells.
 - The boundary in s / beta, derived: the identity
   net_{t+1} - net_t = (beta - s) raw_t puts cancellation at s = beta, the
   churn transition was measured near 0.8 beta, and how the boundary moves
