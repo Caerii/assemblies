@@ -3936,3 +3936,127 @@ synapse budget, at about one and a half to two times its constant. A
 registration on new cells would make that a claim. The best tau does not
 scale with n/k (32 to 64 over a fourfold range of n/k); the upper edge
 (256 at the three sparse cells) does not either, beyond the bars' band.
+
+## Amendment 30 (2026-10-07, before running): context -- the same element in two sequences
+
+Registered before any run of this amendment. Two chosen sequences per brain
+share a run of m identical elements, S1 = A0 A1 A2 C0..C(m-1) D0 D1 D2 and
+S2 = B0 B1 B2 C0..C(m-1) E0 E1 E2, written one after the other with G
+unrelated elements between them. Replay from half of A0 (B0) can end on D (E)
+only if the shared elements' states differ between the sequences.
+
+**Seen before registering** (exploratory, 5 brains on seeds 900 to 904,
+(4000, 60, 0.5), beta = theta, s = 0.5 beta; disclosed in full): at G = 0,
+with refraction recovering over 33 rounds or never, the shared states
+overlapped 0.00 to 0.01 across the two sequences for m = 1 to 16, and the
+branch read 0.94 to 0.98 on the own continuation against 0.00 to 0.01 on
+the other; without refraction the shared overlap rose 0.17, 0.27, 0.51, 0.76,
+0.87 for m = 1, 2, 4, 8, 16 and the branch was ambiguous from m = 4. With
+m = 8 and a gap of 100, 300, 600 elements, recovery over 33 rounds gave a
+shared overlap of 0.34, 0.29, 0.38 (branch own 0.85 to 0.95 against other
+0.28 to 0.70); recovery over 8 rounds 0.53 to 0.69 with the first sequence's
+branch on the wrong ending; the never-recovering bias 0.13, 0.15, 0.42. A
+smoke run of the module (VOID: 3 brains, m = 4, G = 0 and 16) agreed.
+
+### Protocol
+
+`research/experiments/memory_context.py` (`python -m research.runner
+context`), seeds 402 to 421 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (4000, 60, 0.5) and
+(8000, 60, 0.5); beta = theta, s = 0.5 beta, one round per element; three
+refractions: tau = 0 (none), tau = 33 rounds, and the cumulative bias (inf);
+m = 1, 4, 16; G = 0 and 600. Per brain: the shared states' mean overlap
+across the two sequences, and BOTH BRANCHES RIGHT -- each sequence's replay,
+from half of its first state through its prefix and shared run, overlaps its
+own continuation at least 0.5 and more than the other sequence's.
+
+### Bars
+
+    C1  REFRACTION CODES THE SHARED ELEMENTS APART. With tau = 33 and with the
+        cumulative bias, at G = 0, for every m at both cells: mean shared
+        overlap <= 0.05, and both branches right on at least 18 of 20 brains.
+    C2  WITHOUT REFRACTION THE CONTEXT IS LOST. tau = 0, m = 16, G = 0, both
+        cells: mean shared overlap >= 0.5 and both branches right on at most
+        10 of 20 brains.
+    C3  THE SEPARATION IS LARGELY RECENCY. tau = 33, G = 600, every m, both
+        cells: mean shared overlap >= 0.15.
+
+Reported, not judged: every case's overlap and branch count; the cumulative
+bias at G = 600.
+
+### Interpretation, stated now
+
+* C1 to C3 pass: the area gives a repeated element a new code in each
+  sequence it appears in, because refraction sends it to neurons the first
+  sequence has just used and suppressed -- context without a dedicated
+  circuit -- and that separation fades once the bias has recovered, so the
+  recovery time that maximises sequence length (Amendment 29) also bounds
+  how far apart in time two sequences can share elements and still be told
+  apart.
+* C2 fails: an unrefracted area keeps context too, through the previous
+  state alone.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until C1 to C3 are evaluated and recorded below.
+
+## Amendment 31 (2026-10-07, before running): bidirectional recall, steered by long-range inhibition
+
+Registered before any run of this amendment. The round write records forward
+transitions only, and replay runs forward only (Amendment 26, post hoc:
+backward at chance). `store_sequence(reverse_counts=r)` adds every element's
+reverse transition r times after the sequence (a stand-in for a rule that
+potentiates post-before-pre pairs from a trace); `HashedArea.prime_lri`
+enters states into the long-range-inhibition (LRI) history. A chain linked
+both ways points each state at both neighbours; LRI at recall vetoes the
+state just left, so the direction is set by where the replay came from.
+Both engine options are tested to leave the plain write bit for bit.
+
+**Seen before registering** (exploratory, 5 brains on seeds 900 to 904,
+(4000, 60, 0.5), beta = theta, tau = 33, L = 200; disclosed in full): with
+forward links only, replay forward 1.00, backward 0.00; one reverse count
+written alongside, with no LRI, forward 0.02 and backward 0.01; LRI periods
+2, 3, 8 at recall restored forward (1.00) but not backward (0.01) while the
+cue was not in the LRI history. A partner area holding only reverse links
+read 0.39 to 0.41 one step back with one count (chained backward 0.01) and
+0.84 to 0.95 with two or three (chained backward 1.00). One area with extra
+forward and reverse counts and LRI period 4 replayed forward 1.00 and
+backward 1.00 once the cue was entered into the LRI history; from the middle
+it went forward unless primed with the neighbour it came from, and primed,
+backward 1.00 and forward 1.00. A smoke run of the module (VOID: 3 brains,
+L = 24, r = 0 and 2) read r = 0: forward 1.00, backward 0.00; r = 2: forward
+without LRI 0.07, with LRI forward, backward, middle-backward and
+middle-forward 1.00.
+
+### Protocol
+
+`research/experiments/memory_bidirectional.py` (`python -m research.runner
+bidirectional`), seeds 422 to 441 (new brains), one run from a worktree
+pinned at the commit registering this amendment. Cells (4000, 60, 0.5) and
+(8000, 60, 0.5); beta = theta, s = 0.5 beta, tau = 33, one chosen sequence of
+L = 200 per brain, reverse counts r = 0, 1, 2, 3. Replay fractions (own
+overlap >= 0.3 in order before the first miss): forward from element 0 with
+no LRI (forward_masked); with LRI period 4, strength 100, the cue primed:
+forward from element 0, backward from element L - 1, and from element 100
+backward (primed with 101) and forward (primed with 99).
+
+### Bars
+
+    R1  THE FORWARD WRITE IS FORWARD ONLY. r = 0: forward_masked >= 0.9 and
+        backward <= 0.1 at both cells.
+    R2  ONE REVERSE COUNT IS TOO WEAK. r = 1: backward <= 0.5 at both cells.
+    R3  WITH TWO COUNTS AND LRI, BOTH WAYS FROM ANYWHERE. r = 2 and 3: forward,
+        backward, middle-backward and middle-forward >= 0.9 at both cells.
+    R4  WITHOUT LRI THE TWO-WAY CHAIN HAS NO DIRECTION. r = 2:
+        forward_masked <= 0.5 at both cells.
+
+### Interpretation, stated now
+
+* R1 to R4 pass: a sequence stored with reverse links at least twice one
+  write's strength can be replayed in either direction from any point, and
+  what chooses the direction is long-range inhibition at recall -- the state
+  just left cannot win again. Direction is set by recent history, not by
+  wiring; LRI's role in this circuit is steering at readout.
+* R2 fails: one reverse count suffices once LRI removes the competition.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until R1 to R4 are evaluated and recorded below.

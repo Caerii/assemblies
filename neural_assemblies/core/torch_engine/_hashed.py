@@ -1186,6 +1186,15 @@ class HashedArea:
                                     self.lri_strength * decay))
         return drive - penalty
 
+    def prime_lri(self, winners) -> None:
+        """Enter ``winners`` [B, k] into the long-range-inhibition history as if
+        they had just fired. A recall CUE is placed, not fired, so it is not in
+        the history unless primed; priming the state a replay CAME FROM vetoes
+        it, which sets the direction of travel on a chain linked both ways."""
+        if self._lri_hist is None:
+            raise ValueError("set_lri before priming its history")
+        self._push_lri(winners)
+
     def _push_lri(self, winners) -> None:
         """Record this step's winners. Not gated on `freeze`: the reference
         appends its history on every step, so a frozen read still inhibits."""

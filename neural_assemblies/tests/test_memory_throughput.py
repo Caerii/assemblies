@@ -369,3 +369,40 @@ def test_a_decaying_bias_spans_hebbian_to_cumulative(mod):
     assert torch.equal(s0, sh) and torch.equal(zero.fiber.C, hebb.fiber.C)
     sm, _ = mid.store_sequence(elements)
     assert not torch.equal(sm, sp)
+
+
+def test_reverse_counts_add_exactly_the_reverse_transitions(mod):
+    """reverse_counts = r adds r counts on every present synapse from an
+    element's winners onto the previous element's, and nothing else; r = 0
+    is the plain write bit for bit."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from research.experiments import memory_pattern_efficiency as pe
+    def mem():
+        return AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True,
+                              rounds=1, strength=0.5, max_items=8)
+    elements = [_stim(e) for e in range(6)]
+    a, b, c = mem(), mem(), mem()
+    sa, _ = a.store_sequence(elements)
+    sb, _ = b.store_sequence(elements, reverse_counts=0)
+    assert torch.equal(sa, sb) and torch.equal(a.fiber.C, b.fiber.C)
+    sc, _ = c.store_sequence(elements, reverse_counts=2)
+    assert torch.equal(sa, sc)
+    for s in range(SEEDS):
+        x = [torch.zeros(N, dtype=torch.float32, device=sc.device).index_fill_(0, st[s], 1.0)
+             for st in sc]
+        extra = 2 * sum(torch.outer(x[e], x[e - 1]) for e in range(1, 6))
+        present = pe.presence_of(c.fiber.pres, s, N)
+        assert torch.equal((c.fiber.C[s].float() - a.fiber.C[s].float()), extra * present)
+
+
+def test_priming_lri_vetoes_the_primed_state_on_the_next_read(mod):
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    mem = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True,
+                         rounds=1, strength=0.5, max_items=8)
+    states, _ = mem.store_sequence([_stim(e) for e in range(4)])
+    with pytest.raises(ValueError):
+        mem.area.prime_lri(states[0])
+    mem.area.set_lri(2, 100.0)
+    mem.area.prime_lri(states[1])
+    got = mem.recall(states[0][:, :K // 2], rounds=1)
+    assert not bool((got.unsqueeze(2) == states[1].unsqueeze(1)).any())

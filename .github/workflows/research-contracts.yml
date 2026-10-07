@@ -78,6 +78,8 @@ jobs:
           neural_assemblies/tests/test_memory_sequence_length.py
           neural_assemblies/tests/test_memory_tiling.py
           neural_assemblies/tests/test_memory_recovery.py
+          neural_assemblies/tests/test_memory_context.py
+          neural_assemblies/tests/test_memory_bidirectional.py
           neural_assemblies/tests/test_throughput_contract.py
           neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py
