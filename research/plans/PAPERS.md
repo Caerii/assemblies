@@ -329,7 +329,13 @@ Still needed:
   elements and loses it all at once (L1 passes; per brain the failure is
   all-or-none); refraction lengthens the limit 2 to 31 times at n/k <= 67
   and shortens it at n/k = 133, where the refracted chain breaks at step
-  n/k on nearly every brain (post hoc). Next: register that deadline.
+  n/k on nearly every brain (post hoc).
+- Done 2026-10-06, the tiling deadline (Amendment 28, D1 to D3 pass;
+  `SEQUENCE-TILING-DEADLINE`): the refracted sequence tiles the area, replay
+  breaks at multiples of n/k (49 of 51 breaks), and a bias that recovers
+  replays 4 n/k elements whole on every brain. Next: a bias that DECAYS
+  with a time constant (the biological form), and why replay breaks at the
+  wrap when the one-step transition there is not weak.
 - The boundary in s / beta, derived: the identity
   net_{t+1} - net_t = (beta - s) raw_t puts cancellation at s = beta, the
   churn transition was measured near 0.8 beta, and how the boundary moves

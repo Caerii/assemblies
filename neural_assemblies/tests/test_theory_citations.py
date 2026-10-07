@@ -201,6 +201,8 @@ class TestTheoryCitations(unittest.TestCase):
             "WRITE-TIMING-DECIDES-ATTRACTOR",
             # 2026-10-06: the s/beta switch and the deferred write's replay (A26)
             "ADAPTATION-SWITCHES-MEMORY-TYPE",
+            # 2026-10-06: a recovering bias replays past the tiling wrap (A28)
+            "SEQUENCE-TILING-DEADLINE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

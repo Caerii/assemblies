@@ -19,6 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`SEQUENCE-TILING-DEADLINE`](#sequence-tiling-deadline) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta, beta = theta | A refracted area writes a single sequence onto neurons that have never fired until none remain: the sequence tiles the area, the fresh pool is empty at element n/k, and replay breaks at multiples of n/k (49 of 51 breaks within two steps). |
 | [`ORDERED-RECALL-BY-TRANSITIONS`](#ordered-recall-by-transitions) | MEASURED | numpy_sparse, materialized connectome (the assembly calculus's own sequence_memorize and ordered_recall) | The calculus's sequence operation recalls an eight-element sequence autonomously -- 7 of 7 steps after the cue on 17 of 20 seeds, 6 on the rest -- when each element is written in ONE stimulus-and-recurrence round at a write equal to the convergence threshold theta; eight rounds per element at the same write, and one round at beta = 0.10, advance 0 on every seed. |
 | [`ADAPTATION-SWITCHES-MEMORY-TYPE`](#adaptation-switches-memory-type) | MEASURED | hashed AssemblyMemory (arm B, ungated, masked readout), write_rule round / deferred, refraction strength s | One recurrent area and one causal Hebbian rule store attractors or sequences according to whether the activity holds still while it is written. |
 | [`WRITE-TIMING-DECIDES-ATTRACTOR`](#write-timing-decides-attractor) | MEASURED | hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst | In the refracted assembly memory WHEN the write happens decides what is stored. |
@@ -467,6 +468,31 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Sensitivity gap.** Paired refracted-versus-control checks now cover all seven cells the law is fitted to (A7 at (4000, 60); Amendment 8 at the other six). The masked-vs-net veto, the convergence gate, the strength plateau and the cross-engine mirror still lack retained paired checks.
 
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
+
+## SEQUENCE-TILING-DEADLINE
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 28 (D1, D2, D3 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta, beta = theta
+
+**Claim.** A refracted area writes a single sequence onto neurons that have never fired until none remain: the sequence tiles the area, the fresh pool is empty at element n/k, and replay breaks at multiples of n/k (49 of 51 breaks within two steps). A bias that recovers -- zeroed every n/(2k) elements -- removes the deadline: every brain replays 4 n/k elements (532 at n/k = 133, where the never-decaying bias breaks near 130).
+
+**Requires.**
+- one chosen sequence per brain, one stimulus-and-recurrence round per element; replay from half of element 0 by frozen masked rounds
+- cumulative refraction bias (bias += s raw at every win, never decaying)
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-28-result-2026-10-06
+
+**Evidence files.**
+- [research/results/runs/memory.tiling/tiling-20261006/results.json](../research/results/runs/memory.tiling/tiling-20261006/results.json) (artifact) â€” Amendment 28: fresh share per element and replay breaks, refracted and reset arms, four cells
+- [research/results/runs/memory.sequence-length/sequence-length-20261006/results.json](../research/results/runs/memory.sequence-length/sequence-length-20261006/results.json) (artifact) â€” Amendment 27: the refracted length limit, where the deadline was first seen (post hoc)
+
+**Mechanism sensitivity.**
+- a bias zeroed every n/(2k) elements replays past the step-n/k wrap where the never-decaying bias breaks, at (8000, 60, 0.5) (Amendment 28): `observations/cells/8000~160~10.5/arms/reset/break/values` all-greater `observations/cells/8000~160~10.5/arms/refracted/break/values` by at least 100, retained in [research/results/runs/memory.tiling/tiling-20261006/results.json](../research/results/runs/memory.tiling/tiling-20261006/results.json) and paired by `run/seeds`.
+- a bias zeroed every n/(2k) elements replays past the step-n/k wrap where the never-decaying bias breaks, at (4000, 30, 0.5) (Amendment 28): `observations/cells/4000~130~10.5/arms/reset/break/values` all-greater `observations/cells/4000~130~10.5/arms/refracted/break/values` by at least 100, retained in [research/results/runs/memory.tiling/tiling-20261006/results.json](../research/results/runs/memory.tiling/tiling-20261006/results.json) and paired by `run/seeds`.
+
+**Caveat.** Four cells, p = 0.5, one write strength (theta) and one refraction strength (0.5 beta); the reset is an instantaneous zeroing, not a decay with a time constant. Why replay breaks at the wrap while the one-step transition there is not weak (probe) is not yet measured; n/k = 33 survives its wraps.
 
 ## ORDERED-RECALL-BY-TRANSITIONS
 

@@ -1175,47 +1175,6 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
-        id="SEQUENCE-TILING-DEADLINE",
-        engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta, beta = theta",
-        status=Status.MEASURED,
-        claim="A refracted area writes a single sequence onto neurons that have never "
-              "fired until none remain: the sequence tiles the area, the fresh pool is "
-              "empty at element n/k, and replay breaks at multiples of n/k (49 of 51 "
-              "breaks within two steps). A bias that recovers -- zeroed every n/(2k) "
-              "elements -- removes the deadline: every brain replays 4 n/k elements "
-              "(532 at n/k = 133, where the never-decaying bias breaks near 130).",
-        source="PREREG_refraction_memory.md Amendment 28 (D1, D2, D3 PASS)",
-        preconditions=("one chosen sequence per brain, one stimulus-and-recurrence round per "
-                       "element; replay from half of element 0 by frozen masked rounds",
-                       "cumulative refraction bias (bias += s raw at every win, never decaying)"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-28-result-2026-10-06",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.tiling/tiling-20261006/results.json", "artifact",
-                        "Amendment 28: fresh share per element and replay breaks, refracted and reset arms, four cells"),
-            EvidenceRef("research/results/runs/memory.sequence-length/sequence-length-20261006/results.json", "artifact",
-                        "Amendment 27: the refracted length limit, where the deadline was first seen (post hoc)"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.tiling/tiling-20261006/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8000~160~10.5/arms/reset/break/values",
-            control_path="observations/cells/8000~160~10.5/arms/refracted/break/values",
-            relation="all-greater", minimum_effect=100,
-            mechanism="a bias zeroed every n/(2k) elements replays past the step-n/k wrap where the never-decaying bias breaks, at (8000, 60, 0.5) (Amendment 28)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.tiling/tiling-20261006/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~130~10.5/arms/reset/break/values",
-            control_path="observations/cells/4000~130~10.5/arms/refracted/break/values",
-            relation="all-greater", minimum_effect=100,
-            mechanism="a bias zeroed every n/(2k) elements replays past the step-n/k wrap where the never-decaying bias breaks, at (4000, 30, 0.5) (Amendment 28)",
-        )),
-        caveat="Four cells, p = 0.5, one write strength (theta) and one refraction strength "
-               "(0.5 beta); the reset is an instantaneous zeroing, not a decay with a time "
-               "constant. Why replay breaks at the wrap while the one-step transition there "
-               "is not weak (probe) is not yet measured; n/k = 33 survives its wraps.",
-    ),
-    Result(
         id="ORDERED-RECALL-BY-TRANSITIONS",
         engine="numpy_sparse, materialized connectome (the assembly calculus's own sequence_memorize and ordered_recall)",
         status=Status.MEASURED,
