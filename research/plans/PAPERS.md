@@ -12,6 +12,18 @@ were written. Read it after
 thesis it keeps, and before starting anything under
 [../papers/](../papers/README.md).
 
+**Reconciled 2026-10-06** with Amendments 17 to 26 of the memory line.
+They moved three things. P1's open scaling question has an answer at the
+optimum (the in-degree, Amendment 21), and its learning-rate law is a
+fraction of the field's own convergence threshold (Amendment 17). P4 has a
+measured phase structure of its own (Amendments 18, 23, 24). And a new
+paper, P7, comes out of Amendments 25 and 26: when the write happens, and
+how strongly the area adapts, decide whether one recurrent area stores
+attractors or sequences -- which also gives a measured reason why the
+calculus's sequence operation does not advance in this package. The
+ladder, P1, P4, the new P7, the order and the debts below are updated; this
+section is kept as written.
+
 ## 1. What the earlier plans asked for, and what happened
 
 **The vision paper.** [ASSEMBLY_SYSTEMS_PAPER_VISION.md](ASSEMBLY_SYSTEMS_PAPER_VISION.md)
@@ -84,17 +96,18 @@ registration and a manuscript.
 
 | # | Working title | The claim in one sentence | Register IDs | Readiness |
 |---|---------------|---------------------------|--------------|-----------|
-| P1 | Refraction makes a recurrent k-WTA area an associative memory, and the learning rate that serves it scales with fan-in | Each at its own best learning rate, a refracted area completes 14 to 57× as many distinct items as a Hebbian one; refraction raises pattern efficiency from ~2% to ~50% of what the synapses hold; the best rate obeys ln(1 + beta*) = 0.285 sqrt(2(1 - p))/sqrt(k p/2). | `REFRACTION-ANTI-MERGING`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `REFRACTION-CANCELS-CONVERGENCE` | reframed 2026-10-01; scaling law at the optimum open |
+| P1 | Refraction makes a recurrent k-WTA area an associative memory, and the learning rate that serves it scales with fan-in | Each at its own best learning rate, a refracted area completes 14 to 57× as many distinct items as a Hebbian one; the best rate is 0.18 to 0.19 of the convergence threshold theta, and capacity there follows the in-degree n p, not n/k; written six to forty times more weakly, the same circuit is a recognition memory holding 15 to 86× as many items. | `REFRACTION-ANTI-MERGING`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `REFRACTION-CANCELS-CONVERGENCE` | results complete (Amendments 1 to 24); a draft can start; the in-degree exponent is open |
 | P2 | An exact assembly transition machine, and the anatomy of its errors | The refracted-arc machine runs 2000 random steps without error on 40 of 40 brains; its rare soft transitions are ties between a block's least-connected neuron and the best-connected outsider, and training just below the weight clip removes them. | `SEQ-EXACT-RECOVERY`, `SEQ-REGIME-CLIFF`, `ARC-CONJUNCT-EXPOSURE`, `REFRACTION-PROPORTIONAL`, `KWTA-TIE-FRAGILE`, `SEQ-ORGAN-EMBEDS` | results complete; two figures queued |
 | P3 | A hash-regenerated GPU substrate for the assembly calculus, and what lazy sampling did to earlier results | Regenerating each brain's connectome from a hash and batching brains gives exact drives at sixty to seventy times the numpy throughput, and the parity gates it required exposed a sampler artifact behind every earlier derailment. | substrate DESIGN notes, [PREREG_sampler_audit.md](../notes/sequence/PREREG_sampler_audit.md) | results complete; timing table queued |
-| P4 | Statistical mechanics of the substrate: control parameters, order parameters, measured phase structure | Capacity, the gain crossover, and the regime floor are functions of a few ratios, and each failure is a cliff rather than a slope. | `AC-CAP`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `SEQ-REGIME-CLIFF`, `HEBB-OUTER-PRODUCT`, `DRIVE-SPLIT`, plus [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex) | tex draft exists; needs merging with the register and one derivation |
+| P4 | Statistical mechanics of the substrate: control parameters, order parameters, measured phase structure | The memory's phase diagram in the write-load plane has four regions (no memory, recognition only, recall, lost) bounded by cliffs; the recall onset is a critical coupling at 0.163 to 0.170 theta for n = 2000 to 16000, opened only by load; capacity, the gain crossover and the regime floor are functions of a few ratios. | `AC-CAP`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `SEQ-REGIME-CLIFF`, `HEBB-OUTER-PRODUCT`, `DRIVE-SPLIT`, `REFRACTION-ANTI-MERGING` (Amendments 18, 23, 24), plus [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex) | phase diagram and onset measured; the derivation is a conjecture (a saddle-node of the overlap map) |
 | P5 | Local-rule sequence prediction with assemblies (the temporal memory) | The state is the previous arc and predicted neurons win; this carries agreement across two distractors and predicts order-10 sequences exactly inside the training window. | none yet adopted | gated on Amendment 2 and the register study |
 | P6 | Cross-situational word learning and word order without annotation | Alignment 0.99 and six of six word orders from scene-sentence pairs with a homeostatic lexicon; word capacity scales with the lexicon's n. | aligner line, [PREREG_word_capacity.md](../notes/aligner/PREREG_word_capacity.md) | measured; needs real input and the dead-probe audit |
+| P7 | When plasticity acts decides what a recurrent area stores: attractors, trajectories, and the calculus's sequence operation | One area and one causal Hebbian rule store attractors when the write feeds the item's own rounds under refraction weaker than plasticity, and replayable sequences (207 to 950 chains of eight states) when refraction outpaces plasticity or the write comes after the item; a burst-timing rule stores neither. | `WRITE-TIMING-DECIDES-ATTRACTOR`, `ADAPTATION-SWITCHES-MEMORY-TYPE`, `REFRACTION-CANCELS-CONVERGENCE` | two registered results; needs the calculus-operation test, the boundary derivation, distinctness on fresh brains |
 
 ### P1. Refracted memory
 
 Evidence: [PREREG_refraction_memory.md](../notes/memory/PREREG_refraction_memory.md),
-bars R1 to R7, N1 to N3, Q1 to Q4, G1 to G5, Amendments 1 to 17; twenty
+bars R1 to R7, N1 to N3, Q1 to Q4, G1 to G5, Amendments 1 to 24; twenty
 brains per cell; register entry `REFRACTION-ANTI-MERGING`. Figures:
 `memory_recall_vs_M.png`, `memory_ceiling_vs_nk.png`, `memory_gate_U.png`;
 new figures needed for Amendments 9, 11, 13 and 16 (below).
@@ -119,29 +132,44 @@ fixed, over-strong learning rate. What now stands, each on registered bars:
 4. **The learning-rate law** -- the paper's new result: ln(1 + beta*) =
    0.285 sqrt(2 (1 - p)) / sqrt(k p / 2), confirmed on new brains, at unseen
    cells, and at p = 0.125 to 0.75 (Amendments 13, 16); the field's beta = 0.1
-   is 1.3 to 2.7 times too strong. Amendment 17 tests whether it is 0.20 of
-   the field's own convergence-threshold form, which would make it a rule
-   from the theory rather than a fit.
+   is 1.3 to 2.7 times too strong. Amendment 17 found it is 0.18 to 0.19 of
+   the field's own convergence-threshold form theta = sqrt((1 - p) ln n /
+   (p k)) at k p = 30 to 80 (T1), though not below the regime floor (T2): a
+   rule on the theory's own scale, with the constant still to derive.
 5. **Depth as over-writing.** At each number of write rounds' own best rate
    capacity is the same (Amendment 15); "8 rounds beat 16" was over-writing.
+6. **Capacity at the optimum follows the in-degree.** At equal in-degree
+   d = n p, cells whose n/k differs two- to fourfold hold capacities within
+   11% (Amendment 21, D2); the exponent in d is 1.5 to 1.67, and the
+   registered prediction missed one new cell of eight (D1, D3). The onset --
+   the weakest write that completes -- is 0.16 to 0.18 theta at ten cells
+   (Amendment 18); P4 carries it.
+7. **One circuit, two memories.** Each at its own best write, recognition
+   holds 15 to 86 times as many items as recall at a write six to forty
+   times weaker, and it scales with n/k where recall scales with d
+   (Amendment 23; Amendments 19 and 20 failed X1 to X3 and R3 on the way).
 
 Title candidate: *Refraction makes a recurrent k-WTA area an associative
 memory, and the learning rate that serves it scales with fan-in.*
 
 What it still needs:
 
-- The scaling law at the optimum. Whether completion capacity follows the
-  synapse-count form n^2 p / (k ln(n/k)) or (n/k)^2 is unsettled (Amendment
-  14, W2); it needs a wider n/k range than the GPU now holds at 20 brains.
-  Until then the paper states it as open.
+- The in-degree law's exponent. Amendment 21 settled what the capacity at
+  the optimum depends on (d, not n/k) but not the exponent (1.669 against
+  the bar's [1.35, 1.65]); the paper states the law as measured over its
+  cells with the exponent open.
 - A theoretical account of the law: the sqrt(fan-in) scaling and the (1 - p)
-  factor follow from a signal-against-connectivity-noise argument; the
-  constant, and its relation to the convergence threshold, need a derivation.
+  factor follow from a signal-against-connectivity-noise argument;
+  Amendment 17 puts the constant at 0.18 to 0.20 of theta. The saddle-node
+  conjecture in [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex)
+  is a candidate account of the onset, not yet of the optimum.
 - The failed and voided bars in the text: Q1 out of regime, G3 no U-shape,
   G5 the budget cost, the overturned Amendment 1, PE-3/5/6/S (Amendment 9),
   Amendment 10 void by instrument, Amendment 12's merged-recall failure,
-  D2/D3 (Amendment 15). They locate the regime floor, the criteria and the
-  instruments.
+  D2/D3 (Amendment 15), T2 (Amendment 17), O3/O4 (Amendment 18), X1 to X3
+  (Amendment 19), R3 (Amendment 20), D1/D3 (Amendment 21), Amendment 22 void
+  by a stop rule chance could arm, Q2 (Amendment 23). They locate the regime
+  floor, the criteria and the instruments.
 - The caveats that bound the claim: graded stimuli; the bias-masked readout
   as a readout-mode primitive
   ([DESIGN_readout_mode.md](../notes/substrate/DESIGN_readout_mode.md)); one
@@ -209,11 +237,20 @@ ratio in n/k, the anchor ratio at formation, the cliff past the ceiling, the
 regime floor k p ≥ 3 ln n as a cliff, and the tie-fragility of the k-WTA bar.
 
 This is the paper the vision document described, written with laws instead
-of a program. It needs the one derivation the priorities document asked for.
-The two candidates with data already in hand are the square capacity law and
-the clip window; the clip window is derived and matched, so the capacity law
-is the open one. Do not start the draft before P1 is written, since P4
-quotes P1's law.
+of a program. Since 2026-10-03 the tex holds measured phase structure of its
+own: the memory's phase diagram in the write-load plane (Propositions
+`prop:phases` and `prop:loadassist`, from Amendments 18 and 23), the onset
+converging at 0.163 to 0.170 theta for n = 2000 to 16000 (Amendment 24), and
+two open conjectures (`conj:onset`, `conj:saddle`). It needs the one
+derivation the priorities document asked for, and the candidate is now
+specific: a mean-field one-round overlap map for a clipped multiplicative
+count matrix under k-WTA, whose saddle-node gives beta_c / theta near 0.17.
+An exploratory probe found that map sigmoidal, with its unstable point at
+the half cue; Amendment 24's settling instrument (exact winner sets) was
+tie-fragile and could not test the predicted slowing, so the overlap-
+relaxation test is owed. The clip window remains the derived-and-matched
+example. Do not start the draft before P1 is written, since P4 quotes P1's
+law.
 
 ### P5. The temporal memory
 
@@ -246,6 +283,64 @@ be re-measured against the substrate rather than its Python routes
 ([../PRIMITIVES_AUDIT.md](../PRIMITIVES_AUDIT.md)) before any of them are
 quoted. Not before P1 to P3.
 
+### P7. Attractors or sequences
+
+Evidence: [PREREG_refraction_memory.md](../notes/memory/PREREG_refraction_memory.md)
+Amendments 25 and 26 (twenty brains per cell, new brains each), register
+entries `WRITE-TIMING-DECIDES-ATTRACTOR` and `ADAPTATION-SWITCHES-MEMORY-TYPE`;
+`REFRACTION-CANCELS-CONVERGENCE` for the churn transition near s = 0.8 beta.
+
+What stands, each on registered bars:
+
+1. **When the write happens.** The round write's own counts, written after
+   the item's rounds instead of during them, store no attractor at any of 21
+   rates over a 32-fold range; the online write stores 451 to 1442 items
+   (Amendment 25, W1). Without the write's feedback refraction relocates the
+   activity every round, and what is stored is the item's trajectory (W4).
+   A burst-timing rule (Butts, Kanold and Shatz 2007) and a burst-gated online
+   write store nothing (W2, W3).
+2. **How strongly the area adapts.** With the write online, refraction
+   weaker than plasticity (s = 0.5 beta) holds the item still and stores
+   attractors; refraction stronger (s = 1.5 beta) moves it every round and
+   stores sequences that the area replays by itself, all seven steps from
+   half of the first state: 207 to 950 sequences of eight states at three
+   cells (Amendment 26, S1, S2). No sequence is stored at 0.5 theta, where
+   attractors already are: sequences need a stronger write.
+3. **The calculus's sequence operation.** The construction of Dabagia,
+   Papadimitriou and Vempala presents each element long enough to make it an
+   attractor and writes the bridge to the next one briefly, so recall needs a
+   veto (long-range inhibition) and is bounded by the bridge-to-self weight
+   ratio. That is the attractor phase. `ordered_recall` advances zero steps
+   in this package (`test_ordered_recall_advances.py`, strict xfail,
+   [PREREG_ordered_recall_reproduction.md](../notes/sequence/PREREG_ordered_recall_reproduction.md));
+   an exploratory probe of dwell-and-hop items found the same imbalance --
+   states written every round, transitions once -- with free replay covering
+   10 to 29% of the stored states. The moving phase is where a sequence is
+   native and an attractor impossible.
+
+Still needed:
+
+- A registered test of a CHOSEN sequence (one stimulus per element) written
+  in the moving phase, against the strict xfail's own bar -- the step that
+  turns item 3 from an explanation into an operation.
+- The boundary in s / beta, derived: the identity
+  net_{t+1} - net_t = (beta - s) raw_t puts cancellation at s = beta, the
+  churn transition was measured near 0.8 beta, and how the boundary moves
+  with T and load is open.
+- Distinctness and forward-only replay on fresh brains (both exploratory so
+  far: replay lands on its own state at 0.95 against 0.10 for the best of
+  thousands of others, and runs backward at chance).
+- The capacity law: S3 (n/k) and S3d (in-degree) both failed; three cells
+  give C ~ d^1.05 (n/k)^0.75 exactly, which is a description, not a law.
+
+Relation to P2 and P5: P2's transition machine is the attractor phase with
+the veto engineered in (an arc area and refraction); P5's temporal memory is
+a multi-area sequence model. P7 is the single-area mechanism under both.
+
+Title candidate: *When plasticity acts decides what a recurrent area
+stores: attractors, trajectories, and the assembly calculus's sequence
+operation.*
+
 ## 3. Rules for every draft
 
 These come from the repository's own documents and are not optional.
@@ -270,15 +365,18 @@ These come from the repository's own documents and are not optional.
 
 ## 4. Order and dependencies
 
-P1 first; it is complete and has the largest multiplier. P2 second; it
-shares P1's substrate section and the refraction mechanism. P3 is written
-alongside them as the methods companion and carries the audit. P4 after P1,
-because it quotes P1's law. P5 waits on the GPU queue (Amendment 2, then the
+P1 first; it is complete and has the largest multiplier. P7 next on the
+GPU: its remaining experiments (the chosen-sequence test, distinctness on
+fresh brains) are short, and it shares P1's substrate and refraction
+section. P2 third; it shares the refraction mechanism and is P7's attractor
+phase with an engineered veto. P3 is written alongside them as the methods
+companion and carries the audit. P4 after P1 and P7, because it quotes P1's
+law and P7's boundary. P5 waits on the GPU queue (Amendment 2, then the
 register study), and P6 on real input.
 
-The next concrete step is a draft directory `research/papers/drafts/refracted_memory/`
-with P1's figures copied from committed data, started once the two queued
-figure reruns for P2 have landed so the GPU is not contended.
+The next concrete steps: the P7 chosen-sequence registration (GPU), and a
+draft directory `research/papers/drafts/refracted_memory/` with P1's figures
+copied from committed data (CPU) -- the second does not contend for the GPU.
 
 ## 5. Organizing debts this plan exposes
 
@@ -297,9 +395,10 @@ figure reruns for P2 have landed so the GPU is not contended.
   the register describe the same substrate with different vocabularies. P4
   merges them; until then, the register is authoritative.
 - `research/papers/drafts/` does not exist yet. It is created with P1.
-- The register does not say, per entry, which engine measured it. Of the
-  fifteen MEASURED entries only four name the engine in their source or
-  evidence text; after the sampler audit that column is load-bearing (a
-  number from the sampled numpy engine is void for sequence dynamics until
-  re-run materialized or hashed). Owed: an `engine` field on `Result`,
-  filled from each entry's registration, before any of P1 to P4 quotes it.
+- Closed: `Result` has an `engine` field, and
+  `test_measured_results_state_engine_or_explicit_provenance_gap` requires
+  every MEASURED entry to name its engine or state its provenance gap.
+- `neural_assemblies/tests/test_ordered_recall_advances.py` is a strict xfail.
+  P7 supplies a measured reason (the attractor phase) and the registered test
+  that would flip it; until then the calculus's documentation should not
+  present `ordered_recall` as working.
