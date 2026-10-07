@@ -311,3 +311,23 @@ def test_the_deferred_write_counts_the_items_own_transitions(mod):
         count = sum(torch.outer(x[t - 1], x[t]) for t in range(1, T))
         present = pe.presence_of(mem.fiber.pres, b, N)
         assert torch.equal(mem.fiber.C[b].to(torch.float32), count * present)
+
+
+def test_a_chosen_sequence_writes_its_element_transitions(mod):
+    """store_sequence at one round per element: the area is inhibited once,
+    and a present synapse holds the number of consecutive rounds whose pre
+    fired in one and whose post fired in the next -- element to element."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from research.experiments import memory_pattern_efficiency as pe
+    mem = AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True, rounds=1,
+                         strength=0.5, max_items=64)
+    elements = [_stim(e) for e in range(5)]
+    states, rounds = mem.store_sequence(elements, rounds_per_element=1)
+    assert states.shape[:2] == (5, SEEDS) and rounds.shape[0] == 5
+    assert torch.equal(states, rounds)
+    for b in range(SEEDS):
+        x = [torch.zeros(N, dtype=torch.float32, device=rounds.device).index_fill_(0, r[b], 1.0)
+             for r in rounds]
+        count = sum(torch.outer(x[t - 1], x[t]) for t in range(1, 5))
+        present = pe.presence_of(mem.fiber.pres, b, N)
+        assert torch.equal(mem.fiber.C[b].to(torch.float32), count * present)

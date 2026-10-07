@@ -213,3 +213,104 @@ by an incoming symbol at every step, so its 2000-step result does not speak to
 it. Neither this repository nor either reference has working autonomous recall.
 That is the gap the limit study needs closed, and option three above is the
 route to it.
+
+## Amendment 2 (2026-10-06, before running): one stimulus-and-recurrence round per element, at the convergence threshold
+
+Registered before any run of this amendment. Amendment 1 suspended OR-1 to
+OR-6 because the construction is this repository's own and the reference
+has no autonomous recall. Two findings since give a reason it fails and a
+construction to test, and autonomous recall is what the sequence-length
+limit study above is blocked on.
+
+**Why it fails.** The memory line found that what an area stores is decided
+by whether its activity holds still while the write runs
+(PREREG_refraction_memory.md Amendments 25 and 26; register
+`WRITE-TIMING-DECIDES-ATTRACTOR`, `ADAPTATION-SWITCHES-MEMORY-TYPE`): held
+still, it stores an attractor; moving, it stores the transitions. The
+construction above projects each element for eight rounds, so each element
+becomes an attractor -- the measured within-element weights reach the clip
+of 20 while the bridge stays near 1.7 (the comment in `sequence_memorize`,
+#56) -- and the bridge is written in the one round in which two elements
+coincide. Written with ONE round per element, in which the element's
+stimulus and the previous element's recurrence fire together
+(`rounds_per_step=1, phase_b_ratio=1.0, repetitions=1`), every round writes a
+transition and no round an attractor. The write must also be strong: the
+same construction in the memory line stores no sequence below about 0.7 of
+the convergence threshold theta = sqrt((1 - p) ln n / (p k)), which at this
+cell is 1.775 -- the construction above runs at beta = 0.10, 0.06 theta.
+
+**Seen before registering** (exploratory; disclosed in full):
+
+* On the hashed GPU substrate at (4000, 60, 0.5), 5 brains on seeds 900 to
+  904, eight-element chosen sequences (`AssemblyMemory.store_sequence`):
+  eight rounds per element advanced 0.00 to 0.06 of the seven steps at 0.5,
+  1 and 2 theta; one round per element advanced 1.00 at 1 and 2 theta with
+  1, 32 and 128 sequences stored, and 0.22 to 0.29 at 0.5 theta.
+* This package's own `sequence_memorize` + `ordered_recall` on the numpy
+  engine, materialized, seeds 42 to 44: at this cell (k p = 2.5), the
+  construction above advanced 0 steps at 0.06, 0.5, 1 and 2 theta; one round
+  per element advanced 0 at 0.06 theta, 2 to 3 at 0.5 theta, 6 to 7 at 1 and
+  2 theta. At (2000, 60, 0.5) (k p = 30): the construction above 1 to 2
+  steps, one round per element 3 to 7 (7, 7, 7 at 1 theta).
+* A smoke run of the study module (VOID; seeds 900 to 902): one round per
+  element 7, 7, 7 steps; the same trained brains with inhibition strength 0:
+  6, 4, 5; on the sampled connectome: 0, 0, 0; the construction above at
+  the same write: 0, 0, 0; one round per element at beta = 0.10: 0, 0, 0.
+  OR-3 failed on the smoke: steps 1 to 7 matched their own elements on seed
+  900 (0.96 falling to 0.54 against at most 0.36 for any other), and the
+  failing step lies at the chain's end on another seed, where recall begins
+  to loop back onto earlier elements.
+
+### Protocol
+
+`research/experiments/ordered_recall_repair.py` (`python -m research.runner
+ordered_recall_repair`), numpy_sparse, seeds 500 to 519 (twenty, unused by
+this registration), one run from a worktree pinned at the commit
+registering this amendment. The cell, sequence and recall of the
+diagnostic above: n = 4000, k = 50, p = 0.05, w_max = 20, L = 8, LRI period
+3 and strength 100 set after memorizing, recall from the first stimulus with
+`known_assemblies`, match at overlap >= 0.3. Five arms per seed, every
+recall on a copy of its trained brain:
+
+    one_round                  beta = theta (1.7753), rounds_per_step 1,
+                               phase_b_ratio 1.0, repetitions 1, materialized
+    one_round_no_inhibition    the same trained brain, inhibition strength 0
+    one_round_sampled          as one_round, on the sampled connectome
+    xfail_construction         beta = theta, the diagnostic's construction
+                               (rounds_per_step 8, phase_b_ratio 0.5, x3)
+    one_round_xfail_beta       one_round at the diagnostic's beta = 0.10
+
+### Bars
+
+OR-1 to OR-6 are this registration's, unchanged, read on `one_round` (with
+`one_round_no_inhibition` for OR-4 and `one_round_sampled` for OR-5). Two
+contrasts are added:
+
+    OR-7  THE CONSTRUCTION ABOVE DOES NOT ADVANCE AT THE SAME WRITE.
+          xfail_construction: 0 steps after the cue on at least 18 of 20.
+    OR-8  THE WRITE MUST BE STRONG. one_round_xfail_beta: 0 steps after
+          the cue on at least 18 of 20.
+
+### Predictions, stated now
+
+From the probes and the smoke: OR-1, OR-2, OR-6, OR-7 and OR-8 pass. OR-4
+FAILS -- recall advances with the inhibition switched off, so the route is
+the written bridge, not inhibition, and by this registration's own rule it
+"has found some other route to advancement and is not the paper's
+mechanism; it would be recorded as such rather than counted" as a
+reproduction. OR-5 FAILS -- the sampled connectome does not advance at all,
+a sampler artifact in the opposite direction to the cue retrieval above.
+OR-3 is at risk at the chain's end. A failed bar is recorded as failed and
+not moved after the data.
+
+### What a pass would and would not mean
+
+It would mean `sequence_memorize` + `ordered_recall` recall an eight-element
+sequence autonomously on the materialized connectome when each element is
+written as a transition at a write near theta -- a working operation of the
+calculus, by a mechanism this repository measured, not the inhibition-driven
+mechanism attributed to the paper. It would not be a reproduction of the
+paper, which Amendment 1 could not locate. It unblocks the sequence-length
+limit study, whose closed-form candidate (the clip, c*) is stated above.
+
+The run is UNJUDGED until OR-1 to OR-8 are evaluated and recorded below.
