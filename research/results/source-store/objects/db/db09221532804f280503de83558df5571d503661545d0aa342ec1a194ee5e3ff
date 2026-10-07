@@ -1175,45 +1175,6 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
-        id="RECOVERY-SETS-SEQUENCE-LENGTH",
-        engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta",
-        status=Status.MEASURED,
-        claim="How long a sequence one area recalls by itself is set by how fast its "
-              "refraction recovers: the limit rises from the unrefracted area's merging "
-              "cliff as recovery slows, peaks at an interior recovery time (32 to 64 "
-              "writing rounds at four cells), and falls back to the tiling deadline -- "
-              "6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never "
-              "recovering. At the densest code (n/k = 33) the gain is only 1.27x.",
-        source="PREREG_refraction_memory.md Amendment 29 (B2 PASS; B1, B3 FAIL at (2000, 60) only; B4 FAIL)",
-        preconditions=("one chosen sequence per brain, one stimulus-and-recurrence round per "
-                       "element; replay from half of element 0 by frozen masked rounds",
-                       "recovery modelled as bias *= exp(-1/tau) at every writing round"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-29-result-2026-10-07",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.recovery/recovery-20261007/results.json", "artifact",
-                        "Amendment 29: length limits at twelve recovery times, four cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.recovery/recovery-20261007/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8000~160~10.5/taus/64/curve/724/values",
-            control_path="observations/cells/8000~160~10.5/taus/inf/curve/724/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="a bias recovering over 64 writing rounds replays a 724-element sequence whole where the never-recovering bias breaks, at (8000, 60, 0.5) (Amendment 29)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.recovery/recovery-20261007/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~130~10.5/taus/64/curve/1448/values",
-            control_path="observations/cells/4000~130~10.5/taus/inf/curve/1448/values",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="a bias recovering over 64 writing rounds replays a 1448-element sequence whole where the never-recovering bias breaks, at (4000, 30, 0.5) (Amendment 29)",
-        )),
-        caveat="The best limit follows the in-degree n p (post hoc: 1.5-1.9x the attractor "
-               "memory's 0.0135 d^1.51), not (n/k)^2 as registered (B4 failed). One sequence "
-               "per brain, no noise, p = 0.5; recall reads the synapses with the bias masked. "
-               "Mapping a writing round onto physical time is an assumption.",
-    ),
-    Result(
         id="SEQUENCE-TILING-DEADLINE",
         engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta, beta = theta",
         status=Status.MEASURED,

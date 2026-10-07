@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner recovery --registration research/notes/memory/PREREG_refraction_memory.md --tag recovery-20261007 --seeds 382 383 384 385 386 387 388 389 390 391 392 393 394 395 396 397 398 399 400 401

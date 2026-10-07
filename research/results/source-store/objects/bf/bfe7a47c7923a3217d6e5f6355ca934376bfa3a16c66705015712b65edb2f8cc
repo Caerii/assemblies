@@ -203,8 +203,6 @@ class TestTheoryCitations(unittest.TestCase):
             "ADAPTATION-SWITCHES-MEMORY-TYPE",
             # 2026-10-06: a recovering bias replays past the tiling wrap (A28)
             "SEQUENCE-TILING-DEADLINE",
-            # 2026-10-07: a recovering bias outlasts the never-recovering one (A29)
-            "RECOVERY-SETS-SEQUENCE-LENGTH",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
