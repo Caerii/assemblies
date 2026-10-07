@@ -1175,38 +1175,6 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
-        id="ORDERED-RECALL-BY-TRANSITIONS",
-        engine="numpy_sparse, materialized connectome (the assembly calculus's own sequence_memorize and ordered_recall)",
-        status=Status.MEASURED,
-        claim="The calculus's sequence operation recalls an eight-element sequence "
-              "autonomously -- 7 of 7 steps after the cue on 17 of 20 seeds, 6 on the "
-              "rest -- when each element is written in ONE stimulus-and-recurrence round "
-              "at a write equal to the convergence threshold theta; eight rounds per "
-              "element at the same write, and one round at beta = 0.10, advance 0 on "
-              "every seed. The route is the written bridge, not long-range inhibition "
-              "(4 to 6 steps with inhibition off).",
-        source="PREREG_ordered_recall_reproduction.md Amendment 2 (OR-1, OR-2, OR-6, OR-7, OR-8 PASS; OR-3, OR-4, OR-5 FAIL)",
-        preconditions=("n = 4000, k = 50, p = 0.05, w_max 20, L = 8; LRI period 3, strength 100 "
-                       "set after memorizing; recall from the first stimulus",
-                       "MATERIALIZED connectome: on the sampled one recall advances 0 steps (OR-5)"),
-        evidence=("research/notes/sequence/PREREG_ordered_recall_reproduction.md#amendment-2-result-2026-10-06",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/sequence.ordered-recall-repair/ordered-recall-repair-20261006/results.json", "artifact",
-                        "Amendment 2: five arms on twenty seeds; steps after the cue, order, cue retrieval"),
-        ),
-        sensitivity_gap="The record keys rows by seed (a mapping), which the register's "
-                        "list paths cannot address; the per-seed contrast it holds -- one "
-                        "round per element 6-7 steps against the diagnostic's construction 0 "
-                        "on every one of 20 seeds at the same write -- is read by "
-                        "ordered_recall_repair.evaluate (OR-7) and pinned by "
-                        "test_ordered_recall_advances_when_each_element_is_written_as_a_transition.",
-        caveat="Not a reproduction of the paper's inhibition-driven mechanism (OR-4 fails; "
-               "Amendment 1 could not locate that mechanism in either reference). One cell, "
-               "L = 8. The last step loops back toward the most recent element free of the "
-               "period-3 inhibition on 8 of 20 seeds (OR-3, post hoc). The write is near "
-               "theta, where a synapse clips within one or two presentations.",
-    ),
-    Result(
         id="ADAPTATION-SWITCHES-MEMORY-TYPE",
         engine="hashed AssemblyMemory (arm B, ungated, masked readout), write_rule round / deferred, refraction strength s",
         status=Status.MEASURED,

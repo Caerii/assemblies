@@ -102,7 +102,7 @@ registration and a manuscript.
 | P4 | Statistical mechanics of the substrate: control parameters, order parameters, measured phase structure | The memory's phase diagram in the write-load plane has four regions (no memory, recognition only, recall, lost) bounded by cliffs; the recall onset is a critical coupling at 0.163 to 0.170 theta for n = 2000 to 16000, opened only by load; capacity, the gain crossover and the regime floor are functions of a few ratios. | `AC-CAP`, `CAP-RATIO`, `CAP-ANCHOR-RATIO`, `CAP-CLIFF`, `SEQ-REGIME-CLIFF`, `HEBB-OUTER-PRODUCT`, `DRIVE-SPLIT`, `REFRACTION-ANTI-MERGING` (Amendments 18, 23, 24), plus [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex) | phase diagram and onset measured; the derivation is a conjecture (a saddle-node of the overlap map) |
 | P5 | Local-rule sequence prediction with assemblies (the temporal memory) | The state is the previous arc and predicted neurons win; this carries agreement across two distractors and predicts order-10 sequences exactly inside the training window. | none yet adopted | gated on Amendment 2 and the register study |
 | P6 | Cross-situational word learning and word order without annotation | Alignment 0.99 and six of six word orders from scene-sentence pairs with a homeostatic lexicon; word capacity scales with the lexicon's n. | aligner line, [PREREG_word_capacity.md](../notes/aligner/PREREG_word_capacity.md) | measured; needs real input and the dead-probe audit |
-| P7 | When plasticity acts decides what a recurrent area stores: attractors, trajectories, and the calculus's sequence operation | One area and one causal Hebbian rule store attractors when the write feeds the item's own rounds under refraction weaker than plasticity, and replayable sequences (207 to 950 chains of eight states) when refraction outpaces plasticity or the write comes after the item; a burst-timing rule stores neither. | `WRITE-TIMING-DECIDES-ATTRACTOR`, `ADAPTATION-SWITCHES-MEMORY-TYPE`, `REFRACTION-CANCELS-CONVERGENCE` | two registered results; needs the calculus-operation test, the boundary derivation, distinctness on fresh brains |
+| P7 | When plasticity acts decides what a recurrent area stores: attractors, trajectories, and the calculus's sequence operation | One area and one causal Hebbian rule store attractors when the write feeds the item's own rounds under refraction weaker than plasticity, and replayable sequences (207 to 950 chains of eight states) when refraction outpaces plasticity or the write comes after the item; a burst-timing rule stores neither; written one round per element, the calculus's own ordered_recall advances where it never did. | `WRITE-TIMING-DECIDES-ATTRACTOR`, `ADAPTATION-SWITCHES-MEMORY-TYPE`, `ORDERED-RECALL-BY-TRANSITIONS`, `REFRACTION-CANCELS-CONVERGENCE` | three registered results incl. the calculus operation; needs the boundary derivation, distinctness on fresh brains, the length limit |
 
 ### P1. Refracted memory
 
@@ -320,9 +320,11 @@ What stands, each on registered bars:
 
 Still needed:
 
-- A registered test of a CHOSEN sequence (one stimulus per element) written
-  in the moving phase, against the strict xfail's own bar -- the step that
-  turns item 3 from an explanation into an operation.
+- Done 2026-10-06: a chosen sequence written one round per element at a
+  write near theta recalls 7 of 7 steps on 17 of 20 seeds through the
+  calculus's own operation, where eight rounds per element advance 0
+  (`ORDERED-RECALL-BY-TRANSITIONS`). Next: the sequence-length limit, posed
+  at the write this construction needs.
 - The boundary in s / beta, derived: the identity
   net_{t+1} - net_t = (beta - s) raw_t puts cancellation at s = beta, the
   churn transition was measured near 0.8 beta, and how the boundary moves
@@ -398,7 +400,10 @@ copied from committed data (CPU) -- the second does not contend for the GPU.
 - Closed: `Result` has an `engine` field, and
   `test_measured_results_state_engine_or_explicit_provenance_gap` requires
   every MEASURED entry to name its engine or state its provenance gap.
-- `neural_assemblies/tests/test_ordered_recall_advances.py` is a strict xfail.
-  P7 supplies a measured reason (the attractor phase) and the registered test
-  that would flip it; until then the calculus's documentation should not
-  present `ordered_recall` as working.
+- Closed 2026-10-06: `ordered_recall` advances when each element is written
+  in one stimulus-and-recurrence round at a write near theta
+  (`ORDERED-RECALL-BY-TRANSITIONS`; PREREG_ordered_recall_reproduction.md
+  Amendment 2), pinned by a passing test beside the strict xfail, which stays
+  as the record of the eight-round construction. The route is the written
+  bridge, not inhibition (OR-4 failed), so it is not a reproduction of the
+  paper's mechanism.

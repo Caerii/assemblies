@@ -1,0 +1,118 @@
+{
+  "engine": "numpy_sparse",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {}
+  },
+  "execution_semantics": {
+    "kind": "brain",
+    "profiles": {
+      "default": {
+        "arithmetic": "float32",
+        "candidate_domain": "materialized-plus-order-statistics",
+        "connectome": "lazy-content-addressed",
+        "default_tie_break": "partition-order",
+        "normalization": "inverse-indegree",
+        "plasticity": "multiplicative-clipped",
+        "stimulus_drive": "lazy-conditioned-afferent-count",
+        "weight_ceiling": 20.0
+      }
+    }
+  },
+  "git_commit": "d854ada3b71fd9e7ee90a62e4e75587b771fad8b",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": "plastic",
+  "parameters": {
+    "arms": {
+      "one_round": {
+        "beta": 1.7753,
+        "inhibition": 100.0,
+        "materialize": true,
+        "phase_b_ratio": 1.0,
+        "repetitions": 1,
+        "rounds_per_step": 1
+      },
+      "one_round_no_inhibition": {
+        "beta": 1.7753,
+        "inhibition": 0.0,
+        "materialize": true,
+        "phase_b_ratio": 1.0,
+        "repetitions": 1,
+        "rounds_per_step": 1
+      },
+      "one_round_sampled": {
+        "beta": 1.7753,
+        "inhibition": 100.0,
+        "materialize": false,
+        "phase_b_ratio": 1.0,
+        "repetitions": 1,
+        "rounds_per_step": 1
+      },
+      "one_round_xfail_beta": {
+        "beta": 0.1,
+        "inhibition": 100.0,
+        "materialize": true,
+        "phase_b_ratio": 1.0,
+        "repetitions": 1,
+        "rounds_per_step": 1
+      },
+      "xfail_construction": {
+        "beta": 1.7753,
+        "inhibition": 100.0,
+        "materialize": true,
+        "phase_b_ratio": 0.5,
+        "repetitions": 3,
+        "rounds_per_step": 8
+      }
+    },
+    "beta": 1.7753,
+    "inhibition_strength": 100.0,
+    "k": 50,
+    "length": 8,
+    "match": 0.3,
+    "n": 4000,
+    "p": 0.05,
+    "refractory_period": 3,
+    "theta": 1.7753137365656726,
+    "w_max": 20.0
+  },
+  "protocol": "sequence.ordered-recall-repair",
+  "protocol_version": "1",
+  "registration": "research/notes/sequence/PREREG_ordered_recall_reproduction.md",
+  "registration_sha256": "fbd5200a0f16153c5592d27b502c64037bc01d26deeac0b6db5d9d2414f48d27",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/ordered_recall_repair.py",
+  "script_sha256": "22db17407e83c0f6840588251dc68a6a9d03a1c0b51cb0abbf9c559440bc176d",
+  "seeds": [
+    500,
+    501,
+    502,
+    503,
+    504,
+    505,
+    506,
+    507,
+    508,
+    509,
+    510,
+    511,
+    512,
+    513,
+    514,
+    515,
+    516,
+    517,
+    518,
+    519
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "1bba044fa3a85f33b70adab95029adc47596c91d52edbc35089da8beb07bf58c"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "644d1d5c6dc35c1d9405022f80551990b7bf20ed7b906de4babfb786dafdfcaf",
+  "started_utc": "2026-10-07T01:12:20.648537+00:00",
+  "tag": "ordered-recall-repair-20261006"
+}

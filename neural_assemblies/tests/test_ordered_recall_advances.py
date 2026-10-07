@@ -92,3 +92,30 @@ def test_the_parity_assertions_pass_without_any_advancement():
     assert len(recalled) >= 1                          # parity assertion 1
     assert overlap(recalled[0], stored[0]) > 0.3       # parity assertion 2
     assert _steps_after_the_cue(stored, recalled) == 0  # and yet
+
+
+@pytest.mark.slow
+def test_ordered_recall_advances_when_each_element_is_written_as_a_transition():
+    """The same operation, written with ONE stimulus-and-recurrence round per
+    element at a write equal to the convergence threshold theta (1.775 at
+    this cell), advances through the sequence (Amendment 2: 7 of 7 steps on
+    17 of 20 registered seeds, 6 on the rest). Eight rounds per element make
+    each element an attractor; one round writes only the transition."""
+    import math
+    theta = math.sqrt((1 - P) * math.log(N) / (P * K))
+    advanced = []
+    for seed in SEEDS:
+        brain = Brain(p=P, seed=seed, engine="numpy_sparse", w_max=W_MAX,
+                      sampled_recurrence_policy="acknowledged")
+        brain.add_area("SEQ", N, K, round(theta, 4))
+        brain.materialize_area("SEQ")
+        names = [f"s{i}" for i in range(LENGTH)]
+        for name in names:
+            brain.add_stimulus(name, K)
+        stored = sequence_memorize(brain, names, "SEQ", rounds_per_step=1,
+                                   repetitions=1, phase_b_ratio=1.0)
+        brain.set_lri("SEQ", refractory_period=PERIOD, inhibition_strength=STRENGTH)
+        recalled = ordered_recall(brain, "SEQ", names[0], max_steps=LENGTH + 4,
+                                  known_assemblies=list(stored))
+        advanced.append(_steps_after_the_cue(list(stored), list(recalled)))
+    assert min(advanced) >= LENGTH - 2, advanced

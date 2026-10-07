@@ -19,6 +19,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-PROPORTIONAL`](#refraction-proportional) | MEASURED | reference_nemo_numpy (the vendored explicit-matrix FSM, declared profile; retained runner study of 20 seeds, plus the original 3-seed log) | Refraction must charge in proportion to the winner's raw drive. |
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
+| [`ORDERED-RECALL-BY-TRANSITIONS`](#ordered-recall-by-transitions) | MEASURED | numpy_sparse, materialized connectome (the assembly calculus's own sequence_memorize and ordered_recall) | The calculus's sequence operation recalls an eight-element sequence autonomously -- 7 of 7 steps after the cue on 17 of 20 seeds, 6 on the rest -- when each element is written in ONE stimulus-and-recurrence round at a write equal to the convergence threshold theta; eight rounds per element at the same write, and one round at beta = 0.10, advance 0 on every seed. |
 | [`ADAPTATION-SWITCHES-MEMORY-TYPE`](#adaptation-switches-memory-type) | MEASURED | hashed AssemblyMemory (arm B, ungated, masked readout), write_rule round / deferred, refraction strength s | One recurrent area and one causal Hebbian rule store attractors or sequences according to whether the activity holds still while it is written. |
 | [`WRITE-TIMING-DECIDES-ATTRACTOR`](#write-timing-decides-attractor) | MEASURED | hashed AssemblyMemory (refracted, arm B, ungated), write_rule round / online_burst / deferred / burst | In the refracted assembly memory WHEN the write happens decides what is stored. |
 | [`REFRACTION-CANCELS-CONVERGENCE`](#refraction-cancels-convergence) | MEASURED | hashed_assembly_memory (HashedArea with AreaFiber/StimulusFiber); the registered twenty-brain run is a runner artifact, the wander diagnostic and the bias-readout numbers are logs | [MEASURED 2026-09-13 on two disjoint blocks of twenty registered brains, PREREG_refraction_convergence.md: a refracted RECURRENT area below the transition does not converge and hold. |
@@ -466,6 +467,28 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 **Sensitivity gap.** Paired refracted-versus-control checks now cover all seven cells the law is fitted to (A7 at (4000, 60); Amendment 8 at the other six). The masked-vs-net veto, the convergence gate, the strength plateau and the cross-engine mirror still lack retained paired checks.
 
 **Caveat.** Found by re-measuring PREREG_refraction_capacity.md after the hashed selector's sign defect (1b475fc) -- its Amendment 1 ('spends the substrate') was that defect. The n/k law was counted as holding at n/k = 133 while both cells were censored; resolved, they disagree by 0.68 and the k = 30 one is out of regime -- k p >= 3 ln n is a precondition, not a footnote. Three ratios do not fix an exponent that is falling (2.1 -> 1.8). The multiplier is at 0.5 beta; 0.7 beta converges only given T = 16 and holds ~185 at n/k = 67, but strength is otherwise a plateau whose lower edge (below 0.3 beta) is unmeasured. The gate is two in-regime cells (n/k = 67, 133); n/k = 33 and out of regime are unmeasured, and the gated ceiling's doubling exponent (1.71) may keep falling.
+
+## ORDERED-RECALL-BY-TRANSITIONS
+
+**Status.** MEASURED. **Source.** PREREG_ordered_recall_reproduction.md Amendment 2 (OR-1, OR-2, OR-6, OR-7, OR-8 PASS; OR-3, OR-4, OR-5 FAIL)
+
+**Engine / substrate.** numpy_sparse, materialized connectome (the assembly calculus's own sequence_memorize and ordered_recall)
+
+**Claim.** The calculus's sequence operation recalls an eight-element sequence autonomously -- 7 of 7 steps after the cue on 17 of 20 seeds, 6 on the rest -- when each element is written in ONE stimulus-and-recurrence round at a write equal to the convergence threshold theta; eight rounds per element at the same write, and one round at beta = 0.10, advance 0 on every seed. The route is the written bridge, not long-range inhibition (4 to 6 steps with inhibition off).
+
+**Requires.**
+- n = 4000, k = 50, p = 0.05, w_max 20, L = 8; LRI period 3, strength 100 set after memorizing; recall from the first stimulus
+- MATERIALIZED connectome: on the sampled one recall advances 0 steps (OR-5)
+
+**Evidence.**
+- research/notes/sequence/PREREG_ordered_recall_reproduction.md#amendment-2-result-2026-10-06
+
+**Evidence files.**
+- [research/results/runs/sequence.ordered-recall-repair/ordered-recall-repair-20261006/results.json](../research/results/runs/sequence.ordered-recall-repair/ordered-recall-repair-20261006/results.json) (artifact) â€” Amendment 2: five arms on twenty seeds; steps after the cue, order, cue retrieval
+
+**Sensitivity gap.** The record keys rows by seed (a mapping), which the register's list paths cannot address; the per-seed contrast it holds -- one round per element 6-7 steps against the diagnostic's construction 0 on every one of 20 seeds at the same write -- is read by ordered_recall_repair.evaluate (OR-7) and pinned by test_ordered_recall_advances_when_each_element_is_written_as_a_transition.
+
+**Caveat.** Not a reproduction of the paper's inhibition-driven mechanism (OR-4 fails; Amendment 1 could not locate that mechanism in either reference). One cell, L = 8. The last step loops back toward the most recent element free of the period-3 inhibition on 8 of 20 seeds (OR-3, post hoc). The write is near theta, where a synapse clips within one or two presentations.
 
 ## ADAPTATION-SWITCHES-MEMORY-TYPE
 

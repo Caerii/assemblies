@@ -944,6 +944,15 @@ def sequence_memorize(brain, stimuli, target, rounds_per_step=10,
             (2.33 of 3); note it is NOT monotone in repetitions -- the same
             setting falls back to 1.00 by repetitions=8.
 
+    AUTONOMOUS RECALL THAT ADVANCES (PREREG_ordered_recall_reproduction.md,
+    Amendment 2): ``rounds_per_step=1, phase_b_ratio=1.0, repetitions=1`` with
+    the area's beta at the convergence threshold sqrt((1 - p) ln n / (p k)).
+    Every round then writes a transition and none an attractor; at n=4000,
+    k=50, p=0.05 ``ordered_recall`` advances 7 of 7 steps on 17 of 20 seeds
+    and 6 on the rest, where eight rounds per element at the same beta advance
+    0. The route is the written bridge, not LRI: with inhibition off it still
+    advances 4 to 6 steps (register ``ORDERED-RECALL-BY-TRANSITIONS``).
+
     Returns:
         Sequence of Assembly snapshots (one per stimulus, from last repetition).
 
