@@ -406,3 +406,22 @@ def test_priming_lri_vetoes_the_primed_state_on_the_next_read(mod):
     mem.area.prime_lri(states[1])
     got = mem.recall(states[0][:, :K // 2], rounds=1)
     assert not bool((got.unsqueeze(2) == states[1].unsqueeze(1)).any())
+
+
+def test_forward_counts_add_exactly_the_forward_transitions(mod):
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    from research.experiments import memory_pattern_efficiency as pe
+    def mem():
+        return AssemblyMemory(_brains(), N, K, P, beta=0.1, w_max=20.0, norm_init=True,
+                              rounds=1, strength=0.5, max_items=8)
+    elements = [_stim(e) for e in range(6)]
+    a, c = mem(), mem()
+    sa, _ = a.store_sequence(elements)
+    sc, _ = c.store_sequence(elements, forward_counts=1)
+    assert torch.equal(sa, sc)
+    for s in range(SEEDS):
+        x = [torch.zeros(N, dtype=torch.float32, device=sc.device).index_fill_(0, st[s], 1.0)
+             for st in sc]
+        extra = sum(torch.outer(x[e - 1], x[e]) for e in range(1, 6))
+        present = pe.presence_of(c.fiber.pres, s, N)
+        assert torch.equal((c.fiber.C[s].float() - a.fiber.C[s].float()), extra * present)

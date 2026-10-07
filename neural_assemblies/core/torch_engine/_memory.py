@@ -188,7 +188,8 @@ class AssemblyMemory:
         return self._store(stim_seeds, size)
 
     def store_sequence(self, element_seeds, rounds_per_element=1, stim_size=None,
-                       bias_reset=None, return_fresh=False, reverse_counts=0):
+                       bias_reset=None, return_fresh=False, reverse_counts=0,
+                       forward_counts=0):
         """Write one CHOSEN sequence per brain: element e's stimulus (hash-
         generated from ``element_seeds[e]`` [B]) fires for ``rounds_per_element``
         rounds alongside recurrence, the area inhibited once before the first
@@ -206,7 +207,9 @@ class AssemblyMemory:
         transition (its last-round winners onto the previous element's) this
         many times -- a stand-in for a rule that potentiates post-before-pre
         pairs from a trace of the previous state; it never feeds back into the
-        sequence's own rounds."""
+        sequence's own rounds. ``forward_counts``: likewise, extra forward
+        transitions (previous element onto this one), written after the
+        sequence -- to balance a two-way chain."""
         if self.write_rule != "round" or self.gate:
             raise ValueError("a chosen sequence is written by the ungated round write")
         size = self.k if stim_size is None else int(stim_size)
@@ -224,6 +227,9 @@ class AssemblyMemory:
             states.append(win)
             if return_fresh:
                 fresh.append((~torch_ops.gather(ever, 1, win)).float().mean(dim=1))
+        for _ in range(int(forward_counts)):
+            for e in range(1, len(states)):
+                self.fiber.observe(states[e - 1], states[e])
         for _ in range(int(reverse_counts)):
             for e in range(1, len(states)):
                 self.fiber.observe(states[e], states[e - 1])

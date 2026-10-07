@@ -4148,3 +4148,60 @@ probe had not tested at L = 200 (the smoke's L = 24 passed). The reading the
 data support: LRI steers a two-way chain only when both directions are
 written comparably strongly; it cannot make a weaker direction win against a
 stronger one. R3 is recorded as failed and not moved.
+
+## Amendment 32 (2026-10-07, before running): balanced bidirectional recall
+
+Registered before any run of this amendment. Amendment 31 found that reverse
+links written twice or three times give backward recall from anywhere but
+that forward recall then fails: the forward links (about 1.35 counts on
+average) were the weaker set, and LRI could not make the weaker direction win.
+`store_sequence(forward_counts=f)` writes f extra forward transitions after
+the sequence (tested: exactly the forward transitions); arms are named
+forward + reverse.
+
+**Seen before registering** (exploratory, 5 brains on seeds 900 to 904,
+L = 200, tau = 33, disclosed in full). Mean replay fractions (forward with
+LRI, backward with LRI, middle-backward, middle-forward; forward without LRI):
+
+    arm (f + r)   (4000, 60, 0.5)                    (8000, 60, 0.5)
+    0 + 2         0.08, 1.00, 1.00, 0.09; 0.01       0.34, 1.00, 1.00, 0.22; 0.01
+    1 + 2         1.00, 0.24, 0.50, 1.00; 0.02       1.00, 0.87, 1.00, 1.00; 0.02
+    2 + 2         1.00, 0.04, 0.09, 1.00; 1.00       1.00, 0.28, 0.77, 1.00; 1.00
+    2 + 3         1.00, 1.00, 1.00, 1.00; 0.02       1.00, 1.00, 1.00, 1.00; 0.02
+
+The direction written more strongly wins; only the arm whose two directions
+are nearly equal (forward about 3.35 counts, reverse 3) replays both ways.
+
+### Protocol
+
+`research/experiments/memory_bidirectional.py --design balanced` (protocol
+version 2), seeds 442 to 461 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Amendment 31's cells, sequence and
+reads; arms 0 + 2 (Amendment 31's reverse-heavy arm), 1 + 2, 2 + 2 and 2 + 3.
+
+    python -m research.runner bidirectional --design balanced \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag bidirectional-balanced-20261007 --seeds 442 ... 461
+
+### Bars
+
+    Q1  A BALANCED CHAIN GOES BOTH WAYS FROM ANYWHERE. Arm 2 + 3: forward,
+        backward, middle-backward and middle-forward (with LRI) >= 0.9 at
+        both cells.
+    Q2  THE STRONGER DIRECTION WINS. Arm 2 + 2: forward >= 0.9 and backward
+        <= 0.5; arm 0 + 2: backward >= 0.9 and forward <= 0.5; both cells.
+    Q3  WITHOUT LRI A BALANCED CHAIN HAS NO DIRECTION. Arm 2 + 3: forward
+        without LRI <= 0.5 at both cells.
+
+Reported, not judged: arm 1 + 2, between the two.
+
+### Interpretation, stated now
+
+* Q1 to Q3 pass: one area replays a stored sequence in either direction from
+  any point when its two directions are written about equally, and long-range
+  inhibition at recall chooses which -- the state just left cannot win again.
+  The balance is narrow: an imbalance of a fraction of one write's counts
+  hands the chain to the stronger direction whatever LRI does.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until Q1 to Q3 are evaluated and recorded below.
