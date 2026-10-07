@@ -4241,3 +4241,87 @@ counts is enough to tip it (arm 1 + 2, between the two, goes forward on every
 brain and backward on some). LRI's role in this circuit is the steering
 wheel of a two-way chain: it chooses between directions of equal strength;
 it does not make a weaker direction win.
+
+## Amendment 33 (2026-10-07, before running): sequences of sequences across two areas
+
+Registered before any run of this amendment. Within one area the refraction
+that keeps contexts apart (Amendment 30) also codes a shared element anew in
+every sequence, so two separately stored sequences cannot be joined at a
+shared junction (exploratory, 5 brains, (4000, 60, 0.5): replay never crossed
+the junction under refraction -- 0.00 -- and crossed it indiscriminately
+without, 0.22 to 0.80). This amendment splits the two jobs across two areas.
+
+* S, the SEQUENCE area (k = 60, p = 0.5): each chunk, a chosen sequence of 12
+  elements, is written ONCE and reused by every plan.
+* C, the CHUNK area (k = 60, p = 0.5): each plan, an order of chunks, is
+  written as a chosen sequence of chunk symbols, one round per chunk.
+* C -> S, a `DenseOrganFiber` (n_C -> n_S, p = 0.5, beta = theta of S): each
+  plan position's C state is linked onto its chunk's first S state, `link`
+  times, after the plans.
+
+Both areas: beta = theta, refraction 0.5 beta recovering over 33 rounds.
+Recall runs on two clocks: from a plan's first C state, for each chunk, the
+C state drives S through C -> S (one frozen masked round), S replays the
+chunk, and C advances one frozen masked round.
+
+**Seen before registering** (exploratory, 5 brains on seeds 900 to 904;
+disclosed in full). With 8 chunks and 6 plans of 5 (the last two sharing
+their second and third chunks): whole-plan replay 1.00 for every plan at
+link 1, 2 and 3, and 0.00 at link 0, at (S, C) = (4000, 2000) and
+(8000, 4000). Under load at (4000, 2000) (plans of 8 chunks): 32 chunks and
+32 plans, whole 0.95, chunk starts 1.00, chunk-order chain 1.00; 64 and 96,
+whole 0.30 to 0.34, starts 0.72 to 0.78, chain 0.96; 128 and 256, whole 0.09
+to 0.11, starts 0.12, chain 0.44; link 1 and 2 alike. A smoke run of the
+module (VOID: 3 brains, chunks of 4, the mechanism load) read link 0: whole
+0.00; link 2: whole 1.00.
+
+### Protocol
+
+`research/experiments/memory_hierarchy.py` (`python -m research.runner
+hierarchy`), seeds 462 to 481 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Two cells, (n_S, n_C) = (4000, 2000)
+and (8000, 4000). Loads (chunks, plans): (8, 6) with plans of 5 chunks
+(the registered plan set, seed 20261007, the last two sharing a run of two),
+and (32, 32) and (64, 96) with plans of 8; links 0 and 2. Per load, 16 plans
+evenly spaced over those stored are recalled (plus the shared-run pair at the
+light load). Per brain and plan: WHOLE -- elements (chunk starts and
+contents, in plan order) matched at own overlap >= 0.3 before the first miss,
+over all of them; STARTS -- chunks whose first state the C state evoked; CHAIN
+-- the C chain's in-order fraction.
+
+    python -m research.runner hierarchy \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag hierarchy-20261007 --seeds 462 ... 481
+
+### Bars
+
+    H1  SEQUENCES OF SEQUENCES. Load (8, 6), link 2: whole >= 0.9 for every
+        plan at both cells.
+    H2  THE LINKS CARRY IT. Link 0: chunk starts <= 0.1 for every plan, every
+        load, both cells.
+    H3  PLANS SHARING A RUN STAY APART. Load (8, 6), link 2: the two plans
+        that share a run of two chunks each have chain >= 0.9 and whole >=
+        0.9 at both cells.
+    H4  THE LINKS GIVE WAY FIRST, AND A LARGER PAIR RELIEVES THEM. Load
+        (64, 96), link 2: at (4000, 2000) the mean chunk-start rate is more
+        than 0.1 below the mean chain fraction; at (8000, 4000) the mean
+        chunk-start rate is at least 0.1 above that at (4000, 2000).
+
+Reported, not judged: load (32, 32); whole-plan replay under load at both
+cells.
+
+### Interpretation, stated now
+
+* H1 to H3 pass: two areas do what one cannot -- chunks stored once are
+  reused in any order a plan dictates, and the plans themselves stay apart
+  where they share chunks, because the chunk area codes each occurrence on
+  its own neurons. That is a two-level sequence memory, with the top level
+  carrying context and the bottom level carrying reusable content.
+* H4 passes: the hierarchy's first limit is the many-to-one links from plan
+  positions onto chunk starts (interference among links, not their
+  strength), and it scales with the areas' size.
+* H4 fails at its second clause: a larger pair does not relieve the links;
+  the limit is set by the number of links per chunk start, not by n.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until H1 to H4 are evaluated and recorded below.
