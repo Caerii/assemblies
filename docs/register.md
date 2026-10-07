@@ -499,7 +499,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 
-**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 33 (H1-H4 PASS)
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 33 (H1-H4 PASS); rerun on the corrected cross-area divisor, Amendment 35 (H1-H4 PASS)
 
 **Engine / substrate.** two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks
 
@@ -511,13 +511,15 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/notes/memory/PREREG_refraction_memory.md#amendment-33-result-2026-10-07
+- research/notes/memory/PREREG_refraction_memory.md#amendment-35-result-2026-10-07
 
 **Evidence files.**
-- [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) (artifact) â€” Amendment 33: three loads, links 0 and 2, two area pairs, 20 brains
+- [research/results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json) (artifact) â€” Amendment 35: Amendment 33 on the corrected C -> S divisor, the same 20 brains
+- [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) (artifact) â€” Amendment 33: three loads, links 0 and 2, two area pairs, 20 brains (C -> S divided by the in-degree over S's rows; see Amendment 35)
 
 **Mechanism sensitivity.**
-- plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (4000, 2000) (Amendment 33): `observations/cells/4000~12000/links/8~16~12/0/whole/values` all-greater `observations/cells/4000~12000/links/8~16~10/0/whole/values` by at least 0.5, retained in [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) and paired by `run/seeds`.
-- plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (8000, 4000) (Amendment 33): `observations/cells/8000~14000/links/8~16~12/0/whole/values` all-greater `observations/cells/8000~14000/links/8~16~10/0/whole/values` by at least 0.5, retained in [research/results/runs/memory.hierarchy/hierarchy-20261007/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007/results.json) and paired by `run/seeds`.
+- plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (4000, 2000) (Amendments 33, 35): `observations/cells/4000~12000/links/8~16~12/0/whole/values` all-greater `observations/cells/4000~12000/links/8~16~10/0/whole/values` by at least 0.5, retained in [research/results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json) and paired by `run/seeds`.
+- plan 0 replays whole with the chunk-area to sequence-area links and not without them, at (S, C) = (8000, 4000) (Amendments 33, 35): `observations/cells/8000~14000/links/8~16~12/0/whole/values` all-greater `observations/cells/8000~14000/links/8~16~10/0/whole/values` by at least 0.5, retained in [research/results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json](../research/results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json) and paired by `run/seeds`.
 
 **Caveat.** Two levels, p = 0.5, no noise, chunks of 12 and plans of 5 or 8; the recall's clock (one chunk-area step per chunk) is given, not generated.
 

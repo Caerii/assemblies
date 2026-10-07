@@ -761,8 +761,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | N2 small noise harmless (A34) | nu 0.05: >= 18/20 full | PASS | 20/20 both cells |
 | N3 larger area doubles noise horizon (A34) | median(8000) >= 2 median(4000) at nu 0.1 | PASS | 232 vs 39 |
 | N4 cue may be a quarter wrong (A34) | eta 0.25: >= 0.9 | PASS | 1.00 |
-| O1 engine equals an independent oracle (A35) | lockstep, counts equal | PASS | ~2,900 rounds, 1 float32 near tie |
-| A33 H1-H4 on the corrected divisor (A35) | as registered in A33 | PASS | max change 0.010 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4555,37 +4553,3 @@ the reading most likely to move is H4's chunk starts at (64, 96) on
 (4000, 2000), 0.78, where links compete.
 
 The rerun is UNJUDGED until H1 to H4 are evaluated and recorded below.
-
-### Amendment 35 result (2026-10-07)
-
-One run from a worktree pinned at dc92d895 (the corrected divisor), seeds 462
-to 481 -- the brains and plans of Amendment 33:
-[record](../../results/runs/memory.hierarchy/hierarchy-20261007-a35/results.json),
-[log](../../results/logs/memory-hierarchy-20261007-a35.log). Means over the
-plans read (whole-plan replay, chunk starts, chunk-order chain), Amendment 33
-in brackets where it differs:
-
-    load (chunks, plans), link   (S, C) = (4000, 2000)          (8000, 4000)
-    (8, 6), 0                    0.00, 0.00, 1.00                0.00, 0.00, 1.00
-    (8, 6), 2                    1.00, 1.00, 1.00                1.00, 1.00, 1.00
-    (32, 32), 0                  0.00, 0.00, 1.00                0.00, 0.00, 1.00
-    (32, 32), 2                  0.964 [0.954], 1.00, 1.00       0.997, 1.00, 1.00
-    (64, 96), 0                  0.00, 0.00, 0.958               0.00, 0.00, 0.998
-    (64, 96), 2                  0.341 [0.343], 0.782 [0.784],   0.938 [0.944], 0.995 [0.996],
-                                 0.958                           0.998
-
-    H1  SEQUENCES OF SEQUENCES                                         PASS
-    H2  THE LINKS CARRY IT                                             PASS
-    H3  PLANS SHARING A RUN STAY APART                                 PASS
-    H4  THE LINKS GIVE WAY FIRST, AND A LARGER PAIR RELIEVES THEM      PASS
-        (64, 96) at (4000, 2000): starts 0.782 against chain 0.958; at
-        (8000, 4000): starts 0.995.
-
-**Reading.** As predicted: on the corrected divisor every bar passes again
-and no reading moves by more than 0.010. The C -> S fiber is the sequence
-area's only input when a plan position evokes a chunk start, so the factor of
-two could not change a winner, and the per-neuron part of the error was small
-against learned links. SEQUENCES-OF-SEQUENCES-ACROSS-AREAS now cites this run.
-The oracle stays as a test, and the defect's other site -- the A3 transducer's
-2,000 and 50,000 cells -- is rerun under PREREG_seq_a3_transducer.md
-Amendment 4.
