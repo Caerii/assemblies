@@ -1,0 +1,166 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.3718": {
+        "arc_refraction_charge": 0.1859,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.38702": {
+        "arc_refraction_charge": 0.19351,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "ed880d7a7ff10a3e20f17d453187f24e4ccd0e90",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "arms": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "beta": 0.3718,
+        "k": 60,
+        "length": 200,
+        "n": 4000,
+        "p": 0.5
+      },
+      {
+        "arms": [
+          [
+            0,
+            2
+          ],
+          [
+            1,
+            2
+          ],
+          [
+            2,
+            2
+          ],
+          [
+            2,
+            3
+          ]
+        ],
+        "beta": 0.38702,
+        "k": 60,
+        "length": 200,
+        "n": 8000,
+        "p": 0.5
+      }
+    ],
+    "design": "balanced",
+    "device": "cuda",
+    "lri_period": 4,
+    "lri_strength": 100.0,
+    "strength": 0.5,
+    "tau": 33,
+    "w_max": 20.0
+  },
+  "protocol": "memory.bidirectional",
+  "protocol_version": "2",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "18a6ddf190d577a18aa9463111725f3448d023f154ec44240aa2ab1c502ff3fe",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_bidirectional.py",
+  "script_sha256": "0e8555a429767bf0c12212e9c2370a8f6e7b0b11aacae6188e40789ef13c3d4d",
+  "seeds": [
+    442,
+    443,
+    444,
+    445,
+    446,
+    447,
+    448,
+    449,
+    450,
+    451,
+    452,
+    453,
+    454,
+    455,
+    456,
+    457,
+    458,
+    459,
+    460,
+    461
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "86c80b4f7c564d5aef92b625c1d2b118dc5bc47b537b7ad34f1792ffeba61176"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "b579a636c8d0663344b614af68cae42b5587515a93fc2e2820f914cd49ef7e5c",
+  "started_utc": "2026-10-07T07:27:47.949336+00:00",
+  "tag": "bidirectional-balanced-20261007"
+}

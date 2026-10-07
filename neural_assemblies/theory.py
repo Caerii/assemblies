@@ -1175,6 +1175,47 @@ _RESULTS: List[Result] = [
                "may keep falling.",
     ),
     Result(
+        id="BIDIRECTIONAL-RECALL-BY-LRI",
+        engine="hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed",
+        status=Status.MEASURED,
+        claim="One area replays a stored 200-element sequence forward, backward, and "
+              "either way from its middle, on every brain, when its two directions are "
+              "written about equally and long-range inhibition at recall vetoes the "
+              "state just left; without LRI it goes nowhere, and with the directions "
+              "unequal the stronger one wins whatever LRI does.",
+        source="PREREG_refraction_memory.md Amendments 31 (R1, R2, R4 PASS; R3 FAIL) and 32 (Q1-Q3 PASS)",
+        preconditions=("reverse transitions written after the sequence (a stand-in for a "
+                       "post-before-pre rule from a trace); forward and reverse counts within "
+                       "about a third of one write of each other",
+                       "the recall cue and, from the middle, the came-from state entered into "
+                       "the LRI history"),
+        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-32-result-2026-10-07",),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/memory.bidirectional/bidirectional-balanced-20261007/results.json", "artifact",
+                        "Amendment 32: balanced and unbalanced arms, two cells, 20 brains"),
+            EvidenceRef("research/results/runs/memory.bidirectional/bidirectional-20261007/results.json", "artifact",
+                        "Amendment 31: reverse links alone -- backward recall, forward lost"),
+        ),
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.bidirectional/bidirectional-balanced-20261007/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/4000~160~10.5/reverse/2+3/backward_lri/values",
+            control_path="observations/cells/4000~160~10.5/reverse/2+2/backward_lri/values",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="a balanced chain (2 + 3) replays backward under LRI where a forward-heavy one (2 + 2) does not, at (4000, 60, 0.5) (Amendment 32)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.bidirectional/bidirectional-balanced-20261007/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/8000~160~10.5/reverse/2+3/backward_lri/values",
+            control_path="observations/cells/8000~160~10.5/reverse/2+2/backward_lri/values",
+            relation="all-greater", minimum_effect=0.5,
+            mechanism="a balanced chain (2 + 3) replays backward under LRI where a forward-heavy one (2 + 2) does not, at (8000, 60, 0.5) (Amendment 32)",
+        )),
+        caveat="The reverse links are written after the sequence, not by a modelled "
+               "trace rule; the balance window is narrow and was set by counts, not "
+               "learned. Two cells, L = 200, p = 0.5.",
+    ),
+    Result(
         id="RECOVERY-SETS-SEQUENCE-LENGTH",
         engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta",
         status=Status.MEASURED,

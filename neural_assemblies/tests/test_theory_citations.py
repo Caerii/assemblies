@@ -205,6 +205,8 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQUENCE-TILING-DEADLINE",
             # 2026-10-07: a recovering bias outlasts the never-recovering one (A29)
             "RECOVERY-SETS-SEQUENCE-LENGTH",
+            # 2026-10-07: a balanced chain goes back where a forward-heavy one does not (A32)
+            "BIDIRECTIONAL-RECALL-BY-LRI",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

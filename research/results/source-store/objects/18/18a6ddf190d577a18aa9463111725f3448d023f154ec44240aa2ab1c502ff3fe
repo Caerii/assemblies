@@ -750,9 +750,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | R2 one reverse count too weak (A31) | r = 1: backward <= 0.5 | PASS | 0.00-0.01 |
 | R3 two counts + LRI both ways (A31) | r = 2, 3: all four reads >= 0.9 | FAIL | backward 1.00; forward 0.02-0.29 |
 | R4 no LRI no direction (A31) | r = 2: forward_masked <= 0.5 | PASS | 0.01 |
-| Q1 balanced chain both ways (A32) | 2 + 3: four reads >= 0.9 | PASS | 1.00 everywhere |
-| Q2 stronger direction wins (A32) | 2 + 2 forward only; 0 + 2 backward only | PASS | back 0.05-0.33; forward 0.09-0.23 |
-| Q3 no LRI no direction, balanced (A32) | 2 + 3 forward without LRI <= 0.5 | PASS | 0.02 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4208,36 +4205,3 @@ Reported, not judged: arm 1 + 2, between the two.
 * A failed bar is recorded as failed and not moved after the data.
 
 The run is UNJUDGED until Q1 to Q3 are evaluated and recorded below.
-
-### Amendment 32 result (2026-10-07)
-
-One run from a worktree pinned at ed880d7a, seeds 442 to 461:
-[record](../../results/runs/memory.bidirectional/bidirectional-balanced-20261007/results.json),
-[log](../../results/logs/memory-bidirectional-balanced-20261007.log). Mean
-replay fractions (forward with LRI, backward with LRI, middle-backward,
-middle-forward; forward without LRI):
-
-    arm (f + r)   (4000, 60, 0.5)                    (8000, 60, 0.5)
-    0 + 2         0.09, 1.00, 1.00, 0.10; 0.01       0.23, 1.00, 1.00, 0.34; 0.01
-    1 + 2         1.00, 0.27, 0.47, 1.00; 0.02       1.00, 0.79, 0.99, 1.00; 0.02
-    2 + 2         1.00, 0.05, 0.11, 1.00; 1.00       1.00, 0.33, 0.73, 1.00; 1.00
-    2 + 3         1.00, 1.00, 1.00, 1.00; 0.02       1.00, 1.00, 1.00, 1.00; 0.02
-
-    Q1  A BALANCED CHAIN GOES BOTH WAYS FROM ANYWHERE                  PASS
-        arm 2 + 3: all four reads 1.00 at both cells.
-    Q2  THE STRONGER DIRECTION WINS                                    PASS
-        2 + 2: forward 1.00, backward 0.05 and 0.33; 0 + 2: backward 1.00,
-        forward 0.09 and 0.23.
-    Q3  WITHOUT LRI A BALANCED CHAIN HAS NO DIRECTION                  PASS
-        arm 2 + 3: forward without LRI 0.02 at both cells.
-
-**Reading.** One area replays a stored sequence of 200 elements forward from
-its start, backward from its end, and either way from its middle, on every
-brain, when its two directions are written about equally (forward about 3.35
-counts, reverse 3) and long-range inhibition at recall vetoes the state just
-left. Without LRI the same chain goes nowhere (0.02). With the directions
-unequal the stronger one wins whatever LRI does -- a third of one write's
-counts is enough to tip it (arm 1 + 2, between the two, goes forward on every
-brain and backward on some). LRI's role in this circuit is the steering
-wheel of a two-way chain: it chooses between directions of equal strength;
-it does not make a weaker direction win.
