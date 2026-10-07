@@ -3525,3 +3525,92 @@ merely weakened. Replay is forward only: one frozen round from half of round
 t recovers 0.57 to 0.84 of round t + 1 and 0.01 of round t - 1. A
 registration on fresh brains would make the distinctness a claim; until
 then it is a probe.
+
+## Amendment 27 (2026-10-06, before running): the sequence-length limit
+
+Registered before any run of this amendment. The calculus's sequence
+operation now advances when each element is written in one stimulus-and-
+recurrence round at a write equal to the convergence threshold theta
+(`ORDERED-RECALL-BY-TRANSITIONS`). The ordered-recall registration left one
+question blocked on that: how long a sequence an area can recall by itself.
+This amendment measures the limit for a single chosen sequence per brain,
+with and without refraction during the write.
+
+**Seen before registering** (exploratory, disclosed in full):
+
+* The calculus's own operation on the numpy engine (no refraction while
+  writing; seeds 42 to 44): at the strict xfail's cell (k p = 2.5, out of
+  regime), recall reaches 7 to 8 steps whatever L is (L = 16, 32), 5 to 7 at
+  L = 64 and 4 at L = 128, with overlap decaying along the chain; at
+  (2000, 60, 0.5) it is perfect at L = 8 and 16, breaks at L = 32 (4 to 12
+  steps) and fails from the first step at L = 64 and 128.
+* The hashed substrate, `store_sequence`, beta = theta, 5 brains on seeds
+  900 to 904. Without refraction the mean replay fraction is 1.00 up to a
+  length and then collapses, failing from the first steps: perfect to
+  L = 32 then 0.27 at 45 at (2000, 60, 0.5); to 128 then 0.80 at 181 and 0 at
+  256 at (4000, 60, 0.5); to 724 then 0 at 1024 at (8000, 60, 0.5); to 512
+  then 0.01 at 724 at (4000, 30, 0.5); to 32 then 0.80 at 45 and 0.01 at 64
+  at (4000, 120, 0.5); to 64 then 0.90 at 91 and 0.02 at 128 at
+  (4000, 60, 0.25); below 16 at (1000, 60, 0.5). These cliffs sit near
+  0.09 p (n/k)^2. With refraction at 0.5 beta: 1.00 at L = 256 and 0.49 at
+  512 at (2000, 60, 0.5); 0.81 at 256, 0.56 at 512, 0.13 at 1024 at
+  (4000, 60, 0.5) -- with per-brain breaks along the chain rather than a
+  collapse; the refracted arm was NOT probed at the n/k = 133 cells.
+* A smoke run of the module (VOID: 3 brains, three ladder points at
+  (2000, 60, 0.5)): the pipeline end to end.
+
+### Protocol
+
+`research/experiments/memory_sequence_length.py` (`python -m research.runner
+sequence_length`), seeds 342 to 361 (new brains), one run from a worktree
+pinned at the commit registering this amendment. Six cells: two pairs of
+equal n/k (33: (2000, 60, 0.5) and (4000, 120, 0.5); 133: (8000, 60, 0.5) and
+(4000, 30, 0.5)) whose in-degrees differ twofold, and one change of p at fixed
+n/k ((4000, 60) at p = 0.5 and 0.25). At each cell, beta = theta, T = 1 round
+per element, w_max 20, norm_init, two arms: Hebbian (no refraction) and
+refracted (s = 0.5 beta, masked readout). For L on the ladder 16 x 2^(j/4)
+(to 8192), each brain stores ONE chosen sequence of L elements
+(`store_sequence`) and replays it from half of element 0's winners by frozen
+masked rounds; its replay fraction is the elements matched in order (own
+overlap >= 0.3) before the first miss, over L - 1. An arm stops after two
+consecutive ladder points with mean fraction below 0.2, or at the first such
+point if it never rose above 0.5. Its LENGTH LIMIT is where the mean fraction
+falls through 0.5, log-interpolated.
+
+    python -m research.runner sequence_length \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag sequence-length-20261006 --seeds 342 ... 361
+
+### Bars
+
+    L1  THE HEBBIAN LIMIT IS WILLSHAW'S. L_H / (p (n/k)^2) lies in
+        [0.06, 0.12] at every cell.
+    L2  n/k, NOT THE IN-DEGREE. Within each equal-n/k pair the Hebbian limits
+        agree within 30%.
+    L3  THE HEBBIAN FAILURE IS A CLIFF. At every cell the mean fraction is at
+        least 0.9 at the largest ladder point at or below L_H / sqrt 2, and at
+        most 0.2 at the smallest at or above L_H x sqrt 2.
+    L4  REFRACTION EXTENDS THE LIMIT. The refracted limit is at least twice
+        the Hebbian at every cell.
+
+Reported, not judged: each arm's whole curve; the refracted limit against
+p (n/k)^2 and against n; the spread of per-brain fractions at the refracted
+limit (breaks along the chain against collapse).
+
+### Interpretation, stated now
+
+* L1 to L3 pass: without refraction, one area holds a single autonomous
+  sequence of about 0.09 p (n/k)^2 elements and loses it all at once past
+  that length -- the Willshaw count for heteroassociative pairs, reached by
+  a collapse of the whole chain (merging) rather than by errors that
+  accumulate along it. A limit "that varies with the parameters" (the
+  sequences paper's 20 to 40) is then this one, at small n/k.
+* L4 passes: refraction, the anti-merging force, moves the limit and
+  changes its kind -- from a collapse to breaks along the chain.
+* L4 fails at the n/k = 133 cells: the refracted limit does not keep pace
+  with the Hebbian one where the code is sparse (the probe saw it barely move
+  from n = 2000 to 4000); refraction then trades length for something else,
+  which the curves will say.
+* A failed bar is recorded as failed and not moved after the data.
+
+The run is UNJUDGED until L1 to L4 are evaluated and recorded below.

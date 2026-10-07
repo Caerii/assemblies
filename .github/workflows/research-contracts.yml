@@ -75,6 +75,7 @@ jobs:
           neural_assemblies/tests/test_write_rules.py
           neural_assemblies/tests/test_memory_sequences.py
           neural_assemblies/tests/test_ordered_recall_repair.py
+          neural_assemblies/tests/test_memory_sequence_length.py
           neural_assemblies/tests/test_throughput_contract.py
           neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py
