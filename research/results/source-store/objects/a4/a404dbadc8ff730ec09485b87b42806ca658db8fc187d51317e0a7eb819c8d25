@@ -781,10 +781,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | A1 safe rule holds for any split (A40) | rho_90 >= 0.09, every arm | PASS | 0.111-0.132 |
 | A2 short sequences degrade later (A40) | rho_50 ratio >= 1.1 | PASS | 1.13-1.20 |
 | A3 short sequences fail one by one (A40) | >= half the brains mixed | PASS | 55-100% |
-| P1 tau = n/k peak at n/k 20 (A41) | gain >= 1.3 | PASS | 1.65 |
-| P2 tau gain falls with n/k (A41) | Spearman <= -0.8 | PASS | -1.0 |
-| P3 safe rule at tau = n/k (A41) | rho_90 >= 0.09, four cells | PASS | 0.093-0.191 |
-| P4 no peak at n/k 200 (A41) | gain <= 1.1 | PASS | 0.91 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5310,42 +5306,3 @@ Reported, not judged: every crossing and ladder point.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until P1 to P4 are evaluated and recorded below.
-
-### Amendment 41 result (2026-10-08)
-
-One run from a worktree pinned at df377341, seeds 602 to 621:
-[record](../../results/runs/memory.load-peak/load-peak-20261008/results.json),
-[log](../../results/logs/memory-load-peak-20261008.log).
-
-                          n/k    tau = n/k / 2               tau = n/k                  gain
-                                 rho_90  rho_50  rho_10      rho_90  rho_50  rho_10
-    (6000, 300, 0.12)     20     0.119   0.122   0.125       0.191   0.202   0.210      1.65
-    (5000, 100, 0.35)     50     0.119   0.123   0.126       0.141   0.152   0.162      1.24
-    (10000, 100, 0.35)    100    0.119   0.122   0.125       0.113   0.120   0.126      0.98
-    (14000, 70, 0.5)      200    0.107   0.112   0.118       0.093   0.102   0.108      0.91
-
-    P1  THE PEAK AT A SMALL AREA                                       PASS
-        gain 1.65 at n/k = 20.
-    P2  THE GAIN FALLS WITH n/k                                        PASS
-        Spearman -1.0 (1.65, 1.24, 0.98, 0.91).
-    P3  THE SAFE RULE HOLDS AT THE PEAK                                PASS
-        rho_90 0.191, 0.141, 0.113, 0.093 with tau = n/k.
-    P4  NO PEAK AT A LARGE AREA                                        PASS
-        gain 0.91 at n/k = 200.
-
-**Reading.** A recovery time equal to the steps between a neuron's uses buys
-65% more budget at n/k = 20 and 24% at n/k = 50, nothing at 100, and costs 9%
-at 200. Under Amendment 39's rule the critical load is nearly constant --
-rho_50 = 0.122, 0.123, 0.122 at n/k = 20, 50, 100 and 0.112 at 200 -- so
-the scatter of the earlier cells was mostly tau sitting at different places
-on this curve. The compiler's recovery time: tau = n/k up to n/k ~ 50,
-tau = n/k / 2 from n/k ~ 100; the safe rule holds under both (rho_90 >=
-0.093), narrowly with tau = n/k at n/k = 200.
-
-**Seen in the record, not tested.** Where tau = n/k is the worse arm (n/k =
-100 and 200), its brains fail at step 91 to 192 -- about n/k, the first time
-replay reaches states written when the neurons of the first states were
-reused -- rather than early, as every other failure in Amendments 37 to 41.
-That is the tiling deadline of Amendment 28 returning: the peak's right side
-is the never-recovering refraction's failure, reached at large areas as soon
-as tau reaches n/k.

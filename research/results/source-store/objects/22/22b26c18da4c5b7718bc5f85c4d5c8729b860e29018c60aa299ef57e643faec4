@@ -217,8 +217,6 @@ class TestTheoryCitations(unittest.TestCase):
             "RECOVERY-SCALES-WITH-AREA",
             # 2026-10-08: short sequences survive a load the single one does not (A40)
             "SEQUENCE-BUDGET-ANY-SPLIT",
-            # 2026-10-08: tau = n/k replays whole where n/k / 2 derails, small areas (A41)
-            "RECOVERY-PEAK-AT-SMALL-AREAS",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

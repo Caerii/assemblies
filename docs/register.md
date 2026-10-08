@@ -23,6 +23,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQUENCE-LOAD-LAW`](#sequence-load-law) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 64 rounds, beta = theta | One area's single-sequence replay fails at a critical interference load: with rho = L k ln n / (n^2 p), every cell with k p >= 3 ln n and n/k <= 150 replays a sequence whole from a random half cue on every brain up to rho ~ 0.11, and on none a factor 1.07-1.15 past its 90% point. |
 | [`RECOVERY-SCALES-WITH-AREA`](#recovery-scales-with-area) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta | The refraction's recovery time must scale with the steps between a neuron's uses (n/k): at a fixed tau = 64 the single-sequence cliff falls to rho = L k ln n / (n^2 p) = 0.081 at n/k = 300 (three cells), below the load law's safe rule; with tau = n/k / 2 it rises 29% at n/k = 300 and 18% at n/k = 200 on the same brains, to rho_50 = 0.105 and 0.114, and replay is reliable again to rho = 0.10. |
 | [`SEQUENCE-BUDGET-ANY-SPLIT`](#sequence-budget-any-split) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | One area's sequence budget is safe however it is split: with tau = n/k / 2, every sequence of 16, 64 or thousands of elements replays whole while the TOTAL load L k ln n / (n^2 p) <= 0.09 (rho_90 0.111-0.132 in every arm). |
+| [`RECOVERY-PEAK-AT-SMALL-AREAS`](#recovery-peak-at-small-areas) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta | The single-sequence critical load peaks when the refraction recovers over the steps between a neuron's uses, tau = n/k, but only in small areas: against tau = n/k / 2 the gain in rho_50 is 1.65 at n/k = 20, 1.24 at 50, 0.98 at 100 and 0.91 at 200 (four cells differing in n/k alone). |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -577,6 +578,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - at rho = 0.131 every brain replays three quarters of its 16-element sequences whole and not the single sequence, at (12000, 70, 0.5) (Amendment 40): `observations/cells/12000~170~10.5/arms/16/ladder/14336/whole` all-greater `observations/cells/12000~170~10.5/arms/single/ladder/14330/whole` by at least 0.5, retained in [research/results/runs/memory.load-many/load-many-20261008/results.json](../research/results/runs/memory.load-many/load-many-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The split into cue capture (c) and per-step hazard (h) is post hoc, from two lengths. Sequences sharing elements, noise during replay and sequences linked across areas are not covered; two cells.
+
+## RECOVERY-PEAK-AT-SMALL-AREAS
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 41 (P1-P4 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta
+
+**Claim.** The single-sequence critical load peaks when the refraction recovers over the steps between a neuron's uses, tau = n/k, but only in small areas: against tau = n/k / 2 the gain in rho_50 is 1.65 at n/k = 20, 1.24 at 50, 0.98 at 100 and 0.91 at 200 (four cells differing in n/k alone). Under tau = n/k / 2 the critical load is nearly constant, rho_50 = 0.122 at n/k = 20-100 and 0.112 at 200. Compiler rule: tau = n/k to n/k ~ 50, n/k / 2 from ~ 100; replay is reliable to rho = 0.09 under either.
+
+**Requires.**
+- k p ~ 35, k p / ln n ~ 4: the linear regime, mean count per synapse pair L (k/n)^2 below ~ 0.5 (probed: at k p / ln n = 24 replay fails at its first step)
+- one sequence per area, noiseless one-round replay from a random half cue
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-41-result-2026-10-08
+
+**Evidence files.**
+- [research/results/runs/memory.load-peak/load-peak-20261008/results.json](../research/results/runs/memory.load-peak/load-peak-20261008/results.json) (artifact) â€” Amendment 41: tau = n/k against n/k / 2 at n/k = 20, 50, 100, 200, the same 20 brains
+
+**Mechanism sensitivity.**
+- at rho = 0.134 and n/k = 20 every brain replays whole with tau = n/k and derails within ~ 18 steps with tau = n/k / 2 (Amendment 41): `observations/cells/6000~1300~10.12/arms/1.0/ladder/221/steps` all-greater `observations/cells/6000~1300~10.12/arms/0.5/ladder/221/steps` by at least 100, retained in [research/results/runs/memory.load-peak/load-peak-20261008/results.json](../research/results/runs/memory.load-peak/load-peak-20261008/results.json) and paired by `run/seeds`.
+- at rho = 0.133 and n/k = 50 every brain replays whole with tau = n/k and none with tau = n/k / 2 (Amendment 41): `observations/cells/5000~1100~10.35/arms/1.0/ladder/1371/steps` all-greater `observations/cells/5000~1100~10.35/arms/0.5/ladder/1371/steps` by at least 500, retained in [research/results/runs/memory.load-peak/load-peak-20261008/results.json](../research/results/runs/memory.load-peak/load-peak-20261008/results.json) and paired by `run/seeds`.
+
+**Caveat.** The peak's location (1.1-1.25 n/k at one probed cell) and the crossover (between n/k = 50 and 100) are coarse. Why large areas lose the peak is read, not tested: their tau = n/k failures come at step ~ n/k, the tiling deadline's signature. One kp; many sequences and noise not covered.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

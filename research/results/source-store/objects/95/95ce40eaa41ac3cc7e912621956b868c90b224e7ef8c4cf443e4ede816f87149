@@ -1361,47 +1361,6 @@ _RESULTS: List[Result] = [
                "sequences linked across areas are not covered; two cells.",
     ),
     Result(
-        id="RECOVERY-PEAK-AT-SMALL-AREAS",
-        engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta",
-        status=Status.MEASURED,
-        claim="The single-sequence critical load peaks when the refraction recovers over "
-              "the steps between a neuron's uses, tau = n/k, but only in small areas: "
-              "against tau = n/k / 2 the gain in rho_50 is 1.65 at n/k = 20, 1.24 at 50, "
-              "0.98 at 100 and 0.91 at 200 (four cells differing in n/k alone). Under "
-              "tau = n/k / 2 the critical load is nearly constant, rho_50 = 0.122 at "
-              "n/k = 20-100 and 0.112 at 200. Compiler rule: tau = n/k to n/k ~ 50, "
-              "n/k / 2 from ~ 100; replay is reliable to rho = 0.09 under either.",
-        source="PREREG_refraction_memory.md Amendment 41 (P1-P4 PASS)",
-        preconditions=("k p ~ 35, k p / ln n ~ 4: the linear regime, mean count per synapse "
-                       "pair L (k/n)^2 below ~ 0.5 (probed: at k p / ln n = 24 replay fails "
-                       "at its first step)",
-                       "one sequence per area, noiseless one-round replay from a random half cue"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-41-result-2026-10-08",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.load-peak/load-peak-20261008/results.json", "artifact",
-                        "Amendment 41: tau = n/k against n/k / 2 at n/k = 20, 50, 100, 200, the same 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.load-peak/load-peak-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/6000~1300~10.12/arms/1.0/ladder/221/steps",
-            control_path="observations/cells/6000~1300~10.12/arms/0.5/ladder/221/steps",
-            relation="all-greater", minimum_effect=100,
-            mechanism="at rho = 0.134 and n/k = 20 every brain replays whole with tau = n/k and derails within ~ 18 steps with tau = n/k / 2 (Amendment 41)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.load-peak/load-peak-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/5000~1100~10.35/arms/1.0/ladder/1371/steps",
-            control_path="observations/cells/5000~1100~10.35/arms/0.5/ladder/1371/steps",
-            relation="all-greater", minimum_effect=500,
-            mechanism="at rho = 0.133 and n/k = 50 every brain replays whole with tau = n/k and none with tau = n/k / 2 (Amendment 41)",
-        )),
-        caveat="The peak's location (1.1-1.25 n/k at one probed cell) and the crossover "
-               "(between n/k = 50 and 100) are coarse. Why large areas lose the peak is "
-               "read, not tested: their tau = n/k failures come at step ~ n/k, the tiling "
-               "deadline's signature. One kp; many sequences and noise not covered.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,

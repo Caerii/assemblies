@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner load_peak --registration research/notes/memory/PREREG_refraction_memory.md --tag load-peak-20261008 --seeds 602 603 604 605 606 607 608 609 610 611 612 613 614 615 616 617 618 619 620 621 > C:\Github\assemblies-runs-20260930b\a41.log 2>&1
