@@ -5349,3 +5349,89 @@ reused -- rather than early, as every other failure in Amendments 37 to 41.
 That is the tiling deadline of Amendment 28 returning: the peak's right side
 is the never-recovering refraction's failure, reached at large areas as soon
 as tau reaches n/k.
+
+## Amendment 42 (2026-10-08, before running): recurring words and replay noise inside the load law's budget
+
+Registered before any run at the cells below. Amendments 37 to 41 give one
+area's budget for sequences of DISTINCT elements replayed WITHOUT noise. A
+program's sequences reuse their elements -- the same word in many sentences --
+and replay is never noiseless.
+
+**Seen before registering** (exploratory, seeds 980 to 989, the survey cell
+(4000, 60, 0.5), tau = 33, 16-element sequences; disclosed in full):
+
+* Recurring words, drawn i.i.d. from a vocabulary of V (the SAME word
+  sequences in every brain -- a flaw corrected below). Two occurrences of a
+  word in different sequences are coded on mostly different neurons: overlap
+  0.04 to 0.10 (chance k/n = 0.015) -- the area stores TOKENS, not types.
+  At up to 5 uses per word every sequence replayed whole at rho = 0.03, 0.05
+  and 0.08. Heavier reuse failed erratically: at rho = 0.03, 10 uses per word
+  0.83 whole but 20 uses 1.00; at 0.05, 0.03 whole at 40 uses; at 0.08, 0.64
+  at 20 and 0.04 at 40. Shared structure across brains (repeated bigrams,
+  words repeating within a sequence) is the likely confound; heavy reuse is
+  reported here, not judged, and needs its own design.
+* Uniform activity noise during replay (distinct elements): whole fraction at
+  nu = 0, 0.03, 0.05, 0.1 -- rho 0.05: 1.00, 1.00, 1.00, 0.88; rho 0.08:
+  1.00, 0.998, 0.998, 0.75; rho 0.11: 0.999, 0.98, 0.92, 0.32.
+* A smoke run of the module (VOID, seeds 900 to 902) ran only the survey cell
+  (2000, 60, 0.5) at rho = 0.05 (every sequence whole; same-word overlap
+  0.125 at 5 uses per word). W1's ceiling was 0.15 in the first draft and was
+  raised to 0.3 after that smoke reading, before any judged run: the bar
+  separates tokens from types (a type code would overlap 0.5 or more), and
+  0.15 sat inside the range already seen at an unjudged cell.
+* No run has touched (4000, 100, 0.35) or (10000, 120, 0.3).
+
+### Protocol
+
+`research/experiments/memory_reuse_noise.py` (`python -m research.runner
+reuse_noise`), seeds 622 to 641 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (4000, 100, 0.35) (n/k = 40,
+tau = n/k = 40) and (10000, 120, 0.3) (n/k = 83, tau = n/k / 2 = 42), by
+Amendment 41's rule; k p = 35 and 36 against 3 ln n = 24.9 and 27.6. beta =
+theta, refraction 0.5 beta. Sequences of 16 elements, each by its own
+`store_sequence`, M of them per brain at total load rho = L k ln n / (n^2 p);
+replayed noiselessly (REUSE) or with noise (NOISE) from a uniformly random half
+of the first element; own overlap >= 0.3 at every step; reliability = the
+mean over brains of the fraction of a brain's sequences replayed whole.
+
+* REUSE: rho = 0.05 and 0.08; every element distinct, or words drawn i.i.d.
+  from a vocabulary of V = L / U, U = 2, 5, 20 uses per word, EACH BRAIN ITS
+  OWN DRAW. Code overlap: two occurrences of one word in different sequences
+  (up to 200 words per brain), against two different words (BASELINE).
+* NOISE: distinct elements; rho = 0.05, 0.08, 0.11; nu = 0, 0.03, 0.05, 0.1
+  of each replay step's winners replaced by uniformly random neurons.
+
+    python -m research.runner reuse_noise \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag reuse-noise-20261008 --seeds 622 ... 641
+
+### Bars
+
+    W1  TOKENS, NOT TYPES. Same-word code overlap <= 0.3 in every reuse arm
+        (U = 2, 5, 20; both loads) at both cells.
+    W2  MODERATE REUSE IS FREE. Reliability >= 0.98 at U = 2 and 5 (and with
+        distinct elements) at rho = 0.05 and 0.08, both cells.
+    N1  MILD NOISE FITS THE BUDGET. Reliability >= 0.98 at nu <= 0.05 and
+        rho <= 0.08, both cells.
+    N2  NOISE AND LOAD COMPOUND. At nu = 0.1, reliability at rho = 0.05 minus
+        reliability at rho = 0.11 >= 0.2 at both cells (the probe: 0.56).
+
+Reported, not judged: U = 20; nu = 0.1 at each load; the baseline overlaps.
+
+### Interpretation, stated now
+
+* W1 to N2 pass: one area holds a program's sequences when their elements
+  recur a few times each, at no cost to the budget, because it codes each
+  occurrence apart -- which also means it cannot by itself say that two
+  occurrences are the same word: type identity must come from another area.
+  Mild noise fits inside the safe rule; strong noise and load multiply, and a
+  cost model for noisy replay needs a joint term.
+* W1 fails: recurring words share codes -- the area holds types, and
+  context must come from elsewhere.
+* W2 fails: reuse spends budget even when moderate; the cost model needs a
+  per-use term.
+* N1 fails: the safe rule must be lowered for noisy replay.
+* N2 fails: noise acts independently of load.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until W1, W2, N1 and N2 are evaluated and recorded below.
