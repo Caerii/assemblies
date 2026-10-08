@@ -103,6 +103,7 @@ registration and a manuscript.
 | P5 | Local-rule sequence prediction with assemblies (the temporal memory) | The state is the previous arc and predicted neurons win; this carries agreement across two distractors and predicts order-10 sequences exactly inside the training window. | none yet adopted | gated on Amendment 2 and the register study |
 | P6 | Cross-situational word learning and word order without annotation | Alignment 0.99 and six of six word orders from scene-sentence pairs with a homeostatic lexicon; word capacity scales with the lexicon's n. | aligner line, [PREREG_word_capacity.md](../notes/aligner/PREREG_word_capacity.md) | measured; needs real input and the dead-probe audit |
 | P7 | When plasticity acts decides what a recurrent area stores: attractors, trajectories, and the calculus's sequence operation | One area and one causal Hebbian rule store attractors when the write feeds the item's own rounds under refraction weaker than plasticity, and replayable sequences (207 to 950 chains of eight states) when refraction outpaces plasticity or the write comes after the item; a burst-timing rule stores neither; written one round per element, the calculus's own ordered_recall advances where it never did. | `WRITE-TIMING-DECIDES-ATTRACTOR`, `ADAPTATION-SWITCHES-MEMORY-TYPE`, `ORDERED-RECALL-BY-TRANSITIONS`, `REFRACTION-CANCELS-CONVERGENCE` | three registered results incl. the calculus operation; needs the boundary derivation, distinctness on fresh brains, the length limit |
+| P8 | The budget of a sequence area: an interference load law, a hazard compounded over length, and a token code | One area replays a sequence whole up to a critical load rho = L k ln n / (n^2 p) (predicted and confirmed at unseen cells), safe at rho <= 0.09 for any split into sequences once the refraction recovers over the interval between a neuron's uses; past it short sequences fail one by one by a hazard compounded over length, and recurring words are coded as tokens carrying a type trace. | `SEQUENCE-LOAD-LAW`, `RECOVERY-SCALES-WITH-AREA`, `RECOVERY-PEAK-AT-SMALL-AREAS`, `SEQUENCE-BUDGET-ANY-SPLIT`, `RECURRING-WORDS-CODED-AS-TOKENS`, plus the budget section of [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex) | five registered results (Amendments 37 to 42, one with three failed bars); needs Amendment 43 (hazard), the link law, grammar vs random reuse |
 
 ### P1. Refracted memory
 
@@ -363,6 +364,82 @@ Title candidate: *When plasticity acts decides what a recurrent area
 stores: attractors, trajectories, and the assembly calculus's sequence
 operation.*
 
+### P8. The budget of a sequence area
+
+Evidence: [PREREG_refraction_memory.md](../notes/memory/PREREG_refraction_memory.md)
+Amendments 35 to 42 (twenty new brains each, every cell judged never run
+before), register entries `SEQUENCE-LOAD-LAW`, `RECOVERY-SCALES-WITH-AREA`,
+`RECOVERY-PEAK-AT-SMALL-AREAS`, `SEQUENCE-BUDGET-ANY-SPLIT` and
+`RECURRING-WORDS-CODED-AS-TOKENS`; the theory is the section "The sequence
+memory's budget" of [../theory/assembly_statmech.tex](../theory/assembly_statmech.tex),
+every statement there marked PROVED, MEASURED or OPEN.
+
+P7 says what a recurrent area stores; P8 says how much, how it fails, and
+what a program built from areas must budget for -- the cost model of an
+"assembly compiler" (programs of sequences, chunks and plans allocated to
+areas with a predicted reliability).
+
+What stands, each on registered bars:
+
+1. **A load law.** One area replays one sequence whole on every brain up to a
+   critical interference load rho = L k ln n / (n^2 p) -- a variable derived
+   to first order -- and on none a factor 1.07 to 1.15 above it. The critical
+   value was predicted from a survey and confirmed at two cells never run
+   (0.141 and 0.115 against 0.142; Amendment 37).
+2. **Its failure, recorded.** At n/k = 300 with tau = 64 the cliff fell to
+   0.081 at three cells, below the law's band and its safe rule (Amendment
+   38: three bars failed). The failure located the next variable.
+3. **The recovery time is matched to reuse.** A neuron is used once every
+   n/k elements; tau = n/k / 2 restores the safe rule at large areas
+   (Amendment 39), tau = n/k buys 1.65 times the budget at n/k = 20, 1.24 at
+   50, nothing at 100 and costs 9% at 200 (Amendment 41). Under n/k / 2 the
+   critical load is nearly constant, 0.122 from n/k = 20 to 100.
+4. **Any split is safe.** Up to rho = 0.09 every sequence is whole however
+   the budget is split (16, 64 or thousands of elements); past it short
+   sequences fail one by one, every brain losing the same share (Amendment 40).
+5. **Recurring words are tokens with a type trace.** Two occurrences of a
+   word share ~ 0.1 of their neurons, two different words ~ 0.001; up to five
+   uses per word and 5% replay noise cost nothing inside the budget; noise
+   and load multiply (Amendment 42).
+
+Proved within stated models (the theory section): the cliff's location moves
+with the logarithm of what is stored and its width with the hazard's slope
+(a large-deviation consequence of a capture-and-hazard model); a type is
+recoverable from m tokens with Spearman-Brown reliability, and from one pair
+with d' ~ sqrt(ICC k).
+
+Failed or refuted on the way, to be reported: the constant's transfer to
+n/k = 300 at fixed tau (Amendment 38); an ln(n/k) rescaling of rho, which
+halved the residuals after the fact and failed at new small-n/k cells
+(exploratory); the conjecture that every knob acts through the dispersion of
+interference, measured before registration (rho_50 D ranges 0.12 to 0.56).
+
+Still needed:
+
+- Amendment 43 (registered 2026-10-08): short sequences' capture and hazard
+  predict 256-, 1024- and whole-load sequences' cliffs within 5%.
+- The signal side of the tau peak: a successor's structural input from its
+  predecessor against tau.
+- The hazard over three decades, against the Kramers form
+  ln h ~ -(rho_c - rho)^(3/2).
+- Recurrence under grammar against shuffled controls (consistency, not
+  recurrence, sets the cost: the theory section's conjecture).
+- The type trace read out: exposures to a stable type (Spearman-Brown) and
+  same-word detection growing as sqrt(k), registered.
+- The link budget between areas: set by the source area alone in an
+  exploratory sweep (doubling the target area changes it by under 2%,
+  doubling the source multiplies it by 1.36 to 1.7); registered at new pairs.
+- Universality: the law under threshold E/I dynamics in place of k-WTA.
+- A compiled program of language scale run inside its predicted budget.
+
+Relation to P4 and P7: P7 is the mechanism (what one area stores), P8 the
+resource law on top of it, and P4 quotes P8's large-deviation and
+variance-components results as its statistical-mechanics content for
+sequences.
+
+Title candidate: *The budget of a sequence area: an interference load law, a
+hazard compounded over length, and a token code with a type trace.*
+
 ## 3. Rules for every draft
 
 These come from the repository's own documents and are not optional.
@@ -394,7 +471,9 @@ section. P2 third; it shares the refraction mechanism and is P7's attractor
 phase with an engineered veto. P3 is written alongside them as the methods
 companion and carries the audit. P4 after P1 and P7, because it quotes P1's
 law and P7's boundary. P5 waits on the GPU queue (Amendment 2, then the
-register study), and P6 on real input.
+register study), and P6 on real input. P8 follows P7 on the same substrate and
+feeds P4; it waits on Amendment 43 and the registered link and grammar
+studies listed under it.
 
 The next concrete steps: the P7 chosen-sequence registration (GPU), and a
 draft directory `research/papers/drafts/refracted_memory/` with P1's figures
