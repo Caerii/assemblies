@@ -1,0 +1,9 @@
+(18000, 60, 0.6) L=23594 rho=0.071: full 1.00
+(18000, 60, 0.6) L=25730 rho=0.078: full 1.00
+(18000, 60, 0.6) L=28059 rho=0.085: full 0.00
+(18000, 60, 0.6) L=30598 rho=0.093: full 0.00
+(24000, 80, 0.5) L=25468 rho=0.071: full 1.00
+(24000, 80, 0.5) L=27773 rho=0.078: full 0.95
+(24000, 80, 0.5) L=30287 rho=0.085: full 0.00
+(24000, 80, 0.5) L=33028 rho=0.093: full 0.00
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.load-drift\load-drift-20261008\results.json

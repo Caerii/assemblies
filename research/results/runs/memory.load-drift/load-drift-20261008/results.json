@@ -1,0 +1,400 @@
+{
+  "attachments": {},
+  "observations": {
+    "cells": {
+      "18000/60/0.6": {
+        "k": 60,
+        "ladder": {
+          "23594": {
+            "full": 1.0,
+            "rho": 0.07135092879879835,
+            "steps": [
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0,
+              23593.0
+            ]
+          },
+          "25730": {
+            "full": 1.0,
+            "rho": 0.07781043477125887,
+            "steps": [
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0,
+              25729.0
+            ]
+          },
+          "28059": {
+            "full": 0.0,
+            "rho": 0.0848535946073359,
+            "steps": [
+              82.0,
+              34.0,
+              6.0,
+              110.0,
+              132.0,
+              97.0,
+              160.0,
+              150.0,
+              200.0,
+              152.0,
+              206.0,
+              111.0,
+              25.0,
+              54.0,
+              124.0,
+              69.0,
+              34.0,
+              96.0,
+              6.0,
+              156.0
+            ]
+          },
+          "30598": {
+            "full": 0.0,
+            "rho": 0.09253181823284022,
+            "steps": [
+              4.0,
+              6.0,
+              2.0,
+              6.0,
+              4.0,
+              4.0,
+              3.0,
+              6.0,
+              3.0,
+              3.0,
+              5.0,
+              5.0,
+              4.0,
+              4.0,
+              4.0,
+              4.0,
+              6.0,
+              4.0,
+              6.0,
+              3.0
+            ]
+          }
+        },
+        "n": 18000,
+        "p": 0.6
+      },
+      "24000/80/0.5": {
+        "k": 80,
+        "ladder": {
+          "25468": {
+            "full": 1.0,
+            "rho": 0.07135149622122737,
+            "steps": [
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0,
+              25467.0
+            ]
+          },
+          "27773": {
+            "full": 0.95,
+            "rho": 0.0778092156648401,
+            "steps": [
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              3351.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0,
+              27772.0
+            ]
+          },
+          "30287": {
+            "full": 0.0,
+            "rho": 0.08485247235952229,
+            "steps": [
+              4.0,
+              11.0,
+              10.0,
+              8.0,
+              14.0,
+              7.0,
+              7.0,
+              13.0,
+              8.0,
+              6.0,
+              10.0,
+              6.0,
+              10.0,
+              4.0,
+              7.0,
+              14.0,
+              14.0,
+              8.0,
+              7.0,
+              6.0
+            ]
+          },
+          "33028": {
+            "full": 0.0,
+            "rho": 0.09253169535082055,
+            "steps": [
+              3.0,
+              3.0,
+              4.0,
+              3.0,
+              3.0,
+              3.0,
+              2.0,
+              3.0,
+              3.0,
+              3.0,
+              3.0,
+              3.0,
+              3.0,
+              3.0,
+              4.0,
+              3.0,
+              2.0,
+              3.0,
+              4.0,
+              4.0
+            ]
+          }
+        },
+        "n": 24000,
+        "p": 0.5
+      }
+    },
+    "verdict": "UNJUDGED"
+  },
+  "run": {
+    "engine": "hashed_assembly_memory",
+    "environment": {
+      "policy": "repository-environment-v1",
+      "variables_sha256": {
+        "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+        "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+      }
+    },
+    "execution_semantics": {
+      "kind": "organ",
+      "profiles": {
+        "beta-0.32995": {
+          "arc_refraction_charge": 0.164975,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        },
+        "beta-0.35507": {
+          "arc_refraction_charge": 0.177535,
+          "convergence_gate": false,
+          "feature_register": false,
+          "horizon": 0,
+          "inference_schedule": "frozen-recurrent-completion",
+          "organ": "assembly-memory",
+          "prediction_gain": 0.0,
+          "state_code": "none",
+          "state_refraction_charge": 0.0,
+          "substrate": {
+            "arithmetic": "float32",
+            "candidate_domain": "all-neurons",
+            "connectome": "fixed-hash-regenerated",
+            "default_tie_break": "lowest-neuron-id",
+            "normalization": "inverse-indegree",
+            "plasticity": "multiplicative-clipped",
+            "stimulus_drive": "zero-or-size-afferent-count",
+            "weight_ceiling": 20.0
+          },
+          "successor_gain": 1.0,
+          "tie_jitter": 0.0,
+          "training_schedule": "stimulus-plus-recurrence"
+        }
+      }
+    },
+    "git_commit": "12f70e37b34f2e38bb6b46a36b597ac5de23ba49",
+    "input_artifacts": {},
+    "mode": "study",
+    "observation_policy": null,
+    "parameters": {
+      "cells": [
+        {
+          "batch": 9,
+          "beta": 0.32995,
+          "k": 60,
+          "ladder": [
+            23594,
+            25730,
+            28059,
+            30598,
+            33368,
+            36388,
+            39681,
+            43272,
+            47189,
+            51460,
+            56117,
+            61197,
+            66735,
+            72775,
+            79362,
+            86545
+          ],
+          "n": 18000,
+          "p": 0.6
+        },
+        {
+          "batch": 5,
+          "beta": 0.35507,
+          "k": 80,
+          "ladder": [
+            25468,
+            27773,
+            30287,
+            33028,
+            36018,
+            39278,
+            42832,
+            46709,
+            50937,
+            55547,
+            60574,
+            66057,
+            72035,
+            78555,
+            85665,
+            93418
+          ],
+          "n": 24000,
+          "p": 0.5
+        }
+      ],
+      "device": "cuda",
+      "fit": [
+        -1.52243353,
+        -0.16834888,
+        0.1718313
+      ],
+      "match": 0.3,
+      "strength": 0.5,
+      "tau": 64,
+      "w_max": 20.0
+    },
+    "protocol": "memory.load-drift",
+    "protocol_version": "1",
+    "registration": "research/notes/memory/PREREG_refraction_memory.md",
+    "registration_sha256": "a8ad8eebad9aeba7651196a0504189dc748f83e810da2a438fa777b96a3ebc4d",
+    "schema_version": 10,
+    "scientific_status": "UNJUDGED",
+    "script": "research/experiments/memory_load_drift.py",
+    "script_sha256": "3a118231f3a03e6cdb7b04ddaf4c141bc09745501128d4ffe465278bdaad2d27",
+    "seeds": [
+      542,
+      543,
+      544,
+      545,
+      546,
+      547,
+      548,
+      549,
+      550,
+      551,
+      552,
+      553,
+      554,
+      555,
+      556,
+      557,
+      558,
+      559,
+      560,
+      561
+    ],
+    "source_archive": {
+      "file": "source.zip",
+      "sha256": "ba7e60784bc2c56857f51f20d3529c6fda70399dfd4d495ca29895d728b985cc"
+    },
+    "source_inventory": "source-inputs-v3",
+    "source_sha256": "3edeeeeecd943a3006b548e39f0e69037e436aedcd796d8c32a0b3884431d993",
+    "started_utc": "2026-10-08T10:42:01.052793+00:00",
+    "tag": "load-drift-20261008"
+  },
+  "status": "complete"
+}

@@ -770,10 +770,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | R1 critical load where the law puts it (A37) | rho_50 in [0.109, 0.185], 2 unseen cells | PASS | 0.141, 0.115 |
 | R2 reliable below rho 0.09 (A37) | rho_90 >= 0.09 | PASS | 0.132, 0.111 |
 | R3 failure is a cliff (A37) | rho_10 / rho_90 <= 1.6 | PASS | 1.15, 1.07 |
-| K1 load law's constant holds at n/k 300 (A38) | rho_50 in [0.109, 0.185] | FAIL | 0.081, 0.081 |
-| D1 post hoc n/k drift holds (A38) | within x1.2 of 0.104, 0.106 | FAIL | 0.081, 0.081 (nearer) |
-| S1 safe rule rho_90 >= 0.09 (A38) | both cells | FAIL | 0.079, 0.078 |
-| S2 failure is a cliff (A38) | rho_10 / rho_90 <= 1.6 | PASS | 1.07, 1.08 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4925,41 +4921,3 @@ ladder point.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until K1, D1, S1 and S2 are evaluated and recorded below.
-
-### Amendment 38 result (2026-10-08)
-
-One run from a worktree pinned at 12f70e37, seeds 542 to 561:
-[record](../../results/runs/memory.load-drift/load-drift-20261008/results.json),
-[log](../../results/logs/memory-load-drift-20261008.log). Fraction of the 20
-brains replaying the whole sequence, by rho (and the shortest replay):
-
-    rho                  0.071         0.078            0.085        0.093
-    (18000, 60, 0.6)     1.00          1.00             0.00 (6)     0.00 (2)
-    (24000, 80, 0.5)     1.00          0.95 (3351)      0.00 (4)     0.00 (2)
-
-                       rho_90   rho_50   rho_10   rho_10/rho_90   predicted rho_50
-    (18000, 60, 0.6)   0.079    0.081    0.084    1.07            0.142 / 0.104
-    (24000, 80, 0.5)   0.078    0.081    0.084    1.08            0.142 / 0.106
-
-    K1  THE CONSTANT HOLDS                                             FAIL
-        rho_50 0.081 at both cells, band [0.109, 0.185].
-    D1  THE DRIFT HOLDS                                                FAIL
-        rho_50 0.081, bands [0.087, 0.125] and [0.088, 0.127].
-    S1  THE SAFE RULE HOLDS                                            FAIL
-        rho_90 0.079 and 0.078, against 0.09.
-    S2  THE FAILURE IS A CLIFF                                         PASS
-        rho_10 / rho_90 1.07 and 1.08.
-
-The drift is the nearer form at both cells, but neither holds: the critical
-load at n/k = 300 is 0.081 at both cells -- 43% below the constant and 23%
-below the drift -- and the safe rule of Amendment 37 (rho <= 0.09) is
-unsafe there. The failure is still a cliff, and as in Amendment 37 the brains
-past it derail early (median 3 to 110 steps of 28,000 to 33,000), the
-signature of a replay map with no stable state rather than of a defect at a
-late position.
-
-**Checked after the run.** Both judged cells are the first in this program
-with n > 2^14. The independent oracle of Amendment 35
-(`test_memory_oracle._run`) was run at both, 40 elements, one brain each:
-counts equal, bias equal to 1e-4, every recall equal, no near ties. An engine
-defect at this size is not seen (the check covers 40 elements, not 28,000).

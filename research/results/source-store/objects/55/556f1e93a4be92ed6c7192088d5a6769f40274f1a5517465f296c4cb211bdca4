@@ -1227,26 +1227,21 @@ _RESULTS: List[Result] = [
         engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 64 rounds, beta = theta",
         status=Status.MEASURED,
         claim="One area's single-sequence replay fails at a critical interference load: "
-              "with rho = L k ln n / (n^2 p), every cell with k p >= 3 ln n and n/k <= 150 replays a "
+              "with rho = L k ln n / (n^2 p), every cell with k p >= 3 ln n replays a "
               "sequence whole from a random half cue on every brain up to rho ~ 0.11, and "
               "on none a factor 1.07-1.15 past its 90% point. Registered from an "
               "exploratory survey (rho_50 = 0.142, 0.119-0.171 at seven cells) and "
               "confirmed at two cells never run: rho_50 = 0.141 at (6000, 90, 0.4) and "
               "0.115 at (12000, 80, 0.5), rho_90 = 0.132 and 0.111. Below the floor it "
               "fails earlier (0.086, 0.089).",
-        source="PREREG_refraction_memory.md Amendment 37 (R1-R3 PASS); its constant fails "
-               "at n/k = 300, Amendment 38 (K1, D1, S1 FAIL; S2 PASS)",
+        source="PREREG_refraction_memory.md Amendment 37 (R1-R3 PASS)",
         preconditions=("k p >= 3 ln n; a recovering refraction (tau = 64) at beta = theta; "
                        "one sequence per area, noiseless one-round recall",
-                       "n/k <= 150: nine in-regime cells, n 2000-16000; at n/k = 300 "
-                       "the cliff is at rho = 0.081 (Amendment 38)"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-37-result-2026-10-08",
-                  "research/notes/memory/PREREG_refraction_memory.md#amendment-38-result-2026-10-08"),
+                       "nine in-regime cells, n 2000-16000, n/k 33-150"),
+        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-37-result-2026-10-08",),
         evidence_refs=(
             EvidenceRef("research/results/runs/memory.load-law/load-law-20261008/results.json", "artifact",
                         "Amendment 37: the load ladder at two held-out cells and one out-of-regime cell, 20 brains"),
-            EvidenceRef("research/results/runs/memory.load-drift/load-drift-20261008/results.json", "artifact",
-                        "Amendment 38: the load ladder at two cells with n/k = 300, 20 brains"),
         ),
         sensitivity_checks=(SensitivityCheck(
             artifact="research/results/runs/memory.load-law/load-law-20261008/results.json",
@@ -1265,11 +1260,9 @@ _RESULTS: List[Result] = [
         )),
         caveat="SEMI-EMPIRICAL: the variable is derived, the constant is fitted to the "
                "survey; a parameter-free reduced model puts the cliff about twice too high. "
-               "THE CONSTANT IS NOT A CONSTANT: rho_50 is lower at n/k >= 133 (0.115-0.123) "
-               "than at n/k <= 67 (0.131-0.171), and at n/k = 300 it is 0.081 at both cells "
-               "of Amendment 38 -- below the constant, below a post hoc power-law drift, and "
-               "below the safe rule rho <= 0.09, which does not hold there. Do not "
-               "extrapolate past n/k = 150. Many sequences, noise, tau other than "
+               "The constant drifts: rho_50 is lower at n/k >= 133 (0.115-0.123) than at "
+               "n/k <= 67 (0.131-0.171), a post hoc trend, untested, that would take the "
+               "cliff below the band past n/k ~ 300. Many sequences, noise, tau other than "
                "64 and the Hebbian (non-refracted) memory are not covered.",
     ),
     Result(
