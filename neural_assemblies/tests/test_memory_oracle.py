@@ -196,6 +196,26 @@ def test_the_oracle_shares_the_engines_connectome_and_indegree(mod):
         assert np.array_equal(mem.fiber.dj[b].cpu().numpy().astype(np.float64), o.deg)
 
 
+def test_recall_returns_its_winners_strongest_first(mod):
+    """The k-WTA's winners come back ordered by drive, strongest first, so
+    ``winners[:, :m]`` is the m MOST driven -- not an arbitrary subset.
+    Amendment 34's noise replaced those slots (Amendment 36 erratum)."""
+    from neural_assemblies.core.torch_engine._memory import AssemblyMemory
+    n, k, p = 600, 30, 0.5
+    seeds = [_i32(_seeding.fnv1a_pair_seed(700 + b, "A", "A")) for b in range(2)]
+    mem = AssemblyMemory(seeds, n, k, p, beta=round(_theta(n, k, p), 5), w_max=W_MAX,
+                         norm_init=True, rounds=1, strength=0.5, max_items=4)
+    elements = [[_i32(_seeding.fnv1a_pair_seed(700 + b, f"o{e}", "A")) for b in range(2)]
+                for e in range(12)]
+    states, _ = mem.store_sequence(elements)
+    cue = states[3][:, :k // 2]
+    got = mem.recall(cue, rounds=1)
+    raw = torch.zeros(2, n, device="cuda")
+    mem.fiber.contribute(raw, cue)
+    drive = torch.gather(raw, 1, got)
+    assert bool((drive[:, 1:] <= drive[:, :-1]).all())
+
+
 @pytest.mark.parametrize("n_pre,n_post", [(400, 800), (800, 400), (600, 600)])
 def test_a_cross_area_fiber_equals_the_oracle(mod, n_pre, n_post):
     """A fiber between areas of different sizes (Amendment 33's C -> S):

@@ -4589,3 +4589,82 @@ against learned links. SEQUENCES-OF-SEQUENCES-ACROSS-AREAS now cites this run.
 The oracle stays as a test, and the defect's other site -- the A3 transducer's
 2,000 and 50,000 cells -- is rerun under PREREG_seq_a3_transducer.md
 Amendment 4.
+
+## Erratum to Amendment 34 (2026-10-08): the noise replaced the strongest winners
+
+Amendment 34 describes its noise as "a fraction nu of every replay step's
+winners replaced at random" and its cue as "half of the first state". Both
+take the FIRST slots of a winner tensor (`x[:, :m]`), and the k-WTA returns
+its winners ordered by drive, strongest first (now pinned by
+`test_recall_returns_its_winners_strongest_first`). Measured on 20 probe
+brains at (4000, 60, 0.5), tau = 33: the first sixth of a recall's slots are
+1.00 members of the true next element, the last sixth 0.35. So the noise
+replaced the most driven winners -- nearly all true members -- at every
+step, and the cue was the strongest half of the first element by its write
+drive. Amendment 34's numbers stand as measurements of THAT instrument; its
+words and SEQUENCE-MEMORY-ROBUSTNESS's claim are corrected to say so.
+
+**Found by** the theory round's probes (exploratory, disclosed): a
+one-variable Markov reduction of replay, built from the one-step overlap map
+with random fillers and assuming random slots, predicted a 10% noise horizon
+of 228 steps at (4000, 60) against 37 measured on the same probe brains
+(A34: 39). With the slots replaced as A34 replaced them the probe brains read
+37.4 and 195 (A34: 39 and 232); with uniformly random slots they read 97 and
+never fail in 399 steps. Probe brains: seeds 920 to 939.
+
+## Amendment 36 (2026-10-08, before running): uniformly random noise, and a random half cue
+
+Registered before any run of this amendment. Amendment 34 measured replay
+under the deletion of the most driven winners and from the strongest half
+cue. This amendment measures what its words described: noise on uniformly
+random slots, and a uniformly random half cue -- beside Amendment 34's own
+instrument on the same brains.
+
+**Seen before registering** (exploratory, disclosed above and here): on 20
+probe brains (seeds 920 to 939), nu = 0.1, top slots 37.4 and 195, uniform
+slots 97 and 399 (no failure) at (4000, 60) and (8000, 60). The random half
+cue was NOT probed. A smoke run of the module (VOID: 3 brains, L = 40, seeds
+900 to 902) ran the pipeline.
+
+### Protocol
+
+`research/experiments/memory_noise.py` (`python -m research.runner noise`),
+seeds 502 to 521 (new brains), one run from a worktree pinned at the commit
+registering this amendment. Cells (4000, 60, 0.5) and (8000, 60, 0.5); beta =
+theta, refraction 0.5 beta recovering over 33 rounds (Amendment 34's). One
+sequence of L = 400 per brain. NOISE: nu = 0.05, 0.07, 0.1, 0.2, with the
+replaced slots TOP (Amendment 34's) or UNIFORM; each brain's first-miss step,
+mean of four seeded draws. CUE: the strongest half or a uniformly random half
+of the first element, eta = 0 and 0.25 of it replaced at random; the replay
+fraction.
+
+    python -m research.runner noise \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag noise-20261008 --seeds 502 ... 521
+
+### Bars
+
+    U1  UNIFORM NOISE IS MILDER. At (4000, 60), nu = 0.1: the median first
+        miss under uniform slots is at least twice that under top slots.
+    U2  THE LARGER AREA HOLDS. At (8000, 60), nu = 0.1, uniform slots: at
+        least 18 of 20 brains replay all 399 steps.
+    U3  AMENDMENT 34 REPRODUCES. Top slots, nu = 0.1: each cell's median
+        within 35% of Amendment 34's (39 and 232).
+    U4  A RANDOM HALF CUE WORKS. eta = 0, random half: mean replay fraction
+        >= 0.9 at both cells. (Not probed: a prediction.)
+
+Reported, not judged: every nu under both slot rules; eta = 0.25 for both
+cues.
+
+### Interpretation, stated now
+
+* U1 to U4 pass: Amendment 34 understated the memory's tolerance of random
+  activity noise -- at 10% the smaller area's horizon is at least twice what
+  it recorded and the larger area does not derail in 400 steps -- and the cue
+  need not be the strongest half.
+* U4 fails: replay depends on WHICH half of the first element cues it, and
+  every sequence result since Amendment 26 is conditional on the strongest
+  half.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until U1 to U4 are evaluated and recorded below.

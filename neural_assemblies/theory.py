@@ -1180,12 +1180,14 @@ _RESULTS: List[Result] = [
         status=Status.MEASURED,
         claim="The refracted sequence memory's length limit is a budget of elements, spent "
               "alike on one long sequence or many short ones (0.81-1.08 of the single-"
-              "sequence limit); replay loses nothing with up to 7% of its winners replaced "
-              "at random at every step, derails at a horizon at 10% that a twice-larger "
-              "area pushes out about sixfold, and starts from a cue a quarter wrong.",
+              "sequence limit); replay loses nothing with up to 7% of its MOST DRIVEN winners "
+              "replaced by random neurons at every step, derails at a horizon at 10% that a "
+              "twice-larger area pushes out about sixfold, and starts from its strongest half "
+              "cue a quarter wrong.",
         source="PREREG_refraction_memory.md Amendment 34 (N1-N4 PASS)",
-        preconditions=("noise = random replacement of a fraction of each replay step's "
-                       "winners; the cue is half of the first state",
+        preconditions=("noise = replacement of the first slots of each replay step's "
+                       "winners, which the k-WTA orders strongest first (Amendment 36 erratum); "
+                       "the cue is the strongest half of the first state",
                        "two cells, k = 60, p = 0.5"),
         evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-34-result-2026-10-07",),
         evidence_refs=(
@@ -1207,9 +1209,12 @@ _RESULTS: List[Result] = [
             relation="all-greater", minimum_effect=300,
             mechanism="replay survives 5% activity noise per step and derails within a few steps at 20%, at (8000, 60, 0.5) (Amendment 34)",
         )),
-        caveat="The noise model is uniform random replacement; the mechanism of the 10% "
-               "horizon is not identified (the onset of neuron reuse did not predict it in "
-               "the probe). Synaptic noise and noise during writing are untested.",
+        caveat="ERRATUM (Amendment 36): the noise was described as uniform random "
+               "replacement but replaced the most driven winners, nearly all true members; "
+               "probe brains under uniformly random slots read 97 and no failure in 399 steps "
+               "at nu = 0.1, against 37 and 195 under this instrument -- Amendment 36 measures "
+               "it. The mechanism of the horizon is not identified. Synaptic noise and noise "
+               "during writing are untested.",
     ),
     Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
