@@ -1402,47 +1402,6 @@ _RESULTS: List[Result] = [
                "deadline's signature. One kp; many sequences and noise not covered.",
     ),
     Result(
-        id="RECURRING-WORDS-CODED-AS-TOKENS",
-        engine="hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta",
-        status=Status.MEASURED,
-        claim="Inside the load law's safe budget one area holds sequences whose elements "
-              "recur (up to 5 uses per word) at no cost, and replays them through 5% "
-              "uniform activity noise per step without loss, because it codes every "
-              "occurrence of a word apart: two occurrences share ~ 0.1 of their neurons "
-              "(a type code would share most), still 50-100 times two different words' "
-              "overlap (0.000-0.002) -- a token code with a trace of the type. Noise and "
-              "load multiply: at 10% noise the loss grows from 3-10% at rho = 0.05 to "
-              "34-63% at 0.11.",
-        source="PREREG_refraction_memory.md Amendment 42 (W1, W2, N1, N2 PASS)",
-        preconditions=("words drawn i.i.d. per brain from a vocabulary of L / U; 16-element "
-                       "sequences, one store_sequence each",
-                       "two cells (n/k = 40, 83); uniform replacement noise during replay only"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-42-result-2026-10-08",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json", "artifact",
-                        "Amendment 42: recurring words and replay noise, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/4000~1100~10.35/reuse/0.08/5/same",
-            control_path="observations/cells/4000~1100~10.35/reuse/0.08/5/different",
-            relation="all-greater", minimum_effect=0.05,
-            mechanism="two occurrences of one word share ~ 0.1 of their neurons in every brain, two different words ~ 0.001, at (4000, 100, 0.35) (Amendment 42)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/10000~1120~10.3/reuse/0.08/5/same",
-            control_path="observations/cells/10000~1120~10.3/reuse/0.08/5/different",
-            relation="all-greater", minimum_effect=0.05,
-            mechanism="the same token-with-a-type-trace code at (10000, 120, 0.3) (Amendment 42)",
-        )),
-        caveat="Heavy reuse (20 uses per word) costs up to 36% and fails brain by brain, "
-               "apparently by each brain's draw (repeated bigrams, within-sequence "
-               "repeats): untested. Whether a readout can use the type trace is untested. "
-               "Noise during writing is not covered.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,

@@ -219,8 +219,6 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQUENCE-BUDGET-ANY-SPLIT",
             # 2026-10-08: tau = n/k replays whole where n/k / 2 derails, small areas (A41)
             "RECOVERY-PEAK-AT-SMALL-AREAS",
-            # 2026-10-08: same-word codes overlap ~0.1, different words ~0.001 (A42)
-            "RECURRING-WORDS-CODED-AS-TOKENS",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

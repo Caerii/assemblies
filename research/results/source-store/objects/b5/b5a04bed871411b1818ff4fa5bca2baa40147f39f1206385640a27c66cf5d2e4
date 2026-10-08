@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner reuse_noise --registration research/notes/memory/PREREG_refraction_memory.md --tag reuse-noise-20261008 --seeds 622 623 624 625 626 627 628 629 630 631 632 633 634 635 636 637 638 639 640 641 > C:\Github\assemblies-runs-20260930b\a42.log 2>&1

@@ -785,10 +785,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | P2 tau gain falls with n/k (A41) | Spearman <= -0.8 | PASS | -1.0 |
 | P3 safe rule at tau = n/k (A41) | rho_90 >= 0.09, four cells | PASS | 0.093-0.191 |
 | P4 no peak at n/k 200 (A41) | gain <= 1.1 | PASS | 0.91 |
-| W1 recurring words coded as tokens (A42) | same-word overlap <= 0.3 | PASS | 0.072-0.105 (different 0.000-0.002) |
-| W2 moderate reuse is free (A42) | >= 0.98 at <= 5 uses/word | PASS | 1.00 |
-| N1 mild noise fits the budget (A42) | >= 0.98, nu <= 0.05, rho <= 0.08 | PASS | >= 0.997 |
-| N2 noise and load compound (A42) | drop >= 0.2 at nu 0.1 | PASS | 0.24, 0.60 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5439,50 +5435,3 @@ Reported, not judged: U = 20; nu = 0.1 at each load; the baseline overlaps.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until W1, W2, N1 and N2 are evaluated and recorded below.
-
-### Amendment 42 result (2026-10-08)
-
-One run from a worktree pinned at e93e5674, seeds 622 to 641:
-[record](../../results/runs/memory.reuse-noise/reuse-noise-20261008/results.json),
-[log](../../results/logs/memory-reuse-noise-20261008.log). Mean fraction of a
-brain's 16-element sequences replayed whole:
-
-    REUSE (uses per word)   distinct   2      5      20         same-word / different-word overlap
-    (4000, 100)  rho 0.05   1.00       1.00   1.00   0.98       0.104, 0.104, 0.073 / 0.001-0.002
-                 rho 0.08   1.00       1.00   1.00   0.96       0.103, 0.105, 0.085 / 0.001-0.002
-    (10000, 120) rho 0.05   1.00       1.00   1.00   0.82       0.093, 0.090, 0.072 / 0.000
-                 rho 0.08   1.00       1.00   1.00   0.64       0.092, 0.092, 0.082 / 0.000
-
-    NOISE (nu)              0      0.03   0.05   0.1
-    (4000, 100)  rho 0.05   1.00   1.00   1.00   0.90
-                 rho 0.08   1.00   1.00   0.997  0.81
-                 rho 0.11   1.00   1.00   0.991  0.66
-    (10000, 120) rho 0.05   1.00   1.00   1.00   0.97
-                 rho 0.08   1.00   1.00   1.00   0.86
-                 rho 0.11   1.00   0.994  0.964  0.37
-
-    W1  TOKENS, NOT TYPES                                              PASS
-        same-word overlap 0.072 to 0.105 (ceiling 0.3).
-    W2  MODERATE REUSE IS FREE                                         PASS
-        1.00 at 2 and 5 uses per word, both loads, both cells.
-    N1  MILD NOISE FITS THE BUDGET                                     PASS
-        >= 0.997 at nu <= 0.05 and rho <= 0.08.
-    N2  NOISE AND LOAD COMPOUND                                        PASS
-        at nu = 0.1, 0.90 -> 0.66 and 0.97 -> 0.37 from rho 0.05 to 0.11.
-
-**Reading.** Inside the safe budget an area holds sequences whose elements
-recur a few times each at no cost, and replays them through 5% activity noise
-per step without loss. It does so by coding each occurrence of a word apart:
-two occurrences share about a tenth of their neurons. That is far from a type
-code -- but 50 to 100 times the overlap of two different words (0.000 to
-0.002), so a trace of the word's identity survives in every token, a
-signal a downstream readout could use. Noise and load multiply: at 10% noise
-the loss grows from 3-10% at rho = 0.05 to 34-63% at 0.11, so a cost model
-for noisy replay needs a joint term, while at 5% noise the safe rule stands.
-
-**Reported, not judged.** Heavy reuse (20 uses per word) costs 2-4% at the
-smaller area and 18-36% at the larger, and unlike the many-sequence failures
-of Amendment 40 it fails BRAIN BY BRAIN: at (10000, 120), rho = 0.08, brains
-range from 0.00 to 0.99 whole. With each brain drawing its own sequences, a
-brain's particular draw -- repeated bigrams, words recurring within a
-sequence -- seems to decide; heavy reuse needs its own controlled design.

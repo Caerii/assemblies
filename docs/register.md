@@ -24,6 +24,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`RECOVERY-SCALES-WITH-AREA`](#recovery-scales-with-area) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta | The refraction's recovery time must scale with the steps between a neuron's uses (n/k): at a fixed tau = 64 the single-sequence cliff falls to rho = L k ln n / (n^2 p) = 0.081 at n/k = 300 (three cells), below the load law's safe rule; with tau = n/k / 2 it rises 29% at n/k = 300 and 18% at n/k = 200 on the same brains, to rho_50 = 0.105 and 0.114, and replay is reliable again to rho = 0.10. |
 | [`SEQUENCE-BUDGET-ANY-SPLIT`](#sequence-budget-any-split) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | One area's sequence budget is safe however it is split: with tau = n/k / 2, every sequence of 16, 64 or thousands of elements replays whole while the TOTAL load L k ln n / (n^2 p) <= 0.09 (rho_90 0.111-0.132 in every arm). |
 | [`RECOVERY-PEAK-AT-SMALL-AREAS`](#recovery-peak-at-small-areas) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta | The single-sequence critical load peaks when the refraction recovers over the steps between a neuron's uses, tau = n/k, but only in small areas: against tau = n/k / 2 the gain in rho_50 is 1.65 at n/k = 20, 1.24 at 50, 0.98 at 100 and 0.91 at 200 (four cells differing in n/k alone). |
+| [`RECURRING-WORDS-CODED-AS-TOKENS`](#recurring-words-coded-as-tokens) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget one area holds sequences whose elements recur (up to 5 uses per word) at no cost, and replays them through 5% uniform activity noise per step without loss, because it codes every occurrence of a word apart: two occurrences share ~ 0.1 of their neurons (a type code would share most), still 50-100 times two different words' overlap (0.000-0.002) -- a token code with a trace of the type. |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -602,6 +603,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - at rho = 0.133 and n/k = 50 every brain replays whole with tau = n/k and none with tau = n/k / 2 (Amendment 41): `observations/cells/5000~1100~10.35/arms/1.0/ladder/1371/steps` all-greater `observations/cells/5000~1100~10.35/arms/0.5/ladder/1371/steps` by at least 500, retained in [research/results/runs/memory.load-peak/load-peak-20261008/results.json](../research/results/runs/memory.load-peak/load-peak-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The peak's location (1.1-1.25 n/k at one probed cell) and the crossover (between n/k = 50 and 100) are coarse. Why large areas lose the peak is read, not tested: their tau = n/k failures come at step ~ n/k, the tiling deadline's signature. One kp; many sequences and noise not covered.
+
+## RECURRING-WORDS-CODED-AS-TOKENS
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 42 (W1, W2, N1, N2 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta
+
+**Claim.** Inside the load law's safe budget one area holds sequences whose elements recur (up to 5 uses per word) at no cost, and replays them through 5% uniform activity noise per step without loss, because it codes every occurrence of a word apart: two occurrences share ~ 0.1 of their neurons (a type code would share most), still 50-100 times two different words' overlap (0.000-0.002) -- a token code with a trace of the type. Noise and load multiply: at 10% noise the loss grows from 3-10% at rho = 0.05 to 34-63% at 0.11.
+
+**Requires.**
+- words drawn i.i.d. per brain from a vocabulary of L / U; 16-element sequences, one store_sequence each
+- two cells (n/k = 40, 83); uniform replacement noise during replay only
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-42-result-2026-10-08
+
+**Evidence files.**
+- [research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json](../research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json) (artifact) â€” Amendment 42: recurring words and replay noise, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- two occurrences of one word share ~ 0.1 of their neurons in every brain, two different words ~ 0.001, at (4000, 100, 0.35) (Amendment 42): `observations/cells/4000~1100~10.35/reuse/0.08/5/same` all-greater `observations/cells/4000~1100~10.35/reuse/0.08/5/different` by at least 0.05, retained in [research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json](../research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json) and paired by `run/seeds`.
+- the same token-with-a-type-trace code at (10000, 120, 0.3) (Amendment 42): `observations/cells/10000~1120~10.3/reuse/0.08/5/same` all-greater `observations/cells/10000~1120~10.3/reuse/0.08/5/different` by at least 0.05, retained in [research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json](../research/results/runs/memory.reuse-noise/reuse-noise-20261008/results.json) and paired by `run/seeds`.
+
+**Caveat.** Heavy reuse (20 uses per word) costs up to 36% and fails brain by brain, apparently by each brain's draw (repeated bigrams, within-sequence repeats): untested. Whether a readout can use the type trace is untested. Noise during writing is not covered.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

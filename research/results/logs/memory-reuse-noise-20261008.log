@@ -1,0 +1,41 @@
+(4000, 100, 0.35) reuse rho=0.05 uses=None nu=0.0 L=336 V=None: whole 1.000
+(4000, 100, 0.35) reuse rho=0.05 uses=2 nu=0.0 L=336 V=168: whole 1.000, same-word overlap 0.104
+(4000, 100, 0.35) reuse rho=0.05 uses=5 nu=0.0 L=336 V=67: whole 1.000, same-word overlap 0.104
+(4000, 100, 0.35) reuse rho=0.05 uses=20 nu=0.0 L=336 V=17: whole 0.983, same-word overlap 0.073
+(4000, 100, 0.35) reuse rho=0.08 uses=None nu=0.0 L=544 V=None: whole 1.000
+(4000, 100, 0.35) reuse rho=0.08 uses=2 nu=0.0 L=544 V=272: whole 1.000, same-word overlap 0.103
+(4000, 100, 0.35) reuse rho=0.08 uses=5 nu=0.0 L=544 V=109: whole 1.000, same-word overlap 0.105
+(4000, 100, 0.35) reuse rho=0.08 uses=20 nu=0.0 L=544 V=27: whole 0.963, same-word overlap 0.085
+(4000, 100, 0.35) noise rho=0.05 uses=None nu=0.0 L=336 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.05 uses=None nu=0.03 L=336 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.05 uses=None nu=0.05 L=336 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.05 uses=None nu=0.1 L=336 V=None: whole 0.902
+(4000, 100, 0.35) noise rho=0.08 uses=None nu=0.0 L=544 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.08 uses=None nu=0.03 L=544 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.08 uses=None nu=0.05 L=544 V=None: whole 0.997
+(4000, 100, 0.35) noise rho=0.08 uses=None nu=0.1 L=544 V=None: whole 0.813
+(4000, 100, 0.35) noise rho=0.11 uses=None nu=0.0 L=736 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.11 uses=None nu=0.03 L=736 V=None: whole 1.000
+(4000, 100, 0.35) noise rho=0.11 uses=None nu=0.05 L=736 V=None: whole 0.991
+(4000, 100, 0.35) noise rho=0.11 uses=None nu=0.1 L=736 V=None: whole 0.664
+(10000, 120, 0.3) reuse rho=0.05 uses=None nu=0.0 L=1360 V=None: whole 1.000
+(10000, 120, 0.3) reuse rho=0.05 uses=2 nu=0.0 L=1360 V=680: whole 1.000, same-word overlap 0.093
+(10000, 120, 0.3) reuse rho=0.05 uses=5 nu=0.0 L=1360 V=272: whole 1.000, same-word overlap 0.090
+(10000, 120, 0.3) reuse rho=0.05 uses=20 nu=0.0 L=1360 V=68: whole 0.816, same-word overlap 0.072
+(10000, 120, 0.3) reuse rho=0.08 uses=None nu=0.0 L=2176 V=None: whole 1.000
+(10000, 120, 0.3) reuse rho=0.08 uses=2 nu=0.0 L=2176 V=1088: whole 1.000, same-word overlap 0.092
+(10000, 120, 0.3) reuse rho=0.08 uses=5 nu=0.0 L=2176 V=435: whole 1.000, same-word overlap 0.092
+(10000, 120, 0.3) reuse rho=0.08 uses=20 nu=0.0 L=2176 V=109: whole 0.639, same-word overlap 0.082
+(10000, 120, 0.3) noise rho=0.05 uses=None nu=0.0 L=1360 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.05 uses=None nu=0.03 L=1360 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.05 uses=None nu=0.05 L=1360 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.05 uses=None nu=0.1 L=1360 V=None: whole 0.975
+(10000, 120, 0.3) noise rho=0.08 uses=None nu=0.0 L=2176 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.08 uses=None nu=0.03 L=2176 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.08 uses=None nu=0.05 L=2176 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.08 uses=None nu=0.1 L=2176 V=None: whole 0.860
+(10000, 120, 0.3) noise rho=0.11 uses=None nu=0.0 L=2992 V=None: whole 1.000
+(10000, 120, 0.3) noise rho=0.11 uses=None nu=0.03 L=2992 V=None: whole 0.994
+(10000, 120, 0.3) noise rho=0.11 uses=None nu=0.05 L=2992 V=None: whole 0.964
+(10000, 120, 0.3) noise rho=0.11 uses=None nu=0.1 L=2992 V=None: whole 0.372
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.reuse-noise\reuse-noise-20261008\results.json
