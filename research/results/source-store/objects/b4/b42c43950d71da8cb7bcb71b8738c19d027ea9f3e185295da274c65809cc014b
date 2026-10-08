@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner load_many --registration research/notes/memory/PREREG_refraction_memory.md --tag load-many-20261008 --seeds 582 583 584 585 586 587 588 589 590 591 592 593 594 595 596 597 598 599 600 601 > C:\Github\assemblies-runs-20260930b\a40.log 2>&1

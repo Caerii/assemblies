@@ -1321,46 +1321,6 @@ _RESULTS: List[Result] = [
                "fast recovery acts through over-dispersed reuse) are untested.",
     ),
     Result(
-        id="SEQUENCE-BUDGET-ANY-SPLIT",
-        engine="hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta",
-        status=Status.MEASURED,
-        claim="One area's sequence budget is safe however it is split: with tau = "
-              "n/k / 2, every sequence of 16, 64 or thousands of elements replays whole "
-              "while the TOTAL load L k ln n / (n^2 p) <= 0.09 (rho_90 0.111-0.132 in "
-              "every arm). Past the cliff one long sequence fails all or none, while many "
-              "short ones fail one by one with every brain losing the same share (each "
-              "sequence an independent trial), outlasting the single cliff by 13-20% in "
-              "rho_50.",
-        source="PREREG_refraction_memory.md Amendment 40 (A1-A3 PASS)",
-        preconditions=("k p >= 3 ln n, n/k = 100 and 171; sequences written one after "
-                       "another, not linked, the refraction carrying over",
-                       "noiseless one-round replay from a random half of each "
-                       "sequence's first element"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-40-result-2026-10-08",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.load-many/load-many-20261008/results.json", "artifact",
-                        "Amendment 40: one sequence, l = 64 and l = 16 at equal total load, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.load-many/load-many-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8000~180~10.5/arms/16/ladder/6352/whole",
-            control_path="observations/cells/8000~180~10.5/arms/single/ladder/6351/whole",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="at rho = 0.143 every brain replays most of its 16-element sequences whole and not the single sequence of the same total load, at (8000, 80, 0.5) (Amendment 40)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.load-many/load-many-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/12000~170~10.5/arms/16/ladder/14336/whole",
-            control_path="observations/cells/12000~170~10.5/arms/single/ladder/14330/whole",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="at rho = 0.131 every brain replays three quarters of its 16-element sequences whole and not the single sequence, at (12000, 70, 0.5) (Amendment 40)",
-        )),
-        caveat="The split into cue capture (c) and per-step hazard (h) is post hoc, "
-               "from two lengths. Sequences sharing elements, noise during replay and "
-               "sequences linked across areas are not covered; two cells.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,

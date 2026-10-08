@@ -215,8 +215,6 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQUENCE-LOAD-LAW",
             # 2026-10-08: tau = n/k / 2 replays whole where tau = 64 derails (A39)
             "RECOVERY-SCALES-WITH-AREA",
-            # 2026-10-08: short sequences survive a load the single one does not (A40)
-            "SEQUENCE-BUDGET-ANY-SPLIT",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

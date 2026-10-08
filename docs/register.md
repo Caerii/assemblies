@@ -22,6 +22,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`SEQUENCE-MEMORY-ROBUSTNESS`](#sequence-memory-robustness) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 33 rounds, beta = theta | The refracted sequence memory's length limit is a budget of elements, spent alike on one long sequence or many short ones (0.81-1.08 of the single-sequence limit); replay loses nothing with up to 7% of its MOST DRIVEN winners replaced by random neurons at every step, derails at a horizon at 10% that a twice-larger area pushes out about sixfold, and starts from its strongest half cue a quarter wrong. |
 | [`SEQUENCE-LOAD-LAW`](#sequence-load-law) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 64 rounds, beta = theta | One area's single-sequence replay fails at a critical interference load: with rho = L k ln n / (n^2 p), every cell with k p >= 3 ln n and n/k <= 150 replays a sequence whole from a random half cue on every brain up to rho ~ 0.11, and on none a factor 1.07-1.15 past its 90% point. |
 | [`RECOVERY-SCALES-WITH-AREA`](#recovery-scales-with-area) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta | The refraction's recovery time must scale with the steps between a neuron's uses (n/k): at a fixed tau = 64 the single-sequence cliff falls to rho = L k ln n / (n^2 p) = 0.081 at n/k = 300 (three cells), below the load law's safe rule; with tau = n/k / 2 it rises 29% at n/k = 300 and 18% at n/k = 200 on the same brains, to rho_50 = 0.105 and 0.114, and replay is reliable again to rho = 0.10. |
+| [`SEQUENCE-BUDGET-ANY-SPLIT`](#sequence-budget-any-split) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | One area's sequence budget is safe however it is split: with tau = n/k / 2, every sequence of 16, 64 or thousands of elements replays whole while the TOTAL load L k ln n / (n^2 p) <= 0.09 (rho_90 0.111-0.132 in every arm). |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -552,6 +553,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - at rho = 0.101 and n/k = 200 every brain replays whole with tau = n/k / 2 and none with tau = 64 (Amendment 39): `observations/cells/16000~180~10.45/tau/100/ladder/15011/steps` all-greater `observations/cells/16000~180~10.45/tau/64/ladder/15011/steps` by at least 1000, retained in [research/results/runs/memory.load-tau/load-tau-20261008/results.json](../research/results/runs/memory.load-tau/load-tau-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The rule's constant (one half) was chosen from one exploratory cell's window (tau 128 and 256 equal at n/k = 300); the optimum is not located. Even under the rule the critical load at n/k >= 200 (0.105-0.114) is below the 0.142 of smaller areas: the residual n/k dependence is not explained. Many sequences, noise and the write-side mechanism (whether fast recovery acts through over-dispersed reuse) are untested.
+
+## SEQUENCE-BUDGET-ANY-SPLIT
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 40 (A1-A3 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta
+
+**Claim.** One area's sequence budget is safe however it is split: with tau = n/k / 2, every sequence of 16, 64 or thousands of elements replays whole while the TOTAL load L k ln n / (n^2 p) <= 0.09 (rho_90 0.111-0.132 in every arm). Past the cliff one long sequence fails all or none, while many short ones fail one by one with every brain losing the same share (each sequence an independent trial), outlasting the single cliff by 13-20% in rho_50.
+
+**Requires.**
+- k p >= 3 ln n, n/k = 100 and 171; sequences written one after another, not linked, the refraction carrying over
+- noiseless one-round replay from a random half of each sequence's first element
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-40-result-2026-10-08
+
+**Evidence files.**
+- [research/results/runs/memory.load-many/load-many-20261008/results.json](../research/results/runs/memory.load-many/load-many-20261008/results.json) (artifact) â€” Amendment 40: one sequence, l = 64 and l = 16 at equal total load, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- at rho = 0.143 every brain replays most of its 16-element sequences whole and not the single sequence of the same total load, at (8000, 80, 0.5) (Amendment 40): `observations/cells/8000~180~10.5/arms/16/ladder/6352/whole` all-greater `observations/cells/8000~180~10.5/arms/single/ladder/6351/whole` by at least 0.5, retained in [research/results/runs/memory.load-many/load-many-20261008/results.json](../research/results/runs/memory.load-many/load-many-20261008/results.json) and paired by `run/seeds`.
+- at rho = 0.131 every brain replays three quarters of its 16-element sequences whole and not the single sequence, at (12000, 70, 0.5) (Amendment 40): `observations/cells/12000~170~10.5/arms/16/ladder/14336/whole` all-greater `observations/cells/12000~170~10.5/arms/single/ladder/14330/whole` by at least 0.5, retained in [research/results/runs/memory.load-many/load-many-20261008/results.json](../research/results/runs/memory.load-many/load-many-20261008/results.json) and paired by `run/seeds`.
+
+**Caveat.** The split into cue capture (c) and per-step hazard (h) is post hoc, from two lengths. Sequences sharing elements, noise during replay and sequences linked across areas are not covered; two cells.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 
