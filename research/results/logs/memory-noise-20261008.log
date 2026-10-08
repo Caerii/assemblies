@@ -1,0 +1,25 @@
+(4000, 60) top nu=0.05: first miss median 399.0 of 399
+(4000, 60) top nu=0.07: first miss median 387.9 of 399
+(4000, 60) top nu=0.1: first miss median 41.2 of 399
+(4000, 60) top nu=0.2: first miss median 3.2 of 399
+(4000, 60) uniform nu=0.05: first miss median 399.0 of 399
+(4000, 60) uniform nu=0.07: first miss median 399.0 of 399
+(4000, 60) uniform nu=0.1: first miss median 103.6 of 399
+(4000, 60) uniform nu=0.2: first miss median 8.6 of 399
+(4000, 60) cue strong eta=0: 1.00
+(4000, 60) cue strong eta=0.25: 1.00
+(4000, 60) cue random eta=0: 1.00
+(4000, 60) cue random eta=0.25: 1.00
+(8000, 60) top nu=0.05: first miss median 399.0 of 399
+(8000, 60) top nu=0.07: first miss median 399.0 of 399
+(8000, 60) top nu=0.1: first miss median 207.4 of 399
+(8000, 60) top nu=0.2: first miss median 3.8 of 399
+(8000, 60) uniform nu=0.05: first miss median 399.0 of 399
+(8000, 60) uniform nu=0.07: first miss median 399.0 of 399
+(8000, 60) uniform nu=0.1: first miss median 399.0 of 399
+(8000, 60) uniform nu=0.2: first miss median 8.6 of 399
+(8000, 60) cue strong eta=0: 1.00
+(8000, 60) cue strong eta=0.25: 1.00
+(8000, 60) cue random eta=0: 1.00
+(8000, 60) cue random eta=0.25: 1.00
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.noise\noise-20261008\results.json

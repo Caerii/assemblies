@@ -475,11 +475,11 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 ## SEQUENCE-MEMORY-ROBUSTNESS
 
-**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 34 (N1-N4 PASS)
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 34 (N1-N4 PASS); Amendment 36 (U1-U4 PASS)
 
 **Engine / substrate.** hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 33 rounds, beta = theta
 
-**Claim.** The refracted sequence memory's length limit is a budget of elements, spent alike on one long sequence or many short ones (0.81-1.08 of the single-sequence limit); replay loses nothing with up to 7% of its MOST DRIVEN winners replaced by random neurons at every step, derails at a horizon at 10% that a twice-larger area pushes out about sixfold, and starts from its strongest half cue a quarter wrong.
+**Claim.** The refracted sequence memory's length limit is a budget of elements, spent alike on one long sequence or many short ones (0.81-1.08 of the single-sequence limit); replay loses nothing with up to 7% of its MOST DRIVEN winners replaced by random neurons at every step, derails at a horizon at 10% that a twice-larger area pushes out about sixfold, and starts from its strongest half cue a quarter wrong. Under UNIFORMLY random replacement (Amendment 36) it is markedly more tolerant: at 10% the smaller area replays 2.5 times further (103.6 against 41.2 steps) and the larger does not derail in 400 steps (20 of 20 brains); a random half cue works as well as the strongest.
 
 **Requires.**
 - noise = replacement of the first slots of each replay step's winners, which the k-WTA orders strongest first (Amendment 36 erratum); the cue is the strongest half of the first state
@@ -487,15 +487,17 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 
 **Evidence.**
 - research/notes/memory/PREREG_refraction_memory.md#amendment-34-result-2026-10-07
+- research/notes/memory/PREREG_refraction_memory.md#amendment-36-result-2026-10-08
 
 **Evidence files.**
 - [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) (artifact) â€” Amendment 34: many sequences, activity noise, corrupted cues, two cells, 20 brains
+- [research/results/runs/memory.noise/noise-20261008/results.json](../research/results/runs/memory.noise/noise-20261008/results.json) (artifact) â€” Amendment 36: top-slot and uniformly random noise, strongest and random half cues, two cells, 20 brains
 
 **Mechanism sensitivity.**
 - replay survives 5% activity noise per step and derails within a few steps at 20%, at (4000, 60, 0.5) (Amendment 34): `observations/cells/4000~160~10.5/noise/0.05/values` all-greater `observations/cells/4000~160~10.5/noise/0.2/values` by at least 300, retained in [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) and paired by `run/seeds`.
 - replay survives 5% activity noise per step and derails within a few steps at 20%, at (8000, 60, 0.5) (Amendment 34): `observations/cells/8000~160~10.5/noise/0.05/values` all-greater `observations/cells/8000~160~10.5/noise/0.2/values` by at least 300, retained in [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) and paired by `run/seeds`.
 
-**Caveat.** ERRATUM (Amendment 36): the noise was described as uniform random replacement but replaced the most driven winners, nearly all true members; probe brains under uniformly random slots read 97 and no failure in 399 steps at nu = 0.1, against 37 and 195 under this instrument -- Amendment 36 measures it. The mechanism of the horizon is not identified. Synaptic noise and noise during writing are untested.
+**Caveat.** ERRATUM (Amendment 36): Amendment 34's noise was described as uniform random replacement but replaced the most driven winners (the k-WTA orders them strongest first), nearly all true members; Amendment 36 measured both. The mechanism of the horizon is not identified. Synaptic noise and noise during writing are untested.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

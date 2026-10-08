@@ -763,10 +763,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | N4 cue may be a quarter wrong (A34) | eta 0.25: >= 0.9 | PASS | 1.00 |
 | O1 engine equals an independent oracle (A35) | lockstep, counts equal | PASS | ~2,900 rounds, 1 float32 near tie |
 | A33 H1-H4 on the corrected divisor (A35) | as registered in A33 | PASS | max change 0.010 |
-| U1 uniform noise milder than A34's (A36) | >= 2x at (4000, 60) | PASS | 103.6 vs 41.2 |
-| U2 larger area holds under uniform 10% (A36) | >= 18/20 full | PASS | 20/20 |
-| U3 A34 reproduces (A36) | within 35% | PASS | 41.2, 207.4 |
-| U4 random half cue works (A36) | >= 0.9 | PASS | 1.00 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4672,35 +4668,3 @@ cues.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until U1 to U4 are evaluated and recorded below.
-
-### Amendment 36 result (2026-10-08)
-
-One run from a worktree pinned at 53adbe43, seeds 502 to 521:
-[record](../../results/runs/memory.noise/noise-20261008/results.json),
-[log](../../results/logs/memory-noise-20261008.log). Median first-miss step
-(of 399; mean of four draws per brain):
-
-    nu                     0.05    0.07    0.1      0.2
-    (4000, 60) top         399     387.9   41.2     3.2
-    (4000, 60) uniform     399     399     103.6    8.6
-    (8000, 60) top         399     399     207.4    3.8
-    (8000, 60) uniform     399     399     399      8.6
-    cue (both cells)       strongest half 1.00 / 1.00; random half 1.00 / 1.00 (eta 0 / 0.25)
-
-    U1  UNIFORM NOISE IS MILDER                                        PASS
-        (4000, 60), nu = 0.1: 103.6 against 41.2 (2.5 times).
-    U2  THE LARGER AREA HOLDS                                          PASS
-        (8000, 60), nu = 0.1, uniform: 20 of 20 brains replay all 399 steps.
-    U3  AMENDMENT 34 REPRODUCES                                        PASS
-        top slots: 41.2 against 39, 207.4 against 232.
-    U4  A RANDOM HALF CUE WORKS                                        PASS
-        1.00 at both cells (unprobed; a prediction that held).
-
-**Reading.** Amendment 34 measured the memory under the deletion of its
-strongest winners; under uniformly random replacement -- what it described --
-the memory is markedly more tolerant: at 10% of its winners replaced every
-step the smaller area replays 2.5 times further and the larger area does not
-derail at all in 400 steps. At 20% both models derail within a few steps (3 to
-9). Which half of the first element cues the replay does not matter at these
-cells. Amendment 34's numbers stand as measurements of its own instrument, and
-SEQUENCE-MEMORY-ROBUSTNESS now carries both.
