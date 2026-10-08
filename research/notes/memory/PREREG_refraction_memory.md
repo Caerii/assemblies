@@ -5088,3 +5088,86 @@ Under the rule the critical load at large n/k is 0.105 to 0.114, not the
 0.142 of the survey's smaller areas; the safe rule holds with a margin of 12%
 to 19%. As before, brains past the cliff derail early (median 4 to 250
 steps).
+
+## Amendment 40 (2026-10-08, before running): many sequences under the load law -- is the safe rule safe for any split, and how do short sequences fail?
+
+Registered before any run at the cells below. Amendments 37 to 39 give one
+area's single-sequence budget: with the refraction recovering over
+tau = n/k / 2, replay is reliable while rho = L k ln n / (n^2 p) <= 0.09, and
+fails all or none at a cliff a little above. A compiler spends that budget on
+sequences of whatever length a program needs. Amendment 34 found many
+32-element sequences spend 0.81 to 1.08 of the single-sequence limit (tau =
+33, by mean replay fraction).
+
+**Seen before registering** (exploratory, seeds 980 to 989, 10 brains, the
+survey cell (4000, 60, 0.5) at tau = 33 -- the rule's tau there; disclosed in
+full). Mean fraction of a brain's sequences replayed whole, at total rho:
+
+    rho                 0.101    0.131    0.156
+    one sequence        1.00     0.00     0.00     (every brain all or none)
+    l = 64              1.00     0.83     0.14     (brains 0.70-0.94; 0.08-0.21)
+    l = 16              1.00     0.94     0.24     (brains 0.89-0.97; 0.18-0.35)
+
+Many short sequences fail GRADED: every brain loses a similar share of its
+sequences, where one long sequence fails all or none, and short sequences
+outlast the single cliff (rho_50 ~ 0.142 and 0.146 against ~ 0.115). A
+per-step hazard h compounded over l - 1 steps reads h ~ 0.003-0.004 at
+rho = 0.131 from both lengths, but not at 0.156 (0.030 against 0.091), as if
+the first step from the half cue carried its own risk. A first draft of the
+bars below asked for rho_50 equal across splits (within 15%); the probe
+shows that wrong at this cell, and the bars were rewritten before any run of
+the judged cells to ask what a compiler needs. A smoke run of the module
+(VOID, seeds 900 to 902) ran only the survey cell at rho 0.071 and 0.078
+(every sequence whole). No run has touched (8000, 80, 0.5) or
+(12000, 70, 0.5).
+
+### Protocol
+
+`research/experiments/memory_load_many.py` (`python -m research.runner
+load_many`), seeds 582 to 601 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Judged cells (8000, 80, 0.5) (n/k =
+100, tau = 50) and (12000, 70, 0.5) (n/k = 171, tau = 86); k p = 40 and 35
+against 3 ln n = 27.0 and 28.2. Three arms per cell on the same brains: one
+sequence of the whole load L; L / 64 sequences of 64 elements; L / 16 of 16.
+Each sequence is written by its own `store_sequence` (the area inhibited
+before its first element: sequences are not linked; the refraction carries
+over), and replayed noiselessly from a uniformly random half of its first
+element, drawn from the brain's seed and the sequence's index; own overlap
+>= 0.3 at every step. Reliability: the mean over brains of the fraction of a
+brain's sequences replayed whole. beta = theta, refraction 0.5 beta; the
+ladder rho = 0.06 x 2^(j/8), j = 2 to 17 (L rounded to a multiple of l),
+stopping after two points with reliability below 0.02. rho_q log-interpolated
+as in Amendment 37.
+
+    python -m research.runner load_many \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag load-many-20261008 --seeds 582 ... 601
+
+### Bars
+
+    A1  THE SAFE RULE HOLDS FOR ANY SPLIT. rho_90 >= 0.09 in every arm at
+        both cells.
+    A2  SHORT SEQUENCES DEGRADE LATER. rho_50(l) / rho_50(one sequence)
+        >= 1.1 for l = 64 and l = 16 at both cells (the probe: ~ 1.25).
+    A3  SHORT SEQUENCES FAIL ONE BY ONE. In the l = 64 and l = 16 arms at
+        both cells there is a ladder point with reliability in (0.1, 0.9),
+        and at every such point at least half the brains are MIXED (some
+        sequences whole, some not: a brain's whole fraction in (0.1, 0.9)).
+
+Reported, not judged: every crossing; the mixed share at every point; the
+per-step hazard implied by each arm.
+
+### Interpretation, stated now
+
+* A1 to A3 pass: the allocator's rule for one sequence is safe for any split
+  of the budget into sequences; past it an area fails per sequence, not per
+  area, and short sequences can be loaded further at a known loss -- the cost
+  model has a per-sequence reliability term, not only an area-level cliff.
+* A1 fails: the safe rule must depend on the split (a short-sequence
+  overhead, e.g. the first step from a cue).
+* A2 fails: the probe's later failure of short sequences does not carry;
+  the budget is a single cliff for any split.
+* A3 fails: short sequences fail together in a brain (an area-level event).
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until A1 to A3 are evaluated and recorded below.
