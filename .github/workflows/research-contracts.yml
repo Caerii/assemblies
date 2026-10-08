@@ -84,6 +84,7 @@ jobs:
           neural_assemblies/tests/test_memory_robustness.py
           neural_assemblies/tests/test_memory_noise.py
           neural_assemblies/tests/test_memory_load_law.py
+          neural_assemblies/tests/test_memory_load_drift.py
           neural_assemblies/tests/test_throughput_contract.py
           neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py

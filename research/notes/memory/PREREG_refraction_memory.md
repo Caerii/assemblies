@@ -4846,3 +4846,78 @@ description, not a law. If it holds, the constant 0.142 overstates capacity
 past n/k ~ 300, where the law and the fit part by more than the band; the
 safe rule (rho <= 0.09) has a margin of 1.23 at the largest n/k measured.
 Registering the two forms at cells where they disagree is the next test.
+
+## Amendment 38 (2026-10-08, before running): is the load law's constant a constant? The constant and a drift in n/k, at cells where they part
+
+Registered before any run at the cells below. Amendment 37 confirmed the load
+law at two unseen cells, but one came in 19% low, and over the nine in-regime
+cells now measured rho_50 is lower at n/k >= 133 (0.115, 0.119, 0.123) than
+at n/k <= 67 (0.131 to 0.171). Fitted after the fact to those nine cells,
+
+    rho_50 = exp(-1.5224) (n/k)^-0.1683 (k p / ln n)^0.1718
+
+leaves a residual of 7.6% (three parameters spent; its worst cell, (8000, 120,
+0.5), 14% off) against 13% for the constant. At n/k = 300 the two forms part
+by a factor 1.35. This amendment tests them against each other there.
+
+**Seen before registering.** The nine cells and the fit, as above (the fit is
+in `memory_load_drift.FIT` and reproduces them, `test_memory_load_drift`). A
+smoke run of the module (VOID, seeds 900 to 902) ran only the survey cell
+(4000, 60, 0.5), at rho 0.071 and 0.078 (every brain whole); it touched no
+judged cell. No run has touched (18000, 60, 0.6) or (24000, 80, 0.5).
+
+### Protocol
+
+`research/experiments/memory_load_drift.py` (`python -m research.runner
+load_drift`), seeds 542 to 561 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Judged cells (18000, 60, 0.6) and
+(24000, 80, 0.5): n/k = 300 at both, k p = 36 and 40 against 3 ln n = 29.4
+and 30.3 (in regime). Everything else as in Amendment 37: beta = theta,
+refraction 0.5 beta recovering over 64 rounds, a fresh sequence of L elements
+per ladder point, replayed noiselessly from a uniformly random half of element
+0, own overlap >= 0.3 at every step; the ladder rho = 0.06 x 2^(j/8),
+j = 2 to 17, stopping after two points with no brain whole. The dense counts
+of 20 brains at n = 24000 do not fit the device, so brains run in batches (9
+at n = 18000, 5 at 24000) and each brain's cue is drawn from its own seed; a
+test shows a brain's replay is the same in a batch of one as of three.
+
+    python -m research.runner load_drift \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag load-drift-20261008 --seeds 542 ... 561
+
+Predicted rho_50 (L_50):
+
+                       constant          drift
+    (18000, 60, 0.6)   0.142 (46956)     0.104 (34539)
+    (24000, 80, 0.5)   0.142 (50685)     0.106 (37775)
+
+### Bars
+
+    K1  THE CONSTANT HOLDS. rho_50 in [0.109, 0.185] (Amendment 37's band,
+        0.142 within a factor 1.3) at both cells.
+    D1  THE DRIFT HOLDS. rho_50 within a factor 1.2 of the drift's
+        prediction at both cells ([0.087, 0.125] and [0.088, 0.127]; two
+        residual sd, widened for the extrapolation from n/k <= 150).
+    S1  THE SAFE RULE HOLDS. rho_90 >= 0.09 at both cells.
+    S2  THE FAILURE IS A CLIFF. rho_10 / rho_90 <= 1.6 at both cells.
+
+Reported, not judged: which form is nearer (in log) at each cell; every
+ladder point.
+
+### Interpretation, stated now
+
+* D1 passes and K1 fails: the critical load falls with n/k; the cost model
+  must use the drift form (and the constant overstates capacity at large
+  areas by a third).
+* K1 passes and D1 fails: the drift was fitted to noise across nine cells; the
+  constant stands to n/k = 300.
+* Both pass (rho_50 in 0.109 to 0.125): not discriminated at n/k = 300; the
+  nearer form is reported and neither is adopted over the other.
+* Both fail: neither form extrapolates; the dependence on n/k is something
+  else.
+* S1: under the drift, rho_90 ~ 0.095 is expected, the safe rule holding by a
+  margin of 5%; if it fails, the safe threshold of the cost model is lowered,
+  not the bar.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until K1, D1, S1 and S2 are evaluated and recorded below.
