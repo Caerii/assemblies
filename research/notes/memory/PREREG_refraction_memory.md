@@ -4704,3 +4704,94 @@ derail at all in 400 steps. At 20% both models derail within a few steps (3 to
 9). Which half of the first element cues the replay does not matter at these
 cells. Amendment 34's numbers stand as measurements of its own instrument, and
 SEQUENCE-MEMORY-ROBUSTNESS now carries both.
+
+## Amendment 37 (2026-10-08, before running): the load law -- replay reliability against interference load, predicted at cells never probed
+
+Registered before any judged run of this amendment. The theory round that
+followed Amendment 35 found, in exploratory probes (all disclosed below),
+that a recovering refraction's single-sequence limit is set by replay, not by
+the write, and that the one-step overlap map loses its stable state as load
+grows. This amendment registers a law for where that happens and tests it at
+two cells no probe has touched.
+
+**The variable.** At the convergence-threshold write beta = theta =
+sqrt((1 - p) ln n / (p k)), a stored transition's learned signal against the
+base drive's fluctuation is sqrt(ln n) per unit overlap at every cell; L
+stored transitions add an interference variance of about L (k/n)^2 beta^2 k p,
+which relative to the base variance k p (1 - p) is
+
+    rho = L k ln n / (n^2 p).
+
+**Seen before registering** (exploratory, disclosed in full):
+
+* An exploratory survey, tau = 64, 10 brains per cell (seeds 960 to 969), the
+  fraction of brains replaying a single sequence whole from a uniformly random
+  half cue, on a ladder of L: rho_50 = 0.146, 0.142, 0.119, 0.160, 0.171,
+  0.131, 0.123 at (2000, 60, 0.5), (4000, 60, 0.5), (8000, 60, 0.5),
+  (4000, 120, 0.5), (8000, 120, 0.5), (8000, 120, 0.25), (16000, 120, 0.5) --
+  mean 0.142, every cell with k p >= 3 ln n -- and 0.086 at (4000, 30, 0.5),
+  below that floor. rho_10 / rho_90 = 1.15 to 1.49 (the failure is a cliff,
+  and all-or-none per brain: the mean replay fraction equals the fraction of
+  brains replaying whole).
+* Amendment 29's best limits give rho = 0.153, 0.144, 0.116 at its three cells
+  in regime and 0.077 at (4000, 30), out of it.
+* A reduced model of one replay step (parameter-free: write-time selection,
+  the learned transition, Poisson interference, norm_init, k-WTA) reproduces
+  the measured overlap maps to 0.02 to 0.03 but puts the critical load about
+  twice too high and does not account for the cells' residual spread; the
+  interference measured in the engine is Poisson at light load and
+  over-dispersed at heavy load (variance twice Poisson at rho = 0.2). The law
+  is therefore SEMI-EMPIRICAL: the variable from the theory, the constant
+  from the survey.
+* A smoke run of the module (VOID: 3 brains, seeds 900 to 902), run after the
+  bars below were fixed in the module and not changed after it, read every
+  brain whole at rho = 0.101 and 0.110 at both judged cells, and none at the
+  reported cell (6000, 40, 0.5). Disclosed because it is a reading of the
+  held-out cells.
+* No other run has touched (6000, 90, 0.4), (12000, 80, 0.5) or
+  (6000, 40, 0.5).
+
+### Protocol
+
+`research/experiments/memory_load_law.py` (`python -m research.runner
+load_law`), seeds 522 to 541 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Judged cells (6000, 90, 0.4) and
+(12000, 80, 0.5) (k p = 36 and 40, 3 ln n = 26.1 and 28.2: in regime);
+reported cell (6000, 40, 0.5) (k p = 20, out of regime). beta = theta;
+refraction 0.5 beta recovering over 64 rounds. For each rho on the ladder
+0.06 x 2^(j/8), j = 0 to 17, a fresh sequence of L = rho n^2 p / (k ln n)
+elements per brain, replayed noiselessly from a uniformly random half of
+element 0 (own overlap >= 0.3 at every step); stop after two points with no
+brain whole. rho_q: where the fraction of brains replaying whole falls
+through q, log-interpolated.
+
+    python -m research.runner load_law \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag load-law-20261008 --seeds 522 ... 541
+
+Predicted: rho_50 = 0.142 at both judged cells, L_50 = 2612 at (6000, 90, 0.4)
+and 13606 at (12000, 80, 0.5).
+
+### Bars
+
+    R1  THE CLIFF IS WHERE THE LAW PUTS IT. rho_50 in [0.109, 0.185]
+        (0.142 within a factor 1.3) at both judged cells.
+    R2  BELOW rho = 0.09 REPLAY IS RELIABLE. rho_90 >= 0.09 at both.
+    R3  THE FAILURE IS A CLIFF. rho_10 / rho_90 <= 1.6 at both.
+
+Reported, not judged: the out-of-regime cell's crossings (expected below the
+band, as at (4000, 30)); every ladder point.
+
+### Interpretation, stated now
+
+* R1 to R3 pass: one area's single-sequence capacity, at a recovering
+  refraction, is a critical interference load: L_50 = 0.14 n^2 p / (k ln n)
+  in regime, with replay reliable below about 0.09 of the same unit -- a
+  rule a compiler can allocate areas by.
+* R1 fails: the variable, the constant, or both do not transfer to new cells;
+  the law is a description of the survey, not a prediction.
+* R2 or R3 fails: the cliff is wider or earlier than the survey showed, and a
+  reliability rule needs its own law.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until R1 to R3 are evaluated and recorded below.
