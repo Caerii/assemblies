@@ -213,6 +213,8 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQUENCE-MEMORY-ROBUSTNESS",
             # 2026-10-08: whole replay below the critical load, none above (A37)
             "SEQUENCE-LOAD-LAW",
+            # 2026-10-08: tau = n/k / 2 replays whole where tau = 64 derails (A39)
+            "RECOVERY-SCALES-WITH-AREA",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

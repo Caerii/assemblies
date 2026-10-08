@@ -774,10 +774,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | D1 post hoc n/k drift holds (A38) | within x1.2 of 0.104, 0.106 | FAIL | 0.081, 0.081 (nearer) |
 | S1 safe rule rho_90 >= 0.09 (A38) | both cells | FAIL | 0.079, 0.078 |
 | S2 failure is a cliff (A38) | rho_10 / rho_90 <= 1.6 | PASS | 1.07, 1.08 |
-| T1 tau = n/k / 2 raises the cliff (A39) | gain >= 1.2 at n/k 300, > 1 at 200 | PASS | 1.29, 1.18 |
-| T2 safe rule returns under the rule (A39) | rho_90 >= 0.09 | PASS | 0.101, 0.107 |
-| T3 rho_50 where the probe put it (A39) | [0.100, 0.135] | PASS | 0.105, 0.114 |
-| T4 still a cliff (A39) | rho_10 / rho_90 <= 1.6 | PASS | 1.08, 1.11 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5047,44 +5043,3 @@ Reported, not judged: the control's crossings; every ladder point.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until T1 to T4 are evaluated and recorded below.
-
-### Amendment 39 result (2026-10-08)
-
-One run from a worktree pinned at f9f5526d, seeds 562 to 581:
-[record](../../results/runs/memory.load-tau/load-tau-20261008/results.json),
-[log](../../results/logs/memory-load-tau-20261008.log). Fraction of the 20
-brains replaying the whole sequence, by rho:
-
-    rho                          0.078   0.085   0.093   0.101   0.110   0.120
-    (21000, 70, 0.5) tau 64      1.00    0.00    0.00
-    (21000, 70, 0.5) tau 150     1.00    1.00    1.00    0.90    0.00    0.00
-    (16000, 80, 0.45) tau 64     1.00    1.00    1.00    0.00    0.00
-    (16000, 80, 0.45) tau 100    1.00    1.00    1.00    1.00    0.85    0.00
-
-    (every point below rho = 0.078 is 1.00 in every arm)
-
-                               rho_90   rho_50   rho_10   rho_10/rho_90
-    (21000, 70, 0.5)   tau 64  0.079    0.081    0.084    1.07
-                       tau 150 0.101    0.105    0.109    1.08
-    (16000, 80, 0.45)  tau 64  0.093    0.097    0.100    1.07
-                       tau 100 0.107    0.114    0.119    1.11
-
-    T1  THE RULE RAISES THE CLIFF                                      PASS
-        rho_50 gain 1.29 at (21000, 70), 1.18 at (16000, 80).
-    T2  THE SAFE RULE RETURNS                                          PASS
-        rho_90 under the rule 0.101 and 0.107.
-    T3  WHERE THE PROBE PUT IT                                         PASS
-        rho_50 under the rule 0.105 and 0.114, band [0.100, 0.135].
-    T4  STILL A CLIFF                                                  PASS
-        1.08 and 1.11.
-
-**Reading.** The recovery time is a lever on the critical load, and it must
-scale with the area: setting tau to half the steps between a neuron's uses
-raises the cliff by 29% at n/k = 300 and 18% at n/k = 200 on the same brains
-and sequences, and brings back the safe rule (rho <= 0.09) that Amendment 38
-found broken. The control reproduces Amendment 38: at tau = 64 and n/k = 300
-the cliff is at rho = 0.081 at a third cell, as at both of Amendment 38's.
-Under the rule the critical load at large n/k is 0.105 to 0.114, not the
-0.142 of the survey's smaller areas; the safe rule holds with a margin of 12%
-to 19%. As before, brains past the cliff derail early (median 4 to 250
-steps).

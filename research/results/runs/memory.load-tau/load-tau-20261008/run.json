@@ -1,0 +1,217 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.37706": {
+        "arc_refraction_charge": 0.18853,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.38457": {
+        "arc_refraction_charge": 0.192285,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "f9f5526d27b03641d9d88b866ebc05dea62e7c1a",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "batch": 6,
+        "beta": 0.37706,
+        "k": 70,
+        "ladder": [
+          22584,
+          24628,
+          26857,
+          29288,
+          31938,
+          34829,
+          37981,
+          41419,
+          45168,
+          49256,
+          53714,
+          58575,
+          63877,
+          69658,
+          75963,
+          82838
+        ],
+        "n": 21000,
+        "p": 0.5,
+        "tau": 64
+      },
+      {
+        "batch": 6,
+        "beta": 0.37706,
+        "k": 70,
+        "ladder": [
+          22584,
+          24628,
+          26857,
+          29288,
+          31938,
+          34829,
+          37981,
+          41419,
+          45168,
+          49256,
+          53714,
+          58575,
+          63877,
+          69658,
+          75963,
+          82838
+        ],
+        "n": 21000,
+        "p": 0.5,
+        "tau": 150
+      },
+      {
+        "batch": 11,
+        "beta": 0.38457,
+        "k": 80,
+        "ladder": [
+          10614,
+          11575,
+          12622,
+          13765,
+          15011,
+          16369,
+          17851,
+          19466,
+          21228,
+          23149,
+          25245,
+          27529,
+          30021,
+          32738,
+          35701,
+          38932
+        ],
+        "n": 16000,
+        "p": 0.45,
+        "tau": 64
+      },
+      {
+        "batch": 11,
+        "beta": 0.38457,
+        "k": 80,
+        "ladder": [
+          10614,
+          11575,
+          12622,
+          13765,
+          15011,
+          16369,
+          17851,
+          19466,
+          21228,
+          23149,
+          25245,
+          27529,
+          30021,
+          32738,
+          35701,
+          38932
+        ],
+        "n": 16000,
+        "p": 0.45,
+        "tau": 100
+      }
+    ],
+    "device": "cuda",
+    "match": 0.3,
+    "strength": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.load-tau",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "920645f08ee551240956ad29b1b98152a36ca923484856c11fa7f7ee895aa606",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_load_tau.py",
+  "script_sha256": "f3bc9593802bae32d8d788181abd01d84f42deb26f4a992271dde920ef5ccaf4",
+  "seeds": [
+    562,
+    563,
+    564,
+    565,
+    566,
+    567,
+    568,
+    569,
+    570,
+    571,
+    572,
+    573,
+    574,
+    575,
+    576,
+    577,
+    578,
+    579,
+    580,
+    581
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "fe4e5e27060b868cf87cc4970dcd31ed23fd35697c057caef1f31e68f7360824"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "af4d6261c1ece8e5231019ea5e14688aa8af544a1aa791769b6e30aa5bc8ab2b",
+  "started_utc": "2026-10-08T11:43:22.601724+00:00",
+  "tag": "load-tau-20261008"
+}

@@ -1273,54 +1273,6 @@ _RESULTS: List[Result] = [
                "64 and the Hebbian (non-refracted) memory are not covered.",
     ),
     Result(
-        id="RECOVERY-SCALES-WITH-AREA",
-        engine="hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta",
-        status=Status.MEASURED,
-        claim="The refraction's recovery time must scale with the steps between a "
-              "neuron's uses (n/k): at a fixed tau = 64 the single-sequence cliff falls "
-              "to rho = L k ln n / (n^2 p) = 0.081 at n/k = 300 (three cells), below the "
-              "load law's safe rule; with tau = n/k / 2 it rises 29% at n/k = 300 and "
-              "18% at n/k = 200 on the same brains, to rho_50 = 0.105 and 0.114, and "
-              "replay is reliable again to rho = 0.10. Too slow a recovery (tau ~ 1.7 "
-              "n/k, probed) brings back the tiling deadline. A sizing rule for a "
-              "sequence area: tau = n/k / 2, L k ln n / (n^2 p) <= 0.09.",
-        source="PREREG_refraction_memory.md Amendment 39 (T1-T4 PASS); Amendment 38 "
-               "(the tau = 64 cliff at n/k = 300)",
-        preconditions=("k p >= 3 ln n; beta = theta, refraction 0.5 beta; one sequence "
-                       "per area, noiseless one-round recall from a random half cue",
-                       "two cells judged (n/k = 300, 200), one probed; the window of good "
-                       "tau (0.43-0.85 n/k) from one exploratory cell"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-39-result-2026-10-08",
-                  "research/notes/memory/PREREG_refraction_memory.md#amendment-38-result-2026-10-08"),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.load-tau/load-tau-20261008/results.json", "artifact",
-                        "Amendment 39: tau = n/k / 2 against tau = 64, two cells, the same 20 brains"),
-            EvidenceRef("research/results/runs/memory.load-drift/load-drift-20261008/results.json", "artifact",
-                        "Amendment 38: the tau = 64 cliff at n/k = 300, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.load-tau/load-tau-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/21000~170~10.5/tau/150/ladder/29288/steps",
-            control_path="observations/cells/21000~170~10.5/tau/64/ladder/29288/steps",
-            relation="all-greater", minimum_effect=1000,
-            mechanism="at rho = 0.093 and n/k = 300 every brain replays the whole sequence with tau = n/k / 2 and derails within a few steps with tau = 64 (Amendment 39)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.load-tau/load-tau-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/16000~180~10.45/tau/100/ladder/15011/steps",
-            control_path="observations/cells/16000~180~10.45/tau/64/ladder/15011/steps",
-            relation="all-greater", minimum_effect=1000,
-            mechanism="at rho = 0.101 and n/k = 200 every brain replays whole with tau = n/k / 2 and none with tau = 64 (Amendment 39)",
-        )),
-        caveat="The rule's constant (one half) was chosen from one exploratory cell's "
-               "window (tau 128 and 256 equal at n/k = 300); the optimum is not located. "
-               "Even under the rule the critical load at n/k >= 200 (0.105-0.114) is "
-               "below the 0.142 of smaller areas: the residual n/k dependence is not "
-               "explained. Many sequences, noise and the write-side mechanism (whether "
-               "fast recovery acts through over-dispersed reuse) are untested.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,
