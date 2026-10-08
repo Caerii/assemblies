@@ -20,6 +20,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`REFRACTION-NEEDS-LOAD`](#refraction-needs-load) | MEASURED | numpy_sparse, arc materialized (retained runner replay, 10 seeds); the sampled-arc sweep's load floor is retracted | A refracted conjunction area has a CEILING in load M*k/n: above ~1.3 its conjunctions do not fit (10/10 correct at load 1.26, 0/10 at 1.80). |
 | [`REFRACTION-ANTI-MERGING`](#refraction-anti-merging) | MEASURED | hashed AssemblyMemory; materialized numpy_sparse mirror with summed stimulus parts (not an identical stimulus protocol) | A recurrent k-WTA area refracted at HALF beta and read with the refraction bias MASKED holds ~25x the Hebbian ceiling: at n/k = 67 M* ~ 1600-2200 stored assemblies against 64-89 for the control, x34-38 at n/k = 33, >= x13-16 at n/k = 133 (censored). |
 | [`SEQUENCE-MEMORY-ROBUSTNESS`](#sequence-memory-robustness) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 33 rounds, beta = theta | The refracted sequence memory's length limit is a budget of elements, spent alike on one long sequence or many short ones (0.81-1.08 of the single-sequence limit); replay loses nothing with up to 7% of its MOST DRIVEN winners replaced by random neurons at every step, derails at a horizon at 10% that a twice-larger area pushes out about sixfold, and starts from its strongest half cue a quarter wrong. |
+| [`SEQUENCE-LOAD-LAW`](#sequence-load-law) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 64 rounds, beta = theta | One area's single-sequence replay fails at a critical interference load: with rho = L k ln n / (n^2 p), every cell with k p >= 3 ln n replays a sequence whole from a random half cue on every brain up to rho ~ 0.11, and on none a factor 1.07-1.15 past its 90% point. |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -498,6 +499,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - replay survives 5% activity noise per step and derails within a few steps at 20%, at (8000, 60, 0.5) (Amendment 34): `observations/cells/8000~160~10.5/noise/0.05/values` all-greater `observations/cells/8000~160~10.5/noise/0.2/values` by at least 300, retained in [research/results/runs/memory.robustness/robustness-20261007/results.json](../research/results/runs/memory.robustness/robustness-20261007/results.json) and paired by `run/seeds`.
 
 **Caveat.** ERRATUM (Amendment 36): Amendment 34's noise was described as uniform random replacement but replaced the most driven winners (the k-WTA orders them strongest first), nearly all true members; Amendment 36 measured both. The mechanism of the horizon is not identified. Synaptic noise and noise during writing are untested.
+
+## SEQUENCE-LOAD-LAW
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 37 (R1-R3 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over 64 rounds, beta = theta
+
+**Claim.** One area's single-sequence replay fails at a critical interference load: with rho = L k ln n / (n^2 p), every cell with k p >= 3 ln n replays a sequence whole from a random half cue on every brain up to rho ~ 0.11, and on none a factor 1.07-1.15 past its 90% point. Registered from an exploratory survey (rho_50 = 0.142, 0.119-0.171 at seven cells) and confirmed at two cells never run: rho_50 = 0.141 at (6000, 90, 0.4) and 0.115 at (12000, 80, 0.5), rho_90 = 0.132 and 0.111. Below the floor it fails earlier (0.086, 0.089).
+
+**Requires.**
+- k p >= 3 ln n; a recovering refraction (tau = 64) at beta = theta; one sequence per area, noiseless one-round recall
+- nine in-regime cells, n 2000-16000, n/k 33-150
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-37-result-2026-10-08
+
+**Evidence files.**
+- [research/results/runs/memory.load-law/load-law-20261008/results.json](../research/results/runs/memory.load-law/load-law-20261008/results.json) (artifact) â€” Amendment 37: the load ladder at two held-out cells and one out-of-regime cell, 20 brains
+
+**Mechanism sensitivity.**
+- every brain replays a sequence whole at rho = 0.101 and derails within ~70 steps at rho = 0.156, at (6000, 90, 0.4) (Amendment 37): `observations/cells/6000~190~10.4/ladder/1856/steps` all-greater `observations/cells/6000~190~10.4/ladder/2862/steps` by at least 1000, retained in [research/results/runs/memory.load-law/load-law-20261008/results.json](../research/results/runs/memory.load-law/load-law-20261008/results.json) and paired by `run/seeds`.
+- every brain replays a sequence whole at rho = 0.093 and none at rho = 0.120, at (12000, 80, 0.5) (Amendment 37): `observations/cells/12000~180~10.5/ladder/8866/steps` all-greater `observations/cells/12000~180~10.5/ladder/11498/steps` by at least 1000, retained in [research/results/runs/memory.load-law/load-law-20261008/results.json](../research/results/runs/memory.load-law/load-law-20261008/results.json) and paired by `run/seeds`.
+
+**Caveat.** SEMI-EMPIRICAL: the variable is derived, the constant is fitted to the survey; a parameter-free reduced model puts the cliff about twice too high. The constant drifts: rho_50 is lower at n/k >= 133 (0.115-0.123) than at n/k <= 67 (0.131-0.171), a post hoc trend, untested, that would take the cliff below the band past n/k ~ 300. Many sequences, noise, tau other than 64 and the Hebbian (non-refracted) memory are not covered.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

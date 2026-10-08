@@ -211,6 +211,8 @@ class TestTheoryCitations(unittest.TestCase):
             "SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
             # 2026-10-07: 5% noise harmless, 20% derails (A34)
             "SEQUENCE-MEMORY-ROBUSTNESS",
+            # 2026-10-08: whole replay below the critical load, none above (A37)
+            "SEQUENCE-LOAD-LAW",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

@@ -767,9 +767,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | U2 larger area holds under uniform 10% (A36) | >= 18/20 full | PASS | 20/20 |
 | U3 A34 reproduces (A36) | within 35% | PASS | 41.2, 207.4 |
 | U4 random half cue works (A36) | >= 0.9 | PASS | 1.00 |
-| R1 critical load where the law puts it (A37) | rho_50 in [0.109, 0.185], 2 unseen cells | PASS | 0.141, 0.115 |
-| R2 reliable below rho 0.09 (A37) | rho_90 >= 0.09 | PASS | 0.132, 0.111 |
-| R3 failure is a cliff (A37) | rho_10 / rho_90 <= 1.6 | PASS | 1.15, 1.07 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -4798,51 +4795,3 @@ band, as at (4000, 30)); every ladder point.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until R1 to R3 are evaluated and recorded below.
-
-### Amendment 37 result (2026-10-08)
-
-One run from a worktree pinned at e4b29071, seeds 522 to 541:
-[record](../../results/runs/memory.load-law/load-law-20261008/results.json),
-[log](../../results/logs/memory-load-law-20261008.log). Fraction of the 20
-brains replaying the whole sequence, by rho:
-
-    rho                  ...0.110   0.120   0.131   0.143   0.156   0.170
-    (6000, 90, 0.4)         1.00    1.00    0.95    0.40    0.00    0.00
-    (12000, 80, 0.5)        1.00    0.00    0.00      --      --      --
-    (6000, 40, 0.5)         0.00 from rho 0.101 (1.00 at 0.085, 0.10 at 0.093)
-
-    (every point below the first shown is 1.00 at every cell)
-
-                       rho_90   rho_50   rho_10   rho_10/rho_90   L_50 (predicted)
-    (6000, 90, 0.4)    0.132    0.141    0.152    1.15            2584 (2612)
-    (12000, 80, 0.5)   0.111    0.115    0.119    1.07            11010 (13606)
-    (6000, 40, 0.5)    0.086    0.089    0.093    1.08            reported only
-
-    R1  THE CLIFF IS WHERE THE LAW PUTS IT                             PASS
-        rho_50 0.141 and 0.115, band [0.109, 0.185].
-    R2  BELOW rho = 0.09 REPLAY IS RELIABLE                            PASS
-        rho_90 0.132 and 0.111.
-    R3  THE FAILURE IS A CLIFF                                         PASS
-        rho_10 / rho_90 1.15 and 1.07.
-
-The out-of-regime cell (k p = 20 < 3 ln n = 26.1) fails at rho_50 = 0.089, as
-(4000, 30) did (0.086): the law's floor is where the survey put it.
-
-**Reading.** At two cells no run had touched, the critical load landed where
-the law put it: within 1% at (6000, 90, 0.4) and 19% low at (12000, 80, 0.5),
-inside the registered band, and replay was reliable up to rho = 0.11 at both.
-Every brain fails in one step of the ladder (a 7% to 15% wide cliff), so a
-single-sequence area at a recovering refraction holds L reliably while
-L k ln n / (n^2 p) stays below 0.09 and loses it within a factor 1.2 above
-0.11.
-
-**Seen after the run, not tested (post hoc).** The 19% shortfall at
-(12000, 80) is not noise alone: over the nine in-regime cells now measured
-(seven from the exploratory survey, two here) rho_50 is lower at n/k >= 133
-(0.115, 0.119, 0.123) than at n/k <= 67 (0.131 to 0.171). A two-variable
-fit, rho_50 ~ 0.22 (n/k)^-0.17 (k p / ln n)^0.17, halves the residual
-spread (6% against 13%); with nine cells and three parameters it is a
-description, not a law. If it holds, the constant 0.142 overstates capacity
-past n/k ~ 300, where the law and the fit part by more than the band; the
-safe rule (rho <= 0.09) has a margin of 1.23 at the largest n/k measured.
-Registering the two forms at cells where they disagree is the next test.
