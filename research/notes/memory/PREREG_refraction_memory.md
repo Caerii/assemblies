@@ -5486,3 +5486,89 @@ of Amendment 40 it fails BRAIN BY BRAIN: at (10000, 120), rho = 0.08, brains
 range from 0.00 to 0.99 whole. With each brain drawing its own sequences, a
 brain's particular draw -- repeated bigrams, words recurring within a
 sequence -- seems to decide; heavy reuse needs its own controlled design.
+
+## Amendment 43 (2026-10-08, before running): the cliff as a hazard -- short sequences predict long ones
+
+Registered before any run at the cells below. Amendment 40 found many short
+sequences fail one by one where one long sequence fails all or none. A model of
+a sequence of l elements: the half cue captures its first step with
+probability c, every later step fails with hazard h, both set by the total load
+rho:
+
+    P(whole | l, rho) = c(rho) (1 - h(rho))^(l - 1).
+
+The cliff of a long sequence is then where l h(rho) ~ 1, and rho_50 falls with
+ln l -- the load law's "constant" depends on the length of what is stored.
+
+**Seen before registering** (after the fact, on Amendment 40's record; no new
+run): c and h fitted at each load to its 16- and 64-element arms predict its
+single sequences (5,000 to 13,000 elements): at (8000, 80, 0.5) 0.996 whole at
+rho 0.120 and 0.004 at 0.131 (measured 1.00 and 0.00); at (12000, 70, 0.5)
+0.73 at 0.110 and 0.000 at 0.120 (measured 1.00 and 0.00). The fitted h rises
+about three decades from rho 0.11 to 0.13 (to ~ 1e-2) and then levels off,
+while c falls from ~ 1 to 0.4-0.65 by rho 0.14 and to 0.03-0.2 by 0.156 --
+long sequences die of the in-sequence hazard, short ones at the cue.
+
+A first draft judged the 256- and 1024-element arms point by point (whole
+fraction within 0.1 of the model). Before any run it was changed to judge every
+prediction by its rho_50 (within 5%): extrapolating h over 1,023 steps turns a
+sampling error of ~ 4e-4 in h into ~ 0.4 in ln P, so the pointwise bar would
+test the sampling, not the model, while the crossing -- what a cost model uses
+-- is robust on so steep a curve.
+
+A smoke run of the module (VOID, seeds 900 to 902) ran only the survey cell
+(2000, 60, 0.5) at rho 0.080 and 0.084 (every sequence whole). No run has
+touched (10000, 70, 0.5) or (8000, 50, 0.7).
+
+### Protocol
+
+`research/experiments/memory_load_hazard.py` (`python -m research.runner
+load_hazard`), seeds 642 to 661 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (10000, 70, 0.5) (n/k = 143,
+tau = 71) and (8000, 50, 0.7) (n/k = 160, tau = 80), tau by Amendment 41's
+rule; k p = 35 against 3 ln n = 27.6 and 27.0. Five arms on the same brains,
+every arm at a ladder point holding the same total L (a multiple of 1024):
+M = L / l sequences of l = 16, 64, 256, 1024 elements, or one sequence of L.
+Each sequence by its own `store_sequence`; replay noiseless from a uniformly
+random half of its first element, own overlap >= 0.3 at every step;
+reliability = mean over brains of the fraction of a brain's sequences whole
+(`memory_load_many.whole`). Ladder rho = 0.08 x 2^(j/12), j = 0 to 16, each
+arm stopping after two points below 0.02. At each ladder point (c, h) are
+fitted to the 16- and 64-element arms alone (h from their ratio, 0 if the
+longer is not worse; c from the shorter), and the model's whole fraction for
+256, 1024 and L elements is computed; predicted rho_50 is where that falls
+through one half (log-interpolated, as every rho_q since Amendment 37).
+
+    python -m research.runner load_hazard \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag load-hazard-20261008 --seeds 642 ... 661
+
+### Bars
+
+    K1  256 ELEMENTS PREDICTED. Predicted rho_50 within 5% of measured, both
+        cells.
+    K2  1024 ELEMENTS PREDICTED. Likewise.
+    K3  THE SINGLE CLIFF PREDICTED. Likewise for one sequence of the whole
+        load.
+    K4  LENGTH COSTS. Measured rho_50 strictly falls through l = 16, 64, 256,
+        1024 and the single sequence, both cells.
+
+Reported, not judged: (c, h) at every load; the shape of ln h against rho
+(near a saddle-node, escape theory gives ln h ~ -(rho_c - rho)^(3/2)).
+
+### Interpretation, stated now
+
+* K1 to K4 pass: the load law's cliff is a hazard compounded over length; two
+  numbers per load, measured on short sequences, give the reliability of a
+  sequence of any length, and the cost model's budget becomes a function of
+  length: rho_50(l) falls with ln l.
+* K3 fails, K1 and K2 pass: the model holds over hundreds of steps but a
+  whole-load sequence fails by something more (a slow drift, a second
+  mechanism).
+* K1 or K2 fails: per-step failures are not independent (the hazard depends
+  on position or history).
+* K4 fails: length does not cost in rho_50 -- the cliff is a threshold, not a
+  hazard.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until K1 to K4 are evaluated and recorded below.
