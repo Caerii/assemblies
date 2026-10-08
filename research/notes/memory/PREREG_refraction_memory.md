@@ -4963,3 +4963,83 @@ with n > 2^14. The independent oracle of Amendment 35
 (`test_memory_oracle._run`) was run at both, 40 elements, one brain each:
 counts equal, bias equal to 1e-4, every recall equal, no near ties. An engine
 defect at this size is not seen (the check covers 40 elements, not 28,000).
+
+## Amendment 39 (2026-10-08, before running): a recovery time scaled with n/k -- a design rule for the critical load
+
+Registered before any run at the cells below. Amendment 38 found the load
+law's cliff at rho = 0.081 at n/k = 300, below its safe rule, with the
+refraction recovering over tau = 64 writing rounds. A neuron is used about
+once every n/k elements; at n/k <= 67 its refraction has not recovered when
+its next chance comes, at n/k = 300 it has recovered several times over.
+
+**Seen before registering** (exploratory, seeds 980 to 989, 10 brains, after
+Amendment 38 was judged; disclosed in full):
+
+* n/k, not n: (15000, 50, 0.7) -- n/k = 300 with n < 2^14 -- fails like
+  Amendment 38's cells (rho_50 ~ 0.088), and (20000, 200, 0.3) -- n/k = 100
+  with n > 2^14 -- holds to rho_50 ~ 0.137.
+* The recovery time moves the cliff, at (15000, 50, 0.7): rho_50 ~ 0.088 at
+  tau = 64, ~ 0.115 at tau = 128 and at 256; at tau = 512 brains fail from
+  rho = 0.071 up, near step 290 ~ n/k -- the tiling deadline of Amendment 28
+  returns once recovery is slower than the steps between a neuron's uses.
+  The cliff moves in L (28,000 to 38,000), so it is not fixed in L.
+* Amendment 29 found the best tau growing with n/k (32 at n/k = 33, 64 at
+  67, 64 to 128 at 133).
+* A smoke run of the module (VOID, seeds 900 to 902) ran only the survey cell
+  (4000, 60, 0.5) at rho 0.071 and 0.078, tau 64 and 32 (every brain whole).
+* No run has touched (21000, 70, 0.5) or (16000, 80, 0.45).
+
+### The rule
+
+    tau = n/k / 2
+
+-- inside the window the probe found good (0.43 to 0.85 n/k) and below the
+tiling deadline's return.
+
+### Protocol
+
+`research/experiments/memory_load_tau.py` (`python -m research.runner
+load_tau`), seeds 562 to 581 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Judged cells (21000, 70, 0.5) (n/k =
+300, rule tau = 150) and (16000, 80, 0.45) (n/k = 200, rule tau = 100); k p =
+35 and 36 against 3 ln n = 29.9 and 29.0. At each cell two arms on the same
+brains and sequences, tau = 64 (the control: Amendments 37 and 38) and the
+rule's tau. Everything else as in Amendment 38 (`memory_load_drift.reliability`,
+brains in batches with per-brain cues): beta = theta, refraction 0.5 beta,
+noiseless one-round replay from a uniformly random half of element 0, own
+overlap >= 0.3 at every step, the ladder rho = 0.06 x 2^(j/8), j = 2 to 17,
+stopping after two points with no brain whole.
+
+    python -m research.runner load_tau \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag load-tau-20261008 --seeds 562 ... 581
+
+Predicted rho_50: under the rule ~ 0.115 at both cells; under the control
+~ 0.085 at (21000, 70) (as Amendment 38) and between that and 0.115 at
+(16000, 80), where tau = 64 is 0.32 n/k.
+
+### Bars
+
+    T1  THE RULE RAISES THE CLIFF. rho_50(rule) / rho_50(64) >= 1.2 at
+        (21000, 70, 0.5), and > 1 at (16000, 80, 0.45).
+    T2  THE SAFE RULE RETURNS. rho_90 >= 0.09 under the rule at both cells.
+    T3  WHERE THE PROBE PUT IT. rho_50 in [0.100, 0.135] under the rule at
+        both cells.
+    T4  STILL A CLIFF. rho_10 / rho_90 <= 1.6 under the rule at both cells.
+
+Reported, not judged: the control's crossings; every ladder point.
+
+### Interpretation, stated now
+
+* T1 to T4 pass: the cost model sets tau = n/k / 2 for a sequence area, and
+  under it replay is reliable while L k ln n / (n^2 p) <= 0.09 to n/k = 300;
+  the critical load at large n/k is ~ 0.115, not 0.142, even at a scaled tau.
+* T1 fails: the probe's gain does not carry to new cells; tau is not the
+  lever, or the rule misplaces it.
+* T2 or T3 fails with T1 passing: tau helps but the safe threshold or the
+  constant must be lowered at large n/k.
+* T4 fails: under the rule the failure is gradual and a reliability rule
+  needs its own law.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until T1 to T4 are evaluated and recorded below.

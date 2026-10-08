@@ -80,7 +80,8 @@ def cue(state, seed, L, k, device):
 
 
 def reliability(spec, L, seeds, device):
-    """Each brain's replay length, brains in batches of spec["batch"]."""
+    """Each brain's replay length, brains in batches of spec["batch"] (recovery
+    time spec["tau"], default TAU)."""
     import torch
     from research.experiments.seq_capacity_scaling import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
@@ -91,7 +92,7 @@ def reliability(spec, L, seeds, device):
         part = list(seeds[i:i + spec["batch"]])
         mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
                              norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
-                             device=device, bias_decay=math.exp(-1.0 / TAU))
+                             device=device, bias_decay=math.exp(-1.0 / spec.get("tau", TAU)))
         els = [[to_i32(_seeding.fnv1a_pair_seed(sd, f"L{L}e{e}", "A")) for sd in part] for e in range(L)]
         states = mem.store_sequence(els)[0]
         x = torch.stack([cue(states[0, b], sd, L, k, device) for b, sd in enumerate(part)])
