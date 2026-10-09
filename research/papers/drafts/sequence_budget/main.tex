@@ -465,6 +465,16 @@ closes as the clusters dissolve, $3$--$5\%$ of counts are removed, and a
 healthy store is never touched (Amendment~51).
 \end{proposition}
 
+\begin{proposition}[Separation and sleep compose]\label{prop:lifecycle} \REG\
+With the comparator at write and $300$ episodes of this sleep after, at two new
+cells, $100$ uses per element replay at $0.37$--$0.64$ where the standard store
+replays nothing, sleep alone $0.00$--$0.06$ and the comparator alone
+$0.18$--$0.24$, with no brain collapsed; $80$ uses at $0.65$--$0.79$. The sleep that
+follows the comparator removes at most $1.4\%$ of counts. The registered reach
+at $100$ ($0.45$) was missed at one cell, where an outlying reference brain
+raised the sleep threshold (Amendment~52).
+\end{proposition}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
@@ -536,6 +546,14 @@ of collapsed brains ($0.18$--$0.23$) again missed its registered size at one cel
 The size was then predicted, not guessed: a logit-lens margin measured before
 adaptation placed it within $0.05$ at two new cells (Amendment~48,
 Proposition~\ref{prop:margin}).
+(8) Write-time separation and sleep together were registered to keep $100$ uses
+per element above $0.45$, and reached $0.37$ at one cell (Amendment~52): the
+sleep threshold, set from the largest dream contrast of a healthy reference
+store, was raised by one outlying reference brain, and that sleep did a tenth
+of its work. Two earlier registrations show the same discipline paying off:
+Amendment~49's oracle separation, disclosed after its result to owe part of
+its lift to disambiguating sequence starts, and Amendment~50's comparator,
+whose fixed threshold over-fires in a small area.
 
 \section{Discussion: a cost model}\label{sec:discussion}
 
@@ -557,6 +575,7 @@ Replay holds above a relative logit margin $\approx 0.76$; adaptation lowers it 
 Separation at write ($<2\%$ of writes) removes the recurrence edge: $60$ uses per element replay at $0.91$ & registered (Prop.~\ref{prop:separation}) \\
 A local comparator (recall vs write) does it without an oracle, on $2$--$3\%$ of writes & registered (Prop.~\ref{prop:comparator}) \\
 Contrast-gated sleep repairs a captured store and never touches a healthy one & registered (Prop.~\ref{prop:sleep}) \\
+Comparator and sleep together: $100$ uses per element at $0.37$--$0.64$ & registered, one bar failed (Prop.~\ref{prop:lifecycle}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -598,9 +617,10 @@ One logit margin & 48 & $(7500,55,0.6)$, $(12500,85,0.42)$ & M1--M4 pass \\
 Separation at write & 49 & $(9500,70,0.5)$, $(11500,80,0.45)$ & W1--W6 pass \\
 Local comparator & 50 & $(8500,65,0.5)$, $(12000,85,0.43)$ & C1--C6 pass \\
 Self-limiting sleep & 51 & $(9000,65,0.5)$, $(11000,85,0.42)$ & S1--S6 pass \\
+Separation and sleep compose & 52 & $(9500,75,0.46)$, $(12500,90,0.4)$ & L1, L2, L4, L5 pass; L3 fail \\
 \bottomrule
 \end{tabular}
-\caption{The registrations behind each claim; seeds 522--841, twenty new brains
+\caption{The registrations behind each claim; seeds 522--881, twenty new brains
 per amendment.}
 \label{tab:methods}
 \end{table}

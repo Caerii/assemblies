@@ -1,0 +1,165 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.37863": {
+        "arc_refraction_charge": 0.189315,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.39652": {
+        "arc_refraction_charge": 0.19826,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "9fa9f22f7d4d9b862df5c71c833392f4f2eb8993",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "beta": 0.37863,
+        "episodes": 300,
+        "k": 75,
+        "n": 9500,
+        "p": 0.46,
+        "rho": 0.05,
+        "tau": 63,
+        "uses": [
+          80,
+          100
+        ]
+      },
+      {
+        "beta": 0.39652,
+        "episodes": 300,
+        "k": 90,
+        "n": 12500,
+        "p": 0.4,
+        "rho": 0.05,
+        "tau": 69,
+        "uses": [
+          80,
+          100
+        ]
+      }
+    ],
+    "comparator_threshold": 0.5,
+    "device": "cuda",
+    "length": 16,
+    "match": 0.3,
+    "reference_seeds": [
+      862,
+      863,
+      864,
+      865,
+      866,
+      867,
+      868,
+      869,
+      870,
+      871,
+      872,
+      873,
+      874,
+      875,
+      876,
+      877,
+      878,
+      879,
+      880,
+      881
+    ],
+    "sleep_margin": 1.02,
+    "sleep_steps": 8,
+    "strength": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.lifecycle",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "abc0e22700dc0c099a539599698736f41dbec769bc1095460afe00f6abe676bc",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_lifecycle.py",
+  "script_sha256": "c7984bcd27ca26e332d792b5bf14131b3f48c21ca4266afc2fa712d0cc59b816",
+  "seeds": [
+    842,
+    843,
+    844,
+    845,
+    846,
+    847,
+    848,
+    849,
+    850,
+    851,
+    852,
+    853,
+    854,
+    855,
+    856,
+    857,
+    858,
+    859,
+    860,
+    861
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "cc0bb74880aac23c7c72674abd3fa7296f37a5152dfbbe6615f87310bba73d32"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "898d9f5a5b7b1b48c4a0c53c022f22fc9138b9d174fbed398d4c31d4f915beeb",
+  "started_utc": "2026-10-09T23:43:50.646968+00:00",
+  "tag": "lifecycle-20261009"
+}

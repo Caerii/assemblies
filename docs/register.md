@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`WRITE-SEPARATION-AND-SLEEP-COMPOSE`](#write-separation-and-sleep-compose) | MEASURED | hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep | The local comparator at write (Amendment 50) and contrast-gated sleep (Amendment 51) compose and do more together than either alone. |
 | [`SELF-LIMITING-SLEEP-REPAIRS-CAPTURE`](#self-limiting-sleep-repairs-capture) | MEASURED | hashed AssemblyMemory as Amendment 44; standard store_sequence, then unlearning on the count matrix | Unlearning from noise (Hopfield, Feinstein & Palmer 1983; Crick & Mitchison's proposed function of REM sleep) gated by settling contrast -- a dream transition is depressed only if its winners' mean drive over the area's exceeds a healthy reference store's maximum -- repairs a captured store and spares a healthy one. |
 | [`LOCAL-COMPARATOR-SEPARATES-AT-WRITE`](#local-comparator-separates-at-write) | MEASURED | hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a comparator | A local comparator prevents the recurrence collapse as an oracle separation does. |
 | [`WRITE-SEPARATION-PREVENTS-COLLAPSE`](#write-separation-prevents-collapse) | MEASURED | hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a write-time check | The recurrence collapse -- whole brains failing when words recur in many contexts -- is written into the store: tokens of different words are laid onto one assembly in a cascade (exploratory). |
@@ -706,6 +707,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## WRITE-SEPARATION-AND-SLEEP-COMPOSE
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 52 (L1, L2, L4, L5 PASS; L3 FAIL)
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep
+
+**Claim.** The local comparator at write (Amendment 50) and contrast-gated sleep (Amendment 51) compose and do more together than either alone. At two new cells, at 100 uses per word -- where a standard store replays nothing, sleep alone 0.004-0.064 and the comparator alone 0.18-0.24 -- both give 0.37-0.64 with no brain collapsed; at 80 uses both give 0.65-0.79. The sleep that follows the comparator is sparing (<= 1.4% of counts): separation keeps the store near enough to healthy for it to finish the repair.
+
+**Requires.**
+- random-successor reuse at 80 and 100 uses per word, rho = 0.05, n/k 127-139
+- comparator threshold 0.5; sleep 300 episodes, threshold from reference brains
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-52-result-2026-10-09
+
+**Evidence files.**
+- [research/results/runs/memory.lifecycle/lifecycle-20261009/results.json](../research/results/runs/memory.lifecycle/lifecycle-20261009/results.json) (artifact) â€” Amendment 52: standard, sleep, comparator and both on the same memories, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain's 100-use store replays better with sleep after the comparator than with the comparator alone, at (9500, 75, 0.46) (Amendment 52): `observations/cells/9500~175~10.46/100/both` all-greater `observations/cells/9500~175~10.46/100/comparator` by at least 0.15, retained in [research/results/runs/memory.lifecycle/lifecycle-20261009/results.json](../research/results/runs/memory.lifecycle/lifecycle-20261009/results.json) and paired by `run/seeds`.
+- the same at (12500, 90, 0.4) (Amendment 52): `observations/cells/12500~190~10.4/100/both` all-greater `observations/cells/12500~190~10.4/100/comparator` by at least 0.05, retained in [research/results/runs/memory.lifecycle/lifecycle-20261009/results.json](../research/results/runs/memory.lifecycle/lifecycle-20261009/results.json) and paired by `run/seeds`.
+
+**Caveat.** The REACH at 100 uses missed its registered 0.45 at one cell (0.368): a reference brain's outlying dream contrast raised the sleep threshold and the sleep that followed removed a tenth as much. The threshold's dependence on the reference maximum is a known weakness; a quantile threshold is untested.
 
 ## SELF-LIMITING-SLEEP-REPAIRS-CAPTURE
 

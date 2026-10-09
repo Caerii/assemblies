@@ -1,0 +1,8 @@
+equivalence: the written store loop reproduces store_sequence
+(9500, 75, 0.46) sleep threshold 1.419
+  U=80: standard 0.000  sleep 0.214 (removed 0.1432)  comparator 0.567 (flags 0.0615)  both 0.794 (removed 0.0086)
+  U=100: standard 0.000  sleep 0.064 (removed 0.2100)  comparator 0.240 (flags 0.0944)  both 0.641 (removed 0.0135)
+(12500, 90, 0.4) sleep threshold 1.561
+  U=80: standard 0.000  sleep 0.068 (removed 0.1327)  comparator 0.550 (flags 0.0631)  both 0.652 (removed 0.0008)
+  U=100: standard 0.000  sleep 0.004 (removed 0.2002)  comparator 0.176 (flags 0.0969)  both 0.368 (removed 0.0016)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.lifecycle\lifecycle-20261009\results.json

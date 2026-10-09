@@ -829,11 +829,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | S4 the gate closes (A51) | <= 2% of steps in 1000-3000 | PASS | 0.14%, 0.19% |
 | S5 frugal (A51) | <= 10% of counts | PASS | 3.1%, 5.2% |
 | S6 no collapsed brains (A51) | <= 2 below 0.2 | PASS | 0, 0 |
-| L1 synergy (A52) | both - comparator >= 0.15, - sleep >= 0.3 at U 100 | PASS | +0.40/+0.58, +0.19/+0.36 |
-| L2 reach at 80 (A52) | both >= 0.65 | PASS | 0.794, 0.652 |
-| L3 reach at 100 (A52) | both >= 0.45 | FAIL | 0.641, 0.368 |
-| L4 no collapsed brains (A52) | <= 2 below 0.2 | PASS | 0, 0 |
-| L5 a sparing sleep (A52) | <= 2% of counts | PASS | <= 1.35% |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6672,37 +6667,3 @@ calibration.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until L1 to L5 are evaluated and recorded below.
-
-### Amendment 52 result (2026-10-09)
-
-One run from a worktree pinned at 9fa9f22f, subject seeds 842 to 861,
-reference brains 862 to 881:
-[record](../../results/runs/memory.lifecycle/lifecycle-20261009/results.json),
-[log](../../results/logs/memory-lifecycle-20261009.log). The written store
-loop reproduced store_sequence. Sleep thresholds 1.419 (reference mean 1.361,
-max 1.391) and 1.561 (mean 1.380, max 1.531 -- a reference outlier). Mean
-replay with nothing / sleep / the comparator / both (counts removed by the
-sleep that follows the comparator):
-
-    (9500, 75, 0.46)   U  80   0.000 / 0.214 / 0.567 / 0.794   (0.86%)
-                       U 100   0.000 / 0.064 / 0.240 / 0.641   (1.35%)
-    (12500, 90, 0.4)   U  80   0.000 / 0.068 / 0.550 / 0.652   (0.08%)
-                       U 100   0.000 / 0.004 / 0.176 / 0.368   (0.16%)
-
-    L1  SYNERGY                  PASS  +0.40 / +0.58, +0.19 / +0.36 (bars 0.15 / 0.3)
-    L2  REACH AT 80              PASS  0.794, 0.652
-    L3  REACH AT 100             FAIL  0.641, 0.368 (bar 0.45)
-    L4  NO COLLAPSED BRAINS      PASS  0 and 0 at U = 80 and 100 (lowest 0.25 at 100)
-    L5  A SPARING SLEEP          PASS  <= 1.35% of counts
-
-**Reading.** The two controls compose, and at both cells they do more together
-than either alone: at 100 uses per word, where the standard store replays
-nothing, sleep alone 0.004-0.064 and the comparator alone 0.18-0.24, both give
-0.37-0.64 with no brain collapsed. The reach at 100 missed its registered 0.45
-at (12500, 90, 0.4). There one reference brain's dreams reached contrast 1.531
-(mean 1.380), the threshold rose to 1.561, and the sleep that followed the
-comparator removed a tenth of what it removed at the other cell (0.16% vs
-1.35%): the risk this amendment's predecessor disclosed from its smoke (a
-reference outlier makes the gate conservative). Post hoc and untested: a
-threshold on a high quantile of the reference contrasts rather than their
-maximum would not be moved by one brain.

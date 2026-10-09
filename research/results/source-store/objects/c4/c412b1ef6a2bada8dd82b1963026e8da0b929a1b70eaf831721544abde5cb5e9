@@ -1556,44 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="WRITE-SEPARATION-AND-SLEEP-COMPOSE",
-        engine="hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep",
-        status=Status.MEASURED,
-        claim="The local comparator at write (Amendment 50) and contrast-gated sleep (Amendment 51) "
-              "compose and do more together than either alone. At two new cells, at 100 uses per "
-              "word -- where a standard store replays nothing, sleep alone 0.004-0.064 and the "
-              "comparator alone 0.18-0.24 -- both give 0.37-0.64 with no brain collapsed; at 80 uses "
-              "both give 0.65-0.79. The sleep that follows the comparator is sparing (<= 1.4% of "
-              "counts): separation keeps the store near enough to healthy for it to finish the repair.",
-        source="PREREG_refraction_memory.md Amendment 52 (L1, L2, L4, L5 PASS; L3 FAIL)",
-        preconditions=("random-successor reuse at 80 and 100 uses per word, rho = 0.05, n/k 127-139",
-                       "comparator threshold 0.5; sleep 300 episodes, threshold from reference brains"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-52-result-2026-10-09",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.lifecycle/lifecycle-20261009/results.json", "artifact",
-                        "Amendment 52: standard, sleep, comparator and both on the same memories, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.lifecycle/lifecycle-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/9500~175~10.46/100/both",
-            control_path="observations/cells/9500~175~10.46/100/comparator",
-            relation="all-greater", minimum_effect=0.15,
-            mechanism="every brain's 100-use store replays better with sleep after the comparator than with the comparator alone, at (9500, 75, 0.46) (Amendment 52)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.lifecycle/lifecycle-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/12500~190~10.4/100/both",
-            control_path="observations/cells/12500~190~10.4/100/comparator",
-            relation="all-greater", minimum_effect=0.05,
-            mechanism="the same at (12500, 90, 0.4) (Amendment 52)",
-        )),
-        caveat="The REACH at 100 uses missed its registered 0.45 at one cell (0.368): a reference "
-               "brain's outlying dream contrast raised the sleep threshold and the sleep that followed "
-               "removed a tenth as much. The threshold's dependence on the reference maximum is a "
-               "known weakness; a quantile threshold is untested.",
-    ),
-    Result(
         id="SELF-LIMITING-SLEEP-REPAIRS-CAPTURE",
         engine="hashed AssemblyMemory as Amendment 44; standard store_sequence, then unlearning on the count matrix",
         status=Status.MEASURED,
