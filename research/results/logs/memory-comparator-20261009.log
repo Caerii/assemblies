@@ -1,0 +1,8 @@
+equivalence: the written store loop reproduces store_sequence
+(8500, 65, 0.5) U=10: standard 1.000  comparator 1.000 (flags 0.0017, hit 0.43, captured 0.0000)
+(8500, 65, 0.5) U=50: standard 0.104  comparator 0.942 (flags 0.0234, hit 0.78, captured 0.0000)
+(8500, 65, 0.5) U=60: standard 0.014  comparator 0.898 (flags 0.0319, hit 0.78, captured 0.0000)
+(12000, 85, 0.43) U=10: standard 0.999  comparator 1.000 (flags 0.0006, hit 0.50, captured 0.0000)
+(12000, 85, 0.43) U=50: standard 0.108  comparator 0.960 (flags 0.0171, hit 0.84, captured 0.0000)
+(12000, 85, 0.43) U=60: standard 0.000  comparator 0.869 (flags 0.0264, hit 0.88, captured 0.0000)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.comparator\comparator-20261009\results.json

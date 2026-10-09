@@ -233,8 +233,6 @@ class TestTheoryCitations(unittest.TestCase):
             "LOGIT-MARGIN-DECIDES-REPLAY",
             # 2026-10-09: every 60-use brain replays better with separation at write (A49)
             "WRITE-SEPARATION-PREVENTS-COLLAPSE",
-            # 2026-10-09: every 60-use brain replays better with the local comparator (A50)
-            "LOCAL-COMPARATOR-SEPARATES-AT-WRITE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

@@ -1556,47 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="LOCAL-COMPARATOR-SEPARATES-AT-WRITE",
-        engine="hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a comparator",
-        status=Status.MEASURED,
-        claim="A local comparator prevents the recurrence collapse as an oracle separation does. "
-              "Before each write, the recall projection (recurrence alone: what memory predicts) and "
-              "the write projection are compared, as CA1 is held to compare CA3's recall with "
-              "cortical input; if they share >= 0.5 of their winners, the predicted cells are "
-              "inhibited for that write. With no stored-token lookup and no word identity, at two new "
-              "cells: 50 uses per word from 0.10 to 0.94-0.96, 60 uses from 0.00-0.01 to 0.87-0.90, "
-              "no brain left collapsed, a healthy store untouched, 2-3% of writes flagged, 78-84% of "
-              "the oracle's captures caught, no captured token left.",
-        source="PREREG_refraction_memory.md Amendment 50 (C1-C6 PASS); Amendment 49 for the oracle",
-        preconditions=("random-successor reuse at 10, 50, 60 uses per word, rho = 0.05, n/k 131-141",
-                       "comparator threshold 0.5 (calibrated to n/k ~130-145); masked replay, word-level"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-50-result-2026-10-09",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.comparator/comparator-20261009/results.json", "artifact",
-                        "Amendment 50: standard and comparator stores of the same memories, three arms, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.comparator/comparator-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8500~165~10.5/arms/60/comparator/reliability",
-            control_path="observations/cells/8500~165~10.5/arms/60/standard/reliability",
-            relation="all-greater", minimum_effect=0.4,
-            mechanism="every brain's 60-use store replays better with the comparator, at (8500, 65, 0.5) (Amendment 50)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.comparator/comparator-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/12000~185~10.43/arms/60/comparator/reliability",
-            control_path="observations/cells/12000~185~10.43/arms/60/standard/reliability",
-            relation="all-greater", minimum_effect=0.4,
-            mechanism="the same at (12000, 85, 0.43) (Amendment 50)",
-        )),
-        caveat="The fixed threshold is calibrated to n/k 130-145 and over-fires in a small area "
-               "(n/k = 33: 27% of healthy writes flagged, smoke). Sequence-initial writes are not "
-               "judged (they have no prior state). One reuse kind; the repetition failure is not "
-               "covered; global cholinergic suppression of recurrence at write destroyed the store "
-               "in the probes (exploratory).",
-    ),
-    Result(
         id="WRITE-SEPARATION-PREVENTS-COLLAPSE",
         engine="hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a write-time check",
         status=Status.MEASURED,

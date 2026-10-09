@@ -1263,6 +1263,40 @@ Conjecture~\ref{conj:readcontrol} is answered in a sharper form than it was
 posed: adaptation at read time treats the collapse (A47, A48), separation at
 write time prevents it, and prevention is the far stronger control.
 
+\paragraph{A local circuit, and what it rules out (exploratory, then Amendment
+50).} (\texttt{probe\_plausible.py}.) The check of
+Proposition~\ref{prop:separation} is an oracle. Two hippocampal mechanisms that
+use only local signals were tried. \emph{Cholinergic encoding mode} (muscarinic
+suppression of CA3 recurrents during encoding, Hasselmo): scaling recurrence by
+$g = 0.5, 0.25, 0$ during writing destroys even a healthy store ($0.000$ at
+every $g$), because recurrence at write is what makes a word's occurrences
+distinct tokens --- at $g = 0$, $82\%$ of writes land on a stored token. A
+\emph{comparator} (CA1 comparing CA3's recall with cortical input; Vinogradova
+2001, Lisman \& Grace 2005): before each write, project from the current state
+by recurrence alone (what memory predicts) and by the full write; if they
+share $\ge 0.5$ of their winners, inhibit the predicted cells for this write.
+It needs one recall pass and one overlap.
+
+\begin{proposition}[A local comparator separates at write]\label{prop:comparator} \MEASURED
+At two new cells, $(8500,65,0.5)$ and $(12000,85,0.43)$, the comparator lifts
+$50$ uses per word from $0.10$ to $0.94$ and $0.96$ and $60$ uses from
+$0.01$/$0.00$ to $0.90$/$0.87$, leaves no brain collapsed and a healthy store
+untouched, flags $2$--$3\%$ of writes, catches $78$--$84\%$ of the writes the
+oracle flags, and leaves no captured token (Amendment 50, C1--C6 pass). Its
+threshold is calibrated to $n/k \approx 130$--$145$; at $n/k = 33$ it over-fires.
+\end{proposition}
+
+So the control the theory points to has a circuit, and the circuit's form is
+constrained: suppression must be \emph{selective} --- acting on the writes that
+memory would capture, and on the cells memory predicts --- not a global change
+of encoding mode, which erases the context the token code needs.
+\emph{Disclosure.} The oracle of Amendment 49 also separated sequence-initial
+writes (driven by the stimulus alone, identical for a shared first word); on
+non-initial writes only it reaches $0.646$ at $U = 50$, so part of its lift was
+disambiguating cues. The comparator, judging only non-initial writes, does
+better ($0.94$); sequence starts call for a context signal of their own (a
+slow excitability trace, Rashid et al.\ 2016; Cai et al.\ 2016, is the candidate).
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the

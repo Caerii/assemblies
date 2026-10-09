@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`LOCAL-COMPARATOR-SEPARATES-AT-WRITE`](#local-comparator-separates-at-write) | MEASURED | hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a comparator | A local comparator prevents the recurrence collapse as an oracle separation does. |
 | [`WRITE-SEPARATION-PREVENTS-COLLAPSE`](#write-separation-prevents-collapse) | MEASURED | hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a write-time check | The recurrence collapse -- whole brains failing when words recur in many contexts -- is written into the store: tokens of different words are laid onto one assembly in a cascade (exploratory). |
 | [`LOGIT-MARGIN-DECIDES-REPLAY`](#logit-margin-decides-replay) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, read through a logit lens | Read each replay step's net drive as a logit for every stored token (mean drive over its k neurons, in units of the k-WTA threshold). |
 | [`READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS`](#read-time-adaptation-helps-failing-brains) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, with a session adaptation in place of the masked read | Replay here normally runs with no adaptation (masked). |
@@ -704,6 +705,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## LOCAL-COMPARATOR-SEPARATES-AT-WRITE
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 50 (C1-C6 PASS); Amendment 49 for the oracle
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a comparator
+
+**Claim.** A local comparator prevents the recurrence collapse as an oracle separation does. Before each write, the recall projection (recurrence alone: what memory predicts) and the write projection are compared, as CA1 is held to compare CA3's recall with cortical input; if they share >= 0.5 of their winners, the predicted cells are inhibited for that write. With no stored-token lookup and no word identity, at two new cells: 50 uses per word from 0.10 to 0.94-0.96, 60 uses from 0.00-0.01 to 0.87-0.90, no brain left collapsed, a healthy store untouched, 2-3% of writes flagged, 78-84% of the oracle's captures caught, no captured token left.
+
+**Requires.**
+- random-successor reuse at 10, 50, 60 uses per word, rho = 0.05, n/k 131-141
+- comparator threshold 0.5 (calibrated to n/k ~130-145); masked replay, word-level
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-50-result-2026-10-09
+
+**Evidence files.**
+- [research/results/runs/memory.comparator/comparator-20261009/results.json](../research/results/runs/memory.comparator/comparator-20261009/results.json) (artifact) â€” Amendment 50: standard and comparator stores of the same memories, three arms, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain's 60-use store replays better with the comparator, at (8500, 65, 0.5) (Amendment 50): `observations/cells/8500~165~10.5/arms/60/comparator/reliability` all-greater `observations/cells/8500~165~10.5/arms/60/standard/reliability` by at least 0.4, retained in [research/results/runs/memory.comparator/comparator-20261009/results.json](../research/results/runs/memory.comparator/comparator-20261009/results.json) and paired by `run/seeds`.
+- the same at (12000, 85, 0.43) (Amendment 50): `observations/cells/12000~185~10.43/arms/60/comparator/reliability` all-greater `observations/cells/12000~185~10.43/arms/60/standard/reliability` by at least 0.4, retained in [research/results/runs/memory.comparator/comparator-20261009/results.json](../research/results/runs/memory.comparator/comparator-20261009/results.json) and paired by `run/seeds`.
+
+**Caveat.** The fixed threshold is calibrated to n/k 130-145 and over-fires in a small area (n/k = 33: 27% of healthy writes flagged, smoke). Sequence-initial writes are not judged (they have no prior state). One reuse kind; the repetition failure is not covered; global cholinergic suppression of recurrence at write destroyed the store in the probes (exploratory).
 
 ## WRITE-SEPARATION-PREVENTS-COLLAPSE
 

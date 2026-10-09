@@ -1,0 +1,171 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.37309": {
+        "arc_refraction_charge": 0.186545,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.38273": {
+        "arc_refraction_charge": 0.191365,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "1bcf20fa795e67736adadbe1c54c972196bd9ffb",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "beta": 0.37309,
+        "k": 65,
+        "n": 8500,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 65,
+        "uses": 10
+      },
+      {
+        "beta": 0.37309,
+        "k": 65,
+        "n": 8500,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 65,
+        "uses": 50
+      },
+      {
+        "beta": 0.37309,
+        "k": 65,
+        "n": 8500,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 65,
+        "uses": 60
+      },
+      {
+        "beta": 0.38273,
+        "k": 85,
+        "n": 12000,
+        "p": 0.43,
+        "rho": 0.05,
+        "tau": 71,
+        "uses": 10
+      },
+      {
+        "beta": 0.38273,
+        "k": 85,
+        "n": 12000,
+        "p": 0.43,
+        "rho": 0.05,
+        "tau": 71,
+        "uses": 50
+      },
+      {
+        "beta": 0.38273,
+        "k": 85,
+        "n": 12000,
+        "p": 0.43,
+        "rho": 0.05,
+        "tau": 71,
+        "uses": 60
+      }
+    ],
+    "device": "cuda",
+    "inhibit": 10000.0,
+    "length": 16,
+    "match": 0.3,
+    "oracle": 0.3,
+    "strength": 0.5,
+    "threshold": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.comparator",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "1d4db84da6d0cf663b11ffc59e63a22463da9dc4dd1586fff1ec3cf05c9abba3",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_comparator.py",
+  "script_sha256": "286292aff0de3ba89bd8e3f068166d544434c8a6245d2b62949387ab22b68b7d",
+  "seeds": [
+    782,
+    783,
+    784,
+    785,
+    786,
+    787,
+    788,
+    789,
+    790,
+    791,
+    792,
+    793,
+    794,
+    795,
+    796,
+    797,
+    798,
+    799,
+    800,
+    801
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "f85a5f1f1d8a9af94973a69330d0d56a81c18e8095e947140c02eec45d3be492"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "21fc88918e48531cfe180be94b315d9c6f71c9ebb38362d95204a31290759d7c",
+  "started_utc": "2026-10-09T22:10:32.918086+00:00",
+  "tag": "comparator-20261009"
+}

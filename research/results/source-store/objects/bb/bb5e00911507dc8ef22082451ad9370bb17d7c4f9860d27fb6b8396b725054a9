@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner comparator --registration research/notes/memory/PREREG_refraction_memory.md --tag comparator-20261009 --seeds 782 783 784 785 786 787 788 789 790 791 792 793 794 795 796 797 798 799 800 801 > C:\Github\assemblies-runs-20260930b\a50.log 2>&1

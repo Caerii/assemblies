@@ -429,6 +429,25 @@ The check compares each write with every stored token; a circuit that
 computes it is not yet tested.
 \end{proposition}
 
+Part of that lift was not capture: the check also separated each sequence's
+first element, which the stimulus alone writes, nearly identically for
+sequences that share a first word, so it disambiguated cues; on later writes
+only, the same oracle reaches $0.65$ (exploratory). A circuit that needs no
+oracle does better. Before each write, compare what memory predicts --- a
+projection by recurrence alone --- with the write itself, as CA1 is held to
+compare CA3's recall with cortical input \citep{vinogradova2001hippocampus,lisman2005hippocampal};
+if they agree on half their winners, inhibit the predicted cells for that write.
+
+\begin{proposition}[A local comparator separates at write]\label{prop:comparator} \REG\
+At two new cells, the comparator lifts $50$ uses per element from $0.10$ to
+$0.94$--$0.96$ and $60$ from $0.00$--$0.01$ to $0.87$--$0.90$, leaves no brain
+collapsed and a healthy store untouched, acts on $2$--$3\%$ of writes and
+catches $78$--$84\%$ of the oracle's captures (Amendment~50). Suppressing
+recurrence globally during writing instead --- a cholinergic encoding mode
+\citep{hasselmo2006role} --- destroyed even a healthy store in the
+exploratory probes: recurrence at write is what makes the token code.
+\end{proposition}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
@@ -519,6 +538,7 @@ Reuse: edges near $2.8$ repeats per transition and $40$ uses per element; produc
 Read-time adaptation helps every failing brain, harms none & registered \\
 Replay holds above a relative logit margin $\approx 0.76$; adaptation lowers it to $\approx 0.65$ and its rescue is predicted & registered (Prop.~\ref{prop:margin}) \\
 Separation at write ($<2\%$ of writes) removes the recurrence edge: $60$ uses per element replay at $0.91$ & registered (Prop.~\ref{prop:separation}) \\
+A local comparator (recall vs write) does it without an oracle, on $2$--$3\%$ of writes & registered (Prop.~\ref{prop:comparator}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -558,9 +578,10 @@ Read-time adaptation & 46 & $(11000,80,0.45)$, $(8000,60,0.6)$ & H2 pass; H1, H3
 Read-time rescue, paired & 47 & $(9000,70,0.5)$, $(13000,90,0.4)$ & Q1, Q3 pass; Q2, Q4 fail \\
 One logit margin & 48 & $(7500,55,0.6)$, $(12500,85,0.42)$ & M1--M4 pass \\
 Separation at write & 49 & $(9500,70,0.5)$, $(11500,80,0.45)$ & W1--W6 pass \\
+Local comparator & 50 & $(8500,65,0.5)$, $(12000,85,0.43)$ & C1--C6 pass \\
 \bottomrule
 \end{tabular}
-\caption{The registrations behind each claim; seeds 522--781, twenty new brains
+\caption{The registrations behind each claim; seeds 522--801, twenty new brains
 per amendment.}
 \label{tab:methods}
 \end{table}

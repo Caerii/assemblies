@@ -817,12 +817,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | W4 no collapsed brains (A49) | <= 2 below 0.2 | PASS | 0, 0 |
 | W5 cheap (A49) | <= 3% of writes | PASS | <= 1.9% |
 | W6 no capture (A49) | captured <= 0.001 | PASS | 0.000 |
-| C1 no harm (A50) | U 10 comparator >= 0.97 | PASS | 1.000, 1.000 |
-| C2 rescue (A50) | U 50 comparator >= 0.8, +0.4 | PASS | 0.942, 0.960 |
-| C3 no collapsed brains (A50) | <= 2 below 0.2 | PASS | 0, 0 |
-| C4 selective (A50) | flags <= 5% (U 50), <= 1% (U 10) | PASS | 2.3%, 1.7%; 0.17%, 0.06% |
-| C5 it detects capture (A50) | hit >= 0.6 | PASS | 0.78, 0.84 |
-| C6 no capture left (A50) | captured <= 0.001 | PASS | 0.000 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6448,33 +6442,3 @@ Reported, not judged: U = 60; false alarms; captured share of standard stores.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until C1 to C6 are evaluated and recorded below.
-
-### Amendment 50 result (2026-10-09)
-
-One run from a worktree pinned at 1bcf20fa, seeds 782 to 801:
-[record](../../results/runs/memory.comparator/comparator-20261009/results.json),
-[log](../../results/logs/memory-comparator-20261009.log). The written store
-loop reproduced store_sequence. Mean word-level reliability, standard ->
-comparator (flags as a share of judged writes; hit = share of the oracle's
-flags the comparator also flagged; false alarms on unflagged writes):
-
-                (8500, 65, 0.5)                          (12000, 85, 0.43)
-    U 10        1.000 -> 1.000 (flags 0.17%)              0.999 -> 1.000 (flags 0.06%)
-    U 50        0.104 -> 0.942 (2.3%; hit 0.78; FA 2.1%)  0.108 -> 0.960 (1.7%; hit 0.84; FA 1.5%)
-    U 60        0.014 -> 0.898 (3.2%; hit 0.78; FA 2.8%)  0.000 -> 0.869 (2.6%; hit 0.88; FA 2.3%)
-
-    C1  NO HARM                         PASS  1.000, 1.000
-    C2  RESCUE                          PASS  0.942 (+0.84), 0.960 (+0.85)
-    C3  NO COLLAPSED BRAINS             PASS  0 and 0 below 0.2 (lowest 0.68, 0.89)
-    C4  SELECTIVE                       PASS  2.3% and 1.7% at U = 50; 0.17% and 0.06% at U = 10
-    C5  IT DETECTS CAPTURE              PASS  0.78, 0.84
-    C6  NO CAPTURE LEFT                 PASS  0.000 in every comparator arm
-
-**Reading.** A circuit using only local signals -- one recall pass (what memory
-predicts), one overlap with the write, one threshold, and inhibition of the
-predicted cells for that write -- prevents the recurrence collapse at two new
-cells as the oracle did (U = 50: 0.94-0.96; U = 60: 0.87-0.90), on 2-3% of
-writes, catching 78-84% of the oracle's captures, with no captured token left
-and a healthy store untouched. It needs no stored-token lookup and no word
-identity. The threshold is set for n/k 130-145; in a small area (n/k = 33) it
-over-fires (smoke, disclosed).
