@@ -1556,46 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="WRITE-SEPARATION-PREVENTS-COLLAPSE",
-        engine="hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a write-time check",
-        status=Status.MEASURED,
-        claim="The recurrence collapse -- whole brains failing when words recur in many contexts -- "
-              "is written into the store: tokens of different words are laid onto one assembly in a "
-              "cascade (exploratory). A label-free pattern separation at write prevents it: each write "
-              "is previewed, and the neurons of any stored token it would overlap by >= 0.3 are "
-              "inhibited for that write only. At two new cells, 50 uses per word go from 0.07-0.17 to "
-              "0.99 and 60 from 0.00 to 0.91, no brain is left collapsed, a healthy store is untouched "
-              "(1.000) and under 2% of writes are intervened on. The reuse edge of about 40 uses per "
-              "word was a property of the write policy, not of the substrate.",
-        source="PREREG_refraction_memory.md Amendment 49 (W1-W6 PASS)",
-        preconditions=("random-successor reuse at 10, 50, 60 uses per word, rho = 0.05, n/k 136-144",
-                       "capture threshold 0.3, label-free; masked replay, word-level score"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-49-result-2026-10-09",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.write-separation/write-separation-20261009/results.json", "artifact",
-                        "Amendment 49: standard and separated stores of the same memories, three arms, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.write-separation/write-separation-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/9500~170~10.5/arms/60/separated/reliability",
-            control_path="observations/cells/9500~170~10.5/arms/60/standard/reliability",
-            relation="all-greater", minimum_effect=0.3,
-            mechanism="every brain's 60-use store replays better separated than standard, at (9500, 70, 0.5) (Amendment 49)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.write-separation/write-separation-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/11500~180~10.45/arms/60/separated/reliability",
-            control_path="observations/cells/11500~180~10.45/arms/60/standard/reliability",
-            relation="all-greater", minimum_effect=0.3,
-            mechanism="the same at (11500, 80, 0.45) (Amendment 49)",
-        )),
-        caveat="The check is an ORACLE: it compares each previewed write with every stored token. "
-               "A circuit that computes the familiarity signal is not tested here. One reuse kind "
-               "(random successors); the repetition failure is not covered; n/k 136-144; at 60 uses "
-               "a few brains remain partly failing (lowest 0.40), so a new edge begins there.",
-    ),
-    Result(
         id="LOGIT-MARGIN-DECIDES-REPLAY",
         engine="hashed AssemblyMemory as Amendment 44; replay frozen, read through a logit lens",
         status=Status.MEASURED,

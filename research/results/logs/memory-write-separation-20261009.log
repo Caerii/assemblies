@@ -1,0 +1,8 @@
+equivalence: the written store loop reproduces store_sequence
+(9500, 70, 0.5) U=10: standard 1.000 (captured 0.0000, interventions 0)  separated 1.000 (captured 0.0000, interventions 421)
+(9500, 70, 0.5) U=50: standard 0.172 (captured 0.0238, interventions 0)  separated 0.995 (captured 0.0000, interventions 1155)
+(9500, 70, 0.5) U=60: standard 0.000 (captured 0.0504, interventions 0)  separated 0.915 (captured 0.0000, interventions 1320)
+(11500, 80, 0.45) U=10: standard 1.000 (captured 0.0000, interventions 0)  separated 1.000 (captured 0.0000, interventions 510)
+(11500, 80, 0.45) U=50: standard 0.072 (captured 0.0303, interventions 0)  separated 0.994 (captured 0.0000, interventions 1321)
+(11500, 80, 0.45) U=60: standard 0.000 (captured 0.0709, interventions 0)  separated 0.912 (captured 0.0000, interventions 1454)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.write-separation\write-separation-20261009\results.json

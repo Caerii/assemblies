@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`WRITE-SEPARATION-PREVENTS-COLLAPSE`](#write-separation-prevents-collapse) | MEASURED | hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a write-time check | The recurrence collapse -- whole brains failing when words recur in many contexts -- is written into the store: tokens of different words are laid onto one assembly in a cascade (exploratory). |
 | [`LOGIT-MARGIN-DECIDES-REPLAY`](#logit-margin-decides-replay) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, read through a logit lens | Read each replay step's net drive as a logit for every stored token (mean drive over its k neurons, in units of the k-WTA threshold). |
 | [`READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS`](#read-time-adaptation-helps-failing-brains) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, with a session adaptation in place of the masked read | Replay here normally runs with no adaptation (masked). |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
@@ -703,6 +704,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## WRITE-SEPARATION-PREVENTS-COLLAPSE
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 49 (W1-W6 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a write-time check
+
+**Claim.** The recurrence collapse -- whole brains failing when words recur in many contexts -- is written into the store: tokens of different words are laid onto one assembly in a cascade (exploratory). A label-free pattern separation at write prevents it: each write is previewed, and the neurons of any stored token it would overlap by >= 0.3 are inhibited for that write only. At two new cells, 50 uses per word go from 0.07-0.17 to 0.99 and 60 from 0.00 to 0.91, no brain is left collapsed, a healthy store is untouched (1.000) and under 2% of writes are intervened on. The reuse edge of about 40 uses per word was a property of the write policy, not of the substrate.
+
+**Requires.**
+- random-successor reuse at 10, 50, 60 uses per word, rho = 0.05, n/k 136-144
+- capture threshold 0.3, label-free; masked replay, word-level score
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-49-result-2026-10-09
+
+**Evidence files.**
+- [research/results/runs/memory.write-separation/write-separation-20261009/results.json](../research/results/runs/memory.write-separation/write-separation-20261009/results.json) (artifact) â€” Amendment 49: standard and separated stores of the same memories, three arms, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain's 60-use store replays better separated than standard, at (9500, 70, 0.5) (Amendment 49): `observations/cells/9500~170~10.5/arms/60/separated/reliability` all-greater `observations/cells/9500~170~10.5/arms/60/standard/reliability` by at least 0.3, retained in [research/results/runs/memory.write-separation/write-separation-20261009/results.json](../research/results/runs/memory.write-separation/write-separation-20261009/results.json) and paired by `run/seeds`.
+- the same at (11500, 80, 0.45) (Amendment 49): `observations/cells/11500~180~10.45/arms/60/separated/reliability` all-greater `observations/cells/11500~180~10.45/arms/60/standard/reliability` by at least 0.3, retained in [research/results/runs/memory.write-separation/write-separation-20261009/results.json](../research/results/runs/memory.write-separation/write-separation-20261009/results.json) and paired by `run/seeds`.
+
+**Caveat.** The check is an ORACLE: it compares each previewed write with every stored token. A circuit that computes the familiarity signal is not tested here. One reuse kind (random successors); the repetition failure is not covered; n/k 136-144; at 60 uses a few brains remain partly failing (lowest 0.40), so a new edge begins there.
 
 ## LOGIT-MARGIN-DECIDES-REPLAY
 

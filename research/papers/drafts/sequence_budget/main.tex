@@ -409,6 +409,26 @@ from slack before it was applied, was within $0.03$ and $0.05$ of the observed
 the collapse is a loss of signal margin, not a deep false well.
 \end{proposition}
 
+Where the margin goes is visible in the store itself. Compared pairwise with no
+replay at all, collapsed brains hold tokens of \emph{different} words written
+onto one assembly, healthy brains none; in write order the captures begin at a
+brain-specific point and then accelerate, and once they do, sequences written
+cleanly before them fail too (exploratory). Writing is itself a recurrent step,
+so a captured assembly pulls later writes in. That suggests a control at the
+source --- the function the dentate gyrus is held to serve before CA3 stores a
+pattern \citep{mcclelland1995why}.
+
+\begin{proposition}[Separation at write prevents the collapse]\label{prop:separation} \REG\
+Preview each write, and inhibit for that write the neurons of any stored token
+it would overlap by $0.3$ or more, using no word identity. At two new cells,
+$50$ uses per element go from $0.17$ and $0.07$ to $0.99$, and $60$ uses from
+$0.00$ to $0.91$; no brain is left collapsed, a healthy store is untouched, and
+under $2\%$ of writes are intervened on (Amendment~49). The recurrence edge of
+Proposition~\ref{prop:edges} belongs to the write policy, not the substrate.
+The check compares each write with every stored token; a circuit that
+computes it is not yet tested.
+\end{proposition}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
@@ -498,6 +518,7 @@ Element identity: Spearman--Brown, $d' \approx \sqrt{\mathrm{ICC}\,k}$ & proved 
 Reuse: edges near $2.8$ repeats per transition and $40$ uses per element; product law approximate & registered (Props.~\ref{prop:bigram}, \ref{prop:edges}) \\
 Read-time adaptation helps every failing brain, harms none & registered \\
 Replay holds above a relative logit margin $\approx 0.76$; adaptation lowers it to $\approx 0.65$ and its rescue is predicted & registered (Prop.~\ref{prop:margin}) \\
+Separation at write ($<2\%$ of writes) removes the recurrence edge: $60$ uses per element replay at $0.91$ & registered (Prop.~\ref{prop:separation}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -536,9 +557,10 @@ Two edges of reuse & 45 & $(10000,75,0.48)$, $(7000,60,0.6)$ & S1 pass; S2 fail 
 Read-time adaptation & 46 & $(11000,80,0.45)$, $(8000,60,0.6)$ & H2 pass; H1, H3, H4 fail \\
 Read-time rescue, paired & 47 & $(9000,70,0.5)$, $(13000,90,0.4)$ & Q1, Q3 pass; Q2, Q4 fail \\
 One logit margin & 48 & $(7500,55,0.6)$, $(12500,85,0.42)$ & M1--M4 pass \\
+Separation at write & 49 & $(9500,70,0.5)$, $(11500,80,0.45)$ & W1--W6 pass \\
 \bottomrule
 \end{tabular}
-\caption{The registrations behind each claim; seeds 522--761, twenty new brains
+\caption{The registrations behind each claim; seeds 522--781, twenty new brains
 per amendment.}
 \label{tab:methods}
 \end{table}

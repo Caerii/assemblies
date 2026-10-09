@@ -1245,6 +1245,24 @@ damage begins where the Hebbian limit's does. The check compares each preview
 with every stored token, a stand-in for a familiarity signal a circuit would
 have to compute.
 
+\begin{proposition}[Separation at write prevents the recurrence collapse]\label{prop:separation} \MEASURED
+At two new cells, $(9500,70,0.5)$ and $(11500,80,0.45)$, the label-free check at
+$0.3$ takes $50$ uses per word from $0.17$ and $0.07$ to $0.995$ and $0.994$, and
+$60$ uses from $0.000$ to $0.916$ and $0.912$; no brain is left collapsed, a
+healthy store stays at $1.000$, no captured token remains (the standard stores'
+clusters reached $31$--$51$ tokens), and at most $1.9\%$ of writes are intervened
+on (Amendment 49, W1--W6 pass).
+\end{proposition}
+
+The capacity question changes with it. Amendments 37--45 measured what this
+memory can hold under a write policy that lets the store capture its own
+writes; the recurrence edge was that policy's. With separation, the remaining
+limits are the load law (which no write rule here has moved), the repetition
+edge (untested), and a new reuse edge beginning near $60$ uses per word. And
+Conjecture~\ref{conj:readcontrol} is answered in a sharper form than it was
+posed: adaptation at read time treats the collapse (A47, A48), separation at
+write time prevents it, and prevention is the far stronger control.
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the

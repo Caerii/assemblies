@@ -811,12 +811,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | M2 adaptation lowers it (A48) | adapted <= masked - 0.06 | PASS | -0.105, -0.110 |
 | M3 the hidden margin orders the rescue (A48) | Spearman >= 0.6, >= 8 collapsed | PASS | 0.856 (51), 0.873 (69) |
 | M4 the rescue's size is predicted (A48) | collapsed mean within 0.1 | PASS | 0.025, 0.052 |
-| W1 no harm (A49) | U 10 separated >= 0.97 | PASS | 1.000, 1.000 |
-| W2 the collapse is prevented (A49) | U 50 separated >= 0.85, +0.4 | PASS | 0.995, 0.994 |
-| W3 reach (A49) | U 60 separated >= 0.7 | PASS | 0.916, 0.912 |
-| W4 no collapsed brains (A49) | <= 2 below 0.2 | PASS | 0, 0 |
-| W5 cheap (A49) | <= 3% of writes | PASS | <= 1.9% |
-| W6 no capture (A49) | captured <= 0.001 | PASS | 0.000 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6326,36 +6320,3 @@ The check compares each preview with every stored token -- a stand-in for a
 familiarity signal; a circuit that computes it is not tested here.
 
 The run is UNJUDGED until W1 to W6 are evaluated and recorded below.
-
-### Amendment 49 result (2026-10-09)
-
-One run from a worktree pinned at 2c787dfd, seeds 762 to 781:
-[record](../../results/runs/memory.write-separation/write-separation-20261009/results.json),
-[log](../../results/logs/memory-write-separation-20261009.log). The written
-store loop reproduced store_sequence. Mean word-level reliability, standard ->
-separated (captured share in the standard store; interventions as a share of
-writes):
-
-                (9500, 70, 0.5)                   (11500, 80, 0.45)
-    U 10        1.000 -> 1.000 (0.000; 0.6%)      1.000 -> 1.000 (0.000; 0.6%)
-    U 50        0.172 -> 0.995 (0.024; 1.6%)      0.072 -> 0.994 (0.030; 1.7%)
-    U 60        0.000 -> 0.916 (0.050; 1.9%)      0.000 -> 0.912 (0.071; 1.8%)
-
-    largest cluster, standard / separated: U 50 31 / 0, 46 / 0; U 60 38 / 0, 51 / 0
-    lowest separated brain: U 50 0.96, 0.98; U 60 0.40, 0.65
-
-    W1  NO HARM                                    PASS  1.000, 1.000
-    W2  THE COLLAPSE IS PREVENTED                  PASS  0.995 (+0.82), 0.994 (+0.92)
-    W3  REACH                                      PASS  0.916, 0.912
-    W4  NO COLLAPSED BRAINS                        PASS  0 and 0 below 0.2
-    W5  CHEAP                                      PASS  at most 1.9% of writes
-    W6  NO CAPTURE                                 PASS  0.000 in every separated arm
-
-**Reading.** At two new cells a label-free pattern separation at write -- each
-write previewed, and the neurons of any stored token it would overlap by 0.3
-inhibited for that write -- prevents the recurrence collapse: at 50 uses per
-word replay goes from 0.07-0.17 to 0.99, at 60 from 0.00 to 0.91, no brain is
-left collapsed, a healthy store is untouched, and fewer than 2% of writes are
-intervened on. The reuse edge Amendment 45 measured (about 40 uses per word)
-was a property of the write policy. The check is an oracle (it compares with
-every stored token); a circuit that computes it is not tested here.

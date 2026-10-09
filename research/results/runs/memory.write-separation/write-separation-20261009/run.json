@@ -1,0 +1,170 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.36172": {
+        "arc_refraction_charge": 0.18086,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.37795": {
+        "arc_refraction_charge": 0.188975,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "2c787dfdb25b065da76bd87e48bdc7ee386b30b0",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "capture": 0.3,
+    "cells": [
+      {
+        "beta": 0.36172,
+        "k": 70,
+        "n": 9500,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 68,
+        "uses": 10
+      },
+      {
+        "beta": 0.36172,
+        "k": 70,
+        "n": 9500,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 68,
+        "uses": 50
+      },
+      {
+        "beta": 0.36172,
+        "k": 70,
+        "n": 9500,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 68,
+        "uses": 60
+      },
+      {
+        "beta": 0.37795,
+        "k": 80,
+        "n": 11500,
+        "p": 0.45,
+        "rho": 0.05,
+        "tau": 72,
+        "uses": 10
+      },
+      {
+        "beta": 0.37795,
+        "k": 80,
+        "n": 11500,
+        "p": 0.45,
+        "rho": 0.05,
+        "tau": 72,
+        "uses": 50
+      },
+      {
+        "beta": 0.37795,
+        "k": 80,
+        "n": 11500,
+        "p": 0.45,
+        "rho": 0.05,
+        "tau": 72,
+        "uses": 60
+      }
+    ],
+    "device": "cuda",
+    "inhibit": 10000.0,
+    "length": 16,
+    "match": 0.3,
+    "strength": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.write-separation",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "39a64c24f8c4e081af1f0410e0c1b1a2f44bcd5b9a3132e16b409c5ff8d00646",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_write_separation.py",
+  "script_sha256": "cdb54fc6a963359d9aaa23b60fe83a749cbc448e452ec1db3b63f6781e3b3e92",
+  "seeds": [
+    762,
+    763,
+    764,
+    765,
+    766,
+    767,
+    768,
+    769,
+    770,
+    771,
+    772,
+    773,
+    774,
+    775,
+    776,
+    777,
+    778,
+    779,
+    780,
+    781
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "eadd2995c9aa63c35faaa30f8993e1bd3a2727ba5373fe6bca4186521daa1a58"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "0f043bbd7ce5afc68d3a28ca4889ac99943ff1c8001e39dc28ff042917cb860b",
+  "started_utc": "2026-10-09T21:45:23.505287+00:00",
+  "tag": "write-separation-20261009"
+}
