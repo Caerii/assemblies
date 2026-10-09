@@ -1297,6 +1297,26 @@ disambiguating cues. The comparator, judging only non-initial writes, does
 better ($0.94$); sequence starts call for a context signal of their own (a
 slow excitability trace, Rashid et al.\ 2016; Cai et al.\ 2016, is the candidate).
 
+\paragraph{Sleep: repairing a captured store (exploratory).} (\texttt{probe\_sleep.py},
+\texttt{probe\_sleep\_gated.py}; $(10000,75,0.48)$, standard stores.) Separation
+prevents capture; unlearning (Hopfield, Feinstein \& Palmer, \emph{Nature} 304,
+1983 --- the function Crick \& Mitchison proposed for REM sleep) can remove it
+after the fact. Free dynamics from noise fall into the states the store is
+drawn to; one potentiation count is removed on every synapse of each
+transition taken. Ungated, it has a \emph{window}: a collapsed store ($U = 50$)
+goes from $0.025$ to $0.70$ after $100$ episodes and $0.74$ after $300$, then to
+$0.000$ after $1000$; a healthy store is erased too, although its dreams never
+settle on a stored state --- the damage is depression of random noise
+transitions. Gated on a signal the network has --- unlearn only when the dream
+\emph{revisits} a state of the same episode, which a stored sequence never does
+--- sleep becomes self-limiting: a healthy store is never touched (no loop, no
+count removed, at any dose), and a collapsed one is repaired monotonically but
+slowly ($0.18$, $0.25$, $0.33$, $0.47$ after $100$--$3000$ episodes; collapsed
+brains $19 \to 3$; $\le 2.6\%$ of counts removed). Most of ungated sleep's quick
+repair came from transitions that do not loop: the dreams wander through
+captured clusters. The open design question is a gate that catches those
+transitions without opening on a healthy store.
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the
