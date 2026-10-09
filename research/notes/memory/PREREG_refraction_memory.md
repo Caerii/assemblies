@@ -6359,3 +6359,86 @@ left collapsed, a healthy store is untouched, and fewer than 2% of writes are
 intervened on. The reuse edge Amendment 45 measured (about 40 uses per word)
 was a property of the write policy. The check is an oracle (it compares with
 every stored token); a circuit that computes it is not tested here.
+
+### Amendment 49, a disclosure after the result (2026-10-09)
+
+Recorded after the run; Amendment 49's bars and verdicts are unchanged. Its
+check also acted on each sequence's FIRST element, which the stimulus alone
+writes: sequences beginning with the same word got nearly the same first token,
+so a cue taken from it was ambiguous, and separating those tokens disambiguated
+cues as well as preventing capture. At (10000, 75, 0.48), U = 50
+(`probes/2026-10-09/probe_plausible.py`), the same oracle restricted to
+non-initial writes lifts replay to 0.646, not 0.961: part of Amendment 49's
+lift is cue disambiguation at sequence starts, part capture prevention.
+
+## Amendment 50 (2026-10-09, before running): a local comparator separates at write
+
+Registered before any run at the cells below. Amendment 49's check compares each
+previewed write with every stored token -- an oracle. The comparator needs
+neither the store nor word labels: before each write after a sequence's first
+element, the RECALL projection (recurrence alone from the current state: what
+memory predicts) and the WRITE projection (input and recurrence, the refraction
+bias decayed as the write would decay it) are compared, as CA1 is held to
+compare CA3's recall with cortical input (Vinogradova 2001; Lisman & Grace
+2005); if they share at least 0.5 of their winners, the predicted neurons are
+inhibited for that write only.
+
+**Seen before registering.** At (10000, 75, 0.48), seeds 980 to 999
+(`probe_plausible.py`): the comparator at 0.5 leaves U = 10 at 1.000 (flags
+0.08% of writes) and lifts U = 50 from 0.025 to 0.941 (no collapsed brain;
+flags 2.0% of writes; catches 81% of the writes the oracle flags; false alarms
+1.7%). At 0.3 it flags 79-85% of writes (healthy recall-write overlap averages
+0.34) and costs a healthy store (0.883). Global cholinergic suppression of
+recurrence at write destroys even a healthy store (0.000 at g = 0.5, 0.25, 0),
+and switching recurrence off on detection does too. U = 60 was not probed. A
+smoke run of this module (VOID, seeds 900 to 902) ran only the survey cell
+(2000, 60, 0.5) (n/k = 33, outside this amendment's scope): U = 10 standard
+1.000, comparator 0.952 (flags 27%); U = 40 standard 0.548, comparator 0.690
+(flags 41%, hit 0.63) -- the fixed threshold is calibrated to n/k ~ 130-145 and
+over-fires in a small area. No run has touched (8500, 65, 0.5) or
+(12000, 85, 0.43).
+
+### Protocol
+
+`research/experiments/memory_comparator.py` (`python -m research.runner
+comparator`), seeds 782 to 801 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (8500, 65, 0.5) (n/k = 131,
+tau = 65) and (12000, 85, 0.43) (n/k = 141, tau = 71), by Amendment 41's rule;
+k p = 32.5 and 36.6 against 3 ln n = 27.1 and 28.2. As Amendment 49 (per-brain
+grammars, random successors, 16-element walks, rho = 0.05, word-level, masked
+replay of every sequence; the written store loop checked equal to
+store_sequence, else every bar fails), with arms U = 10, 50, 60 each stored
+STANDARD and COMPARATOR on the same brains. Alongside, never acted on, the
+oracle flag (the previewed write overlaps a stored token by >= 0.3) scores the
+comparator's detections.
+
+    python -m research.runner comparator \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag comparator-20261009 --seeds 782 ... 801
+
+### Bars
+
+    C1  NO HARM. At both cells, U = 10 comparator >= 0.97.
+    C2  RESCUE. At both cells, U = 50 comparator >= 0.8 and >= standard + 0.4
+        (probe 0.941 vs 0.025).
+    C3  NO COLLAPSED BRAINS. At both cells, at most 2 comparator brains below
+        0.2 at U = 50.
+    C4  SELECTIVE. Flags <= 5% of judged writes at U = 50 and <= 1% at U = 10.
+    C5  IT DETECTS CAPTURE. At both cells, at U = 50, the comparator flags at
+        least 60% of the writes the oracle flags (probe 81%).
+    C6  NO CAPTURE LEFT. Captured share <= 0.001 in every comparator arm.
+
+Reported, not judged: U = 60; false alarms; captured share of standard stores.
+
+### Interpretation, stated now
+
+* C1 to C6 pass: a circuit with only local signals -- one recall pass, one
+  overlap, one threshold, inhibition of the predicted cells -- prevents the
+  recurrence collapse as the oracle did, at the regime the threshold was set in.
+* C5 fails with C2 passing: the comparator rescues by a different route than
+  detecting the oracle's captures.
+* C1 or C4 fails: the fixed threshold does not transfer even within
+  n/k 130-145.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until C1 to C6 are evaluated and recorded below.
