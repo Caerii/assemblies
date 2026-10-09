@@ -1,0 +1,422 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.31365": {
+        "arc_refraction_charge": 0.156825,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.36474": {
+        "arc_refraction_charge": 0.18237,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "a5c3ecfa828c63a0ecd07571e2ede016d5ddab34",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "b": null,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 10
+      },
+      {
+        "b": null,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 20
+      },
+      {
+        "b": null,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 30
+      },
+      {
+        "b": null,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 40
+      },
+      {
+        "b": null,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 60
+      },
+      {
+        "b": 10,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 10
+      },
+      {
+        "b": 5,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 10
+      },
+      {
+        "b": 4,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 10
+      },
+      {
+        "b": 3,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 10
+      },
+      {
+        "b": 8,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 20
+      },
+      {
+        "b": 4,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 12
+      },
+      {
+        "b": 16,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 24
+      },
+      {
+        "b": 32,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 40
+      },
+      {
+        "b": 10,
+        "batch": 30,
+        "beta": 0.36474,
+        "k": 75,
+        "n": 10000,
+        "p": 0.48,
+        "rho": 0.05,
+        "tau": 67,
+        "uses": 30
+      },
+      {
+        "b": null,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 10
+      },
+      {
+        "b": null,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 20
+      },
+      {
+        "b": null,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 30
+      },
+      {
+        "b": null,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 40
+      },
+      {
+        "b": null,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 60
+      },
+      {
+        "b": 10,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 10
+      },
+      {
+        "b": 5,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 10
+      },
+      {
+        "b": 4,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 10
+      },
+      {
+        "b": 3,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 10
+      },
+      {
+        "b": 8,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 20
+      },
+      {
+        "b": 4,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 12
+      },
+      {
+        "b": 16,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 24
+      },
+      {
+        "b": 32,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 40
+      },
+      {
+        "b": 10,
+        "batch": 61,
+        "beta": 0.31365,
+        "k": 60,
+        "n": 7000,
+        "p": 0.6,
+        "rho": 0.05,
+        "tau": 58,
+        "uses": 30
+      }
+    ],
+    "device": "cuda",
+    "length": 16,
+    "match": 0.3,
+    "strength": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.reuse-budget",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "a83e230dbf1467c19882731814dfbc543fa98d80c202b3250a3591ed3ed4e48c",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_reuse_budget.py",
+  "script_sha256": "0db655cdfe6b62c7376ae6faf8399c4b4ed73461596d4a324492beebc5c3ff6c",
+  "seeds": [
+    682,
+    683,
+    684,
+    685,
+    686,
+    687,
+    688,
+    689,
+    690,
+    691,
+    692,
+    693,
+    694,
+    695,
+    696,
+    697,
+    698,
+    699,
+    700,
+    701
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "4c4656b43a343894774854fb727991e5a81742d6a7faf8ac9fc94018e08a42a9"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "24aeb20019c8e7bec9544ca3bea4fd0b2b21060a2aadd601893b2203a9916e2e",
+  "started_utc": "2026-10-09T03:26:49.044317+00:00",
+  "tag": "reuse-budget-20261008"
+}

@@ -797,8 +797,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | G2 recurrence alone is free (A44) | iid at U 20 >= 0.95 | FAIL | 0.771, 0.950 |
 | G3 repetition, not recurrence (A44) | R = 5 arms within 0.25 | PASS (vacuous: all 0.000, floor) | uninformative |
 | G4 repeated transitions merge tokens (A44) | same-word overlap +0.03 | PASS | +0.059, +0.052 |
-| S1 two reuse edges (A45) | both edges at both cells | PASS | U 60: 0.00, 0.09; R 3.7: 0.00, 0.02 |
-| S2 separable reuse budget (A45) | interior within 0.15 of f(R) g(U), informative | FAIL | 9/10 within; one +0.156; MAE 0.08, 0.05 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5843,46 +5841,3 @@ graded loss), realised repeats, same-word overlap.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until S1 and S2 are evaluated and recorded below.
-
-### Amendment 45 result (2026-10-08)
-
-One run from a worktree pinned at a5c3ecfa, seeds 682 to 701:
-[record](../../results/runs/memory.reuse-budget/reuse-budget-20261008/results.json),
-[log](../../results/logs/memory-reuse-budget-20261008.log). Word-level
-reliability:
-
-    recurrence (random successors), U    10     20     30     40     60
-    (10000, 75, 0.48)                    1.000  0.998  0.816  0.479  0.000
-    (7000, 60, 0.6)                      1.000  0.995  0.937  0.512  0.090
-
-    repetition at U = 10, R              1.0    1.6    2.4    2.8    3.7
-    (10000, 75, 0.48)                    1.000  1.000  0.942  0.354  0.000
-    (7000, 60, 0.6)                      1.000  0.950  0.929  0.683  0.016
-
-    interior (U, b)       measured / predicted f(R) g(U) / difference (SE of the arm)
-                          (10000, 75, 0.48)              (7000, 60, 0.6)
-    (20, 8)   R 2.7       0.714 / 0.558 / +0.156 (0.081)  0.730 / 0.749 / -0.019 (0.069)
-    (12, 4)   R 3.3       0.029 / 0.172 / -0.143 (0.024)  0.255 / 0.360 / -0.105 (0.083)
-    (24, 16)  R 1.9       0.947 / 0.904 / +0.044 (0.029)  0.973 / 0.915 / +0.059 (0.011)
-    (40, 32)  R 1.7       0.446 / 0.475 / -0.028 (0.090)  0.470 / 0.485 / -0.015 (0.091)
-    (30, 10)  R 3.1       0.178 / 0.213 / -0.035 (0.071)  0.419 / 0.454 / -0.035 (0.073)
-
-    S1  TWO EDGES                                                      PASS
-        U = 10 random 1.000 at both; U = 60 random 0.000 and 0.090;
-        U = 10, b = 3: 0.000 and 0.016.
-    S2  THE BUDGET IS SEPARABLE                                        FAIL
-        informative (four of five predictions in (0.15, 0.85) at both
-        cells); nine of ten interior arms within 0.15, one at +0.156
-        ((20, 8) at (10000, 75, 0.48)). Mean absolute error 0.081 and 0.047.
-
-**Reading.** Both edges stand at two new cells, and where the probe put them:
-the recurrence edge near 40 uses per word (0.48 and 0.51 at U = 40) and the
-repetition edge near 2.8 repeats per transition (0.35 and 0.68 at R = 2.8) --
-at three cells with n/k = 117 to 150 the edges hardly move. The product of the
-two marginal curves predicts the interior to a mean error of 0.05 to 0.08,
-and misses the bar by 0.006 at one arm of ten. The bar was tight for what the
-arms can resolve: brains range from 0.00 to 1.00 in most interior arms, so an
-arm's mean has a standard error of about 0.07 to 0.09 (twenty brains), and the
-failing arm is off by about 1.9 of its own standard errors before the
-prediction's own error is counted. The separable form is approximately right
-and not established to the registered tolerance; S2 is recorded as failed.

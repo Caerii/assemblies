@@ -1038,6 +1038,21 @@ and $g$ through an edge $U^*$ in uses per element (whole brains collapsing);
 the edges move with the cell, the product form does not.
 \end{conjecture}
 
+\paragraph{Amendment 45, judged (2026-10-08).} S1 passes, S2 fails narrowly.
+Both edges stand at two new cells, where the probe put them: recurrence near
+$40$ uses ($0.48$, $0.51$), repetition near $2.8$ repeats ($0.35$, $0.68$) --- across
+three cells with $n/k = 117$--$150$ the edges hardly move. The product law was
+tested informatively (four of five predictions off the floor and ceiling per
+cell) and predicts the interior to a mean error of $0.05$--$0.08$, but one arm of
+ten misses the $0.15$ tolerance by $0.006$. With brains spread from $0$ to $1$ in
+most interior arms, an arm's mean has a standard error of $0.07$--$0.09$, so the
+bar was tight; it is recorded as failed. Conjecture~\ref{conj:separable} stands
+as approximately right and unestablished. Two mechanistic tests come next: the
+repetition edge should scale as $R^* \propto 1/\ln(1+\beta)$ if multiplicative
+core-to-core links carry it, and in collapsed brains failed replays should
+converge on a few shared states if a spurious hub attractor carries the
+recurrence edge.
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the

@@ -1516,46 +1516,6 @@ _RESULTS: List[Result] = [
                "(33-430 words) and 16-element walks: not a corpus.",
     ),
     Result(
-        id="REUSE-BUDGET-TWO-EDGES",
-        engine="hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta",
-        status=Status.MEASURED,
-        claim="A token store's reuse budget has two edges, at a safe total load (rho = 0.05) "
-              "and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat "
-              "per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with "
-              "random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, "
-              "failing whole brains at a time. Both lie where an exploratory probe at a third "
-              "cell put them (n/k 117-150). The product of the two marginal curves predicts "
-              "mixed arms to a mean error of 0.05-0.08 (registered tolerance 0.15 missed at one "
-              "arm of ten by 0.006).",
-        source="PREREG_refraction_memory.md Amendment 45 (S1 PASS; S2 FAIL)",
-        preconditions=("per-brain grammars, 16-element walks, word-level score (nearest stored token's word)",
-                       "n/k = 117-150 at tau = n/k / 2; a cell at n/k = 40, tau = n/k, is more tolerant (probed)"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-45-result-2026-10-08",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json", "artifact",
-                        "Amendment 45: recurrence and repetition marginals and five interior arms, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/10000~175~10.48/arms/U10~1bV/word",
-            control_path="observations/cells/10000~175~10.48/arms/U10~1b3/word",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="every brain replays its random-successor sequences and none of its 3.7-repeat sequences at the word level, at (10000, 75, 0.48) (Amendment 45)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/10000~175~10.48/arms/U10~1bV/word",
-            control_path="observations/cells/10000~175~10.48/arms/U60~1bV/word",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45)",
-        )),
-        caveat="The separable product form is approximate, not established (S2 failed by 0.006 "
-               "at one arm). The recurrence failure is whole-brain collapse of unknown mechanism "
-               "(not predicted by the draws' bigram statistics, Amendment 44). Edges measured at "
-               "n/k 117-150 only; small vocabularies, 16-element walks.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,

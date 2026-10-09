@@ -53,7 +53,7 @@ hazard fitted on short sequences underestimates how long the longest survive;
 (iv) an element that recurs across sequences is coded anew in
 each, with a trace of its identity --- an intraclass correlation of about
 $0.1$, fifty to a hundred times chance; (v) links between areas are budgeted by
-the source area alone (exploratory). Five predictions failed on the way and are
+the source area alone (exploratory). Six predictions failed on the way and are
 reported with their numbers. The results form a cost model for programs of
 sequences compiled onto assembly areas.
 \end{abstract}
@@ -367,7 +367,18 @@ twenty uses keep $0.77$ and $0.95$ of sequences whole; repetition also raises
 the overlap of an element's tokens by $0.05$--$0.06$ (Amendment~44).
 \end{proposition}
 
-Two parts of the registration did not resolve. Whether frequency matters at a
+\begin{proposition}[Two edges of the reuse budget]\label{prop:edges} \REG\
+At two further new cells, word-level replay falls through a repetition edge
+($1.00$ at one repeat per transition, $0.35$--$0.68$ at $2.8$, $\le 0.02$ at $3.7$) and a
+recurrence edge (with random successors, $1.00$ at $10$--$20$ uses per element,
+$\approx 0.5$ at $40$, $\le 0.09$ at $60$, failing whole brains at a time), where an
+exploratory probe at a third cell had put them. The product of the two
+marginal curves predicts mixed arms to a mean error of $0.05$--$0.08$; the
+registered tolerance ($0.15$) was missed at one arm of ten, by $0.006$
+(Amendment~45).
+\end{proposition}
+
+Two parts of the earlier registration did not resolve. Whether frequency matters at a
 fixed repetition is untested: every repeated arm sits at zero, and the bar
 written on their spread passes only because a spread on the floor is zero. And
 frequency alone is not free: at twenty uses with random successors, whole
@@ -415,7 +426,7 @@ coincide; the target area's size does not matter.}
 
 \section{What failed}\label{sec:failed}
 
-Five predictions or hypotheses failed and redirected the work. (1) The
+Six predictions or hypotheses failed and redirected the work. (1) The
 constant: registered to hold at $n/k = 300$, it fell to $0.081$ with a fixed
 recovery time, and the safe rule broke (Amendment~38, three of four bars
 failed); the failure located the recovery time. (2) A rescaling of $\rho$ with
@@ -431,6 +442,8 @@ probe showed graded failure, and the bars were rewritten before the judged run.
 (5) A constant per-step hazard, fitted on short sequences, was registered to
 place a whole-load sequence's cliff within $5\%$ and placed it $9.8\%$ low at one
 cell (Amendment~43): the hazard is not constant along a sequence.
+(6) The product law of the reuse budget was registered to predict every mixed
+arm within $0.15$ and missed one of ten by $0.006$ (Amendment~45).
 
 \section{Discussion: a cost model}\label{sec:discussion}
 
@@ -446,7 +459,7 @@ $\le 5$ uses per element and $\le 5\%$ noise cost nothing there & registered (Pr
 Critical load falls $\approx 0.003$ per e-fold of sequence length & registered order, fitted slope (Prop.~\ref{prop:lnl}) \\
 Past it: losses per sequence; constant hazard good to $1024$ elements, pessimistic beyond & registered (one bar failed) \\
 Element identity: Spearman--Brown, $d' \approx \sqrt{\mathrm{ICC}\,k}$ & proved in a model; ICC registered \\
-$\gtrsim 5$ repeats per transition: element replay lost & registered (Prop.~\ref{prop:bigram}) \\
+Reuse: edges near $2.8$ repeats per transition and $40$ uses per element; product law approximate & registered (Props.~\ref{prop:bigram}, \ref{prop:edges}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -481,6 +494,7 @@ The recovery-time peak & 41 & $(6000,300,0.12)$, $(5000,100,0.35)$, $(10000,100,
 Recurrence and noise & 42 & $(4000,100,0.35)$, $(10000,120,0.3)$ & W1, W2, N1, N2 pass \\
 Hazard predictions; length & 43 & $(10000,70,0.5)$, $(8000,50,0.7)$ & K1, K2, K4 pass; K3 fail \\
 Transition repetition & 44 & $(9000,110,0.33)$, $(12000,80,0.45)$ & G1, G4 pass; G3 vacuous; G2 fail \\
+Two edges of reuse & 45 & $(10000,75,0.48)$, $(7000,60,0.6)$ & S1 pass; S2 fail (by $0.006$) \\
 \bottomrule
 \end{tabular}
 \caption{The registrations behind each claim; seeds 522--661, twenty new brains

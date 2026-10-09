@@ -225,8 +225,6 @@ class TestTheoryCitations(unittest.TestCase):
             "LENGTH-COSTS-LOGARITHMICALLY",
             # 2026-10-08: repeated transitions merge a word's tokens in every brain (A44)
             "TRANSITION-REPETITION-BREAKS-REPLAY",
-            # 2026-10-08: replay holds at 1 repeat and 10 uses, fails at 3.7 repeats or 60 uses (A45)
-            "REUSE-BUDGET-TWO-EDGES",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
