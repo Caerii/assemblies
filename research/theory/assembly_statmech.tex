@@ -1317,6 +1317,32 @@ repair came from transitions that do not loop: the dreams wander through
 captured clusters. The open design question is a gate that catches those
 transitions without opening on a healthy store.
 
+It has an answer (\texttt{probe\_sleep\_contrast.py}). A captured cluster is an
+assembly many writes landed on, so it is driven through many potentiated
+synapses: a collapsed store's dreams have \emph{contrast} --- winners' mean drive
+over the area's --- of $7.8$ on average ($90$th percentile $19.5$), a healthy
+store's $1.35$ (maximum $1.37$ in $300$ dreams). Gating unlearning on contrast
+above the healthy maximum repairs the collapsed store quickly ($0.025 \to 0.67$
+after $100$ episodes, no brain collapsed) and closes itself as the clusters
+dissolve: $0.76$, $0.79$, $0.80$ after $300$, $1000$, $3000$ episodes, the gate open
+on $38\% \to 1.7\%$ of steps, $4.5\%$ of counts removed in all --- a plateau where
+ungated sleep erased the store. A healthy store is never touched. Sleep with
+this gate is the offline complement of the comparator: the comparator keeps
+writes off existing assemblies, sleep dissolves the ones that formed anyway,
+and both act only where the store is pathological.
+
+\paragraph{A slow excitability trace is not a context here (exploratory,
+negative).} (\texttt{probe\_excitability.py}.) A CREB-like allocation bias (a
+trace raising the drive of recently allocated cells, decaying over
+$\tau_{\mathrm{link}} \gg \tau$) neither separated sequence starts nor linked
+sequences written close in time; additive it ran away (starts sharing a first
+word overlapped $0.88$, replay $0$), bounded it cost replay in proportion to its
+strength. The reason is quantitative: refraction outweighs the pull until
+$\sim 100$ writes back, and the cells active in such a window are nearly the
+whole area, so the trace is a usage bias, not a context. Linking needs
+$(\text{writes in the window}) \times k \ll n$ --- sparse episodes, as in the
+experiments that found it --- not a dense stream.
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the
