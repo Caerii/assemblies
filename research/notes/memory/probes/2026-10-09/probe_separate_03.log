@@ -1,0 +1,7 @@
+capture threshold 0.3
+equivalence: the written loop reproduces store_sequence (3 sequences, 4 brains)
+
+U = 50 (V 69):
+  standard : reliability 0.025 (brains < 0.2: 19); captured tokens 0.0338; largest cluster 31; interventions 0 of 69440 writes
+  separated: reliability 0.651 (brains < 0.2: 2); captured tokens 0.0000; largest cluster 2; interventions 343 of 69440 writes
+  per brain standard -> separated: 0.10->0.84  0.00->0.13  0.00->0.96  0.04->0.83  0.00->0.38  0.02->0.91  0.00->0.60  0.00->0.80  0.00->0.39  0.00->0.38  0.00->0.08  0.01->0.61  0.01->0.61  0.00->0.80  0.02->0.94  0.00->0.84  0.00->0.70  0.28->0.81  0.03->0.70  0.00->0.71

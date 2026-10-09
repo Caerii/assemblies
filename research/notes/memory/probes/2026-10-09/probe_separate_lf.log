@@ -1,0 +1,22 @@
+capture threshold 0.3; label-free True
+equivalence: the written loop reproduces store_sequence (3 sequences, 4 brains)
+
+U = 10 (V 347):
+  standard : reliability 1.000 (brains < 0.2: 0); captured tokens 0.0000; largest cluster 0; interventions 0 of 69440 writes
+  separated: reliability 1.000 (brains < 0.2: 0); captured tokens 0.0000; largest cluster 0; interventions 405 of 69440 writes
+  per brain standard -> separated: 1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00  1.00->1.00
+
+U = 40 (V 87):
+  standard : reliability 0.426 (brains < 0.2: 8); captured tokens 0.0101; largest cluster 28; interventions 0 of 69440 writes
+  separated: reliability 0.999 (brains < 0.2: 0); captured tokens 0.0000; largest cluster 0; interventions 965 of 69440 writes
+  per brain standard -> separated: 0.60->1.00  0.96->1.00  0.00->1.00  0.66->1.00  0.20->1.00  0.00->1.00  0.03->1.00  0.29->1.00  0.80->1.00  0.99->1.00  0.91->1.00  0.00->1.00  0.98->1.00  0.00->1.00  0.74->1.00  0.00->1.00  0.00->1.00  0.97->1.00  0.11->1.00  0.29->0.99
+
+U = 50 (V 69):
+  standard : reliability 0.025 (brains < 0.2: 19); captured tokens 0.0338; largest cluster 31; interventions 0 of 69440 writes
+  separated: reliability 0.961 (brains < 0.2: 0); captured tokens 0.0000; largest cluster 0; interventions 1052 of 69440 writes
+  per brain standard -> separated: 0.10->0.99  0.00->1.00  0.00->1.00  0.04->1.00  0.00->0.97  0.02->0.97  0.00->1.00  0.00->1.00  0.00->1.00  0.00->1.00  0.00->0.34  0.01->0.98  0.01->1.00  0.00->1.00  0.02->1.00  0.00->1.00  0.00->1.00  0.28->0.97  0.03->1.00  0.00->1.00
+
+U = 60 (V 58):
+  standard : reliability 0.009 (brains < 0.2: 20); captured tokens 0.0584; largest cluster 51; interventions 0 of 69440 writes
+  separated: reliability 0.890 (brains < 0.2: 0); captured tokens 0.0000; largest cluster 0; interventions 1170 of 69440 writes
+  per brain standard -> separated: 0.04->0.89  0.00->0.78  0.00->0.94  0.00->0.86  0.00->0.99  0.00->1.00  0.00->0.76  0.00->0.81  0.00->0.94  0.00->0.99  0.00->0.96  0.00->0.98  0.11->0.97  0.00->0.98  0.01->0.99  0.00->0.99  0.00->0.99  0.02->0.96  0.00->0.61  0.00->0.42

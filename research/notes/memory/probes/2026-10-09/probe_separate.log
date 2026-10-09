@@ -1,0 +1,11 @@
+equivalence: the written loop reproduces store_sequence (3 sequences, 4 brains)
+
+U = 40 (V 87):
+  standard : reliability 0.426 (brains < 0.2: 8); captured tokens 0.0101; largest cluster 28; interventions 0 of 69440 writes
+  separated: reliability 0.614 (brains < 0.2: 4); captured tokens 0.0000; largest cluster 2; interventions 47 of 69440 writes
+  per brain standard -> separated: 0.60->0.60  0.96->0.96  0.00->0.81  0.66->0.66  0.20->0.31  0.00->0.19  0.03->0.59  0.29->0.73  0.80->0.80  0.99->0.99  0.91->0.91  0.00->0.14  0.98->0.98  0.00->0.29  0.74->0.74  0.00->0.07  0.00->0.04  0.97->0.97  0.11->0.72  0.29->0.78
+
+U = 50 (V 69):
+  standard : reliability 0.025 (brains < 0.2: 19); captured tokens 0.0338; largest cluster 31; interventions 0 of 69440 writes
+  separated: reliability 0.094 (brains < 0.2: 17); captured tokens 0.0005; largest cluster 3; interventions 317 of 69440 writes
+  per brain standard -> separated: 0.10->0.23  0.00->0.00  0.00->0.09  0.04->0.10  0.00->0.00  0.02->0.33  0.00->0.00  0.00->0.01  0.00->0.00  0.00->0.00  0.00->0.00  0.01->0.06  0.01->0.15  0.00->0.00  0.02->0.16  0.00->0.16  0.00->0.01  0.28->0.41  0.03->0.13  0.00->0.04

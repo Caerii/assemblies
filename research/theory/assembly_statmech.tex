@@ -1226,6 +1226,25 @@ CA3 stores them --- prevents the cascade's onset, and with it the recurrence
 collapse, without read-time adaptation.
 \end{conjecture}
 
+\paragraph{Pattern separation at write (exploratory).} (\texttt{probe\_separate.py};
+$(10000,75,0.48)$, seeds $980$--$999$.) The store loop is written out (checked
+bit-equal to \texttt{store\_sequence}); before each element's write the round is
+previewed frozen, and if the previewed state overlaps a stored token by at
+least a threshold, that token's neurons are inhibited for this write only.
+Refusing overlap $\ge 0.5$ with another word's token lifts $U = 40$ from $0.43$ to
+$0.61$ but leaves $U = 50$ broken ($0.03 \to 0.09$) although no capture remains.
+At the Hebbian limit's overlap, $0.3$, and \emph{label-free} --- refusing any
+stored token, knowing no words --- the collapse is gone: $U = 40$: $0.426 \to
+0.999$; $U = 50$: $0.025 \to 0.961$; $U = 60$: $0.009 \to 0.890$ (collapsed brains
+$20 \to 0$), with $U = 10$ untouched ($1.000$) and $0.6$--$1.7\%$ of writes
+intervened on. The recurrence edge of Amendment~45 (about $40$ uses per word)
+was a property of the write policy, not of the substrate; a new edge begins
+near $U = 60$. Conjecture~\ref{conj:separation} holds in this probe in its
+label-free form, and at the partial-overlap threshold, not at full capture: the
+damage begins where the Hebbian limit's does. The check compares each preview
+with every stored token, a stand-in for a familiarity signal a circuit would
+have to compute.
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the
