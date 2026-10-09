@@ -1,0 +1,7 @@
+(11000, 80, 0.45) recurrence U=40 b=V: masked 0.437  habit 0.674  strong 0.597
+(11000, 80, 0.45) repetition U=10 b=3: masked 0.000  habit 0.029  strong 0.047
+(11000, 80, 0.45) healthy U=10 b=V: masked 1.000  habit 1.000  strong 1.000
+(8000, 60, 0.6) recurrence U=40 b=V: masked 0.724  habit 0.864  strong 0.609
+(8000, 60, 0.6) repetition U=10 b=3: masked 0.004  habit 0.113  strong 0.052
+(8000, 60, 0.6) healthy U=10 b=V: masked 0.999  habit 1.000  strong 0.952
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.read-adaptation\read-adaptation-20261008\results.json

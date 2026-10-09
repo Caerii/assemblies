@@ -53,7 +53,7 @@ hazard fitted on short sequences underestimates how long the longest survive;
 (iv) an element that recurs across sequences is coded anew in
 each, with a trace of its identity --- an intraclass correlation of about
 $0.1$, fifty to a hundred times chance; (v) links between areas are budgeted by
-the source area alone (exploratory). Six predictions failed on the way and are
+the source area alone (exploratory). Seven predictions failed on the way and are
 reported with their numbers. The results form a cost model for programs of
 sequences compiled onto assembly areas.
 \end{abstract}
@@ -426,7 +426,7 @@ coincide; the target area's size does not matter.}
 
 \section{What failed}\label{sec:failed}
 
-Six predictions or hypotheses failed and redirected the work. (1) The
+Seven predictions or hypotheses failed and redirected the work. (1) The
 constant: registered to hold at $n/k = 300$, it fell to $0.081$ with a fixed
 recovery time, and the safe rule broke (Amendment~38, three of four bars
 failed); the failure located the recovery time. (2) A rescaling of $\rho$ with
@@ -444,6 +444,14 @@ place a whole-load sequence's cliff within $5\%$ and placed it $9.8\%$ low at on
 cell (Amendment~43): the hazard is not constant along a sequence.
 (6) The product law of the reuse budget was registered to predict every mixed
 arm within $0.15$ and missed one of ten by $0.006$ (Amendment~45).
+(7) A control for the recurrence collapse --- adaptation during replay, which
+every other replay here lacks --- was registered to raise a cell's mean by $0.15$,
+to leave the repetition failure untouched and to turn harmful when strong; it
+passed only its no-harm bar (Amendment~46). The cell mean depends on how many
+brains collapse, and the size missed at one cell ($+0.14$); paired by brain after
+the run, every brain that changed improved ($36$ of $36$, none worse), collapsed
+brains rising from $0.01$ to $0.39$ --- a real effect whose size, specificity and
+window the registration did not establish.
 
 \section{Discussion: a cost model}\label{sec:discussion}
 
@@ -495,6 +503,7 @@ Recurrence and noise & 42 & $(4000,100,0.35)$, $(10000,120,0.3)$ & W1, W2, N1, N
 Hazard predictions; length & 43 & $(10000,70,0.5)$, $(8000,50,0.7)$ & K1, K2, K4 pass; K3 fail \\
 Transition repetition & 44 & $(9000,110,0.33)$, $(12000,80,0.45)$ & G1, G4 pass; G3 vacuous; G2 fail \\
 Two edges of reuse & 45 & $(10000,75,0.48)$, $(7000,60,0.6)$ & S1 pass; S2 fail (by $0.006$) \\
+Read-time adaptation & 46 & $(11000,80,0.45)$, $(8000,60,0.6)$ & H2 pass; H1, H3, H4 fail \\
 \bottomrule
 \end{tabular}
 \caption{The registrations behind each claim; seeds 522--661, twenty new brains

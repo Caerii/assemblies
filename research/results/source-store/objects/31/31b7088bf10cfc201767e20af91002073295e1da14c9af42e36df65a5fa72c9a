@@ -799,10 +799,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | G4 repeated transitions merge tokens (A44) | same-word overlap +0.03 | PASS | +0.059, +0.052 |
 | S1 two reuse edges (A45) | both edges at both cells | PASS | U 60: 0.00, 0.09; R 3.7: 0.00, 0.02 |
 | S2 separable reuse budget (A45) | interior within 0.15 of f(R) g(U), informative | FAIL | 9/10 within; one +0.156; MAE 0.08, 0.05 |
-| H1 read-time adaptation rescues collapse (A46) | habit - masked >= 0.15 | FAIL | +0.237, +0.140 (post hoc: 19/19, 17/17 brains up) |
-| H2 no harm to a healthy memory (A46) | habit >= 0.97 | PASS | 1.000, 1.000 |
-| H3 repetition failure untouched (A46) | gain <= 0.1 | FAIL | +0.029, +0.109 |
-| H4 adaptation has a window (A46) | strong <= masked - 0.1 | FAIL | +0.160, -0.115 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5967,43 +5963,3 @@ Word-level reliability as Amendment 44.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until H1 to H4 are evaluated and recorded below.
-
-### Amendment 46 result (2026-10-09)
-
-One run from a worktree pinned at b2aa2c32, seeds 702 to 721:
-[record](../../results/runs/memory.read-adaptation/read-adaptation-20261008/results.json),
-[log](../../results/logs/memory-read-adaptation-20261008.log). Word-level
-reliability, masked / habit (c = 0.1, T = 50) / strong (c = 0.3, T = 50):
-
-                     (11000, 80, 0.45)          (8000, 60, 0.6)
-    recurrence       0.437 / 0.674 / 0.597      0.724 / 0.864 / 0.609
-    repetition       0.000 / 0.029 / 0.047      0.004 / 0.113 / 0.052
-    healthy          1.000 / 1.000 / 1.000      0.999 / 1.000 / 0.952
-
-    H1  READ-TIME ADAPTATION RESCUES THE COLLAPSE                      FAIL
-        +0.237 at (11000, 80, 0.45); +0.140 at (8000, 60, 0.6) (bar 0.15).
-    H2  IT DOES NOT HARM A HEALTHY MEMORY                              PASS
-        1.000 and 1.000.
-    H3  IT DOES NOT TOUCH THE REPETITION FAILURE                       FAIL
-        +0.029 and +0.109 (bar 0.1).
-    H4  IT HAS A WINDOW                                                FAIL
-        strong 0.597 against masked 0.437 at (11000, 80, 0.45) -- better,
-        not worse; -0.115 at (8000, 60, 0.6).
-
-**Reading.** One bar of four. The rescue's size was registered as a mean over
-all twenty brains, and that mean depends on how many brains collapse under the
-masked read: ten at the first cell, three at the second, where the masked mean
-(0.724) left little room. The repetition failure moved slightly at one cell
-(+0.11), so read-time adaptation is not wholly inert there; and the window's
-upper side, at c T = 15 at the probe's cell, lies further out at the first new
-cell, where c = 0.3 still helped.
-
-**Checked after the run (post hoc, not a bar).** Paired by brain, the
-direction is unambiguous: in the recurrence arm every brain that changed
-improved -- 19 of 19 at (11000, 80, 0.45) and 17 of 17 at (8000, 60, 0.6), none
-worse (sign tests p ~ 4e-6 and 2e-5) -- and the collapsed brains (masked < 0.2)
-rose from 0.012 to 0.393 and from 0.004 to 0.395. Read-time adaptation lifts
-collapsed brains and costs a healthy memory nothing; how much it lifts a
-cell's mean, whether it is specific to the collapse, and where its window
-closes are not established. A registration of the rescue should be conditional
-on collapse (paired, per collapsed brain), not a cell mean.
