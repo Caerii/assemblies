@@ -6239,3 +6239,84 @@ rescued in the order of their margin, and the size of their rescue was predicted
 before it was applied, within 0.03 and 0.05 (both predictions slightly high).
 The recurrence collapse is a loss of signal margin, and Amendment 47's deeper
 collapses were brains with less of it.
+
+## Amendment 49 (2026-10-09, before running): pattern separation at write prevents the recurrence collapse
+
+Registered before any run at the cells below. Amendment 48 placed replay on one
+logit margin; exploratory probes after it (`research/notes/memory/probes/2026-10-09/`,
+disclosed here) found where the margin goes and what destroys it.
+
+**Seen before registering.** At (10000, 75, 0.48), seeds 980 to 999, a judged
+cell:
+* An exact drive decomposition (`probe_drive.py`): the correct word's rival is
+  the FAN -- successors of the current word's other occurrences, driven by its
+  type trace (86-99% of first steps); reuse raises the rival, not the signal.
+* A two-chain reduction (`probe_map2.py`) is refuted; clamped clean states are
+  read as the wrong word 6-16% of the time at U = 40-50.
+* The collapse is written into the STORE (`probe_store.py`): collapsed brains
+  hold tokens of different words laid onto one assembly (clusters up to 31;
+  Spearman -0.97 with reliability within U = 40), healthy brains none; in write
+  order a CASCADE (`probe_cascade.py`) with a brain-specific onset, after which
+  capture accelerates and even earlier, cleanly written sequences fail.
+* Pattern separation at write (`probe_separate.py`): preview each write frozen,
+  and inhibit for that write the neurons of any stored token the preview
+  overlaps by at least a threshold. At 0.5, another word's tokens only: U = 40
+  0.426 -> 0.614, U = 50 0.025 -> 0.094. At 0.3 and LABEL-FREE (any stored
+  token): U = 10 1.000 -> 1.000; U = 40 0.426 -> 0.999; U = 50 0.025 -> 0.961;
+  U = 60 0.009 -> 0.890 (collapsed brains 20 -> 0, two brains at 0.42 and
+  0.61); interventions 0.6-1.7% of writes; no captured token left.
+* A smoke run of this module (VOID, seeds 900 to 902) ran only the survey cell
+  (2000, 60, 0.5), U = 10 and 40: the written loop equal to store_sequence;
+  standard 1.000 and 0.548, separated 1.000 and 1.000; 20 and 42
+  interventions.
+No run has touched (9500, 70, 0.5) or (11500, 80, 0.45).
+
+### Protocol
+
+`research/experiments/memory_write_separation.py` (`python -m research.runner
+write_separation`), seeds 762 to 781 (new brains), one run from a worktree
+pinned at the commit registering this amendment. Cells (9500, 70, 0.5)
+(n/k = 136, tau = 68) and (11500, 80, 0.45) (n/k = 144, tau = 72), by
+Amendment 41's rule; k p = 35 and 36 against 3 ln n = 27.5 and 28.0.
+Per-brain grammars, random successors, 16-element walks, rho = 0.05,
+word-level score. Arms U = 10, 50, 60 uses per word; each arm's memories are
+stored twice on the same brains -- STANDARD (store_sequence's loop) and
+SEPARATED (the same loop with the label-free check: capture threshold 0.3,
+inhibition 1e4 for that write only) -- and every sequence is replayed masked
+from a random half cue. The run first checks that the written loop, separation
+off, reproduces store_sequence bit for bit; if not, every bar fails. Per brain:
+reliability, captured share (tokens sharing >= 0.5 with a token of another
+word), largest cluster; per store: interventions.
+
+    python -m research.runner write_separation \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag write-separation-20261009 --seeds 762 ... 781
+
+### Bars
+
+    W1  NO HARM. At both cells, U = 10 separated >= 0.97.
+    W2  THE COLLAPSE IS PREVENTED. At both cells, U = 50 separated >= 0.85
+        and at least 0.4 above standard (probe 0.961 vs 0.025).
+    W3  REACH. At both cells, U = 60 separated >= 0.7 (probe 0.890).
+    W4  NO COLLAPSED BRAINS. At both cells, at most 2 separated brain-arms
+        below 0.2 over U = 50 and 60 (probe 0).
+    W5  CHEAP. Interventions <= 3% of writes in every separated arm.
+    W6  NO CAPTURE. Captured share <= 0.001 in every separated arm.
+
+Reported, not judged: the standard arms' captures and clusters; per-brain
+readings.
+
+### Interpretation, stated now
+
+* W1 to W6 pass: the recurrence collapse is prevented at its source, by a
+  label-free pattern separation acting on a few percent of writes; the reuse
+  edge of Amendment 45 is a property of the write policy, not the substrate.
+* W2 or W4 fails with W6 passing: capture is removed but replay still fails --
+  the collapse is not only capture at new cells.
+* W1 fails: separation costs a healthy store. W5 fails: it is not cheap.
+* A failed bar is recorded as failed and not moved.
+
+The check compares each preview with every stored token -- a stand-in for a
+familiarity signal; a circuit that computes it is not tested here.
+
+The run is UNJUDGED until W1 to W6 are evaluated and recorded below.

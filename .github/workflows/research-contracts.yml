@@ -96,6 +96,7 @@ jobs:
           neural_assemblies/tests/test_memory_read_adaptation.py
           neural_assemblies/tests/test_memory_read_rescue.py
           neural_assemblies/tests/test_memory_signal_margin.py
+          neural_assemblies/tests/test_memory_write_separation.py
           neural_assemblies/tests/test_throughput_contract.py
           neural_assemblies/tests/test_active_evidence_graph.py
           neural_assemblies/tests/test_horizon_null_contract.py
