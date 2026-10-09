@@ -1,0 +1,12 @@
+
+U = 50 (V 69); counts held 213888929
+  sleep     0 episodes: reliability 0.025 (brains < 0.2: 19); counts removed 0 (0.0000 of held); sleep steps landing on a stored token 0.000
+  sleep   100 episodes: reliability 0.702 (brains < 0.2:  0); counts removed 14336336 (0.0670 of held); sleep steps landing on a stored token 0.234
+  sleep   300 episodes: reliability 0.743 (brains < 0.2:  0); counts removed 33169502 (0.1551 of held); sleep steps landing on a stored token 0.079
+  sleep  1000 episodes: reliability 0.000 (brains < 0.2: 20); counts removed 86029443 (0.4022 of held); sleep steps landing on a stored token 0.024
+  sleep  3000 episodes: reliability 0.000 (brains < 0.2: 20); counts removed 167860056 (0.7848 of held); sleep steps landing on a stored token 0.008
+
+U = 10 (V 347); counts held 213813215
+  sleep     0 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0 (0.0000 of held); sleep steps landing on a stored token 0.000
+  sleep  1000 episodes: reliability 0.000 (brains < 0.2: 20); counts removed 83122670 (0.3888 of held); sleep steps landing on a stored token 0.000
+  sleep  3000 episodes: reliability 0.000 (brains < 0.2: 20); counts removed 167002553 (0.7811 of held); sleep steps landing on a stored token 0.000

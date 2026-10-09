@@ -1,0 +1,12 @@
+
+U = 30: 65100 judged writes, oracle-flagged 0.0019
+  comparator AUC 0.964; hit at 2% false alarms 0.82; mean flagged 0.6164 vs unflagged 0.3457
+  fam2       AUC 0.947; hit at 2% false alarms 0.80; mean flagged 1.22 vs unflagged 0.3155
+  fam4       AUC 1.000; hit at 2% false alarms 1.00; mean flagged 0.2494 vs unflagged 0.0009633
+  fam8       AUC 1.000; hit at 2% false alarms 1.00; mean flagged 0.1128 vs unflagged 4.272e-07
+
+U = 50: 65100 judged writes, oracle-flagged 0.0434
+  comparator AUC 0.995; hit at 2% false alarms 0.96; mean flagged 0.8236 vs unflagged 0.3573
+  fam2       AUC 0.991; hit at 2% false alarms 0.95; mean flagged 4.584 vs unflagged 0.3347
+  fam4       AUC 1.000; hit at 2% false alarms 1.00; mean flagged 3.205 vs unflagged 0.001413
+  fam8       AUC 1.000; hit at 2% false alarms 1.00; mean flagged 2.7 vs unflagged 1.091e-06

@@ -1,0 +1,13 @@
+
+U = 50 (V 69); counts held 213888929
+  gated sleep     0 episodes: reliability 0.025 (brains < 0.2: 19); counts removed 0 (0.0000 of held); steps that looped 0.000
+  gated sleep   100 episodes: reliability 0.178 (brains < 0.2: 12); counts removed 1338363 (0.0063 of held); steps that looped 0.026
+  gated sleep   300 episodes: reliability 0.245 (brains < 0.2: 10); counts removed 1960334 (0.0092 of held); steps that looped 0.013
+  gated sleep  1000 episodes: reliability 0.332 (brains < 0.2:  8); counts removed 3617107 (0.0169 of held); steps that looped 0.007
+  gated sleep  3000 episodes: reliability 0.473 (brains < 0.2:  3); counts removed 5623479 (0.0263 of held); steps that looped 0.004
+
+U = 10 (V 347); counts held 213813215
+  gated sleep     0 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0 (0.0000 of held); steps that looped 0.000
+  gated sleep   300 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0 (0.0000 of held); steps that looped 0.000
+  gated sleep  1000 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0 (0.0000 of held); steps that looped 0.000
+  gated sleep  3000 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0 (0.0000 of held); steps that looped 0.000
