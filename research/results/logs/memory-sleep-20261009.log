@@ -1,0 +1,7 @@
+(9000, 65, 0.5) threshold 1.423 (reference mean 1.359, max 1.395)
+  U=50: contrast before 5.334; 0: 0.150 (removed 0.0000, gated 0.000)  100: 0.743 (removed 0.0259, gated 0.266)  300: 0.803 (removed 0.0280, gated 0.020)  1000: 0.825 (removed 0.0297, gated 0.005)  3000: 0.836 (removed 0.0310, gated 0.001)
+  U=10: contrast before 1.358; 0: 1.000 (removed 0.0000, gated 0.000)  100: 1.000 (removed 0.0000, gated 0.000)  300: 1.000 (removed 0.0000, gated 0.000)  1000: 1.000 (removed 0.0000, gated 0.000)  3000: 1.000 (removed 0.0000, gated 0.000)
+(11000, 85, 0.42) threshold 1.426 (reference mean 1.371, max 1.398)
+  U=50: contrast before 6.653; 0: 0.036 (removed 0.0000, gated 0.000)  100: 0.623 (removed 0.0435, gated 0.429)  300: 0.725 (removed 0.0474, gated 0.035)  1000: 0.751 (removed 0.0500, gated 0.007)  3000: 0.764 (removed 0.0521, gated 0.002)
+  U=10: contrast before 1.371; 0: 0.999 (removed 0.0000, gated 0.000)  100: 0.999 (removed 0.0000, gated 0.000)  300: 0.999 (removed 0.0000, gated 0.000)  1000: 0.999 (removed 0.0000, gated 0.000)  3000: 0.999 (removed 0.0000, gated 0.000)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.sleep\sleep-20261009\results.json

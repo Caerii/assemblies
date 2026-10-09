@@ -1,0 +1,174 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.37427": {
+        "arc_refraction_charge": 0.187135,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.38882": {
+        "arc_refraction_charge": 0.19441,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "6c944edec69a0abc6bdb267c1e833879497e5dcf",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "calibration": 300,
+    "cells": [
+      {
+        "beta": 0.37427,
+        "doses": [
+          0,
+          100,
+          300,
+          1000,
+          3000
+        ],
+        "k": 65,
+        "n": 9000,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 69
+      },
+      {
+        "beta": 0.38882,
+        "doses": [
+          0,
+          100,
+          300,
+          1000,
+          3000
+        ],
+        "k": 85,
+        "n": 11000,
+        "p": 0.42,
+        "rho": 0.05,
+        "tau": 65
+      }
+    ],
+    "device": "cuda",
+    "length": 16,
+    "margin": 1.02,
+    "match": 0.3,
+    "reference_seeds": [
+      822,
+      823,
+      824,
+      825,
+      826,
+      827,
+      828,
+      829,
+      830,
+      831,
+      832,
+      833,
+      834,
+      835,
+      836,
+      837,
+      838,
+      839,
+      840,
+      841
+    ],
+    "settle": 2,
+    "steps": 8,
+    "strength": 0.5,
+    "uses": [
+      50,
+      10
+    ],
+    "w_max": 20.0
+  },
+  "protocol": "memory.sleep",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "4995957f1463761f3bef7e49c97b6e17bfc929c6d5ab9dfa3b74e48be64a363c",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_sleep.py",
+  "script_sha256": "b9b4c809ac34dfbaa5281073da9f6cf10ee89a37a43586ede89aa06760d8fd70",
+  "seeds": [
+    802,
+    803,
+    804,
+    805,
+    806,
+    807,
+    808,
+    809,
+    810,
+    811,
+    812,
+    813,
+    814,
+    815,
+    816,
+    817,
+    818,
+    819,
+    820,
+    821
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "e2b79d8effaa51dfe6d526163f53ba0b7a574d35933f44eff74c8b2c273d1efe"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "b62dafe27e116315f788762c8046ad048cbec7f3db2ecff31594467a91636a16",
+  "started_utc": "2026-10-09T23:20:45.484173+00:00",
+  "tag": "sleep-20261009"
+}

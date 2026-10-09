@@ -235,8 +235,6 @@ class TestTheoryCitations(unittest.TestCase):
             "WRITE-SEPARATION-PREVENTS-COLLAPSE",
             # 2026-10-09: every 60-use brain replays better with the local comparator (A50)
             "LOCAL-COMPARATOR-SEPARATES-AT-WRITE",
-            # 2026-10-09: every collapsed brain replays better after gated sleep (A51)
-            "SELF-LIMITING-SLEEP-REPAIRS-CAPTURE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

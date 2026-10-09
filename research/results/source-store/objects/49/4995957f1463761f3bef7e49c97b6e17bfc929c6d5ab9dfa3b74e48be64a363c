@@ -823,12 +823,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | C4 selective (A50) | flags <= 5% (U 50), <= 1% (U 10) | PASS | 2.3%, 1.7%; 0.17%, 0.06% |
 | C5 it detects capture (A50) | hit >= 0.6 | PASS | 0.78, 0.84 |
 | C6 no capture left (A50) | captured <= 0.001 | PASS | 0.000 |
-| S1 repair (A51) | U 50 after 300 >= 0.6, +0.4 | PASS | 0.803, 0.725 |
-| S2 no erasure (A51) | 3000 >= 300 - 0.05 | PASS | 0.836, 0.764 |
-| S3 no harm (A51) | U 10 >= 0.97, <= 0.1% removed | PASS | 1.000, 0.999; 0 |
-| S4 the gate closes (A51) | <= 2% of steps in 1000-3000 | PASS | 0.14%, 0.19% |
-| S5 frugal (A51) | <= 10% of counts | PASS | 3.1%, 5.2% |
-| S6 no collapsed brains (A51) | <= 2 below 0.2 | PASS | 0, 0 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6569,37 +6563,3 @@ sleep.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until S1 to S6 are evaluated and recorded below.
-
-### Amendment 51 result (2026-10-09)
-
-One run from a worktree pinned at 6c944ede, subject seeds 802 to 821,
-reference brains 822 to 841:
-[record](../../results/runs/memory.sleep/sleep-20261009/results.json),
-[log](../../results/logs/memory-sleep-20261009.log). Thresholds from the
-reference brains: 1.423 (mean 1.359, max 1.395) and 1.426 (mean 1.371, max
-1.398) -- no outlier. Contrast before sleep: U = 50 5.33 and 6.65; U = 10
-1.358 and 1.371. Mean word-level reliability after cumulative sleep (counts
-removed; share of steps gated in the interval):
-
-    (9000, 65, 0.5)   U 50   0: 0.150   100: 0.743 (2.6%; 27%)  300: 0.803 (2.8%; 2.0%)
-                             1000: 0.825 (3.0%; 0.5%)  3000: 0.836 (3.1%; 0.14%)
-                      U 10   1.000 at every dose; nothing gated, nothing removed
-    (11000, 85, 0.42) U 50   0: 0.036   100: 0.623 (4.4%; 43%)  300: 0.725 (4.7%; 3.5%)
-                             1000: 0.751 (5.0%; 0.7%)  3000: 0.764 (5.2%; 0.19%)
-                      U 10   0.999 at every dose; nothing gated, nothing removed
-
-    S1  REPAIR                   PASS  0.803 (+0.65), 0.725 (+0.69)
-    S2  NO ERASURE               PASS  0.836 >= 0.753, 0.764 >= 0.675
-    S3  NO HARM                  PASS  1.000, 0.999; 0 counts removed
-    S4  THE GATE CLOSES          PASS  0.14%, 0.19% of steps in 1000-3000
-    S5  FRUGAL                   PASS  3.1%, 5.2% of counts
-    S6  NO COLLAPSED BRAINS      PASS  0 and 0 below 0.2 after 300 (lowest 0.55, 0.60)
-
-**Reading.** A sleep gated by a signal the network has -- how hard its dreaming
-state is driven, against a healthy reference store's maximum -- repairs a
-captured store at two new cells (0.04-0.15 -> 0.73-0.80 after 300 episodes,
-0.76-0.84 after 3000), closes itself as the captured clusters dissolve (the
-gate open on 0.1-0.2% of steps at the end; 3-5% of counts removed in all), and
-never touches a healthy store. Offline unlearning is the complement of
-write-time separation: one prevents capture, the other dissolves it, and both
-act only where the store is pathological.

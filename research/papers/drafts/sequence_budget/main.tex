@@ -448,6 +448,23 @@ recurrence globally during writing instead --- a cholinergic encoding mode
 exploratory probes: recurrence at write is what makes the token code.
 \end{proposition}
 
+What forms anyway can be removed offline. Unlearning --- running the store
+from noise and depressing the transitions it falls into
+\citep{hopfield1983unlearning}, the function proposed for REM sleep
+\citep{crick1983function} --- repairs a captured store in exploratory probes but
+has a window, and past it erases any store, a healthy one too. Gated by how
+hard the dreaming state is driven, it does not.
+
+\begin{proposition}[A self-limiting sleep]\label{prop:sleep} \REG\
+Depress a dream transition only if its winners' mean drive over the area's
+exceeds the largest such contrast a healthy reference store's dreams reach
+(captured clusters are driven $5$--$7$ times harder than a healthy store's
+dreams). At two new cells, $50$ uses per element go from $0.04$--$0.15$ to
+$0.73$--$0.80$ after $300$ episodes and $0.76$--$0.84$ after $3000$; the gate
+closes as the clusters dissolve, $3$--$5\%$ of counts are removed, and a
+healthy store is never touched (Amendment~51).
+\end{proposition}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
@@ -539,6 +556,7 @@ Read-time adaptation helps every failing brain, harms none & registered \\
 Replay holds above a relative logit margin $\approx 0.76$; adaptation lowers it to $\approx 0.65$ and its rescue is predicted & registered (Prop.~\ref{prop:margin}) \\
 Separation at write ($<2\%$ of writes) removes the recurrence edge: $60$ uses per element replay at $0.91$ & registered (Prop.~\ref{prop:separation}) \\
 A local comparator (recall vs write) does it without an oracle, on $2$--$3\%$ of writes & registered (Prop.~\ref{prop:comparator}) \\
+Contrast-gated sleep repairs a captured store and never touches a healthy one & registered (Prop.~\ref{prop:sleep}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -579,9 +597,10 @@ Read-time rescue, paired & 47 & $(9000,70,0.5)$, $(13000,90,0.4)$ & Q1, Q3 pass;
 One logit margin & 48 & $(7500,55,0.6)$, $(12500,85,0.42)$ & M1--M4 pass \\
 Separation at write & 49 & $(9500,70,0.5)$, $(11500,80,0.45)$ & W1--W6 pass \\
 Local comparator & 50 & $(8500,65,0.5)$, $(12000,85,0.43)$ & C1--C6 pass \\
+Self-limiting sleep & 51 & $(9000,65,0.5)$, $(11000,85,0.42)$ & S1--S6 pass \\
 \bottomrule
 \end{tabular}
-\caption{The registrations behind each claim; seeds 522--801, twenty new brains
+\caption{The registrations behind each claim; seeds 522--841, twenty new brains
 per amendment.}
 \label{tab:methods}
 \end{table}

@@ -1556,46 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="SELF-LIMITING-SLEEP-REPAIRS-CAPTURE",
-        engine="hashed AssemblyMemory as Amendment 44; standard store_sequence, then unlearning on the count matrix",
-        status=Status.MEASURED,
-        claim="Unlearning from noise (Hopfield, Feinstein & Palmer 1983; Crick & Mitchison's proposed "
-              "function of REM sleep) gated by settling contrast -- a dream transition is depressed "
-              "only if its winners' mean drive over the area's exceeds a healthy reference store's "
-              "maximum -- repairs a captured store and spares a healthy one. At two new cells: 50 uses "
-              "per word from 0.04-0.15 to 0.73-0.80 after 300 episodes and 0.76-0.84 after 3000, no "
-              "brain left collapsed; the gate closes as the clusters dissolve (0.1-0.2% of steps at "
-              "the end; 3-5% of counts removed in all); a healthy store unchanged, nothing removed. "
-              "Ungated, the same unlearning erases any store past a window (exploratory).",
-        source="PREREG_refraction_memory.md Amendment 51 (S1-S6 PASS)",
-        preconditions=("random-successor reuse at 50 and 10 uses per word, rho = 0.05, n/k 129-138",
-                       "threshold 1.02 x the maximum contrast of 300 dreams of a U = 10 store on separate reference brains"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-51-result-2026-10-09",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.sleep/sleep-20261009/results.json", "artifact",
-                        "Amendment 51: calibration, and replay of U = 50 and U = 10 stores after cumulative sleep doses, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.sleep/sleep-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/9000~165~10.5/50/doses/2/reliability",
-            control_path="observations/cells/9000~165~10.5/50/doses/0/reliability",
-            relation="all-greater", minimum_effect=0.1,
-            mechanism="every brain's 50-use store replays better after 300 episodes of gated sleep, at (9000, 65, 0.5) (Amendment 51)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.sleep/sleep-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/11000~185~10.42/50/doses/2/reliability",
-            control_path="observations/cells/11000~185~10.42/50/doses/0/reliability",
-            relation="all-greater", minimum_effect=0.1,
-            mechanism="the same at (11000, 85, 0.42) (Amendment 51)",
-        )),
-        caveat="The threshold needs a healthy reference store at the same cell; a rare settling dream "
-               "in it raises the threshold (the small-area smoke: max 2.18 vs mean 1.35) and makes the "
-               "gate conservative. Repair plateaus at 0.76-0.84, below write-time separation's 0.94-0.99. "
-               "One reuse kind; n/k 129-138.",
-    ),
-    Result(
         id="LOCAL-COMPARATOR-SEPARATES-AT-WRITE",
         engine="hashed AssemblyMemory as Amendment 44; store_sequence's loop written out with a comparator",
         status=Status.MEASURED,
