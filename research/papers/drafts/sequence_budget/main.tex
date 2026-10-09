@@ -1,0 +1,452 @@
+\documentclass[11pt]{article}
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath,amssymb,amsthm,booktabs,microtype,graphicx,xcolor}
+\usepackage[round,authoryear]{natbib}
+\usepackage[colorlinks,linkcolor=blue!50!black,citecolor=blue!50!black]{hyperref}
+
+\theoremstyle{definition}
+\newtheorem{definition}{Definition}
+\theoremstyle{plain}
+\newtheorem{lemma}{Lemma}
+\newtheorem{proposition}[lemma]{Proposition}
+\newtheorem{conjecture}[lemma]{Conjecture}
+
+% Every claim carries its evidence: REGISTERED (bars fixed before the data, cells
+% never run before, twenty new brains), EXPLORATORY (a probe, reported to explain,
+% never to support), or PROVED (within a stated model).
+\newcommand{\REG}{\textnormal{\footnotesize\textsf{[REGISTERED]}}}
+\newcommand{\EXP}{\textnormal{\footnotesize\textsf{[EXPLORATORY]}}}
+\newcommand{\PROVED}{\textnormal{\footnotesize\textsf{[PROVED]}}}
+\newcommand{\OPEN}{\textnormal{\footnotesize\textsf{[OPEN]}}}
+\newcommand{\Prob}{\mathbb{P}}
+
+\title{The Budget of a Sequence Area:\\
+an Interference Load Law, a Hazard Compounded over Length,\\
+and a Token Code with a Type Trace}
+% AUTHOR LIST TO BE DECIDED by the authors; the library's citation order
+% (CITATION.cff) is not automatically the paper's.
+\author{Alif Jakir\\ \small MIT; Superintelligent Group\\ \small ORCID 0009-0000-6337-5174\thanks{Working draft. Every number
+cites a registration in \texttt{research/notes/memory/PREREG\_refraction\_memory.md}
+or a probe under \texttt{research/notes/memory/probes/2026-10-08/}; figures and
+intervals are rebuilt from committed records by
+\texttt{research/experiments/memory\_budget\_figures.py}.}}
+\date{Draft, 2026-10-08}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+A recurrent area of $n$ neurons, $k$ of them active, connected at density $p$,
+with a Hebbian write and an adaptation current that recovers over $\tau$ steps,
+stores sequences that it replays by itself. How much can one such area hold,
+and how does it fail? On pre-registered tests at cells no run had touched, we
+find: (i) one sequence of $L$ elements replays whole on every brain up to a
+critical value of the interference load $\rho = Lk\ln n/(n^2p)$ --- a variable
+derived to first order --- and on none a factor $1.07$--$1.15$ above it; (ii) the
+recovery time must match the interval between a neuron's uses, $n/k$: matched,
+it buys up to $1.65$ times the budget in small areas, and a fixed recovery time
+fails large areas outright; (iii) up to $\rho = 0.09$ every sequence replays
+whole however the budget is split, and past it short sequences are lost one by
+one, by a per-step hazard compounded over length that predicts where long
+sequences fail; (iv) an element that recurs across sequences is coded anew in
+each, with a trace of its identity --- an intraclass correlation of about
+$0.1$, fifty to a hundred times chance; (v) links between areas are budgeted by
+the source area alone (exploratory). Three predictions failed on the way and are
+reported with their numbers. The results form a cost model for programs of
+sequences compiled onto assembly areas.
+\end{abstract}
+
+\section{Introduction}
+
+Neural assemblies --- sets of neurons that fire together and are formed by
+Hebbian plasticity under competitive inhibition --- have been proposed as the
+units of a computational calculus
+\citep{papadimitriou2020brain,dabagia2025sequences}. A calculus becomes a
+programming substrate only once its operations have costs: how many items an
+area holds, how reliably, and how failure grows with load. For attractor
+memories this is the classical capacity theory
+\citep{willshaw1969nonholographic,amit1985storing,tsodyks1988enhanced}; for
+sequences stored as chains of transitions it began with
+\citet{sompolinsky1986temporal} and \citet{kleinfeld1986sequential}, and
+adaptation as the force that moves activity along a chain goes back to latching
+networks \citep{treves2005frontal}.
+
+This paper measures the budget of one sequence area of the assembly substrate,
+on a protocol in which every claim was registered before its data, at
+parameter cells never run before, on twenty new random connectomes
+(\emph{brains}). Its contributions:
+\begin{enumerate}
+\item A load law: a variable derived from interference
+  (Lemma~\ref{lem:load}), a critical value predicted and confirmed at new cells,
+  and its domain (Section~\ref{sec:law}).
+\item The recovery time as a design parameter matched to neuron reuse, with a
+  peak in small areas and a failure mode on each side (Section~\ref{sec:tau}).
+\item The structure of failure: all-or-none for one long sequence, one by one
+  for many short ones, unified by a hazard model whose consequences we prove
+  and whose predictions we register (Section~\ref{sec:hazard}).
+\item A token code: recurring elements coded apart with a measurable trace of
+  their identity, and what that trace allows (Section~\ref{sec:tokens}).
+\item The cost of links between areas (exploratory; Section~\ref{sec:links}),
+  and a section of failed predictions (Section~\ref{sec:failed}).
+\end{enumerate}
+
+\section{The substrate and the protocol}\label{sec:methods}
+
+\paragraph{The area.} An area has $n$ neurons, connected by a random directed
+graph of density $p$ regenerated from a hash per brain. At each round the $k$
+neurons with the largest input win ($k$-WTA). A synapse whose presynaptic neuron
+won the previous round and whose postsynaptic neuron wins now is potentiated,
+its weight multiplied by $1+\beta$ up to a clip $w_{\max} = 20$; inputs are
+normalised by in-degree. The write rate is the area's convergence threshold,
+$\beta = \theta = \sqrt{(1-p)\ln n/(pk)}$. A refraction bias charges every winner
+by $s = \beta/2$ of its input and decays by $e^{-1/\tau}$ per round: a winner is
+handicapped for about $\tau$ rounds.
+
+\paragraph{Writing and replay.} A sequence is written one round per element:
+element $e$'s stimulus fires with the recurrent input from element $e-1$'s
+winners, and the write records the transition. Sequences written by separate
+calls are not linked. Replay is one \emph{frozen} (no writing), \emph{masked}
+(no refraction) round per step from a uniformly random half of the first
+element's winners; a step succeeds if the read-out overlaps the stored state by
+at least $0.3$; a sequence is \emph{whole} if every step succeeds.
+
+\paragraph{Protocol and statistics.} Each claim below was a registration whose
+bars were fixed before any run of its cells (Table~\ref{tab:methods}); smoke runs
+touched only cells outside the judged set and were discarded. Reliability is
+measured on a geometric ladder of loads, a fresh memory per point, and
+$\rho_q$ is the load at which it falls through $q$, log-interpolated. Intervals
+(Table~\ref{tab:crossings}) are percentile bootstraps over brains
+\citep{efron1979bootstrap} beside the two ladder points that bracket the
+crossing: where reliability jumps between adjacent ladder points on every brain
+the bootstrap interval collapses, and the bracket is the honest resolution.
+
+\section{A load law}\label{sec:law}
+
+\begin{definition}[Independent-count model]\label{def:icm}
+The $L$ stored states are independent uniform $k$-subsets; each transition adds
+one count to every present synapse from one state to the next; weights
+$(1+\beta)^c$ are linearised to $1+\beta c$; successors are not selected by the
+connectome; normalisation is a common factor.
+\end{definition}
+
+\begin{lemma}[Interference load]\label{lem:load} \PROVED\ in the
+independent-count model, to first order in $k/n$. From a state holding a
+fraction $o$ of $s_t$, the members of $s_{t+1}$ receive a learned excess
+$o\,\beta\sqrt{kp/(1-p)}$ standard deviations of the base input above it; every
+neuron receives, from the other transitions, an excess whose variance relative
+to the base input's is
+\[
+  \rho_\beta = \frac{Lk^2\beta^2}{n^2(1-p)},
+  \qquad\text{at } \beta = \theta:\quad
+  \rho = \frac{Lk\ln n}{n^2p},\ \text{signal } o\sqrt{\ln n}.
+\]
+\end{lemma}
+
+\begin{proof}
+The base input from $k$ active sources has variance $kp(1-p)$. A member of
+$s_{t+1}$ has $okp$ active potentiated inputs worth $\beta$ each. A neuron $j$
+gains $\beta$ for every other transition $s_u\to s_{u+1}$ with an active $i \in
+s_u$, $j\in s_{u+1}$ and $(i,j)$ present: a Poisson number with mean $L\cdot
+(k^2/n)\cdot(k/n)\cdot p$, so the excess has variance $\beta^2Lk^3p/n^2$; divide
+by $kp(1-p)$.
+\end{proof}
+
+With the storage ratio $\alpha = L/n$ and coding level $f = k/n$, the law at
+$\beta = \theta$ reads $\alpha_c f\ln n/p = \rho_c$, the form of the sparse
+associative-memory capacity $\alpha_c f\ln(1/f) = O(1)$
+\citep{willshaw1969nonholographic,tsodyks1988enhanced} with $\ln n$ in place of
+$\ln(1/f)$: here the write rate, scaled with $\sqrt{\ln n}$, sets the signal.
+The numerical closeness of $\rho_c$ to the Hopfield ratio $0.138$
+\citep{amit1985storing} is a coincidence of normalisations.
+
+\begin{proposition}[The load law]\label{prop:law} \REG\
+In the regime $kp \ge 3\ln n$, with the mean count per synapse pair
+$L(k/n)^2 = \rho kp/\ln n$ below about $0.5$, one sequence replays whole on
+every brain up to a critical load and on none a factor $1.07$--$1.15$ above it
+(Figure~\ref{fig:law}). Predicted at $\rho_{50} = 0.142$ from an exploratory
+survey of seven cells, it was measured at $0.141$ and $0.115$ at two cells never
+run (Amendment~37). Below the regime floor the cliff comes earlier ($0.089$).
+\end{proposition}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig1_load_law.png}
+\caption{Reliability of one sequence against load. Left: every in-regime cell
+at a recovery time matched to the area (or $n/k \le 150$ at $\tau = 64$); the
+dotted grey curve is below the regime floor. Right: at $n/k = 200$--$300$ a
+fixed $\tau = 64$ (dashed) puts the cliff at $0.081$--$0.097$, below the safe
+rule $0.09$ (dotted line); the matched recovery time restores it. Read: the
+horizontal position of each drop is the critical load; its steepness is the
+all-or-none failure per brain.}
+\label{fig:law}
+\end{figure}
+
+\paragraph{Where the law stops.} Two assumptions of Lemma~\ref{lem:load} fail
+in measured ways. When $L(k/n)^2$ approaches one the multiplicative weights
+leave the linear regime: at $kp/\ln n = 24$ replay fails at its first step from
+$\rho = 0.07$ \EXP. And a reduced model of one replay step --- write-time
+selection of successors, the learned transition, Poisson interference,
+normalisation and $k$-WTA --- reproduces measured one-step overlap maps to
+$0.02$--$0.03$ yet places the critical load at $0.23$--$0.34$ against measured
+$0.12$--$0.17$ \EXP: a factor $0.48 \pm 0.05$ (mean $\pm$ sd over nine cells),
+correlated $0.65$ with the measurements across cells, which removes only a
+fifth of their spread. The constant is therefore measured, not derived.
+
+\section{The recovery time is matched to reuse}\label{sec:tau}
+
+A neuron is selected about once every $n/k$ elements. The recovery time sets
+whether it is still handicapped when its next chance comes.
+
+\begin{proposition}[A matched recovery time]\label{prop:tau} \REG
+With $\tau = 64$ fixed, the critical load falls to $0.081$ at $n/k = 300$ (three
+cells; Amendments~38 and 39), below the safe rule; $\tau = n/k/2$ restores it
+($0.105$ and $0.114$ at $n/k = 300$ and $200$, gains $1.29$ and $1.18$ on the same
+brains; Amendment~39). Against $\tau = n/k/2$, $\tau = n/k$ gives:
+\begin{center}
+\begin{tabular}{lcccc}
+\toprule
+$n/k$ & $20$ & $50$ & $100$ & $200$\\
+\midrule
+$\rho_{50}$, $\tau = n/k/2$ & $0.122$ & $0.123$ & $0.122$ & $0.112$\\
+$\rho_{50}$, $\tau = n/k$ & $0.202$ & $0.152$ & $0.120$ & $0.102$\\
+gain & $1.65$ & $1.24$ & $0.98$ & $0.91$\\
+\bottomrule
+\end{tabular}
+\end{center}
+(four cells differing in $n/k$ alone, $kp \approx 35$; Amendment~41).
+\end{proposition}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\textwidth]{figures/fig2_recovery_time.png}
+\caption{Critical load against the recovery time in units of the reuse
+interval $n/k$. Coloured: the registered cells of Amendment~41 (bars span the
+bootstrap interval and the ladder bracket). Grey: exploratory sweeps at five
+cells. Read: small areas peak near $\tau \approx n/k$; large areas are flat or
+fall; below $n/k/2$ every cell collapses.}
+\label{fig:tau}
+\end{figure}
+
+Both flanks of Figure~\ref{fig:tau} have a reading \EXP. Below $n/k/2$ reuse
+clumps: the variance-to-mean ratio of per-neuron use counts is $7$--$12$ at
+$\tau = n/k/4$, $0.3$--$0.4$ at $n/k/2$ and $0.04$--$0.08$ at $n/k$, and
+$\rho_{50}$ collapses to about $0.06$ --- rich get richer. Above the optimum the
+failure of a refraction that never recovers returns: where $\tau = n/k$ is the
+worse choice, brains fail at step $91$--$192 \approx n/k$, the signature of the
+area's neurons being used up once, rather than within a few steps of the cue as
+every other failure here. Under $\tau = n/k/2$ the critical load is nearly
+constant ($0.122$ from $n/k = 20$ to $100$). The design rule: $\tau = n/k$ up to
+$n/k \approx 50$, $n/k/2$ from about $100$.
+
+\section{How an area fails: a hazard compounded over length}\label{sec:hazard}
+
+\begin{proposition}[Any split is safe; short sequences fail one by one]\label{prop:split}
+\REG\ At equal total load, sequences of $16$, $64$ or thousands of elements all
+replay whole up to $\rho = 0.09$ ($\rho_{90} = 0.111$--$0.132$ in every arm). Past
+it one long sequence fails all or none per brain, while short ones are lost
+one by one, every brain losing the same share within binomial scatter;
+their $\rho_{50}$ is $1.13$--$1.20$ times the long one's (Amendment~40).
+\end{proposition}
+
+\begin{definition}[Capture and hazard]
+At load $\rho$ the cue captures a sequence's first step with probability
+$c(\rho)$, and every later step fails independently with probability
+$h(\rho) = e^{-I(\rho)}$; then $\Prob(\text{whole}\mid\ell,\rho) =
+c(\rho)\,(1-h(\rho))^{\ell-1}$. We call $I$ an escape exponent: a large-deviation
+rate would require a parameter in which $I$ grows, which is not established
+($kp$ is the candidate).
+\end{definition}
+
+\begin{proposition}[Consequences for one long sequence]\label{prop:ld}
+\PROVED\ in the model, for $c\approx 1$, $h \ll 1$ at the cliff, and (2) $I$
+linear across it. (1) $I(\rho_q(L)) = \ln L - \ln(-\ln q)$: the cliff moves
+with the logarithm of what is stored. (2) $\rho_{10}-\rho_{90} \approx
+3.08/|I'|$, independent of $L$ to first order.
+\end{proposition}
+\begin{proof}
+$\Prob(\text{whole}) \approx \exp(-Le^{-I})$; set it to $q$, and difference
+between $q = 0.9$ and $0.1$.
+\end{proof}
+
+Fitted after the fact to Amendment~40's record, $(c,h)$ from the $16$- and
+$64$-element arms locate its long sequences' cliffs to one ladder step
+(Figure~\ref{fig:hazard}). The hazard rises about three decades between
+$\rho = 0.11$ and $0.13$ and then levels near $10^{-2}$ while $c$ falls: long
+sequences die of the in-sequence hazard, short ones at the cue. One tension
+stands: the fitted slope predicts cliffs wider ($\rho_{10}/\rho_{90} \approx
+1.13$--$1.20$) than measured ($1.07$--$1.15$). Amendment~43 registers the model's
+predictions at new cells: $(c,h)$ from short sequences must place the
+$\rho_{50}$ of $256$-, $1024$- and whole-load sequences within $5\%$.
+
+\begin{conjecture}[Escape from a vanishing barrier]\label{conj:kramers} \OPEN
+Replay is a Markov chain on the overlap; the cliff is the saddle-node of its
+one-step map, and below it $I(\rho) \simeq A(\rho_c-\rho)^{3/2}/\sigma^2$ as for
+escape over the barrier left near a saddle-node
+\citep{kramers1940brownian,hanggi1990reaction} --- a continuous-time, Gaussian
+result, so the exponent is a prediction here. Then
+$\rho_{50}(L) \approx \rho_c - [\sigma^2(\ln L + 0.37)/A]^{2/3}$.
+\end{conjecture}
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig3_hazard.png}
+\caption{Left: fraction of sequences whole against total load, for one long
+sequence and for many of $16$ or $64$ elements (Amendment~40; Amendment~43 when
+collected). Right: the per-step hazard fitted at each load from the two short
+arms. Read: the long sequence falls where the hazard crosses about $1/L$.}
+\label{fig:hazard}
+\end{figure}
+
+\section{Recurring elements: a token code with a type trace}\label{sec:tokens}
+
+\begin{proposition}[Tokens with a type trace]\label{prop:icc} \REG
+Inside the safe budget, sequences whose elements recur up to five times each
+cost nothing, and $5\%$ of each replay step's winners replaced at random costs
+nothing; at $10\%$ noise the loss grows from $3$--$10\%$ at $\rho = 0.05$ to
+$34$--$63\%$ at $0.11$. Two occurrences of an element in different sequences
+share $0.072$--$0.105$ of their neurons, two different elements $0.000$--$0.002$
+(Amendment~42; Figure~\ref{fig:tokens}).
+\end{proposition}
+
+Read as a variance-components model --- neuron $i$ fires in an occurrence of
+element $w$ with probability $\pi_{wi}$, and the intraclass correlation (ICC) is
+the share of variance in those probabilities across elements --- the code is
+about $10\%$ type and $90\%$ context.
+
+\begin{proposition}[What the trace allows]\label{prop:sb} \PROVED\ in the
+variance-components model, (2) for Poisson shared counts. (1) A store summing $m$
+occurrences estimates an element's type with reliability
+$m\,\mathrm{ICC}/(1+(m-1)\mathrm{ICC})$ \citep{spearman1910correlation,brown1910some}:
+$0.53$ at $m = 10$, $0.9$ at $m = 81$. (2) Two tokens are recognised as one
+element from their shared count with $d' \approx \sqrt{\mathrm{ICC}\,k}$, about
+$3$ at $k = 100$.
+\end{proposition}
+
+The first part predicts how many exposures a downstream lexical area needs; the
+second, that identity becomes more legible as assemblies grow. If the shared
+core is the stimulus's strongest targets, its count is sub-Poisson and $d'$
+larger. Heavy recurrence (twenty uses per element) costs up to $36\%$ and fails
+brain by brain, apparently by each brain's draw of sequences; we conjecture
+that what costs is not recurrence but inconsistency of an element's successors
+across contexts --- a grammar would make shared transitions agree
+\OPEN. The division of labour suggested --- an area that keeps episodes apart,
+another that accumulates types --- is the complementary-learning-systems
+picture \citep{mcclelland1995why} arising within one mechanism.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
+\caption{Left: per-brain overlap of two occurrences of the same element (blue)
+and of two different elements (red), by load and uses per element. Right:
+fraction of sequences whole against replay noise at three loads. Read: same
+occurrences share about a tenth of their neurons, different ones almost none;
+noise costs nothing at $5\%$ inside the budget and multiplies with load at
+$10\%$.}
+\label{fig:tokens}
+\end{figure}
+
+\section{Links between areas}\label{sec:links}
+
+A hierarchy of areas --- a chunk area whose states point at chunks stored once
+in a sequence area --- replays sequences of sequences (Amendment~33), and
+its first point of failure is the fiber of links from chunk-area states to
+chunk starts. In an exploratory sweep \EXP\ ($k = 60$, $p = 1/2$, ten brains,
+two sizes of each area), the associations at which half the starts are evoked
+are $1810$ and $2400$ (for $16$ and $64$ targets) at $n_C = 2000$ and $2455$ and
+about $4000$--$4100$ at $n_C = 4000$, whatever the sequence area's size: doubling
+$n_S$ changes them by under $2\%$ (Figure~\ref{fig:links}). Failure is gradual,
+and the wrong target that wins is the one with the most links. We conjecture
+that a link budget is a law of the source area alone \OPEN, which would bound a
+hierarchy's depth by its chunk areas.
+
+\begin{figure}[t]
+\centering
+\includegraphics[width=0.72\textwidth]{figures/fig5_links.png}
+\caption{Fraction of chunk starts evoked against associations stored on the
+link fiber (exploratory). Colour: source-area size $n_C$; line width:
+target-area size $n_S$; dashes: $64$ targets. Read: curves of equal colour
+coincide; the target area's size does not matter.}
+\label{fig:links}
+\end{figure}
+
+\section{What failed}\label{sec:failed}
+
+Four predictions or hypotheses failed and redirected the work. (1) The
+constant: registered to hold at $n/k = 300$, it fell to $0.081$ with a fixed
+recovery time, and the safe rule broke (Amendment~38, three of four bars
+failed); the failure located the recovery time. (2) A rescaling of $\rho$ with
+$\ln(n/k)$ halved the residuals of the cells already measured and failed at new
+cells with small $n/k$ (predicted $0.20$--$0.23$, measured $0.10$--$0.12$) \EXP.
+(3) The hypothesis that every parameter acts through the dispersion $\kappa$ of
+interference --- $\rho_{50}\kappa$ constant --- was measured before it was
+registered and fails: $\rho_{50}\kappa$ ranges $0.12$--$0.56$; dispersion explains
+the collapse at short $\tau$ ($\kappa = 8.5$) but not the peak, where $\kappa$
+moves from $1.31$ to $0.95$ while $\rho_{50}$ rises $1.66$-fold \EXP. (4) A first
+draft of Amendment~40 asked for equal $\rho_{50}$ across splits; an exploratory
+probe showed graded failure, and the bars were rewritten before the judged run.
+
+\section{Discussion: a cost model}\label{sec:discussion}
+
+\begin{center}
+\begin{tabular}{p{0.58\textwidth}p{0.32\textwidth}}
+\toprule
+Rule & Evidence \\
+\midrule
+Load variable $\rho = Lk\ln n/(n^2p)$; $\rho_\beta$ in general & proved in a model (Lemma~\ref{lem:load}) \\
+Recovery time $n/k$ to $n/k \approx 50$, $n/k/2$ from $\approx 100$ & registered (Prop.~\ref{prop:tau}) \\
+Total load $\le 0.09$: every sequence whole, any split & registered (Props.~\ref{prop:law}, \ref{prop:split}) \\
+$\le 5$ uses per element and $\le 5\%$ noise cost nothing there & registered (Prop.~\ref{prop:icc}) \\
+Past it: $c(1-h)^{\ell-1}$ per sequence; cliff at $\ln L$ & proved in a model; registered test pending \\
+Element identity: Spearman--Brown, $d' \approx \sqrt{\mathrm{ICC}\,k}$ & proved in a model; ICC registered \\
+Links: source-area law & exploratory \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+A compiler that allocates sequences to areas can now ask, before running a
+program, whether an area will replay it, and with what loss past its budget.
+The failures of long sequences and the cheapness of short ones favour
+chunking \citep{miller1956magical}; the token code places identity in a second
+area; and the link budget makes the chunk area, not the sequence area, the
+bottleneck of depth. Three things limit the reach of these results: the
+critical value is measured, not derived (the reduced model is a factor two off);
+the substrate is an abstraction (hash-regenerated random graphs, $k$-WTA in
+place of inhibitory dynamics), whose universality class is untested; and no
+program at language scale has yet been compiled and run inside its predicted
+budget.
+
+\appendix
+\section{Registrations and intervals}
+
+\begin{table}[h]
+\centering\small
+\begin{tabular}{p{0.2\textwidth}lp{0.38\textwidth}p{0.2\textwidth}}
+\toprule
+Claim & Amendment & Judged cells $(n,k,p)$ & Bars \\
+\midrule
+Load law & 37 & $(6000,90,0.4)$, $(12000,80,0.5)$ & R1--R3 pass \\
+Constant at $n/k = 300$ & 38 & $(18000,60,0.6)$, $(24000,80,0.5)$ & K1, D1, S1 fail; S2 pass \\
+Matched recovery time & 39 & $(21000,70,0.5)$, $(16000,80,0.45)$ & T1--T4 pass \\
+Any split & 40 & $(8000,80,0.5)$, $(12000,70,0.5)$ & A1--A3 pass \\
+The recovery-time peak & 41 & $(6000,300,0.12)$, $(5000,100,0.35)$, $(10000,100,0.35)$, $(14000,70,0.5)$ & P1--P4 pass \\
+Recurrence and noise & 42 & $(4000,100,0.35)$, $(10000,120,0.3)$ & W1, W2, N1, N2 pass \\
+Hazard predictions & 43 & $(10000,70,0.5)$, $(8000,50,0.7)$ & pending \\
+\bottomrule
+\end{tabular}
+\caption{The registrations behind each claim; seeds 522--661, twenty new brains
+per amendment.}
+\label{tab:methods}
+\end{table}
+
+\begin{table}[h]
+\centering\scriptsize
+\input{figures/crossings_table.tex}
+\caption{Every registered crossing with its bootstrap interval over brains and
+the ladder points that bracket it.}
+\label{tab:crossings}
+\end{table}
+
+\bibliographystyle{plainnat}
+\bibliography{../../_shared_assets/bibliography/references}
+
+\end{document}

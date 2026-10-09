@@ -1,0 +1,15 @@
+(4000,200,0.15) L=174 tau/(n/k)=0.25 tau=5: use var/mean 6.972; gap mean 13.2 CV 0.811 share<tau 0.240; max pair count 30.3
+(4000,200,0.15) L=174 tau/(n/k)=0.5 tau=10: use var/mean 0.374; gap mean 19.5 CV 0.408 share<tau 0.067; max pair count 9.9
+(4000,200,0.15) L=174 tau/(n/k)=1.0 tau=20: use var/mean 0.081; gap mean 19.8 CV 0.314 share<tau 0.498; max pair count 7.8
+(4000,200,0.15) L=174 tau/(n/k)=2.0 tau=40: use var/mean 0.031; gap mean 19.9 CV 0.318 share<tau 0.999; max pair count 7.7
+(4000,200,0.15) L=174 tau/(n/k)=4.0 tau=80: use var/mean 0.026; gap mean 19.8 CV 0.353 share<tau 1.000; max pair count 7.9
+(2000,60,0.5) L=526 tau/(n/k)=0.25 tau=8: use var/mean 9.947; gap mean 25.1 CV 0.832 share<tau 0.194; max pair count 48.6
+(2000,60,0.5) L=526 tau/(n/k)=0.5 tau=17: use var/mean 0.360; gap mean 33.0 CV 0.393 share<tau 0.072; max pair count 13.1
+(2000,60,0.5) L=526 tau/(n/k)=1.0 tau=33: use var/mean 0.071; gap mean 33.2 CV 0.313 share<tau 0.487; max pair count 10.1
+(2000,60,0.5) L=526 tau/(n/k)=2.0 tau=67: use var/mean 0.021; gap mean 33.2 CV 0.309 share<tau 0.999; max pair count 9.5
+(2000,60,0.5) L=526 tau/(n/k)=4.0 tau=133: use var/mean 0.013; gap mean 33.2 CV 0.335 share<tau 1.000; max pair count 10.5
+(15000,50,0.7) L=39310 tau/(n/k)=0.25 tau=75: use var/mean 12.264; gap mean 282.1 CV 0.619 share<tau 0.068; max pair count 124.7
+(15000,50,0.7) L=39310 tau/(n/k)=0.5 tau=150: use var/mean 0.309; gap mean 299.8 CV 0.296 share<tau 0.032; max pair count 72.8
+(15000,50,0.7) L=39310 tau/(n/k)=1.0 tau=300: use var/mean 0.042; gap mean 299.9 CV 0.231 share<tau 0.490; max pair count 70.8
+(15000,50,0.7) L=39310 tau/(n/k)=2.0 tau=600: use var/mean 0.009; gap mean 299.9 CV 0.218 share<tau 1.000; max pair count 74.6
+(15000,50,0.7) L=39310 tau/(n/k)=4.0 tau=1200: use var/mean 0.045; gap mean 299.3 CV 0.288 share<tau 0.999; max pair count 81.3

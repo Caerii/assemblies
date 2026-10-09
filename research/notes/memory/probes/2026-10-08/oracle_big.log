@@ -1,0 +1,6 @@
+
+(18000, 60, 0.6) L=40: near ties per brain [(0, 80)]
+(18000,60,0.6) PASS: counts equal, bias close, recall equal; near ties 0/80; 105s
+
+(24000, 80, 0.5) L=40: near ties per brain [(0, 80)]
+(24000,80,0.5) PASS: counts equal, bias close, recall equal; near ties 0/80; 24s

@@ -1,0 +1,12 @@
+rho=0.03 uses/word=5 V=96 L=480: whole 1.000 same-word overlap 0.082
+rho=0.03 uses/word=10 V=48 L=480: whole 0.830 same-word overlap 0.061
+rho=0.03 uses/word=20 V=24 L=480: whole 1.000 same-word overlap 0.04
+rho=0.03 uses/word=40 V=12 L=480: whole 0.950 same-word overlap 0.039
+rho=0.05 uses/word=5 V=160 L=800: whole 1.000 same-word overlap 0.093
+rho=0.05 uses/word=10 V=80 L=800: whole 1.000 same-word overlap 0.094
+rho=0.05 uses/word=20 V=40 L=800: whole 0.996 same-word overlap 0.055
+rho=0.05 uses/word=40 V=20 L=800: whole 0.030 same-word overlap 0.051
+rho=0.08 uses/word=5 V=256 L=1280: whole 1.000 same-word overlap 0.094
+rho=0.08 uses/word=10 V=128 L=1280: whole 0.996 same-word overlap 0.088
+rho=0.08 uses/word=20 V=64 L=1280: whole 0.641 same-word overlap 0.067
+rho=0.08 uses/word=40 V=32 L=1280: whole 0.039 same-word overlap 0.072

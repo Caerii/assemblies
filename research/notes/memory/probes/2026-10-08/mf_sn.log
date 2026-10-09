@@ -1,0 +1,10 @@
+(2000, 60, 0.5) kp=30 3ln n=22.8: model saddle-node L=1377 rho=0.314
+(4000, 60, 0.5) kp=30 3ln n=24.9: model saddle-node L=4390 rho=0.273
+(8000, 60, 0.5) kp=30 3ln n=27.0: model saddle-node L=15164 rho=0.256
+(4000, 120, 0.5) kp=60 3ln n=24.9: model saddle-node L=2715 rho=0.338
+(8000, 120, 0.5) kp=60 3ln n=27.0: model saddle-node L=8376 rho=0.282
+(8000, 120, 0.25) kp=30 3ln n=27.0: model saddle-node L=4536 rho=0.306
+(16000, 120, 0.5) kp=60 3ln n=29.0: model saddle-node L=28914 rho=0.262
+(4000, 30, 0.5) kp=15 3ln n=24.9: model saddle-node L=7486 rho=0.233
+(6000, 90, 0.4) kp=36 3ln n=26.1: model saddle-node L=5332 rho=0.290
+(12000, 80, 0.5) kp=40 3ln n=28.2: model saddle-node L=24811 rho=0.259

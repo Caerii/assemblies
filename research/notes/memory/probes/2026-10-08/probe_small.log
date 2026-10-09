@@ -1,0 +1,7 @@
+beta 0.144
+tau=5 L=8: consecutive-state overlap [0.011, 0.0, 0.0]; half-cue -> next [0.84, 0.84, 0.87, 0.85] self [0.04, 0.02, 0.03, 0.03]; full-cue -> next [0.98, 0.99, 1.0, 0.99]
+tau=5 L=40: consecutive-state overlap [0.02, 0.001, 0.001]; half-cue -> next [0.87, 0.85, 0.86, 0.85] self [0.04, 0.03, 0.03, 0.05]; full-cue -> next [0.99, 0.99, 0.99, 0.99]
+tau=33 L=8: consecutive-state overlap [0.006, 0.0, 0.0]; half-cue -> next [0.84, 0.84, 0.87, 0.85] self [0.04, 0.02, 0.02, 0.02]; full-cue -> next [0.98, 0.99, 0.99, 0.99]
+tau=33 L=40: consecutive-state overlap [0.011, 0.001, 0.001]; half-cue -> next [0.86, 0.86, 0.85, 0.86] self [0.04, 0.04, 0.03, 0.05]; full-cue -> next [0.98, 0.99, 0.98, 0.98]
+tau=200 L=8: consecutive-state overlap [0.006, 0.0, 0.0]; half-cue -> next [0.84, 0.84, 0.88, 0.85] self [0.03, 0.02, 0.02, 0.02]; full-cue -> next [0.98, 0.99, 1.0, 0.99]
+tau=200 L=40: consecutive-state overlap [0.011, 0.0, 0.0]; half-cue -> next [0.87, 0.85, 0.85, 0.85] self [0.04, 0.03, 0.04, 0.05]; full-cue -> next [0.97, 0.97, 0.98, 0.98]

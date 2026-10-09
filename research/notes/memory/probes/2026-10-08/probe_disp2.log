@@ -1,0 +1,12 @@
+A41 (6000,300,0.12) tau=10 (0.50 n/k) rho50=0.122: lambda 0.501 maxC 8 | D_total 1.31 D_count 1.05 D_corr 1.25 | rho50*D_total 0.160
+A41 (6000,300,0.12) tau=20 (1.00 n/k) rho50=0.202: lambda 0.497 maxC 8 | D_total 0.95 D_count 1.01 D_corr 0.94 | rho50*D_total 0.191
+A41 (5000,100,0.35) tau=25 (0.50 n/k) rho50=0.123: lambda 0.501 maxC 14 | D_total 1.22 D_count 1.13 D_corr 1.08 | rho50*D_total 0.150
+A41 (5000,100,0.35) tau=50 (1.00 n/k) rho50=0.152: lambda 0.496 maxC 14 | D_total 1.05 D_count 1.11 D_corr 0.95 | rho50*D_total 0.160
+A41 (10000,100,0.35) tau=50 (0.50 n/k) rho50=0.122: lambda 0.472 maxC 19 | D_total 1.21 D_count 1.19 D_corr 1.02 | rho50*D_total 0.148
+A41 (10000,100,0.35) tau=100 (1.00 n/k) rho50=0.12: lambda 0.468 maxC 19 | D_total 1.12 D_count 1.17 D_corr 0.96 | rho50*D_total 0.135
+A41 (14000,70,0.5) tau=100 (0.50 n/k) rho50=0.112: lambda 0.449 maxC 37 | D_total 1.22 D_count 1.22 D_corr 1.00 | rho50*D_total 0.136
+A41 (14000,70,0.5) tau=200 (1.00 n/k) rho50=0.102: lambda 0.446 maxC 31 | D_total 1.18 D_count 1.21 D_corr 0.98 | rho50*D_total 0.120
+A39 (21000,70,0.5) tau=64 (0.21 n/k) rho50=0.081: lambda 0.437 maxC 73 | D_total 2.60 D_count 1.53 D_corr 1.71 | rho50*D_total 0.211
+A39 (21000,70,0.5) tau=150 (0.50 n/k) rho50=0.105: lambda 0.434 maxC 45 | D_total 1.25 D_count 1.25 D_corr 1.00 | rho50*D_total 0.131
+probe (2000,60,0.5) tau=8 (0.24 n/k) rho50=0.066: lambda 0.470 maxC 21 | D_total 8.46 D_count 2.03 D_corr 4.17 | rho50*D_total 0.558
+probe (2000,60,0.5) tau=33 (0.99 n/k) rho50=0.16: lambda 0.466 maxC 9 | D_total 1.01 D_count 1.07 D_corr 0.94 | rho50*D_total 0.161

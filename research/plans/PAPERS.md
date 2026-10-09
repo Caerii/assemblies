@@ -366,6 +366,10 @@ operation.*
 
 ### P8. The budget of a sequence area
 
+Draft: [../papers/drafts/sequence_budget/](../papers/drafts/sequence_budget/README.md)
+(manuscript, figures and intervals built from committed records); the
+chronological record is the theory notebook.
+
 Evidence: [PREREG_refraction_memory.md](../notes/memory/PREREG_refraction_memory.md)
 Amendments 35 to 42 (twenty new brains each, every cell judged never run
 before), register entries `SEQUENCE-LOAD-LAW`, `RECOVERY-SCALES-WITH-AREA`,

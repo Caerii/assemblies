@@ -23,8 +23,8 @@
 \newcommand{\Prob}{\mathbb{P}}
 
 \title{Statistical Mechanics of Assembly Calculus:\\
-       Order Parameters, Control Parameters, and a Measured Gain Crossover}
-\author{Assemblies project --- working document}
+       a Theory Notebook}
+\author{Assemblies project --- lab notebook (chronological; not a manuscript)}
 \date{2026-07-29; the sequence memory's budget added 2026-10-08}
 
 \begin{document}
@@ -59,6 +59,21 @@ areas set by the source area alone. A conjecture that every knob acts through
 the dispersion of interference was measured before registration and fails in
 its strong form; it is recorded with its numbers.
 \end{abstract}
+
+\paragraph{How to read this notebook.} This is the project's theory notebook,
+kept in the order the work was done: every derivation, every conjecture with
+the measurement that tested it, and every failure with its numbers, including
+claims later withdrawn (the ``critical point'' before
+Conjecture~\ref{conj:fss}) and
+conjectures measured before registration and found wrong
+(Section~\ref{sec:dispersion}). Manuscripts are drafted \emph{from} it and
+cite only what survives: the sequence memory's budget is
+\texttt{research/papers/drafts/sequence\_budget/} (paper P8 of
+\texttt{research/plans/PAPERS.md}). Every exploratory probe a section cites is
+committed with its script and log under \texttt{research/notes/memory/probes/},
+indexed by date. The sections on composition depth (2026-07/08) rest on two
+seeds and predate the project's twenty-brain rule; they are kept as the
+historical record and are not cited by any manuscript until rerun.
 
 \section{The substrate}
 
@@ -149,6 +164,10 @@ connected; here it is decisive, and its role is the subject of
 Proposition~\ref{prop:mu}.
 
 \section{Measured phase structure}
+
+\emph{Historical evidence: the measurements of this section and the next two
+are on two seeds, before the twenty-brain rule; not cited by any manuscript
+until rerun.}
 
 At $\alpha = 0.8$, $\mu = 2.5$, $D = 5$, three regimes are distinguished by the
 \emph{pair} $(Q, R)$ --- neither alone separates them.
@@ -692,6 +711,15 @@ new cells with small $n/k$ (exploratory), which is what this remark predicts.
 Second, the near coincidence of $\rho_c \approx 0.12$--$0.14$ with the Hopfield
 storage ratio $\alpha_c \approx 0.138$ (Amit, Gutfreund and Sompolinsky 1985) is
 a coincidence of normalisations: the two variables count different things.
+Third, a reduced model of one replay step that \emph{does} include the
+successors' selection (\texttt{probes/2026-10-08/mf2.py}: write-time
+selection, the learned transition, Poisson interference, normalisation,
+$k$-WTA) reproduces one-step overlap maps to $0.02$--$0.03$, yet its saddle-node
+loads are $0.23$--$0.34$ against the measured $0.12$--$0.17$ at nine cells
+(\texttt{mf\_sn.log}): a factor $0.48 \pm 0.05$, correlated $0.65$ with the
+measurements across cells, which removes only a fifth of their spread
+(coefficient of variation $13.6\% \to 10.9\%$). The model gets the shape and
+misses a factor of two.
 Its assumptions fail in two measured ways. When the mean count per synapse pair, $L(k/n)^2 = \rho\,kp/\ln
 n$, approaches one, the multiplicative weights $(1+\beta)^c$ leave the linear
 regime: at $kp/\ln n = 24$ replay fails at its first step from $\rho = 0.07$
