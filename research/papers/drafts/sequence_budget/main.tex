@@ -356,10 +356,25 @@ allowed successors at twenty uses per element, replay produces the right
 sequences when successors are random, and for $0.00$--$0.39$ when $b = 1$, $2$ or
 $4$; repeated transitions pull an element's tokens toward a shared code (overlap
 up to $0.42$) and merge their contexts. What varies with $b$ is how often each
-transition is stored. We conjecture that transition repetition, not element
-recurrence, sets the cost \OPEN; if so, one token store cannot hold a corpus with
-frequent bigrams, and its statistics must be consolidated in a separate
-type-level store --- the complementary-learning-systems division
+transition is stored, so we registered that variable against the elements'
+frequency.
+
+\begin{proposition}[Transition repetition breaks replay]\label{prop:bigram} \REG\
+At a safe total load ($\rho = 0.05$), once each transition is stored about five
+times, element-level replay fails on every brain at two new cells, whatever
+the elements' frequency ($10$, $20$ or $40$ uses each), while random successors at
+twenty uses keep $0.77$ and $0.95$ of sequences whole; repetition also raises
+the overlap of an element's tokens by $0.05$--$0.06$ (Amendment~44).
+\end{proposition}
+
+Two parts of the registration did not resolve. Whether frequency matters at a
+fixed repetition is untested: every repeated arm sits at zero, and the bar
+written on their spread passes only because a spread on the floor is zero. And
+frequency alone is not free: at twenty uses with random successors, whole
+brains collapse ($1$ and $4$ of $20$), not those whose draws repeat bigrams most.
+The implication, if the threshold proves low: one token store cannot hold a
+corpus whose transitions repeat, and its statistics must be consolidated in a
+separate type-level store --- the complementary-learning-systems division
 \citep{mcclelland1995why}, forced here by a failure rather than assumed.
 
 \begin{figure}[t]
@@ -431,6 +446,7 @@ $\le 5$ uses per element and $\le 5\%$ noise cost nothing there & registered (Pr
 Critical load falls $\approx 0.003$ per e-fold of sequence length & registered order, fitted slope (Prop.~\ref{prop:lnl}) \\
 Past it: losses per sequence; constant hazard good to $1024$ elements, pessimistic beyond & registered (one bar failed) \\
 Element identity: Spearman--Brown, $d' \approx \sqrt{\mathrm{ICC}\,k}$ & proved in a model; ICC registered \\
+$\gtrsim 5$ repeats per transition: element replay lost & registered (Prop.~\ref{prop:bigram}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -464,6 +480,7 @@ Any split & 40 & $(8000,80,0.5)$, $(12000,70,0.5)$ & A1--A3 pass \\
 The recovery-time peak & 41 & $(6000,300,0.12)$, $(5000,100,0.35)$, $(10000,100,0.35)$, $(14000,70,0.5)$ & P1--P4 pass \\
 Recurrence and noise & 42 & $(4000,100,0.35)$, $(10000,120,0.3)$ & W1, W2, N1, N2 pass \\
 Hazard predictions; length & 43 & $(10000,70,0.5)$, $(8000,50,0.7)$ & K1, K2, K4 pass; K3 fail \\
+Transition repetition & 44 & $(9000,110,0.33)$, $(12000,80,0.45)$ & G1, G4 pass; G3 vacuous; G2 fail \\
 \bottomrule
 \end{tabular}
 \caption{The registrations behind each claim; seeds 522--661, twenty new brains

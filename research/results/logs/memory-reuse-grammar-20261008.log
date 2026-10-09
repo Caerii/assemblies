@@ -1,0 +1,11 @@
+(9000, 110, 0.33) U=20 b=V L=1328 V=66 repeats/bigram 1.1: word 0.771, token 0.773, same-word overlap 0.074
+(9000, 110, 0.33) U=20 b=4 L=1328 V=66 repeats/bigram 5.0: word 0.000, token 0.030, same-word overlap 0.090
+(9000, 110, 0.33) U=20 b=2 L=1328 V=66 repeats/bigram 10.5: word 0.000, token 0.134, same-word overlap 0.133
+(9000, 110, 0.33) U=10 b=2 L=1328 V=133 repeats/bigram 5.7: word 0.000, token 0.069, same-word overlap 0.136
+(9000, 110, 0.33) U=40 b=8 L=1328 V=33 repeats/bigram 4.8: word 0.000, token 0.034, same-word overlap 0.054
+(12000, 80, 0.45) U=20 b=V L=4304 V=215 repeats/bigram 1.0: word 0.950, token 0.950, same-word overlap 0.064
+(12000, 80, 0.45) U=20 b=4 L=4304 V=215 repeats/bigram 5.0: word 0.000, token 0.017, same-word overlap 0.078
+(12000, 80, 0.45) U=20 b=2 L=4304 V=215 repeats/bigram 10.4: word 0.000, token 0.123, same-word overlap 0.116
+(12000, 80, 0.45) U=10 b=2 L=4304 V=430 repeats/bigram 5.7: word 0.000, token 0.050, same-word overlap 0.101
+(12000, 80, 0.45) U=40 b=8 L=4304 V=108 repeats/bigram 4.8: word 0.000, token 0.016, same-word overlap 0.059
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.reuse-grammar\reuse-grammar-20261008\results.json

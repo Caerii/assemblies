@@ -26,6 +26,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`RECOVERY-PEAK-AT-SMALL-AREAS`](#recovery-peak-at-small-areas) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta recovering over tau rounds, beta = theta | The single-sequence critical load peaks when the refraction recovers over the steps between a neuron's uses, tau = n/k, but only in small areas: against tau = n/k / 2 the gain in rho_50 is 1.65 at n/k = 20, 1.24 at 50, 0.98 at 100 and 0.91 at 200 (four cells differing in n/k alone). |
 | [`RECURRING-WORDS-CODED-AS-TOKENS`](#recurring-words-coded-as-tokens) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget one area holds sequences whose elements recur (up to 5 uses per word) at no cost, and replays them through 5% uniform activity noise per step without loss, because it codes every occurrence of a word apart: two occurrences share ~ 0.1 of their neurons (a type code would share most), still 50-100 times two different words' overlap (0.000-0.002) -- a token code with a trace of the type. |
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
+| [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -652,6 +653,29 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - at rho = 0.144 the same at (8000, 50, 0.7) (Amendment 43): `observations/cells/8000~150~10.7/arms/16/ladder/14336/whole` all-greater `observations/cells/8000~150~10.7/arms/single/ladder/14336/whole` by at least 0.5, retained in [research/results/runs/memory.load-hazard/load-hazard-20261008/results.json](../research/results/runs/memory.load-hazard/load-hazard-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The ln l slope is a post hoc fit over five lengths at two cells. The registered ladder was coarsened by rounding to multiples of 1024 (9 and 12 distinct loads of 17); at the first cell 256, 1024 and one sequence cross inside one ladder step, so their order there rests on interpolation. Why long sequences outlive a constant hazard (an early transient from the cue is the candidate) is untested.
+
+## TRANSITION-REPETITION-BREAKS-REPLAY
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 44 (G1, G4 PASS; G3 PASS but vacuous; G2 FAIL)
+
+**Engine / substrate.** hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta
+
+**Claim.** Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). Repetition of transitions, not recurrence of elements, is the dominant cost of reuse in this range.
+
+**Requires.**
+- per-brain grammars with b successors per word; 16-element random walks
+- word-level score: the read-out's nearest stored token's word
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-44-result-2026-10-08
+
+**Evidence files.**
+- [research/results/runs/memory.reuse-grammar/reuse-grammar-20261008/results.json](../research/results/runs/memory.reuse-grammar/reuse-grammar-20261008/results.json) (artifact) â€” Amendment 44: uses per word crossed with repeats per bigram, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- in every brain a word's tokens overlap more when each transition is stored ~10 times than with random successors, at (12000, 80, 0.45) (Amendment 44): `observations/cells/12000~180~10.45/arms/U20~1b2/same` all-greater `observations/cells/12000~180~10.45/arms/U20~1bV/same` by at least 0.02, retained in [research/results/runs/memory.reuse-grammar/reuse-grammar-20261008/results.json](../research/results/runs/memory.reuse-grammar/reuse-grammar-20261008/results.json) and paired by `run/seeds`.
+
+**Caveat.** Where between one and five repetitions the failure sets in is unmeasured, and whether recurrence matters at fixed repetition is untested (every repeated arm is on the floor; G3 vacuous). Recurrence alone at twenty uses fails whole brains (1 and 4 of 20), unexplained by the draws' bigram statistics. Small vocabularies (33-430 words) and 16-element walks: not a corpus.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

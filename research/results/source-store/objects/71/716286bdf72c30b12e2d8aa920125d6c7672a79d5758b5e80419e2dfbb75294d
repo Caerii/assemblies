@@ -793,10 +793,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | K2 1024 elements predicted (A43) | rho_50 within 5% | PASS | -4.7%, -2.2% |
 | K3 single cliff predicted (A43) | rho_50 within 5% | FAIL | -9.8%, -4.5% |
 | K4 length costs (A43) | rho_50 strictly falls with l | PASS | both cells; ~0.003 per e-fold of l |
-| G1 transition repetition costs (A44) | drop >= 0.3 from R~1 to R~10 | PASS | 0.77, 0.95 -> 0.00 |
-| G2 recurrence alone is free (A44) | iid at U 20 >= 0.95 | FAIL | 0.771, 0.950 |
-| G3 repetition, not recurrence (A44) | R = 5 arms within 0.25 | PASS (vacuous: all 0.000, floor) | uninformative |
-| G4 repeated transitions merge tokens (A44) | same-word overlap +0.03 | PASS | +0.059, +0.052 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5714,51 +5710,3 @@ score, the realised repeats per bigram, the same-word code overlap.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until G1 to G4 are evaluated and recorded below.
-
-### Amendment 44 result (2026-10-08)
-
-One run from a worktree pinned at 2cdd9621, seeds 662 to 681:
-[record](../../results/runs/memory.reuse-grammar/reuse-grammar-20261008/results.json),
-[log](../../results/logs/memory-reuse-grammar-20261008.log). Word-level
-reliability (token-level beside it), realised repeats per bigram, same-word
-overlap:
-
-    arm (U, b)      R        (9000, 110, 0.33)            (12000, 80, 0.45)
-    20, V (iid)     1.0-1.2  0.771 (0.773)  ov 0.074      0.950 (0.950)  ov 0.064
-    20, 4           5.0      0.000 (0.030)  ov 0.090      0.000 (0.017)  ov 0.078
-    20, 2           10.4     0.000 (0.134)  ov 0.133      0.000 (0.123)  ov 0.116
-    10, 2           5.7      0.000 (0.069)  ov 0.136      0.000 (0.050)  ov 0.101
-    40, 8           4.8      0.000 (0.034)  ov 0.054      0.000 (0.016)  ov 0.059
-
-    G1  REPETITION COSTS                                               PASS
-        0.771 -> 0.000 and 0.950 -> 0.000 from R ~ 1 to R ~ 10.
-    G2  RECURRENCE ALONE IS FREE                                       FAIL
-        0.771 at (9000, 110, 0.33) (0.950 at the other cell).
-    G3  REPETITION, NOT RECURRENCE                                     PASS (vacuous)
-        the three R = 5 arms are 0.000 on every brain at both cells: their
-        spread is 0 because all sit on the floor. The bar was written for a
-        graded response and cannot discriminate here; it is recorded as
-        passed by its rule and as uninformative.
-    G4  REPEATED TRANSITIONS MERGE TOKENS                              PASS
-        same-word overlap +0.059 and +0.052 from R ~ 1 to R ~ 10.
-
-**Reading.** About five repetitions of each transition destroy word-level
-replay on every brain at both cells, whatever the words' frequency (10, 20 or
-40 uses), while the same frequency with random successors keeps 0.77 and 0.95
-of sequences whole: repetition is far more costly than recurrence in this
-range, and the threshold lies between one and five repetitions -- where, this
-run cannot say. Whether recurrence matters at a FIXED repetition, the question
-G3 was written for, is untested, because every repeated arm is on the floor.
-Recurrence alone is not free at twenty uses per word (G2 fails), and its
-failures take a third form: whole brains collapse. At (12000, 80, 0.45)
-nineteen brains replay every i.i.d. sequence and one replays none; at
-(9000, 110, 0.33) four brains fall to 0.00-0.16 and the rest hold at
-0.80-1.00.
-
-**Checked after the run.** The collapsed brains are not those whose draws
-repeat bigrams most: recomputing every brain's walks from its seed, the
-correlation of word-level reliability with the draw's largest bigram
-repetition is 0.01 and 0.10, with the number of bigrams repeated three or
-more times 0.06 and 0.16, and within-sequence repetition and a-b-a patterns
-do not separate them either. The whole-brain collapse under random reuse is
-unexplained; the connectome, not the sequences, may decide it.
