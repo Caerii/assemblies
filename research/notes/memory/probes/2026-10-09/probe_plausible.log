@@ -1,0 +1,20 @@
+
+U = 10 (V 347, 69440 writes)
+  standard         reliability 1.000 (brains < 0.2:  0); captured 0.0000; flagged 0.0000 of writes; oracle-flagged 0.0000; hit 0.00, false alarm 0.0000
+  oracle 0.3       reliability 1.000 (brains < 0.2:  0); captured 0.0000; flagged 0.0000 of writes; oracle-flagged 0.0000; hit 1.00, false alarm 0.0000
+  ach 0.5          reliability 0.000 (brains < 0.2: 20); captured 0.0000; flagged 0.0000 of writes; oracle-flagged 0.0594; hit 0.00, false alarm 0.0000
+  ach 0.25         reliability 0.000 (brains < 0.2: 20); captured 0.0000; flagged 0.0000 of writes; oracle-flagged 0.7158; hit 0.00, false alarm 0.0000
+  ach 0.0          reliability 0.000 (brains < 0.2: 20); captured 0.0000; flagged 0.0000 of writes; oracle-flagged 0.8250; hit 0.00, false alarm 0.0000
+  mismatch 0.3     reliability 0.883 (brains < 0.2:  0); captured 0.0000; flagged 0.7869 of writes; oracle-flagged 0.0000; hit 1.00, false alarm 0.7868; familiarity mean 0.341 p99 0.453
+  mismatch 0.5     reliability 1.000 (brains < 0.2:  0); captured 0.0000; flagged 0.0008 of writes; oracle-flagged 0.0000; hit 0.00, false alarm 0.0008; familiarity mean 0.336 p99 0.453
+  mismatch-ach 0.3 reliability 0.002 (brains < 0.2: 20); captured 0.0000; flagged 0.7797 of writes; oracle-flagged 0.0235; hit 0.97, false alarm 0.7751; familiarity mean 0.361 p99 0.547
+
+U = 50 (V 69, 69440 writes)
+  standard         reliability 0.025 (brains < 0.2: 19); captured 0.0338; flagged 0.0000 of writes; oracle-flagged 0.0434; hit 0.00, false alarm 0.0000
+  oracle 0.3       reliability 0.646 (brains < 0.2:  3); captured 0.0000; flagged 0.0058 of writes; oracle-flagged 0.0058; hit 1.00, false alarm 0.0000
+  ach 0.5          reliability 0.000 (brains < 0.2: 20); captured 0.0323; flagged 0.0000 of writes; oracle-flagged 0.2011; hit 0.00, false alarm 0.0000
+  ach 0.25         reliability 0.000 (brains < 0.2: 20); captured 0.0019; flagged 0.0000 of writes; oracle-flagged 0.6185; hit 0.00, false alarm 0.0000
+  ach 0.0          reliability 0.000 (brains < 0.2: 20); captured 0.0000; flagged 0.0000 of writes; oracle-flagged 0.8497; hit 0.00, false alarm 0.0000
+  mismatch 0.3     reliability 0.731 (brains < 0.2:  0); captured 0.0000; flagged 0.8549 of writes; oracle-flagged 0.0007; hit 0.92, false alarm 0.8548; familiarity mean 0.359 p99 0.493
+  mismatch 0.5     reliability 0.941 (brains < 0.2:  0); captured 0.0000; flagged 0.0196 of writes; oracle-flagged 0.0031; hit 0.81, false alarm 0.0172; familiarity mean 0.357 p99 0.533
+  mismatch-ach 0.3 reliability 0.001 (brains < 0.2: 20); captured 0.0000; flagged 0.8936 of writes; oracle-flagged 0.0912; hit 0.96, false alarm 0.8864; familiarity mean 0.435 p99 0.693
