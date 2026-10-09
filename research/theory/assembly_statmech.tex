@@ -1144,6 +1144,48 @@ measurable one: what sets $s_{\mathrm{ref}}$ and the critical $x$ as functions o
 $(n,k,p,\beta)$ --- a signal-to-noise calculation the reduced model of
 Lemma~\ref{lem:load}'s neighbourhood is placed to attempt.
 
+\paragraph{Where the margin goes: the fan, and a race of two chains
+(exploratory).} (\texttt{probe\_fan.py}, \texttt{probe\_drive.py}; $(10000,75,0.48)$,
+$U = 10, 40, 50$.) Drive is linear in the active set, so a step's drive splits
+exactly (to $2\times10^{-6}$) by source --- the state's neurons on the current
+token and off it --- and by weight --- the connectome's baseline and the learned
+excess. In threshold units, at $U = 10$ once replay has settled, the correct
+next assembly receives baseline $0.78$ and learned $0.38$ ($1.16$); the best rival
+$0.67$ and $0.10$ ($0.77$); the whole area $0.65$ and $0.06$. Three findings.
+\begin{enumerate}
+\item \emph{Selection is a third of the margin.} The correct assembly's baseline
+drive exceeds the area's by $0.13$: at write time the $k$-WTA chose, among the
+stimulus-driven neurons, those the random wiring already favoured. Learning
+adds the rest.
+\item \emph{The rival is the fan.} The best rival is a successor of another
+occurrence of the current word in $86$--$99\%$ of first steps (chance
+$3$--$50\%$), and its learned drive comes from on-track neurons: the type trace
+the current token shares with the word's other tokens (overlap $0.10$--$0.15$)
+was potentiated onto their successors. The \emph{fan ratio} --- rival's
+learned drive over the correct word's, at step $1$ --- is $0.40$, $0.70$, $0.90$
+at $U = 10, 40, 50$; the correct word's own logit does not move ($\approx 1.13$).
+Reuse does not weaken the signal; it strengthens the competition. This is the
+fan effect of human memory (Anderson, \emph{Cognitive Psychology} 6, 1974) with a
+mechanism: the trace of a concept drives every association it has.
+\item \emph{Two chains race, at step two.} Rival neurons the fan admits at step
+$1$ are off-track at step $2$, and they drive their own learned successor:
+$0.02$, $0.22$, $0.39$ of the rival's drive at step $2$. The step-$2$ margin is
+$+0.31$, $+0.02$ and $-0.22$: at $U = 50$ the intruding chain out-drives the
+correct one on average and holds through steps $3$--$4$. Survivors recover
+(margin back to $0.30$ by steps $9$--$15$ at $U = 40$), so the race is decided early,
+and reliability equals the product of the per-step win rates.
+\end{enumerate}
+
+\begin{conjecture}[A two-chain reduction]\label{conj:twochain} \OPEN
+Replay near the recurrence edge is a two-variable map on the on-track fraction
+$a$ and a coherent intruder fraction $b$, driven by the fan ratio $r(U)$: the
+step-$1$ fan seeds $b$, the intruder drives its own chain with the same learned
+gain as the correct one, and the edge is where the step-$2$ margin's mean
+crosses its spread. The one-variable overlap map (Lemma~\ref{lem:load}'s
+neighbourhood, a factor two off near the edge) misses $b$; with $b$ it should
+place the critical relative margin ($\approx 0.76$, Proposition~\ref{prop:logitmargin}).
+\end{conjecture}
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the
