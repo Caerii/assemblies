@@ -5762,3 +5762,82 @@ repetition is 0.01 and 0.10, with the number of bigrams repeated three or
 more times 0.06 and 0.16, and within-sequence repetition and a-b-a patterns
 do not separate them either. The whole-brain collapse under random reuse is
 unexplained; the connectome, not the sequences, may decide it.
+
+## Amendment 45 (2026-10-08, before running): a separable reuse budget -- two edges and a product law
+
+Registered before any run at the cells below. Amendment 44 found that about five
+repetitions per transition destroy word-level replay; its bar on whether uses
+per word matter at fixed repetition was vacuous (every repeated arm at zero).
+
+**Seen before registering** (exploratory, seeds 980 to 989, ten brains, after
+Amendment 44 was judged; `research/notes/memory/probes/2026-10-08/`
+`probe_dose.py`, `probe_dose2.py`, `probe_product.py`, `probe_edges.py`, with
+logs). At (12000, 80, 0.45), tau = 75, rho = 0.05:
+
+* Recurrence, random successors: word-level 1.00, 1.00, 0.39, 0.00, 0.00 at
+  U = 10, 20, 40, 60, 80 uses per word, failing brain by brain (0.00-0.97 at
+  U = 40); the same-word overlap falls as U grows (0.071 -> 0.036).
+* Repetition at U = 10: 1.00, 0.95, 0.39, 0.00, 0.00 at R = 1.0, 2.4, 2.8, 3.7,
+  5.7 repeats per transition.
+* Neither R, nor U, nor U R orders the interior points; the product of the two
+  marginal curves f(R) g(U) predicts (U, b) = (20, 8), (12, 4), (24, 16),
+  (40, 32), (48, 64) at 0.45, 0.15, 0.92, 0.37, ~0.2 against 0.39, 0.18,
+  0.89, 0.28, 0.21.
+* At (4000, 100, 0.35), tau = n/k, both edges lie further out (random reuse
+  at R ~ 5 keeps 0.91): the edges move with the cell.
+* A smoke run of the module (VOID, seeds 900 to 902) ran only the survey cell
+  (2000, 60, 0.5): word-level 1.00 at U = 10 random and 0.05 at U = 10, b = 3.
+* No run has touched (10000, 75, 0.48) or (7000, 60, 0.6).
+
+### Protocol
+
+`research/experiments/memory_reuse_budget.py` (`python -m research.runner
+reuse_budget`), seeds 682 to 701 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (10000, 75, 0.48) (n/k = 133,
+tau = 67) and (7000, 60, 0.6) (n/k = 117, tau = 58), by Amendment 41's rule;
+k p = 36 against 3 ln n = 27.6 and 26.6. Total load rho = 0.05; measurement as
+Amendment 44 (`memory_reuse_grammar.measure`: per-brain grammars, 16-element
+walks, word-level reliability = the nearest stored token's word at every
+step). Fourteen arms (U, b) per cell:
+
+    recurrence marginal (random successors): U = 10, 20, 30, 40, 60
+    repetition marginal at U = 10:           b = 10, 5, 4, 3  (R ~ 1, 2, 2.5, 3.3)
+    interior:                                (20, 8), (12, 4), (24, 16), (40, 32), (30, 10)
+
+For each cell, g(U) is the piecewise-linear curve through the recurrence arms
+(word-level against U) and f(R) the one through the U = 10 arms (word-level
+against the realised mean repeats per transition, the random arm included),
+both constant beyond their ends; the prediction for an interior arm is
+f(R) g(U) at its realised R and its U.
+
+    python -m research.runner reuse_budget \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag reuse-budget-20261008 --seeds 682 ... 701
+
+### Bars
+
+    S1  TWO EDGES. At both cells: U = 10 random >= 0.9; U = 60 random <= 0.2;
+        U = 10, b = 3 <= 0.2.
+    S2  THE BUDGET IS SEPARABLE. At both cells, every interior arm within
+        0.15 of f(R) g(U) -- AND at least two of the five predictions lie in
+        (0.15, 0.85). If fewer than two do, the interior sits on the floor
+        and ceiling, the bar cannot discriminate, and it is recorded as
+        FAILED (untested), not passed (the lesson of Amendment 44's G3).
+
+Reported, not judged: every arm's per-brain spread (whole-brain collapse vs
+graded loss), realised repeats, same-word overlap.
+
+### Interpretation, stated now
+
+* S1 and S2 pass: a token store's reuse budget is two independent edges --
+  repeated transitions and recurring elements -- multiplied; a cost model
+  needs two numbers per cell, and the edges' locations, not the law's form,
+  are what change between cells.
+* S1 fails: one of the edges is absent at a new cell.
+* S2 fails with informative points: the two kinds of reuse interact; the
+  budget needs a joint term.
+* S2 untested: the cells' edges lie where the interior arms cannot see them;
+  the law is unjudged.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until S1 and S2 are evaluated and recorded below.
