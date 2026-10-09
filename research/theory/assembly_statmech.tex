@@ -130,7 +130,7 @@ spin glasses, and of the retrieval overlap in the Hopfield model.
 
 Two further macrostates are measured. \emph{Retrieval accuracy} $R$ is the
 probability that a re-presented item's read-out has its largest overlap with
-the correct stored assembly. \emph{Margin} $\rho$ is the ratio of best to
+the correct stored assembly. \emph{Margin} $r$ is the ratio of best to
 second-best overlap; it is the more sensitive statistic, moving well before $R$
 departs from $1$.
 
@@ -170,12 +170,12 @@ in $Q$ is the practically important fact: they require opposite corrections
 (raise $g$ versus lower $g$), and a diagnostic keyed on $R$ alone cannot tell
 them apart.
 
-\begin{conjecture}[Critical gain]\label{conj:gc} \MEASURED
+\begin{proposition}[Critical gain]\label{conj:gc} \MEASURED\ (two seeds; not registered)
 For $T \ge 2$ and at fixed $(n,\alpha,\mu,D)$ there is a critical gain $g_c$
 such that composition to depth $5$ succeeds for $g < g_c$ and fails for
 $g > g_c$, and $g_c$ depends on $\beta$ and $T$ only through $g$. At $n=4000$,
 $\alpha=0.8$, $\mu=2.5$, $D=5$ the boundary lies at $g_c \approx 1.9$.
-\end{conjecture}
+\end{proposition}
 
 \paragraph{$g_c$ is not a constant of the substrate.} The size qualification
 above is not pedantry. A fine scan at matched load gives, by the $R=1/2$
@@ -218,7 +218,7 @@ described by $g$.
 Doubling $p$ from $0.05$ to $0.10$ (i.e.\ $\mu$ from $2.5$ to $5$) raises the
 depth-5 margin from $4.65$ to $8.11$ and $R$ from $0.938$ to $1.000$ at
 $\beta=0.35$, while leaving the failure at $\beta=0.40$ unchanged
-($R = 0.164 \to 0.172$). Moreover the \emph{sign} of $\partial \rho/\partial
+($R = 0.164 \to 0.172$). Moreover the \emph{sign} of $\partial r/\partial
 \beta$ depends on $\mu$: for $\mu \lesssim 1$ the margin has an interior
 maximum in $\beta$, and for $\mu \gtrsim 2.5$ it is increasing over the tested
 range.
@@ -261,7 +261,7 @@ collapses these to
   g_c \;\approx\; C \;+\; 0.29\,\ln n \;-\; 0.50\,\ln \alpha .
 \end{equation}
 
-\begin{conjecture}[Empirical form of $g_c$]\label{conj:gclaw} \MEASURED
+\begin{conjecture}[Empirical form of $g_c$]\label{conj:gclaw} \OPEN\ (a three-point fit; its registered prediction missed by $20\%$ of the effect, below)
 $g_c$ increases logarithmically with system size at fixed load and decreases
 logarithmically with load, as in \eqref{eq:gclaw}.
 \end{conjecture}
@@ -354,8 +354,8 @@ assemblies --- whose drive is potentiated by the same $g$, cancelling the
 density dependence --- or the argument is wrong. The first alternative is the
 more likely and is the natural next derivation.
 
-\begin{proposition}[Depth is information-limited]\label{prop:dpi} \OPEN
-Model level $L$ of a chain as a channel $X \to A_1 \to \cdots \to A_D$ where
+\begin{proposition}[Depth is information-limited]\label{prop:dpi} \PROVED\ (the bound; its value is unmeasured)
+Model a composition chain as a channel $X \to A_1 \to \cdots \to A_D$ where
 $X$ is the item identity, uniform on $M$ values. By the data-processing
 inequality $I(X; A_1) \ge \cdots \ge I(X; A_D)$, and exact retrieval at depth
 $D$ requires $I(X;A_D) = \log M$. Hence if each level loses at least $\delta$
@@ -366,12 +366,12 @@ $(\log M - \log M_{\min})/\delta$.
 This turns depth decay into a measurable quantity --- $\delta$ is estimable
 from the confusion matrix at each level --- and gives a bound that does not
 depend on the details of $\wta$. Making it quantitative requires estimating
-$I(X;A_L)$ from the empirical read-out distribution, which the scan's per-level
+$I(X;A_d)$ at each depth $d$ from the empirical read-out distribution, which the scan's per-level
 records already support.
 
 \section{Operating point: is the substrate quasicritical?}
 
-A measured critical point invites the question the critical-brain literature
+A measured crossover (the discussion before Conjecture~\ref{conj:fss} withdraws the term ``critical point'') invites the question the critical-brain literature
 asks of cortex: does the system work best \emph{at} criticality, or near it?
 Here the question is sharp because $g$ is an explicit parameter rather than
 something the system must self-organise towards.
@@ -469,7 +469,7 @@ makes an item retrievable. A candidate mechanism, not established: a weak
 write leaves the read-out to the random connectome's own attractor, which is
 nearer no stored item; accumulated potentiation from many items flattens that
 landscape until each item's own increment decides the competition. It is the
-first target for the soft ($\tau > 0$) ensemble below.
+first target for the soft ($\vartheta > 0$) ensemble below.
 
 
 \subsection{Toward deriving the onset}
@@ -623,35 +623,76 @@ read-out overlaps the stored state by at least $0.3$; a sequence is
 \emph{whole} if every step succeeds. Reliability is the fraction of brains (or
 of sequences) whole; $\rho_q$ is the load at which it falls through $q$.
 
+\paragraph{Vocabulary and evidence.} A \emph{brain} is one independently seeded
+connectome, regenerated from a hash; a \emph{cell} is a choice of $(n,k,p)$;
+a \emph{ladder} is a geometric grid of loads at which a fresh memory is written
+and read. \emph{Frozen} rounds do not write; \emph{masked} rounds ignore the
+refraction bias. The \emph{tiling deadline} is the failure of a refraction that
+never recovers: a sequence uses up the area's neurons every $n/k$ elements and
+replay breaks at those multiples (Amendment~28). ``Amendment $N$'' cites a
+registration in \texttt{PREREG\_refraction\_memory.md}, whose bars were fixed
+before its data; every judged cell is one no earlier run had touched, on twenty
+new brains. ``Exploratory'' marks a probe that was not registered (four to ten
+brains) and is reported to explain a registration, never to support a claim.
+Two limits apply to every number below. The crossings $\rho_q$ are
+log-interpolated between ladder points $2^{1/8}$ to $2^{1/12}$ apart and are
+reported without intervals; a bootstrap over brains is owed. And the reliability
+of one sequence is all or none per brain, so its curve is an estimate from
+twenty Bernoulli trials per point.
+
 \subsection{The load variable}
 
+\begin{definition}[The independent-count model]\label{def:icm}
+The $L$ stored states are independent uniform $k$-subsets; transition $u$
+increments the count of every present synapse from $s_u$ to $s_{u+1}$ by one;
+weights are $(1+\beta)^c$ below the clip, linearised to $1 + \beta c$; the
+successor states are \emph{not} selected by the connectome (the structural
+advantage a real write gives a successor --- it is chosen among the neurons
+its predecessor already drives --- is left out); normalisation by in-degree is
+a common factor and drops out of every ratio below.
+\end{definition}
+
 \begin{lemma}[Interference load]\label{lem:load}
-\PROVED\ to first order in $\beta$, for independent Poisson counts and $k \ll n$.
-Store $L$ transitions $s_u \to s_{u+1}$, each potentiating once every present
-synapse from $s_u$ to $s_{u+1}$. From a state holding a fraction $o$ of $s_t$,
-the members of $s_{t+1}$ receive a learned excess whose ratio to the standard
-deviation of the base input is $o\sqrt{\ln n}$, at every $(n,k,p)$; every
-neuron receives, from the other transitions, an excess whose variance relative
-to the base input's is
+\PROVED\ in the independent-count model, to first order in $k/n$.
+From a state holding a fraction $o$ of $s_t$, the members of $s_{t+1}$
+receive a learned excess whose ratio to the standard deviation of the base
+input is $o\,\beta\sqrt{kp/(1-p)}$; every neuron receives, from the other
+transitions, an excess whose variance relative to the base input's is
 \[
-  \rho \;=\; \frac{L\,k\,\ln n}{n^2 p}.
+  \rho_\beta \;=\; \frac{L\,k^2\beta^2}{n^2(1-p)},
+  \qquad\text{which at } \beta = \theta \text{ is}\qquad
+  \rho \;=\; \frac{L\,k\,\ln n}{n^2 p},
 \]
+and the signal ratio is then $o\sqrt{\ln n}$ at every $(n,k,p)$.
 \end{lemma}
 
 \begin{proof}
 The base input of a neuron from $k$ active sources has variance $kp(1-p)$ (unit
 weights). A member of $s_{t+1}$ has $okp$ active potentiated inputs on average,
 each worth $\beta$: the excess is $\beta okp$, and $\beta okp/\sqrt{kp(1-p)} =
-o\sqrt{\ln n}$ at $\beta=\theta$. Any neuron $j$ gains $\beta$ from an active
-$i$ for each other transition with $i\in s_u$, $j \in s_{u+1}$ and $(i,j)$
-present; the active state meets $s_u$ in $k^2/n$ neurons on average and $j \in
-s_{u+1}$ with probability $k/n$, so the number of such gains is Poisson with
-mean $Lk^3p/n^2$ and the excess has variance $\beta^2 Lk^3p/n^2$. Divided by
-$kp(1-p)$ and with $\beta^2 = (1-p)\ln n/(pk)$ this is $Lk\ln n/(n^2p)$.
+o\beta\sqrt{kp/(1-p)}$, which is $o\sqrt{\ln n}$ at $\beta=\theta$. Any neuron
+$j$ gains $\beta$ from an active $i$ for each other transition with $i\in s_u$,
+$j \in s_{u+1}$ and $(i,j)$ present; the active state meets $s_u$ in $k^2/n$
+neurons on average and $j \in s_{u+1}$ with probability $k/n$, so the number of
+such gains is Poisson with mean $Lk^3p/n^2$ and the excess has variance
+$\beta^2 Lk^3p/n^2$. Divided by $kp(1-p)$ this is $\rho_\beta$; with $\beta^2 =
+(1-p)\ln n/(pk)$ it is $Lk\ln n/(n^2p)$.
 \end{proof}
 
-The lemma fixes the variable, not the critical value. Its assumptions fail in
-two measured ways. When the mean count per synapse pair, $L(k/n)^2 = \rho\,kp/\ln
+The lemma fixes the variable, not the critical value. Two remarks place it.
+First, the $\ln n$ is not intrinsic to the substrate: it enters through the
+choice $\beta = \theta$, the convergence threshold, which scales the write
+with $\sqrt{\ln n}$. Written with $\alpha = L/n$ and the coding level $f =
+k/n$, the law at $\beta = \theta$ reads $\alpha_c f \ln n / p = \rho_c$: the form of
+the classical capacity of sparse associative memories, $\alpha_c f\ln(1/f) =
+O(1)$ (Willshaw et al.\ 1969; Tsodyks and Feigel'man 1988), with $\ln n$ in place
+of $\ln(1/f)$ because the write, not the coding level, sets the signal here.
+An $\ln(1/f)$ form was fitted after the fact to the cells below and failed at
+new cells with small $n/k$ (exploratory), which is what this remark predicts.
+Second, the near coincidence of $\rho_c \approx 0.12$--$0.14$ with the Hopfield
+storage ratio $\alpha_c \approx 0.138$ (Amit, Gutfreund and Sompolinsky 1985) is
+a coincidence of normalisations: the two variables count different things.
+Its assumptions fail in two measured ways. When the mean count per synapse pair, $L(k/n)^2 = \rho\,kp/\ln
 n$, approaches one, the multiplicative weights $(1+\beta)^c$ leave the linear
 regime: at $kp/\ln n = 24$ replay fails at its first step from $\rho = 0.07$
 (exploratory). And the counts are not independent (Section~\ref{sec:dispersion}).
@@ -713,11 +754,15 @@ $c(\rho)$, and every later step fails independently with probability $h(\rho)$:
 \[
   \Prob(\text{whole} \mid \ell, \rho) \;=\; c(\rho)\,\bigl(1-h(\rho)\bigr)^{\ell-1}.
 \]
-Write $h = e^{-I(\rho)}$, with $I$ decreasing (a rate function).
+Write $h = e^{-I(\rho)}$, with $I$ decreasing: an \emph{escape exponent}. Calling
+it a large-deviation rate function would presume a large parameter in which $I$
+grows linearly; none is established ($kp$, the number of afferents a state
+sends a neuron, is the candidate, and predicts cliffs that sharpen with $kp$).
 \end{definition}
 
 \begin{proposition}[What the model implies for one long sequence]\label{prop:ld}
-\PROVED\ within the model, for $c \approx 1$ and $h \ll 1$ at the cliff. Let
+\PROVED\ within the model, for $c \approx 1$ and $h \ll 1$ at the cliff, and (2)
+for $I$ linear across the cliff's width. Let
 $\rho_q(L)$ be the load at which a sequence of $L$ elements is whole with
 probability $q$. Then
 \begin{enumerate}
@@ -740,8 +785,11 @@ $64$-element arms at each load located its single sequences' cliffs
 ($5000$--$13000$ elements) to one ladder step at both cells. The fitted hazard
 rises about three decades between $\rho = 0.11$ and $0.13$, so $|I'| \approx
 1/0.005$--$1/0.007$, and Proposition~\ref{prop:ld}(2) gives $\rho_{10}/\rho_{90}
-\approx 1.13$--$1.20$ at $\rho \approx 0.12$, the same order as the measured
-$1.07$--$1.15$. Above $\rho \approx 0.13$ the hazard levels off near $10^{-2}$
+\approx 1.13$--$1.20$ at $\rho \approx 0.12$ --- \emph{wider} than the measured
+$1.07$--$1.15$. The tension is not resolved: a slope fitted from two lengths
+may underestimate $|I'|$ where the hazard turns up, or the escape exponent may
+not be linear across the cliff. The hazard measured directly over three
+decades decides between them. Above $\rho \approx 0.13$ the hazard levels off near $10^{-2}$
 while $c$ falls ($0.4$--$0.65$ at $0.14$): long sequences die of the in-sequence
 hazard, short ones at the cue. Amendment~43 registers the model's prediction at
 two new cells: $(c,h)$ from $16$- and $64$-element sequences must place the
@@ -749,9 +797,13 @@ $\rho_{50}$ of $256$-, $1024$- and whole-load sequences within $5\%$.
 
 \begin{conjecture}[Kramers escape at a saddle-node]\label{conj:kramers} \OPEN
 Replay is a Markov chain on the overlap $o$ with one-step map $F_\rho$ and
-fluctuation $\sigma^2$; the cliff's $\rho_c$ is the saddle-node of $F_\rho$
+fluctuation $\sigma^2$ per step (the variance of the overlap's one-step change
+at the stable state); the cliff's $\rho_c$ is the saddle-node of $F_\rho$
 (Conjecture~\ref{conj:saddle}), and below it
-$I(\rho) \simeq A(\rho_c - \rho)^{3/2}/\sigma^2$. Then the load law's
+$I(\rho) \simeq A(\rho_c - \rho)^{3/2}/\sigma^2$ --- the exponent of escape over
+the cubic barrier left near a saddle-node with Gaussian noise in continuous
+time (Kramers 1940; H\"anggi, Talkner and Borkovec 1990), so for a discrete map
+with non-Gaussian noise the $3/2$ is itself a prediction. Then the load law's
 ``constant'' is $\rho_c$ less a length-dependent offset,
 $\rho_{50}(L) \approx \rho_c - \bigl[\sigma^2 (\ln L + 0.37)/A\bigr]^{2/3}$, and
 part of what looked like a drift with $n/k$ is a drift with $\ln L$ (larger
@@ -772,20 +824,20 @@ the same partner $70$ of them, because once its synapse saturates at $w_{\max}$
 it alone outweighs the base input's fluctuation and the write re-traces it (a
 P\'olya urn per pair).
 
-Let $D$ be the variance of the learned interference onto non-target neurons
+Let $\kappa$ be the variance of the learned interference onto non-target neurons
 (from a stored state, at $\rho = 0.10$) divided by its value under independent
 Poisson counts of the same mean. The conjecture that every knob acts through
-$D$ --- $\rho_{50} \approx \rho^{\mathrm{Pois}}_c / D$, so that $\rho_{50}D$ is
+$\kappa$ --- $\rho_{50} \approx \rho^{\mathrm{Pois}}_c / \kappa$, so that $\rho_{50}\kappa$ is
 constant --- was measured before it was registered, at twelve cells and
 recovery times of Proposition~\ref{prop:tau} and its probes (four brains each,
-exploratory), and it fails in that form. $D$ does carry the collapse at short
+exploratory), and it fails in that form. $\kappa$ does carry the collapse at short
 $\tau$: $8.5$ at $\tau = n/k/4$ (where $\rho_{50} = 0.066$) against $1.0$ at
 $\tau = n/k$ ($0.160$), and $2.6$ at $n/k = 300$, $\tau = 64$ ($0.081$) against
 $1.25$ under the rule ($0.105$); about half of the excess is a non-Poisson count
-distribution (pair capture), half correlation between pairs. But $\rho_{50}D$
-ranges from $0.12$ to $0.56$; under $\tau = n/k/2$, $D \approx 1.2$ at every $n/k$
+distribution (pair capture), half correlation between pairs. But $\rho_{50}\kappa$
+ranges from $0.12$ to $0.56$; under $\tau = n/k/2$, $\kappa \approx 1.2$ at every $n/k$
 from $20$ to $300$ while $\rho_{50}$ drifts from $0.122$ to $0.105$; and at the
-$\tau$ peak $D$ moves from $1.31$ to $0.95$ while $\rho_{50}$ rises $1.66$-fold.
+$\tau$ peak $\kappa$ moves from $1.31$ to $0.95$ while $\rho_{50}$ rises $1.66$-fold.
 At $\tau = n/k$ the interference is slightly \emph{under}-dispersed: refraction
 spaces the reuse.
 
@@ -826,7 +878,8 @@ variance-components model, for (2) with Poisson-distributed shared counts.
   holds an estimate of $\mu_w$ with reliability
   $R_m = m\,\mathrm{ICC}/\bigl(1+(m-1)\mathrm{ICC}\bigr)$ (Spearman--Brown): at
   $\mathrm{ICC} = 0.1$, $R_{10} = 0.53$, $R_{40} = 0.82$, and $R = 0.9$ needs
-  $m = 81$. The type is the shrunken mean of its tokens.
+  $m = 81$ (Spearman 1910; Brown 1910). The type is the shrunken mean of its
+  tokens, in the sense of empirical Bayes.
 \item \emph{Types from one pair.} Deciding whether two tokens are the same word
   from their shared count (mean $\mathrm{ICC}\,k$ against $k^2/n$) has
   $d' \approx \sqrt{\mathrm{ICC}\,k}$ when $k/n \ll \mathrm{ICC}$: about $3$ at
@@ -840,6 +893,16 @@ intraclass correlation $\mathrm{ICC}$. (2): the separation of the means is
 $\mathrm{ICC}\,k - k^2/n \approx \mathrm{ICC}\,k$, and the standard deviation of a
 Poisson count with that mean is $\sqrt{\mathrm{ICC}\,k}$.
 \end{proof}
+
+Two cautions bound the proposition. A binary code is not a sum of a type
+vector and a context vector; the model is a statement about second moments
+(neuron $i$ fires in an occurrence of $w$ with a probability $\pi_{wi}$, and the
+ICC is the share of variance in those probabilities across words), and it says
+nothing about how the shared neurons are organised. And the shared count of
+two occurrences need not be Poisson: if the shared core is the stimulus's own
+strongest targets, nearly the same neurons in every context, its variance is
+smaller and $d'$ larger than (2) gives. Both are measurable from the stored
+states.
 
 Proposition~\ref{prop:sb} turns the trace into predictions a registration can
 test: how many exposures a lexical area needs before a word is stable, and that
@@ -868,8 +931,8 @@ must be hierarchical (a random intercept per brain).
 
 Amendment~33 linked each plan position's state in a chunk area $C$ to its
 chunk's first state in a sequence area $S$ through a fiber written twice per
-association. An exploratory sweep of $A$ associations onto $T$ chunk starts
-(fan-in $F = A/T$; $k = 60$, $p = 1/2$, ten brains) at four area pairs finds
+association. An exploratory sweep of $A$ associations onto $J$ chunk starts
+(fan-in $F = A/J$; $k = 60$, $p = 1/2$, ten brains) at four area pairs finds
 that the analogue of Lemma~\ref{lem:load}, $\rho_x = Ak\ln n_S/(n_Cn_Sp)$, is
 \emph{not} the variable. The fraction of starts evoked declines gradually,
 without a cliff, and the number of associations at which half are evoked,
@@ -878,7 +941,7 @@ $A_{50}$, depends on the \emph{source} area alone:
 \begin{center}
 \begin{tabular}{lcc}
 \toprule
-$(n_S, n_C)$ & $A_{50}$, $T = 16$ & $A_{50}$, $T = 64$ \\
+$(n_S, n_C)$ & $A_{50}$, $J = 16$ & $A_{50}$, $J = 64$ \\
 \midrule
 $(4000, 2000)$ & $1810$ & $2400$ \\
 $(8000, 2000)$ & $1810$ & $2365$ \\
@@ -888,10 +951,12 @@ $(8000, 4000)$ & $2455$ & $4115$ \\
 \end{tabular}
 \end{center}
 
-\noindent (log-interpolated; at $(4000,4000)$, $T = 64$ the sweep ended at
+\noindent (log-interpolated; at $(4000,4000)$, $J = 64$ the sweep ended at
 $0.525$.) Doubling the target area changes $A_{50}$ by less than $2\%$; doubling
-the source area multiplies it by $1.36$ ($T = 16$) and about $1.7$ ($T = 64$), an
-exponent of $0.45$--$0.8$ in $n_C$ that grows with the number of targets. The
+the source area multiplies it by $1.36$ ($J = 16$) and about $1.7$ ($J = 64$), an
+exponent of $0.45$--$0.8$ in $n_C$ that grows with the number of targets
+(two sizes of each area, one $k$, ten brains: the exponent is a slope between
+two points, and the dependence on $k$ is untested). The
 competition is among whole target assemblies, and what decides it is how much
 the cue resembles the other source states linked to each wrong target --- a
 quantity of the source area ($\sim k/n_C$ per state, summed over the fan-in),
@@ -899,9 +964,9 @@ not of the target's $n_S$ neurons. The wrong start that wins is the one with
 the most accumulated links: a hub.
 
 \begin{conjecture}[The link budget is a source-area law]\label{conj:links} \OPEN
-The associations a fiber $C \to S$ carries onto $T$ target assemblies at a
+The associations a fiber $C \to S$ carries onto $J$ target assemblies at a
 given fidelity scale with the source area as $n_C/k$ up to an extreme-value
-factor in $T$ (the most-linked wrong target), and not with $n_S$. A hierarchy's
+factor in $J$ (the most-linked wrong target), and not with $n_S$. A hierarchy's
 depth is then bounded by its chunk areas' sizes, not its sequence areas'.
 \end{conjecture}
 
@@ -919,7 +984,7 @@ Recovery time $\tau = n/k$ to $n/k \approx 50$, $n/k/2$ from $\approx 100$ & \ME
 Total load $\le 0.09$: every sequence whole, any split, $\le 5$ uses per word, $\le 5\%$ noise & \MEASURED & A37--A42 \\
 Past it: short sequences lost one by one at $c(1-h)^{\ell-1}$ & \MEASURED\ (post hoc), A43 registered & Prop.~\ref{prop:ld} \\
 Cliff location moves with $\ln L$, width with $|I'|$ & \PROVED\ in the model & Prop.~\ref{prop:ld} \\
-The constant: dispersion (short $\tau$), the successor's selection (the peak) & \OPEN\ ($\rho_{50}D$ constant: failed) & Sec.~\ref{sec:dispersion} \\
+The constant: dispersion (short $\tau$), the successor's selection (the peak) & \OPEN\ ($\rho_{50}\kappa$ constant: failed) & Sec.~\ref{sec:dispersion} \\
 Type identity: averaging (Spearman--Brown), one pair ($d' \approx \sqrt{\mathrm{ICC}\,k}$) & \PROVED\ in the model; ICC \MEASURED & Prop.~\ref{prop:sb} \\
 Links: budget set by the source area ($\sim n_C^{0.45\text{--}0.8}$), not $n_S$ & \OPEN\ (exploratory) & Conj.~\ref{conj:links} \\
 \bottomrule
@@ -939,10 +1004,10 @@ configuration space is committed.
 
 A canonical ensemble can be introduced by softening $\wta$: assign to each
 state $x$ the energy $E(x) = -\sum_{i \in x} I_i$ and the Gibbs measure
-$\Prob(x) \propto e^{-E(x)/\tau}$ over $k$-subsets, with partition function
-$Z(\tau) = \sum_{|x|=k} e^{-E(x)/\tau}$. Deterministic $k$-WTA is the
-$\tau \to 0$ limit. This is the natural route to a free energy for the
-substrate, and it is worth noting that $\tau$ is not currently a parameter of
+$\Prob(x) \propto e^{-E(x)/\vartheta}$ over $k$-subsets, with partition function
+$Z(\vartheta) = \sum_{|x|=k} e^{-E(x)/\vartheta}$. Deterministic $k$-WTA is the
+$\vartheta \to 0$ limit. This is the natural route to a free energy for the
+substrate, and it is worth noting that $\vartheta$ is not currently a parameter of
 the implementation --- introducing it would be a modelling choice, not a
 measurement, and should be kept clearly separate from the results above.
 
