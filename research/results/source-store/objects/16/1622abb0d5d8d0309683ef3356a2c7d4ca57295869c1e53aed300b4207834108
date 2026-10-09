@@ -789,10 +789,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | W2 moderate reuse is free (A42) | >= 0.98 at <= 5 uses/word | PASS | 1.00 |
 | N1 mild noise fits the budget (A42) | >= 0.98, nu <= 0.05, rho <= 0.08 | PASS | >= 0.997 |
 | N2 noise and load compound (A42) | drop >= 0.2 at nu 0.1 | PASS | 0.24, 0.60 |
-| K1 256 elements predicted from 16/64 (A43) | rho_50 within 5% | PASS | -4.1%, -1.9% |
-| K2 1024 elements predicted (A43) | rho_50 within 5% | PASS | -4.7%, -2.2% |
-| K3 single cliff predicted (A43) | rho_50 within 5% | FAIL | -9.8%, -4.5% |
-| K4 length costs (A43) | rho_50 strictly falls with l | PASS | both cells; ~0.003 per e-fold of l |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -5576,64 +5572,3 @@ Reported, not judged: (c, h) at every load; the shape of ln h against rho
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until K1 to K4 are evaluated and recorded below.
-
-### Amendment 43 result (2026-10-08)
-
-One run from a worktree pinned at af88c6fa, seeds 642 to 661:
-[record](../../results/runs/memory.load-hazard/load-hazard-20261008/results.json),
-[log](../../results/logs/memory-load-hazard-20261008.log).
-
-**A flaw in the ladder, disclosed.** Rounding every total to a multiple of
-1024 made adjacent ladder points coincide at these cells' loads (6144 twice,
-7168 twice, ...): the first cell has 9 distinct loads of the 17 registered, the
-second 12, so the ladder is 8% to 17% per step instead of 6%, and the repeated
-points measured the same load twice (the record keeps the second). The bars
-read crossings, which the coarser ladder still brackets.
-
-Fraction of sequences whole (first cell; the second is in the record):
-
-    rho        0.106   0.119   0.132   0.145   0.158
-    l = 16     1.000   0.992   0.854   0.358   0.110
-    l = 64     0.999   0.979   0.611   0.207   0.064
-    l = 256    0.998   0.968   0.475   0.166   0.054
-    l = 1024   1.000   0.900   0.395   0.136   0.033
-    one        1.00    0.80    0.00
-
-                      measured rho_50                              predicted (from 16, 64)
-                      16      64      256     1024    one          256      1024     one
-    (10000, 70, 0.5)  0.1413  0.1355  0.1313  0.1292  0.1236       -4.1%    -4.7%    -9.8%
-    (8000, 50, 0.7)   0.1542  0.1467  0.1418  0.1405  0.1311       -1.9%    -2.2%    -4.5%
-
-    K1  256 ELEMENTS PREDICTED                                         PASS
-        -4.1% and -1.9%.
-    K2  1024 ELEMENTS PREDICTED                                        PASS
-        -4.7% and -2.2%.
-    K3  THE SINGLE CLIFF PREDICTED                                     FAIL
-        -9.8% at (10000, 70, 0.5); -4.5% at (8000, 50, 0.7).
-    K4  LENGTH COSTS                                                   PASS
-        rho_50 strictly falls through 16, 64, 256, 1024 and one sequence
-        at both cells.
-
-**Reading.** Length costs, and it costs logarithmically: across three decades
-of sequence length -- 16 elements to one sequence of 9,600 and 13,100 --
-rho_50 falls linearly in ln l, by 0.0027 and 0.0032 per e-fold, with no point
-more than 0.0018 off the line (fitted after the run). That is the form the
-hazard model predicted (the cliff where l h(rho) ~ 1). Its constant-hazard
-version, fitted on 16 and 64 elements, is too pessimistic, increasingly with
-length: within 5% in rho_50 to 1024 elements, 5% to 10% low for a whole-load
-sequence. Point by point the miss is large -- at rho = 0.132 it predicts 0.16
-of 256-element sequences whole where 0.48 are, and none of 1024 where 0.40
-are -- and the steep curves hide it in rho_50. Long sequences survive better
-than a constant hazard allows: failures concentrate early, as the first
-interpretation stated for a K1/K2 failure (the hazard depends on position),
-here visible though K1 and K2 pass. The likeliest early risk is the transient
-from the half cue, which takes several steps to settle, not one.
-
-Interval caveat (computed after the run, research/experiments/memory_budget_figures.py):
-at (10000, 70, 0.5) the crossings of 256, 1024 and one sequence fall inside the
-same ladder bracket, rho 0.119 to 0.132, so K4's strict order there rests on
-interpolation within one (coarsened) ladder step; the bootstrap over brains is
-tight (widths <= 0.004) but cannot see the ladder.
-
-Next: the survival curve itself -- where along a sequence it first fails --
-which separates the cue's transient from the steady hazard.

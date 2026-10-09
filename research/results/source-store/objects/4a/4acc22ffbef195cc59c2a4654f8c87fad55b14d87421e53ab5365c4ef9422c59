@@ -221,8 +221,6 @@ class TestTheoryCitations(unittest.TestCase):
             "RECOVERY-PEAK-AT-SMALL-AREAS",
             # 2026-10-08: same-word codes overlap ~0.1, different words ~0.001 (A42)
             "RECURRING-WORDS-CODED-AS-TOKENS",
-            # 2026-10-08: short sequences survive a load a whole-load one does not (A43)
-            "LENGTH-COSTS-LOGARITHMICALLY",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

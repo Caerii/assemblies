@@ -47,11 +47,13 @@ recovery time must match the interval between a neuron's uses, $n/k$: matched,
 it buys up to $1.65$ times the budget in small areas, and a fixed recovery time
 fails large areas outright; (iii) up to $\rho = 0.09$ every sequence replays
 whole however the budget is split, and past it short sequences are lost one by
-one, by a per-step hazard compounded over length that predicts where long
-sequences fail; (iv) an element that recurs across sequences is coded anew in
+one; the critical load falls linearly in the logarithm of sequence length over
+three decades, as a hazard compounded over length implies, though a constant
+hazard fitted on short sequences underestimates how long the longest survive;
+(iv) an element that recurs across sequences is coded anew in
 each, with a trace of its identity --- an intraclass correlation of about
 $0.1$, fifty to a hundred times chance; (v) links between areas are budgeted by
-the source area alone (exploratory). Three predictions failed on the way and are
+the source area alone (exploratory). Five predictions failed on the way and are
 reported with their numbers. The results form a cost model for programs of
 sequences compiled onto assembly areas.
 \end{abstract}
@@ -273,10 +275,30 @@ $64$-element arms locate its long sequences' cliffs to one ladder step
 (Figure~\ref{fig:hazard}). The hazard rises about three decades between
 $\rho = 0.11$ and $0.13$ and then levels near $10^{-2}$ while $c$ falls: long
 sequences die of the in-sequence hazard, short ones at the cue. One tension
-stands: the fitted slope predicts cliffs wider ($\rho_{10}/\rho_{90} \approx
-1.13$--$1.20$) than measured ($1.07$--$1.15$). Amendment~43 registers the model's
-predictions at new cells: $(c,h)$ from short sequences must place the
-$\rho_{50}$ of $256$-, $1024$- and whole-load sequences within $5\%$.
+stood: the fitted slope predicts cliffs wider ($\rho_{10}/\rho_{90} \approx
+1.13$--$1.20$) than measured ($1.07$--$1.15$).
+
+\begin{proposition}[Length costs logarithmically]\label{prop:lnl} \REG\
+(the order; the slope is fitted after the run) At equal total load, $\rho_{50}$
+falls strictly through sequences of $16$, $64$, $256$, $1024$ elements and one of
+the whole load ($9{,}600$ and $13{,}100$ elements) at two new cells, linearly in
+$\ln\ell$: by $0.0027$ and $0.0032$ per e-fold, no point more than $0.0018$ off
+the line (Amendment~43, Figure~\ref{fig:hazard}).
+\end{proposition}
+
+The same amendment tested the constant-hazard model: $(c,h)$ fitted on $16$
+and $64$ elements placed the $\rho_{50}$ of $256$ and $1024$ elements within $5\%$
+($-1.9\%$ to $-4.7\%$) and of a whole-load sequence $4.5\%$ and $9.8\%$ low --- the
+last bar failed. Point by point the miss is larger than $\rho_{50}$ shows: at
+$\rho = 0.132$ the model gives $0.16$ of $256$-element sequences whole where
+$0.48$ are, and none of $1024$ where $0.40$ are. Long sequences outlive a
+constant hazard; failures concentrate early, plausibly in the several steps the
+read-out takes to settle from a half cue. The logarithmic law of
+Proposition~\ref{prop:ld} holds; its constant-hazard mechanism does not, and
+the survival curve along a sequence is the measurement that separates the two.
+At one cell three of the five crossings share a single ladder step, coarsened
+by a rounding flaw in the registered ladder, so their order there rests on
+interpolation.
 
 \begin{conjecture}[Escape from a vanishing barrier]\label{conj:kramers} \OPEN
 Replay is a Markov chain on the overlap; the cliff is the saddle-node of its
@@ -371,7 +393,7 @@ coincide; the target area's size does not matter.}
 
 \section{What failed}\label{sec:failed}
 
-Four predictions or hypotheses failed and redirected the work. (1) The
+Five predictions or hypotheses failed and redirected the work. (1) The
 constant: registered to hold at $n/k = 300$, it fell to $0.081$ with a fixed
 recovery time, and the safe rule broke (Amendment~38, three of four bars
 failed); the failure located the recovery time. (2) A rescaling of $\rho$ with
@@ -384,6 +406,9 @@ the collapse at short $\tau$ ($\kappa = 8.5$) but not the peak, where $\kappa$
 moves from $1.31$ to $0.95$ while $\rho_{50}$ rises $1.66$-fold \EXP. (4) A first
 draft of Amendment~40 asked for equal $\rho_{50}$ across splits; an exploratory
 probe showed graded failure, and the bars were rewritten before the judged run.
+(5) A constant per-step hazard, fitted on short sequences, was registered to
+place a whole-load sequence's cliff within $5\%$ and placed it $9.8\%$ low at one
+cell (Amendment~43): the hazard is not constant along a sequence.
 
 \section{Discussion: a cost model}\label{sec:discussion}
 
@@ -396,7 +421,8 @@ Load variable $\rho = Lk\ln n/(n^2p)$; $\rho_\beta$ in general & proved in a mod
 Recovery time $n/k$ to $n/k \approx 50$, $n/k/2$ from $\approx 100$ & registered (Prop.~\ref{prop:tau}) \\
 Total load $\le 0.09$: every sequence whole, any split & registered (Props.~\ref{prop:law}, \ref{prop:split}) \\
 $\le 5$ uses per element and $\le 5\%$ noise cost nothing there & registered (Prop.~\ref{prop:icc}) \\
-Past it: $c(1-h)^{\ell-1}$ per sequence; cliff at $\ln L$ & proved in a model; registered test pending \\
+Critical load falls $\approx 0.003$ per e-fold of sequence length & registered order, fitted slope (Prop.~\ref{prop:lnl}) \\
+Past it: losses per sequence; constant hazard good to $1024$ elements, pessimistic beyond & registered (one bar failed) \\
 Element identity: Spearman--Brown, $d' \approx \sqrt{\mathrm{ICC}\,k}$ & proved in a model; ICC registered \\
 Links: source-area law & exploratory \\
 \bottomrule
@@ -430,7 +456,7 @@ Matched recovery time & 39 & $(21000,70,0.5)$, $(16000,80,0.45)$ & T1--T4 pass \
 Any split & 40 & $(8000,80,0.5)$, $(12000,70,0.5)$ & A1--A3 pass \\
 The recovery-time peak & 41 & $(6000,300,0.12)$, $(5000,100,0.35)$, $(10000,100,0.35)$, $(14000,70,0.5)$ & P1--P4 pass \\
 Recurrence and noise & 42 & $(4000,100,0.35)$, $(10000,120,0.3)$ & W1, W2, N1, N2 pass \\
-Hazard predictions & 43 & $(10000,70,0.5)$, $(8000,50,0.7)$ & pending \\
+Hazard predictions; length & 43 & $(10000,70,0.5)$, $(8000,50,0.7)$ & K1, K2, K4 pass; K3 fail \\
 \bottomrule
 \end{tabular}
 \caption{The registrations behind each claim; seeds 522--661, twenty new brains

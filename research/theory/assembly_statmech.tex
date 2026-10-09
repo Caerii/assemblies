@@ -823,6 +823,32 @@ hazard, short ones at the cue. Amendment~43 registers the model's prediction at
 two new cells: $(c,h)$ from $16$- and $64$-element sequences must place the
 $\rho_{50}$ of $256$-, $1024$- and whole-load sequences within $5\%$.
 
+\paragraph{Amendment 43, judged (2026-10-08).} K1, K2, K4 pass; K3 fails.
+$\rho_{50}$ falls strictly through $\ell = 16, 64, 256, 1024$ and one whole-load
+sequence ($\approx 10^4$) at both cells, and linearly in $\ln\ell$ ($-0.0027$ and
+$-0.0032$ per e-fold, residuals $\le 0.0018$; fitted after the run): part~(1) of
+Proposition~\ref{prop:ld} holds over three decades. The constant-hazard model
+does not: fitted on $16$ and $64$ it places $256$ and $1024$ within $5\%$ in
+$\rho_{50}$ ($-1.9$ to $-4.7\%$) but a whole-load sequence $4.5\%$ and $9.8\%$ low,
+and point by point it is far off ($0.16$ predicted against $0.48$ measured for
+$256$ elements at $\rho = 0.132$; $0.00$ against $0.40$ for $1024$). The hazard
+falls along a sequence: survivors of the first steps are safer. The candidate
+is the cue's transient --- the overlap climbs from $0.5$ toward its stable value
+over several steps, at risk throughout --- which would make $c$ a survival over
+the first few steps rather than one. This also reads the width tension above:
+a slope fitted where the transient dominates underestimates $|I'|$ for the
+steady hazard. Two flaws of the run, recorded: rounding totals to multiples of
+$1024$ left $9$ and $12$ distinct loads of the $17$ registered, and at one cell
+three crossings share one ladder step.
+
+\begin{conjecture}[A two-phase hazard]\label{conj:twophase} \OPEN
+A sequence's first failure has hazard $h_0(\rho)$ over the first $m \approx 3$
+steps after the cue and a steady $h_\infty(\rho) \ll h_0$ thereafter; the cliff
+of one long sequence is where $L h_\infty(\rho) \approx 1$, and $\rho_{50}(\ell)$ is
+linear in $\ln \ell$ with slope $1/|I_\infty'|$. Measuring each sequence's
+first-failure step decides it.
+\end{conjecture}
+
 \begin{conjecture}[Kramers escape at a saddle-node]\label{conj:kramers} \OPEN
 Replay is a Markov chain on the overlap $o$ with one-step map $F_\rho$ and
 fluctuation $\sigma^2$ per step (the variance of the overlap's one-step change

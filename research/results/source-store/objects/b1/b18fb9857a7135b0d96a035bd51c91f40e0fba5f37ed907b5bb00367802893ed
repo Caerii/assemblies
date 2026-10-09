@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner load_hazard --registration research/notes/memory/PREREG_refraction_memory.md --tag load-hazard-20261008 --seeds 642 643 644 645 646 647 648 649 650 651 652 653 654 655 656 657 658 659 660 661 > C:\Github\assemblies-runs-20260930b\a43.log 2>&1

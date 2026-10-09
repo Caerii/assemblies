@@ -1443,46 +1443,6 @@ _RESULTS: List[Result] = [
                "Noise during writing is not covered.",
     ),
     Result(
-        id="LENGTH-COSTS-LOGARITHMICALLY",
-        engine="hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta",
-        status=Status.MEASURED,
-        claim="The critical load of a sequence area depends on the length of what it "
-              "holds, logarithmically: at equal total load, rho_50 falls through sequences "
-              "of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both "
-              "cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off "
-              "the line, fitted after the run). A capture-and-constant-hazard model fitted "
-              "on 16 and 64 elements places 256 and 1024 within 5% in rho_50 but a "
-              "whole-load sequence 5-10% low: long sequences outlive a constant hazard.",
-        source="PREREG_refraction_memory.md Amendment 43 (K1, K2, K4 PASS; K3 FAIL)",
-        preconditions=("k p >= 3 ln n, n/k = 143 and 160; tau = n/k / 2",
-                       "noiseless one-round replay from a random half cue"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-43-result-2026-10-08",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.load-hazard/load-hazard-20261008/results.json", "artifact",
-                        "Amendment 43: five sequence lengths at equal total load, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.load-hazard/load-hazard-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/10000~170~10.5/arms/16/ladder/10240/whole",
-            control_path="observations/cells/10000~170~10.5/arms/single/ladder/10240/whole",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="at rho = 0.132 every brain replays most of its 16-element sequences and not the single whole-load sequence, at (10000, 70, 0.5) (Amendment 43)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.load-hazard/load-hazard-20261008/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8000~150~10.7/arms/16/ladder/14336/whole",
-            control_path="observations/cells/8000~150~10.7/arms/single/ladder/14336/whole",
-            relation="all-greater", minimum_effect=0.5,
-            mechanism="at rho = 0.144 the same at (8000, 50, 0.7) (Amendment 43)",
-        )),
-        caveat="The ln l slope is a post hoc fit over five lengths at two cells. The "
-               "registered ladder was coarsened by rounding to multiples of 1024 (9 and 12 "
-               "distinct loads of 17); at the first cell 256, 1024 and one sequence cross inside one ladder "
-               "step, so their order there rests on interpolation. Why long sequences outlive a constant hazard (an "
-               "early transient from the cue is the candidate) is untested.",
-    ),
-    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,
