@@ -6007,3 +6007,67 @@ collapsed brains and costs a healthy memory nothing; how much it lifts a
 cell's mean, whether it is specific to the collapse, and where its window
 closes are not established. A registration of the rescue should be conditional
 on collapse (paired, per collapsed brain), not a cell mean.
+
+## Amendment 47 (2026-10-09, before running): read-time adaptation rescues collapsed brains -- paired, conditional on collapse
+
+Registered before any run at the cells below. Amendment 46 tested a session
+adaptation during replay (each replay winner charged 0.1 of its raw drive,
+decaying over 50 steps, kept across a brain's sequences) and passed one bar of
+four: its rescue was registered as a cell mean, which depends on how many brains
+collapse, and missed at one cell (+0.14 against 0.15); it moved the repetition
+failure +0.11 at one cell; and strong adaptation helped at one cell. Paired by
+brain after that run, every brain that changed improved (36 of 36, none worse)
+and collapsed brains (masked < 0.2) rose from 0.01 to 0.39.
+
+**Seen before registering.** Amendment 46's record and its post hoc pairing
+(above); the exploratory probes disclosed there. A smoke run of this module
+(VOID, seeds 900 to 902) ran only the survey cell (2000, 60, 0.5), U = 40
+arm: masked 0.55, habit 0.86, strong 0.21. No run has touched (9000, 70, 0.5)
+or (13000, 90, 0.4).
+
+### Protocol
+
+`research/experiments/memory_read_rescue.py` (`python -m research.runner
+read_rescue`), seeds 722 to 741 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (9000, 70, 0.5) (n/k = 129,
+tau = 64) and (13000, 90, 0.4) (n/k = 144, tau = 72), by Amendment 41's rule;
+k p = 35 and 36 against 3 ln n = 27.3 and 28.4. Measurement exactly as
+Amendment 46 (`memory_read_adaptation.measure`: per-brain grammars, 16-element
+walks, rho = 0.05, word-level; each memory replayed masked, habit (c = 0.1,
+T = 50) and strong (c = 0.3, T = 50)). Four arms: recurrence at U = 40 and at
+U = 50 (random successors; two levels so that brains collapse), repetition
+(U = 10, b = 3), healthy (U = 10, random). Per cell, the recurrence arms' brains
+are pooled (40 brain-arms); a brain-arm is FAILING if its masked reliability is
+below 0.5 and COLLAPSED if below 0.2; gains are habit minus masked on the same
+memory.
+
+    python -m research.runner read_rescue \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag read-rescue-20261009 --seeds 722 ... 741
+
+### Bars
+
+    Q1  EVERY FAILING BRAIN IS HELPED. At both cells, at least 5 failing
+        brain-arms, at least 90% of them gaining more than 0.005 and at most
+        one losing more than 0.005.
+    Q2  COLLAPSED BRAINS ARE LIFTED. At both cells, at least 4 collapsed
+        brain-arms with a mean gain >= 0.2 (Amendment 46: 0.38, 0.39). With
+        fewer, the bar is UNTESTED and recorded as failed.
+    Q3  NO HARM TO A HEALTHY MEMORY. Healthy arm under habit >= 0.97.
+    Q4  THE RESCUE IS MAINLY THE COLLAPSE'S. The collapsed brain-arms' mean
+        gain exceeds the repetition arm's mean gain by at least 0.2.
+
+Reported, not judged: the strong mode; every brain's three readings.
+
+### Interpretation, stated now
+
+* Q1 to Q4 pass: adaptation during replay is a control of the recurrence
+  collapse -- every failing brain helped, collapsed brains lifted by a fifth
+  or more, a healthy memory untouched, the repetition failure mostly not --
+  and the masked read leaves recoverable memory unread.
+* Q1 fails: some brains are made worse; the control is a trade-off.
+* Q2 fails with enough collapsed brains: the lift is smaller at new cells.
+* Q4 fails: the control reaches both failures alike.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until Q1 to Q4 are evaluated and recorded below.
