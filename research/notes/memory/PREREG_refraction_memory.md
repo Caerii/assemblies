@@ -6110,3 +6110,88 @@ Its size does not reach the registered lift: collapsed brains gain 0.18 to
 0.23, not the 0.38 to 0.39 of Amendment 46's fewer and shallower collapses --
 the U = 50 arm's collapses are deeper (masked 0.09 to 0.14) and are lifted
 less -- so Q2 and the margin of Q4, set from that lift, fail at one cell.
+
+## Amendment 48 (2026-10-09, before running): one hidden margin decides replay and its rescue -- a logit lens on replay
+
+Registered before any run at the cells below. Amendment 47 registered that a
+read-time adaptation helps every failing brain, but missed the SIZE of its lift
+(Q2): deeper collapses were lifted less, and no model said how much. Exploratory
+probes after it (`research/notes/memory/probes/2026-10-09/`, disclosed here)
+read replay through a LOGIT LENS: every replay step's net drive is read as a
+score for every stored token -- the mean drive over its k neurons, in units of
+the k-WTA threshold -- and a word's logit is the max over its tokens. A brain's
+SLACK is the correct next word's mean margin over the best other word, on the
+steps it is top-1, from its even-indexed sequences replayed masked.
+
+**Seen before registering.** At (10000, 75, 0.48) (U = 30, 40, 50, 60; seeds
+980 to 999) and (8000, 60, 0.6) (U = 35, 45, 55; the same seeds), both judged
+cells:
+* The attractor's own strength does not decide a rescue: its stability from
+  itself ("hold") does not predict a failing brain's gain (rho -0.42 to +0.23 over charges and cells);
+  at the first wrong step the attractor out-drives the correct word in few
+  brains -- the correct word fades (its logit 1.13 -> 0.65 by step 4) rather
+  than being out-shouted.
+* Slack does: brains the masked read leaves at 0.00 are rescued in its order
+  (Spearman 0.91 and 0.89 among collapsed brain-arms).
+* Relative slack x = slack / the median slack of a reference arm (U = 10;
+  0.382 and 0.337, every brain within 0.004 of it) puts both cells on one
+  logistic: masked midpoint 0.765 and 0.760 (width 0.033, 0.043); adapted
+  (c = 0.1, T = 50) midpoint 0.632 and 0.656 (width 0.090, 0.086). Fitted at
+  one cell, the logistic predicted the other's collapsed brains' adapted mean
+  within 0.07 and 0.03, and its masked mean within 0.002. Pooled: masked
+  (0.763, 0.040), adapted (0.642, 0.0915) -- the constants below.
+* A smoke run of this module (VOID, seeds 900 to 902) ran only the survey cell
+  (2000, 60, 0.5), U = 10 and 40: slack 0.292 and 0.192, masked 1.000 and
+  0.619, adapted 0.714 and 0.667 -- adaptation LOWERED the healthy reference
+  arm at that small cell; not judged here.
+No run has touched (7500, 55, 0.6) or (12500, 85, 0.42).
+
+### Protocol
+
+`research/experiments/memory_signal_margin.py` (`python -m research.runner
+signal_margin`), seeds 742 to 761 (new brains), one run from a worktree pinned
+at the commit registering this amendment. Cells (7500, 55, 0.6) (n/k = 136,
+tau = 68) and (12500, 85, 0.42) (n/k = 147, tau = 74), by Amendment 41's rule;
+k p = 33 and 36 against 3 ln n = 26.7 and 28.3. Per-brain grammars, 16-element
+walks, rho = 0.05, random successors, word-level score, as Amendment 44. Arms:
+reference U = 10; recurrence U = 30, 40, 50, 60, 70. Per brain-arm: slack (even
+half, masked, logit lens); masked and adapted reliability (odd half; adaptation
+c = 0.1, T = 50, kept across sequences, as Amendments 46 and 47). x = slack /
+the reference arm's median slack. Per cell, the recurrence arms are pooled (100
+brain-arms) and least-squares logistics in x are fitted to masked and to adapted
+reliability (`fit`). COLLAPSED: masked below 0.2.
+
+    python -m research.runner signal_margin \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag signal-margin-20261009 --seeds 742 ... 761
+
+### Bars
+
+    M1  THE LAW HAS ONE POSITION. At both cells the masked midpoint lies in
+        [0.72, 0.81] (probes 0.760-0.765).
+    M2  ADAPTATION LOWERS IT. At both cells the adapted midpoint is at least
+        0.06 below the masked one (probes 0.10-0.13).
+    M3  THE HIDDEN MARGIN ORDERS THE RESCUE. At both cells, at least 8
+        collapsed brain-arms, and Spearman(x, adapted) >= 0.6 among them.
+    M4  THE RESCUE'S SIZE IS PREDICTED. At both cells, at least 8 collapsed
+        brain-arms, and their mean adapted reliability within 0.1 of the mean
+        the probes' adapted logistic (0.642, 0.0915) predicts from their x.
+    For M1 and M2 a fit counts only with at least 5 brain-arms on each side of
+    masked 0.5; otherwise, and for M3 and M4 with too few collapsed brain-arms,
+    the bar is UNTESTED and recorded as failed.
+
+Reported, not judged: fitted widths; per-step top-1; the reference arm adapted.
+
+### Interpretation, stated now
+
+* M1 to M4 pass: one margin read off the replay's logits decides which brains
+  replay (a cell-free threshold near 0.76 of a healthy brain's margin) and how
+  far a read-time adaptation rescues them (it lowers that threshold to ~0.64);
+  the recurrence collapse is a loss of signal margin, not a deep false well,
+  and its rescue is predicted before it is applied.
+* M1 fails: the position is cell-specific; the reference does not normalise it.
+* M2 fails: adaptation does not move the threshold at new cells.
+* M3 fails: slack does not order rescues; M4 fails: their size is not predicted.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until M1 to M4 are evaluated and recorded below.

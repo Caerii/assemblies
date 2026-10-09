@@ -1,0 +1,33 @@
+
+U = 10 (M 223, V 357): masked odd 1.000; c 0.03: 1.000  c 0.1: 1.000  c 0.2: 0.787
+  lens: correct word top-1 per step 1.000; mean rank of correct word 0.00 of 357
+  brain 980: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.12 | gap +nan capture 0.00 hold 0.00 slack 0.338 top1 1.00 rank 0.0
+  brain 981: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.17 | gap +nan capture 0.00 hold 0.00 slack 0.337 top1 1.00 rank 0.0
+  brain 982: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.23 | gap +nan capture 0.00 hold 0.00 slack 0.337 top1 1.00 rank 0.0
+  brain 983: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.27 | gap +nan capture 0.00 hold 0.00 slack 0.337 top1 1.00 rank 0.0
+  brain 984: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.26 | gap +nan capture 0.00 hold 0.00 slack 0.338 top1 1.00 rank 0.0
+  brain 985: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.30 | gap +nan capture 0.00 hold 0.02 slack 0.336 top1 1.00 rank 0.0
+  brain 986: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.14 | gap +nan capture 0.00 hold 0.03 slack 0.336 top1 1.00 rank 0.0
+  brain 987: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.17 | gap +nan capture 0.00 hold 0.00 slack 0.338 top1 1.00 rank 0.0
+  brain 988: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.18 | gap +nan capture 0.00 hold 0.02 slack 0.338 top1 1.00 rank 0.0
+  brain 989: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.32 | gap +nan capture 0.00 hold 0.00 slack 0.338 top1 1.00 rank 0.0
+  brain 990: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.18 | gap +nan capture 0.00 hold 0.03 slack 0.337 top1 1.00 rank 0.0
+  brain 991: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.17 | gap +nan capture 0.00 hold 0.00 slack 0.337 top1 1.00 rank 0.0
+  brain 992: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.22 | gap +nan capture 0.00 hold 0.00 slack 0.337 top1 1.00 rank 0.0
+  brain 993: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.25 | gap +nan capture 0.00 hold 0.00 slack 0.337 top1 1.00 rank 0.0
+  brain 994: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.31 | gap +nan capture 0.00 hold 0.02 slack 0.337 top1 1.00 rank 0.0
+  brain 995: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.21 | gap +nan capture 0.00 hold 0.00 slack 0.336 top1 1.00 rank 0.0
+  brain 996: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.15 | gap +nan capture 0.00 hold 0.03 slack 0.337 top1 1.00 rank 0.0
+  brain 997: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.25 | gap +nan capture 0.00 hold 0.02 slack 0.335 top1 1.00 rank 0.0
+  brain 998: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.22 | gap +nan capture 0.00 hold 0.02 slack 0.338 top1 1.00 rank 0.0
+  brain 999: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.14 | gap +nan capture 0.00 hold 0.00 slack 0.336 top1 1.00 rank 0.0
+  logits by step (other, 20 brains): j1 A 0.69/w 1.10  j2 A 0.75/w 1.10  j4 A 0.74/w 1.13  j8 A 0.73/w 1.14  j12 A 0.73/w 1.14  j15 A 0.73/w 1.14
+
+failing brain-arms (masked < 0.5): 0
+Traceback (most recent call last):
+  File "C:\Github\assemblies\research\notes\memory\probes\2026-10-09\probe_basin.py", line 187, in <module>
+    coef = np.polyfit(m, g, 1)
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Github\assemblies\.venv\Lib\site-packages\numpy\lib\_polynomial_impl.py", line 645, in polyfit
+    raise TypeError("expected non-empty vector for x")
+TypeError: expected non-empty vector for x

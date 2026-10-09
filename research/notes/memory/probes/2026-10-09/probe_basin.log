@@ -1,0 +1,104 @@
+
+U = 30 (M 217, V 116): masked odd 0.932; c 0.03: 0.941  c 0.1: 0.962  c 0.2: 0.916
+  lens: correct word top-1 per step 0.946; mean rank of correct word 2.59 of 116
+  brain 980: masked 0.98 (even 0.99)  gain c.03 +0.01 c.1 +0.01 c.2 -0.05 | gap -0.045 capture 1.00 hold 0.00 slack 0.354 top1 1.00 rank 0.1
+  brain 981: masked 0.99 (even 0.96)  gain c.03 +0.00 c.1 +0.00 c.2 -0.02 | gap -0.156 capture 0.50 hold 0.03 slack 0.352 top1 0.98 rank 0.7
+  brain 982: masked 0.99 (even 0.96)  gain c.03 +0.00 c.1 +0.00 c.2 -0.05 | gap -0.380 capture 0.50 hold 0.00 slack 0.351 top1 0.97 rank 1.5
+  brain 983: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.06 | gap +nan capture 0.00 hold 0.01 slack 0.356 top1 1.00 rank 0.0
+  brain 984: masked 0.99 (even 1.00)  gain c.03 +0.00 c.1 +0.01 c.2 -0.05 | gap +nan capture 0.00 hold 0.03 slack 0.357 top1 1.00 rank 0.0
+  brain 985: masked 0.99 (even 0.97)  gain c.03 +0.00 c.1 +0.00 c.2 -0.05 | gap -0.329 capture 0.67 hold 0.00 slack 0.357 top1 0.97 rank 1.1
+  brain 986: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.01 | gap +nan capture 0.00 hold 0.01 slack 0.353 top1 1.00 rank 0.0
+  brain 987: masked 0.98 (even 0.99)  gain c.03 +0.01 c.1 +0.02 c.2 -0.05 | gap -0.064 capture 1.00 hold 0.00 slack 0.352 top1 1.00 rank 0.0
+  brain 988: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.00 | gap +nan capture 0.00 hold 0.01 slack 0.359 top1 1.00 rank 0.0
+  brain 989: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.07 | gap +nan capture 0.00 hold 0.00 slack 0.360 top1 1.00 rank 0.0
+  brain 990: masked 1.00 (even 0.95)  gain c.03 +0.00 c.1 +0.00 c.2 -0.04 | gap -0.411 capture 0.80 hold 0.00 slack 0.354 top1 0.96 rank 2.0
+  brain 991: masked 0.01 (even 0.00)  gain c.03 +0.06 c.1 +0.42 c.2 +0.44 | gap -0.384 capture 0.28 hold 0.00 slack 0.280 top1 0.21 rank 39.8
+  brain 992: masked 0.92 (even 0.96)  gain c.03 +0.01 c.1 +0.02 c.2 -0.08 | gap -0.244 capture 0.50 hold 0.01 slack 0.339 top1 0.97 rank 1.5
+  brain 993: masked 0.98 (even 0.97)  gain c.03 +0.01 c.1 +0.01 c.2 -0.06 | gap -0.097 capture 1.00 hold 0.00 slack 0.350 top1 0.98 rank 0.8
+  brain 994: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.01 | gap +nan capture 0.00 hold 0.01 slack 0.356 top1 1.00 rank 0.0
+  brain 995: masked 0.97 (even 0.96)  gain c.03 +0.02 c.1 +0.02 c.2 -0.06 | gap -0.347 capture 0.25 hold 0.00 slack 0.351 top1 0.97 rank 1.2
+  brain 996: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.05 | gap +nan capture 0.00 hold 0.01 slack 0.358 top1 1.00 rank 0.0
+  brain 997: masked 1.00 (even 0.99)  gain c.03 +0.00 c.1 +0.00 c.2 -0.02 | gap -0.028 capture 1.00 hold 0.01 slack 0.351 top1 1.00 rank 0.0
+  brain 998: masked 0.83 (even 0.88)  gain c.03 +0.06 c.1 +0.09 c.2 -0.02 | gap -0.262 capture 0.15 hold 0.01 slack 0.331 top1 0.93 rank 3.1
+  brain 999: masked 1.00 (even 1.00)  gain c.03 +0.00 c.1 +0.00 c.2 -0.04 | gap +nan capture 0.00 hold 0.01 slack 0.357 top1 1.00 rank 0.0
+  logits by step (collapsed, 1 brains): j1 A 0.63/w 1.14  j2 A 0.66/w 1.08  j4 A 0.52/w 0.76  j8 A 0.79/w 0.73  j12 A 0.72/w 0.72  j15 A 0.72/w 0.71
+  logits by step (other, 19 brains): j1 A 0.64/w 1.14  j2 A 0.72/w 1.10  j4 A 0.71/w 1.13  j8 A 0.70/w 1.15  j12 A 0.70/w 1.14  j15 A 0.70/w 1.15
+
+U = 40 (M 217, V 87): masked odd 0.425; c 0.03: 0.567  c 0.1: 0.693  c 0.2: 0.606
+  lens: correct word top-1 per step 0.568; mean rank of correct word 16.04 of 87
+  brain 980: masked 0.59 (even 0.61)  gain c.03 +0.19 c.1 +0.26 c.2 +0.17 | gap +0.040 capture 0.21 hold 0.00 slack 0.299 top1 0.78 rank 6.3
+  brain 981: masked 0.94 (even 0.97)  gain c.03 +0.01 c.1 +0.03 c.2 -0.02 | gap +0.002 capture 0.67 hold 0.00 slack 0.335 top1 0.99 rank 0.5
+  brain 982: masked 0.00 (even 0.00)  gain c.03 +0.14 c.1 +0.38 c.2 +0.42 | gap -0.225 capture 0.21 hold 0.01 slack 0.211 top1 0.10 rank 36.6
+  brain 983: masked 0.65 (even 0.68)  gain c.03 +0.11 c.1 +0.16 c.2 +0.06 | gap -0.014 capture 0.23 hold 0.00 slack 0.304 top1 0.83 rank 4.9
+  brain 984: masked 0.17 (even 0.24)  gain c.03 +0.45 c.1 +0.55 c.2 +0.39 | gap -0.237 capture 0.37 hold 0.03 slack 0.285 top1 0.54 rank 15.5
+  brain 985: masked 0.00 (even 0.00)  gain c.03 +0.04 c.1 +0.33 c.2 +0.27 | gap -0.396 capture 0.16 hold 0.00 slack 0.195 top1 0.08 rank 36.3
+  brain 986: masked 0.04 (even 0.03)  gain c.03 +0.28 c.1 +0.47 c.2 +0.38 | gap -0.390 capture 0.25 hold 0.00 slack 0.249 top1 0.30 rank 25.5
+  brain 987: masked 0.30 (even 0.28)  gain c.03 +0.26 c.1 +0.40 c.2 +0.33 | gap -0.066 capture 0.29 hold 0.01 slack 0.285 top1 0.53 rank 15.8
+  brain 988: masked 0.81 (even 0.79)  gain c.03 +0.09 c.1 +0.08 c.2 -0.05 | gap -0.067 capture 0.17 hold 0.00 slack 0.285 top1 0.89 rank 2.9
+  brain 989: masked 1.00 (even 0.97)  gain c.03 +0.00 c.1 +0.00 c.2 -0.03 | gap -0.072 capture 1.00 hold 0.03 slack 0.337 top1 0.98 rank 0.4
+  brain 990: masked 0.94 (even 0.88)  gain c.03 +0.02 c.1 +0.02 c.2 -0.06 | gap -0.196 capture 0.08 hold 0.03 slack 0.318 top1 0.91 rank 3.2
+  brain 991: masked 0.00 (even 0.00)  gain c.03 +0.08 c.1 +0.31 c.2 +0.22 | gap -0.105 capture 0.26 hold 0.20 slack 0.211 top1 0.10 rank 36.0
+  brain 992: masked 0.97 (even 0.98)  gain c.03 +0.02 c.1 +0.02 c.2 -0.02 | gap -0.086 capture 1.00 hold 0.00 slack 0.337 top1 0.99 rank 0.5
+  brain 993: masked 0.00 (even 0.00)  gain c.03 +0.05 c.1 +0.33 c.2 +0.22 | gap -0.340 capture 0.28 hold 0.03 slack 0.173 top1 0.08 rank 36.7
+  brain 994: masked 0.69 (even 0.78)  gain c.03 +0.13 c.1 +0.17 c.2 +0.04 | gap -0.115 capture 0.17 hold 0.07 slack 0.292 top1 0.89 rank 3.3
+  brain 995: masked 0.01 (even 0.00)  gain c.03 +0.19 c.1 +0.50 c.2 +0.39 | gap -0.360 capture 0.21 hold 0.00 slack 0.238 top1 0.27 rank 26.8
+  brain 996: masked 0.00 (even 0.00)  gain c.03 +0.19 c.1 +0.41 c.2 +0.32 | gap -0.270 capture 0.31 hold 0.00 slack 0.210 top1 0.10 rank 35.8
+  brain 997: masked 0.97 (even 0.96)  gain c.03 +0.01 c.1 +0.01 c.2 -0.05 | gap -0.195 capture 0.00 hold 0.03 slack 0.329 top1 0.97 rank 0.9
+  brain 998: masked 0.11 (even 0.11)  gain c.03 +0.35 c.1 +0.56 c.2 +0.44 | gap +0.033 capture 0.46 hold 0.83 slack 0.276 top1 0.44 rank 19.3
+  brain 999: masked 0.31 (even 0.28)  gain c.03 +0.23 c.1 +0.37 c.2 +0.19 | gap -0.317 capture 0.17 hold 0.03 slack 0.285 top1 0.59 rank 13.7
+  logits by step (collapsed, 8 brains): j1 A 0.62/w 1.12  j2 A 0.60/w 0.91  j4 A 0.46/w 0.66  j8 A 0.64/w 0.61  j12 A 0.53/w 0.60  j15 A 0.58/w 0.61
+  logits by step (other, 12 brains): j1 A 0.64/w 1.16  j2 A 0.72/w 1.10  j4 A 0.73/w 1.09  j8 A 0.74/w 1.06  j12 A 0.73/w 1.04  j15 A 0.74/w 1.03
+
+U = 50 (M 217, V 69): masked odd 0.023; c 0.03: 0.108  c 0.1: 0.242  c 0.2: 0.205
+  lens: correct word top-1 per step 0.181; mean rank of correct word 25.58 of 69
+  brain 980: masked 0.10 (even 0.09)  gain c.03 +0.22 c.1 +0.42 c.2 +0.31 | gap -0.301 capture 0.17 hold 0.00 slack 0.244 top1 0.37 rank 17.5
+  brain 981: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.02 c.2 +0.01 | gap -0.425 capture 0.14 hold 0.00 slack 0.145 top1 0.07 rank 29.6
+  brain 982: masked 0.00 (even 0.01)  gain c.03 +0.11 c.1 +0.41 c.2 +0.35 | gap -0.070 capture 0.31 hold 0.00 slack 0.223 top1 0.15 rank 27.4
+  brain 983: masked 0.04 (even 0.04)  gain c.03 +0.33 c.1 +0.53 c.2 +0.43 | gap -0.093 capture 0.24 hold 0.21 slack 0.232 top1 0.40 rank 16.7
+  brain 984: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.02 c.2 +0.03 | gap -0.428 capture 0.22 hold 0.01 slack 0.153 top1 0.06 rank 29.4
+  brain 985: masked 0.03 (even 0.02)  gain c.03 +0.10 c.1 +0.37 c.2 +0.28 | gap -0.330 capture 0.21 hold 0.00 slack 0.230 top1 0.26 rank 21.9
+  brain 986: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.01 | gap -0.440 capture 0.12 hold 0.00 slack 0.150 top1 0.08 rank 30.5
+  brain 987: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.08 c.2 +0.09 | gap -0.372 capture 0.26 hold 0.00 slack 0.163 top1 0.08 rank 29.2
+  brain 988: masked 0.00 (even 0.00)  gain c.03 +0.02 c.1 +0.10 c.2 +0.09 | gap -0.353 capture 0.18 hold 0.00 slack 0.161 top1 0.07 rank 30.2
+  brain 989: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.01 c.2 +0.04 | gap -0.425 capture 0.22 hold 0.00 slack 0.157 top1 0.09 rank 29.2
+  brain 990: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.01 c.2 +0.00 | gap -0.471 capture 0.09 hold 0.89 slack 0.125 top1 0.06 rank 30.3
+  brain 991: masked 0.00 (even 0.03)  gain c.03 +0.08 c.1 +0.19 c.2 +0.20 | gap -0.387 capture 0.23 hold 0.00 slack 0.218 top1 0.20 rank 24.8
+  brain 992: masked 0.01 (even 0.01)  gain c.03 +0.06 c.1 +0.15 c.2 +0.08 | gap -0.328 capture 0.20 hold 0.00 slack 0.207 top1 0.20 rank 24.4
+  brain 993: masked 0.00 (even 0.00)  gain c.03 +0.04 c.1 +0.29 c.2 +0.23 | gap -0.300 capture 0.15 hold 0.05 slack 0.182 top1 0.09 rank 28.9
+  brain 994: masked 0.02 (even 0.02)  gain c.03 +0.35 c.1 +0.55 c.2 +0.48 | gap -0.379 capture 0.28 hold 0.00 slack 0.250 top1 0.29 rank 21.1
+  brain 995: masked 0.00 (even 0.00)  gain c.03 +0.02 c.1 +0.12 c.2 +0.09 | gap -0.368 capture 0.29 hold 0.00 slack 0.157 top1 0.08 rank 29.1
+  brain 996: masked 0.00 (even 0.00)  gain c.03 +0.04 c.1 +0.19 c.2 +0.25 | gap -0.184 capture 0.17 hold 0.00 slack 0.196 top1 0.12 rank 28.2
+  brain 997: masked 0.25 (even 0.30)  gain c.03 +0.14 c.1 +0.27 c.2 +0.12 | gap -0.190 capture 0.16 hold 0.03 slack 0.242 top1 0.59 rank 10.7
+  brain 998: masked 0.02 (even 0.04)  gain c.03 +0.09 c.1 +0.36 c.2 +0.29 | gap -0.358 capture 0.21 hold 0.01 slack 0.237 top1 0.24 rank 23.6
+  brain 999: masked 0.00 (even 0.00)  gain c.03 +0.07 c.1 +0.31 c.2 +0.24 | gap -0.350 capture 0.26 hold 0.01 slack 0.198 top1 0.12 rank 29.1
+  logits by step (collapsed, 19 brains): j1 A 0.59/w 1.13  j2 A 0.52/w 0.88  j4 A 0.42/w 0.65  j8 A 0.64/w 0.64  j12 A 0.47/w 0.62  j15 A 0.50/w 0.59
+  logits by step (other, 1 brains): j1 A 0.63/w 1.19  j2 A 0.71/w 1.09  j4 A 0.73/w 1.04  j8 A 0.76/w 0.94  j12 A 0.75/w 0.89  j15 A 0.75/w 0.88
+
+U = 60 (M 217, V 58): masked odd 0.010; c 0.03: 0.046  c 0.1: 0.087  c 0.2: 0.069
+  lens: correct word top-1 per step 0.141; mean rank of correct word 22.26 of 58
+  brain 980: masked 0.04 (even 0.04)  gain c.03 +0.22 c.1 +0.38 c.2 +0.30 | gap -0.136 capture 0.15 hold 0.12 slack 0.202 top1 0.36 rank 14.9
+  brain 981: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.01 | gap -0.494 capture 0.13 hold 0.00 slack 0.136 top1 0.06 rank 25.1
+  brain 982: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.00 | gap -0.409 capture 0.17 hold 0.00 slack 0.178 top1 0.12 rank 23.5
+  brain 983: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.01 | gap -0.429 capture 0.12 hold 0.00 slack 0.127 top1 0.07 rank 25.2
+  brain 984: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.00 | gap -0.509 capture 0.17 hold 0.00 slack 0.148 top1 0.07 rank 24.3
+  brain 985: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.00 | gap -0.546 capture 0.17 hold 0.00 slack 0.134 top1 0.08 rank 22.9
+  brain 986: masked 0.00 (even 0.00)  gain c.03 +0.02 c.1 +0.04 c.2 +0.03 | gap -0.407 capture 0.13 hold 0.00 slack 0.176 top1 0.13 rank 22.3
+  brain 987: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.03 c.2 +0.04 | gap -0.385 capture 0.31 hold 0.01 slack 0.158 top1 0.08 rank 24.2
+  brain 988: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.00 | gap -0.386 capture 0.15 hold 0.00 slack 0.150 top1 0.07 rank 24.7
+  brain 989: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.10 c.2 +0.07 | gap -0.292 capture 0.17 hold 0.03 slack 0.173 top1 0.16 rank 21.0
+  brain 990: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.01 c.2 +0.04 | gap -0.475 capture 0.13 hold 0.00 slack 0.145 top1 0.06 rank 24.9
+  brain 991: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.01 c.2 +0.02 | gap -0.512 capture 0.14 hold 0.00 slack 0.121 top1 0.06 rank 25.1
+  brain 992: masked 0.09 (even 0.12)  gain c.03 +0.28 c.1 +0.37 c.2 +0.26 | gap -0.003 capture 0.34 hold 0.13 slack 0.213 top1 0.46 rank 12.5
+  brain 993: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.02 c.2 +0.03 | gap -0.381 capture 0.15 hold 0.00 slack 0.162 top1 0.11 rank 23.7
+  brain 994: masked 0.03 (even 0.00)  gain c.03 +0.12 c.1 +0.33 c.2 +0.17 | gap -0.335 capture 0.18 hold 0.00 slack 0.212 top1 0.28 rank 17.2
+  brain 995: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.01 c.2 +0.03 | gap -0.411 capture 0.21 hold 0.00 slack 0.153 top1 0.08 rank 24.8
+  brain 996: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.00 | gap -0.443 capture 0.15 hold 0.00 slack 0.128 top1 0.07 rank 25.1
+  brain 997: masked 0.04 (even 0.01)  gain c.03 +0.04 c.1 +0.22 c.2 +0.14 | gap -0.344 capture 0.16 hold 0.00 slack 0.206 top1 0.27 rank 17.4
+  brain 998: masked 0.00 (even 0.00)  gain c.03 +0.00 c.1 +0.00 c.2 +0.02 | gap -0.487 capture 0.13 hold 0.00 slack 0.138 top1 0.07 rank 24.3
+  brain 999: masked 0.00 (even 0.00)  gain c.03 +0.01 c.1 +0.02 c.2 +0.04 | gap -0.328 capture 0.17 hold 0.00 slack 0.191 top1 0.14 rank 22.1
+  logits by step (collapsed, 20 brains): j1 A 0.57/w 1.15  j2 A 0.48/w 0.90  j4 A 0.39/w 0.67  j8 A 0.59/w 0.65  j12 A 0.48/w 0.63  j15 A 0.46/w 0.61
+
+failing brain-arms (masked < 0.5): 52
+gain at c 0.03: masked rho +0.46; gap rho +0.77 (partial +0.53); capture rho +0.59 (partial +0.56); hold rho +0.09 (partial -0.10); slack rho +0.90 (partial +0.58); top1 rho +0.84 (partial +0.48); U rho -0.46 (partial -0.37)
+gain at c 0.1: masked rho +0.32; gap rho +0.75 (partial +0.62); capture rho +0.65 (partial +0.64); hold rho +0.01 (partial -0.09); slack rho +0.89 (partial +0.73); top1 rho +0.76 (partial +0.56); U rho -0.61 (partial -0.55)
+gain at c 0.2: masked rho +0.25; gap rho +0.73 (partial +0.58); capture rho +0.66 (partial +0.64); hold rho -0.05 (partial -0.17); slack rho +0.87 (partial +0.68); top1 rho +0.71 (partial +0.51); U rho -0.60 (partial -0.53)
