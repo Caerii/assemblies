@@ -1186,6 +1186,46 @@ neighbourhood, a factor two off near the edge) misses $b$; with $b$ it should
 place the critical relative margin ($\approx 0.76$, Proposition~\ref{prop:logitmargin}).
 \end{conjecture}
 
+\paragraph{The two-chain reduction fails; the collapse is written into the store
+(exploratory, same day).} (\texttt{probe\_map2.py}, \texttt{probe\_store.py},
+\texttt{probe\_cascade.py}.) Clamping inputs of a fraction $a$ of the current
+token and $b$ of a real fan intruder and measuring one step refutes
+Conjecture~\ref{conj:twochain} as framed: an intruder does not carry its own
+chain ($b' = 0.01$--$0.16$ whatever $b$), and Markov chains on $(a,b)$ and on $a$
+alone predict alike and both miss ($0.25$ and $0.28$ against $0.43$ at $U = 40$).
+What the clamps show is the one-variable fixed point vanishing with reuse (from
+$a = 0.9$ the next state holds $0.94$, $0.86$, $0.71$ at $U = 10, 40, 50$), and a
+fact no replay variable explains: a nearly clean state is read as the wrong
+word $6$--$16\%$ of the time. The store explains it. Compared pairwise with no
+replay at all, collapsed brains hold tokens of \emph{different} words written
+onto one assembly (sharing $\ge 0.5$; up to $9\%$ of tokens, clusters of up to
+$31$), healthy brains none, and the mean overlap of a brain's tokens with other
+words' predicts its reliability (Spearman $-0.97$ within $U = 40$); the type
+trace (same-word overlap $0.15$) does not differ between them. In write order
+it is a cascade: no brain captures in its first $40\%$ of writing; after a
+brain-specific onset the captured share accelerates (e.g.\ $0.03 \to 0.10 \to
+0.27 \to 0.32$ by decile), and sequences written cleanly \emph{before} the onset
+fail too --- the captured clusters, potentiated by every write they absorbed,
+drain the replay of the whole store. Whether a brain collapses is whether its
+onset falls before writing ends (at $U = 40$: none in $9$ of $20$ brains, which
+replay at $0.60$--$0.99$; onset at $79$--$97\%$, $0.00$--$0.29$; at $41$--$53\%$, $0$).
+
+So the spurious attractor of the recurrence collapse is a \emph{write-time
+capture}, the failure the Hebbian length limit already was (the limit equals
+the step at which a new state overlaps an earlier one by $0.3$), here between
+tokens of different words and self-amplifying. The fan and the slack law stand
+as descriptions of how the captured clusters read out; the earlier ``hold''
+measure predicted nothing because it was taken on a union of replay end states,
+not on the stored clusters. The control this points to is at the source.
+
+\begin{conjecture}[Pattern separation at write stops the cascade]\label{conj:separation} \OPEN
+A write that refuses to lay a new token onto an existing assembly of another
+word --- detecting an overlap $\ge 0.5$ and re-drawing the state with those
+neurons inhibited, as the dentate gyrus is held to separate patterns before
+CA3 stores them --- prevents the cascade's onset, and with it the recurrence
+collapse, without read-time adaptation.
+\end{conjecture}
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the

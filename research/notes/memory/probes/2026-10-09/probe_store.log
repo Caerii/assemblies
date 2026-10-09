@@ -1,0 +1,95 @@
+
+U = 10 (V 347, L 3472)
+  brain 980: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.124 | dup 0.000 | hub 0
+  brain 981: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 982: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 983: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 984: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 985: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 986: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 987: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 988: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.124 | dup 0.000 | hub 0
+  brain 989: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 990: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 991: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 992: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 993: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 994: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 995: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 996: rel 1.00 | diff mean 0.065 p90 0.080 | same 0.124 | dup 0.000 | hub 0
+  brain 997: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 998: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.125 | dup 0.000 | hub 0
+  brain 999: rel 1.00 | diff mean 0.064 p90 0.080 | same 0.126 | dup 0.000 | hub 0
+
+U = 30 (V 116, L 3472)
+  brain 980: rel 0.99 | diff mean 0.071 p90 0.093 | same 0.144 | dup 0.000 | hub 0
+  brain 981: rel 0.96 | diff mean 0.071 p90 0.093 | same 0.143 | dup 0.000 | hub 0
+  brain 982: rel 0.96 | diff mean 0.070 p90 0.093 | same 0.144 | dup 0.001 | hub 1
+  brain 983: rel 1.00 | diff mean 0.070 p90 0.093 | same 0.144 | dup 0.000 | hub 0
+  brain 984: rel 1.00 | diff mean 0.070 p90 0.093 | same 0.144 | dup 0.000 | hub 0
+  brain 985: rel 0.97 | diff mean 0.071 p90 0.093 | same 0.143 | dup 0.000 | hub 0
+  brain 986: rel 1.00 | diff mean 0.071 p90 0.093 | same 0.143 | dup 0.000 | hub 1
+  brain 987: rel 0.99 | diff mean 0.071 p90 0.093 | same 0.146 | dup 0.000 | hub 0
+  brain 988: rel 1.00 | diff mean 0.069 p90 0.080 | same 0.143 | dup 0.000 | hub 0
+  brain 989: rel 1.00 | diff mean 0.070 p90 0.093 | same 0.144 | dup 0.000 | hub 0
+  brain 990: rel 0.95 | diff mean 0.071 p90 0.093 | same 0.144 | dup 0.000 | hub 0
+  brain 991: rel 0.00 | diff mean 0.079 p90 0.093 | same 0.144 | dup 0.009 | hub 7
+  brain 992: rel 0.96 | diff mean 0.074 p90 0.093 | same 0.144 | dup 0.000 | hub 0
+  brain 993: rel 0.97 | diff mean 0.070 p90 0.093 | same 0.145 | dup 0.000 | hub 0
+  brain 994: rel 1.00 | diff mean 0.071 p90 0.093 | same 0.143 | dup 0.000 | hub 0
+  brain 995: rel 0.96 | diff mean 0.071 p90 0.093 | same 0.144 | dup 0.000 | hub 1
+  brain 996: rel 1.00 | diff mean 0.070 p90 0.080 | same 0.144 | dup 0.000 | hub 0
+  brain 997: rel 0.99 | diff mean 0.071 p90 0.093 | same 0.146 | dup 0.000 | hub 0
+  brain 998: rel 0.88 | diff mean 0.074 p90 0.093 | same 0.145 | dup 0.000 | hub 0
+  brain 999: rel 1.00 | diff mean 0.070 p90 0.093 | same 0.145 | dup 0.000 | hub 0
+
+U = 40 (V 87, L 3472)
+  brain 980: rel 0.61 | diff mean 0.078 p90 0.107 | same 0.148 | dup 0.000 | hub 1
+  brain 981: rel 0.97 | diff mean 0.074 p90 0.093 | same 0.146 | dup 0.000 | hub 0
+  brain 982: rel 0.00 | diff mean 0.097 p90 0.120 | same 0.149 | dup 0.023 | hub 11
+  brain 983: rel 0.68 | diff mean 0.076 p90 0.107 | same 0.147 | dup 0.000 | hub 1
+  brain 984: rel 0.24 | diff mean 0.079 p90 0.107 | same 0.148 | dup 0.002 | hub 3
+  brain 985: rel 0.00 | diff mean 0.131 p90 0.173 | same 0.156 | dup 0.061 | hub 28
+  brain 986: rel 0.03 | diff mean 0.084 p90 0.120 | same 0.147 | dup 0.008 | hub 5
+  brain 987: rel 0.28 | diff mean 0.079 p90 0.107 | same 0.148 | dup 0.002 | hub 2
+  brain 988: rel 0.79 | diff mean 0.077 p90 0.107 | same 0.147 | dup 0.000 | hub 1
+  brain 989: rel 0.97 | diff mean 0.074 p90 0.093 | same 0.146 | dup 0.000 | hub 0
+  brain 990: rel 0.88 | diff mean 0.076 p90 0.107 | same 0.147 | dup 0.000 | hub 0
+  brain 991: rel 0.00 | diff mean 0.094 p90 0.120 | same 0.147 | dup 0.018 | hub 9
+  brain 992: rel 0.98 | diff mean 0.074 p90 0.107 | same 0.147 | dup 0.000 | hub 0
+  brain 993: rel 0.00 | diff mean 0.120 p90 0.147 | same 0.153 | dup 0.051 | hub 20
+  brain 994: rel 0.78 | diff mean 0.078 p90 0.107 | same 0.149 | dup 0.000 | hub 0
+  brain 995: rel 0.00 | diff mean 0.084 p90 0.120 | same 0.147 | dup 0.007 | hub 7
+  brain 996: rel 0.00 | diff mean 0.096 p90 0.120 | same 0.148 | dup 0.023 | hub 12
+  brain 997: rel 0.96 | diff mean 0.075 p90 0.107 | same 0.147 | dup 0.000 | hub 1
+  brain 998: rel 0.11 | diff mean 0.079 p90 0.107 | same 0.148 | dup 0.003 | hub 3
+  brain 999: rel 0.28 | diff mean 0.079 p90 0.107 | same 0.148 | dup 0.004 | hub 3
+
+U = 50 (V 69, L 3472)
+  brain 980: rel 0.09 | diff mean 0.086 p90 0.133 | same 0.149 | dup 0.004 | hub 4
+  brain 981: rel 0.00 | diff mean 0.160 p90 0.359 | same 0.162 | dup 0.084 | hub 31
+  brain 982: rel 0.01 | diff mean 0.090 p90 0.120 | same 0.151 | dup 0.012 | hub 10
+  brain 983: rel 0.04 | diff mean 0.085 p90 0.133 | same 0.150 | dup 0.002 | hub 3
+  brain 984: rel 0.00 | diff mean 0.166 p90 0.373 | same 0.158 | dup 0.091 | hub 26
+  brain 985: rel 0.02 | diff mean 0.089 p90 0.133 | same 0.149 | dup 0.008 | hub 6
+  brain 986: rel 0.00 | diff mean 0.144 p90 0.293 | same 0.153 | dup 0.067 | hub 17
+  brain 987: rel 0.00 | diff mean 0.141 p90 0.240 | same 0.156 | dup 0.067 | hub 28
+  brain 988: rel 0.00 | diff mean 0.123 p90 0.173 | same 0.148 | dup 0.049 | hub 16
+  brain 989: rel 0.00 | diff mean 0.127 p90 0.227 | same 0.153 | dup 0.046 | hub 16
+  brain 990: rel 0.00 | diff mean 0.152 p90 0.320 | same 0.150 | dup 0.079 | hub 15
+  brain 991: rel 0.03 | diff mean 0.096 p90 0.147 | same 0.150 | dup 0.015 | hub 7
+  brain 992: rel 0.01 | diff mean 0.097 p90 0.160 | same 0.151 | dup 0.012 | hub 6
+  brain 993: rel 0.00 | diff mean 0.123 p90 0.173 | same 0.155 | dup 0.044 | hub 19
+  brain 994: rel 0.02 | diff mean 0.085 p90 0.120 | same 0.148 | dup 0.005 | hub 4
+  brain 995: rel 0.00 | diff mean 0.123 p90 0.200 | same 0.157 | dup 0.042 | hub 17
+  brain 996: rel 0.00 | diff mean 0.099 p90 0.147 | same 0.150 | dup 0.019 | hub 8
+  brain 997: rel 0.30 | diff mean 0.088 p90 0.133 | same 0.151 | dup 0.002 | hub 2
+  brain 998: rel 0.04 | diff mean 0.089 p90 0.133 | same 0.150 | dup 0.010 | hub 6
+  brain 999: rel 0.00 | diff mean 0.100 p90 0.147 | same 0.151 | dup 0.019 | hub 14
+
+across brain-arms (Spearman with reliability):
+  diff: -0.93; within U = 40: -0.97
+  diff90: -0.90; within U = 40: -0.78
+  same: -0.86; within U = 40: -0.63
+  dup: -0.94; within U = 40: -0.85
+  hub: -0.94; within U = 40: -0.91
