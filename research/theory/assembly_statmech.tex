@@ -1014,6 +1014,30 @@ whose draws repeat bigrams most (correlations $0.01$--$0.16$, recomputed from
 the seeds after the run). The threshold between one and five repetitions, and
 the collapse, are the open measurements.
 
+\paragraph{The reuse budget has two edges (exploratory, after Amendment 44).}
+(\texttt{probe\_dose2.py}, \texttt{probe\_product.py},
+\texttt{probe\_edges.py}; $(12000,80,0.45)$, $\tau = 75$, $\rho = 0.05$, ten
+brains.) Word-level reliability falls through two sharp edges. Recurrence,
+with random successors: $1.00$, $1.00$, $0.39$, $0.00$, $0.00$ at $U = 10$, $20$,
+$40$, $60$, $80$ uses per word, failing brain by brain (brains $0.00$--$0.97$ at
+$U = 40$), with the same-word overlap \emph{falling} as $U$ grows ($0.071 \to
+0.036$). Repetition, at $U = 10$: $1.00$, $0.95$, $0.39$, $0.00$, $0.00$ at $R = 1.0$,
+$2.4$, $2.8$, $3.7$, $5.7$ repeats per transition. Neither $R$, nor $U$, nor $UR$
+orders the interior points (at $UR \approx 55$--$68$: $0.00$, $0.39$, $0.28$), but
+the product of the two marginal curves does: $f(R)\,g(U)$ predicts $(U,b) =
+(20,8)$, $(12,4)$, $(24,16)$, $(40,32)$, $(48,64)$ at $0.45$, $0.15$, $0.92$,
+$0.37$, $\approx0.2$ against $0.39$, $0.18$, $0.89$, $0.28$, $0.21$. A smaller cell,
+$(4000,100,0.35)$ at $\tau = n/k$, tolerates more of both (random reuse at
+$R \approx 5$ keeps $0.91$; \texttt{probe\_dose.py}): the edges move with the cell.
+
+\begin{conjecture}[A separable reuse budget]\label{conj:separable} \OPEN
+A token store's word-level reliability under reuse is the product of a
+repetition term and a recurrence term, $P(U,R) \approx f(R)\,g(U)$, with $f$
+falling through an edge $R^*$ in repeats per transition (graded across brains)
+and $g$ through an edge $U^*$ in uses per element (whole brains collapsing);
+the edges move with the cell, the product form does not.
+\end{conjecture}
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the

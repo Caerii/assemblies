@@ -63,3 +63,12 @@ the registration that disclosed it.
 | `probe_survival.py` -> `probe_survival.log` | Where along a sequence does it first fail? | No failure in steps 1-5; hazard then FALLS along the sequence (~ j^-1.2 to -1.7); survivors' overlap climbs more slowly at higher load (critical slowing?) | two-phase conjecture refuted; notebook |
 | `probe_signal.py` -> `probe_signal.log` | Is the tau peak on the signal side (successor selection)? | Successor structural input z = 1.3-2.0, slightly LOWER at the peak: no | signal conjecture refuted; notebook |
 | `probe_grammar.py`, `probe_grammar2.py`, `probe_grammar3.py` (+ logs) | Does a consistent grammar make reuse cheap? | Reversed: b = 1, 2, 4 successors per word break replay at the WORD level (0.00-0.39) where random reuse holds (0.98); repeated transitions merge tokens (overlap to 0.42) | transition-repetition conjecture; next registration |
+
+## After Amendment 44
+
+| Probe | Question | Result | Informed |
+|---|---|---|---|
+| `probe_dose.py` -> `probe_dose.log` | Dose-response of repetition, (4000, 100, 0.35) | Tolerant: random reuse at R ~ 5 keeps 0.91; grammars fail only at b <= 4 | the edges move with the cell |
+| `probe_dose2.py` -> `probe_dose2.log` | Dose-response at (12000, 80, 0.45) | R ladder 1.0 .. 4.0: 1.00 .. 0.00, edge near 2.5-3; at R ~ 2.3, U = 10/20/40: 0.95/0.86/0.19 | frequency matters at fixed R |
+| `probe_product.py` -> `probe_product.log` | Is U x R the variable? | No: U-shaped at fixed U R (0.00/0.39/0.28; 0.18/0.89/0.21) | two mechanisms |
+| `probe_edges.py` -> `probe_edges.log` | The two edges | Recurrence: 1.00/1.00/0.39/0.00/0.00 at U 10-80 (brains collapse); repetition at U = 10: 1.00/0.95/0.39/0.00/0.00 at R 1.0-5.7; f(R) g(U) predicts the interior points within ~0.1 | separable-budget conjecture; Amendment 45 |

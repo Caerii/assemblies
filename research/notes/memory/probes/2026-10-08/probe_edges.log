@@ -1,0 +1,7 @@
+U=10 b=V V=430 R=1.01: word 1.000 (brains 1.00-1.00), same-word 0.071
+U=20 b=V V=215 R=1.04: word 0.999 (brains 1.00-1.00), same-word 0.064
+U=40 b=V V=108 R=1.18: word 0.390 (brains 0.00-0.97), same-word 0.052
+U=60 b=V V=72 R=1.44: word 0.000 (brains 0.00-0.00), same-word 0.040
+U=80 b=V V=54 R=1.85: word 0.000 (brains 0.00-0.00), same-word 0.036
+U=10 b=4 V=430 R=2.83: word 0.394 (brains 0.00-0.96), same-word 0.084
+U=10 b=3 V=430 R=3.71: word 0.000 (brains 0.00-0.00), same-word 0.087
