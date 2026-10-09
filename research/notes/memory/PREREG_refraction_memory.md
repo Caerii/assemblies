@@ -6603,3 +6603,67 @@ gate open on 0.1-0.2% of steps at the end; 3-5% of counts removed in all), and
 never touches a healthy store. Offline unlearning is the complement of
 write-time separation: one prevents capture, the other dissolves it, and both
 act only where the store is pathological.
+
+## Amendment 52 (2026-10-09, before running): write-time separation and sleep compose
+
+Registered before any run at the cells below. Amendment 50 registered a local
+comparator at write, Amendment 51 a contrast-gated sleep; each has a reach.
+
+**Seen before registering.** At (10000, 75, 0.48), subject seeds 980 to 999,
+reference brains 960 to 979 (`probes/2026-10-09/probe_lifecycle.py`), mean
+replay with: nothing / sleep (300 episodes) / the comparator / both:
+
+    U  60   0.009 / 0.543 / 0.890 / 0.918   (both: sleep removed 0.09% of counts)
+    U  80   0.000 / 0.167 / 0.610 / 0.755   (lowest brain 0.32 -> 0.68)
+    U 100   0.000 / 0.034 / 0.249 / 0.549   (collapsed 20 / 20 / 8 / 0; 0.42% removed)
+
+A smoke run of this module (VOID, seeds 900 to 902) ran only the survey cell
+(2000, 60, 0.5) at U = 40 and 30 episodes: 0.548 / 0.643 / 0.690 / 0.690
+(the written loop equal to store_sequence). No run has touched
+(9500, 75, 0.46) or (12500, 90, 0.4).
+
+### Protocol
+
+`research/experiments/memory_lifecycle.py` (`python -m research.runner
+lifecycle`), subject seeds 842 to 861, reference brains 862 to 881 (all new),
+one run from a worktree pinned at the commit registering this amendment. Cells
+(9500, 75, 0.46) (n/k = 127, tau = 63) and (12500, 90, 0.4) (n/k = 139,
+tau = 69), by Amendment 41's rule; k p = 34.5 and 36 against 3 ln n = 27.5 and
+28.3. Per-brain grammars, random successors, 16-element walks, rho = 0.05.
+Per cell, the sleep threshold as Amendment 51 (300 dreams of a U = 10 store on
+the reference brains, 1.02 x the maximum contrast). Per U in {80, 100}: a
+STANDARD store (store_sequence) replayed, then slept 300 episodes and replayed;
+a COMPARATOR store (Amendment 50's rule at every non-initial write) replayed,
+then slept 300 episodes and replayed -- the same memories on the same brains.
+Masked replay of every sequence, word-level. The written store loop is checked
+equal to store_sequence first; if not, every bar fails.
+
+    python -m research.runner lifecycle \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag lifecycle-20261009 --seeds 842 ... 861
+
+### Bars
+
+    L1  SYNERGY. At both cells at U = 100, both >= comparator + 0.15 and
+        >= sleep + 0.3 (probe 0.549 vs 0.249 and 0.034).
+    L2  REACH AT 80. At both cells, both >= 0.65 (probe 0.755).
+    L3  REACH AT 100. At both cells, both >= 0.45 (probe 0.549).
+    L4  NO COLLAPSED BRAINS. At both cells, at most 2 brains below 0.2 with
+        both, at U = 80 and at U = 100.
+    L5  A SPARING SLEEP. At both cells, sleep after the comparator removes
+        <= 2% of counts at U = 80 and 100 (probe 0.2%, 0.4%).
+
+Reported, not judged: standard; sleep alone; the comparator's flags; the
+calibration.
+
+### Interpretation, stated now
+
+* L1 to L5 pass: the two controls compose -- separation at write keeps a heavily
+  reused store near enough to healthy that a sparing sleep can finish its
+  repair -- and the reuse edge of Amendment 45 (~40 uses per word) lies beyond
+  100 for half-reliable replay under both.
+* L1 fails with L2, L3 passing: they compose without synergy at new cells.
+* L2 or L3 fails: the lifecycle's reach is cell-specific.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until L1 to L5 are evaluated and recorded below.
