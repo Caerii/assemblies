@@ -5637,3 +5637,76 @@ tight (widths <= 0.004) but cannot see the ladder.
 
 Next: the survival curve itself -- where along a sequence it first fails --
 which separates the cue's transient from the steady hazard.
+
+## Amendment 44 (2026-10-08, before running): does reuse cost through repeated transitions, not recurring elements?
+
+Registered before any run at the cells below. Amendment 42 found that words
+recurring up to five times each cost nothing, and that twenty uses per word
+cost up to 36%, brain by brain.
+
+**Seen before registering** (exploratory, seeds 980 to 989, after Amendment 43
+was judged; disclosed in full; `research/notes/memory/probes/2026-10-08/`
+`probe_grammar.py`, `probe_grammar2.py`, `probe_grammar3.py`). At
+(4000, 100, 0.35), tau = 40, twenty uses per word, each brain its own grammar
+in which every word has b allowed successors, sequences of 16 as random walks:
+scored by WORD -- the read-out's nearest stored token, any sequence, and that
+token's word -- replay is whole for 0.98 of sequences under i.i.d. words
+(b = V) and for 0.19 to 0.39 (b = 1), 0.35 and 0.00 (b = 4), 0.00 (b = 2) at
+rho 0.05 and 0.08; dropping the 0.3 match threshold changes nothing (wrong
+words, not blends). The same-word overlap rises with consistency (0.09 at
+b = V, to 0.42 at b = 1). A conjecture written that morning in the theory
+notebook -- that a consistent grammar would make reuse cheap -- is reversed by
+it. What varies with b at fixed uses is how often each transition is stored,
+R ~ U / b. A smoke run of the module (VOID, seeds 900 to 902) ran only the
+survey cell (2000, 60, 0.5) at rho = 0.05 (V = 11): word-level 0.57 at
+U = 20, b = V (R ~ 2.1) and 0.02 at b = 4 (R ~ 4.9). No run has touched
+(9000, 110, 0.33) or (12000, 80, 0.45).
+
+### Protocol
+
+`research/experiments/memory_reuse_grammar.py` (`python -m research.runner
+reuse_grammar`), seeds 662 to 681 (new brains), one run from a worktree pinned at
+the commit registering this amendment. Cells (9000, 110, 0.33) (n/k = 82,
+tau = 41) and (12000, 80, 0.45) (n/k = 150, tau = 75), by Amendment 41's rule;
+k p = 36 against 3 ln n = 27.3 and 28.2. Total load rho = 0.05 (inside the
+safe budget); M = L / 16 sequences per brain, each by its own `store_sequence`.
+Five arms, crossing uses per word U and repeats per bigram R ~ U / b:
+
+    U = 20:  b = V (R ~ 1), b = 4 (R ~ 5), b = 2 (R ~ 10)
+    R = 5:   U = 10, b = 2;  U = 20, b = 4;  U = 40, b = 8
+
+Every brain draws its own grammar and walks. Replay noiseless from a uniformly
+random half of each sequence's first state. WORD-LEVEL RELIABILITY: at every
+step the read-out is matched to the nearest stored token of any sequence and
+scored by that token's word; the mean over brains of the fraction of sequences
+every step of which names the right word. Reported beside it: the token-level
+score, the realised repeats per bigram, the same-word code overlap.
+
+    python -m research.runner reuse_grammar \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag reuse-grammar-20261008 --seeds 662 ... 681
+
+### Bars
+
+    G1  REPETITION COSTS. At U = 20, word-level reliability at R ~ 10 (b = 2)
+        is at least 0.3 below that at R ~ 1 (b = V), both cells.
+    G2  RECURRENCE ALONE IS FREE. At U = 20, b = V, word-level reliability
+        >= 0.95, both cells.
+    G3  REPETITION, NOT RECURRENCE. The three R = 5 arms (U = 10, 20, 40) lie
+        within 0.25 of each other in word-level reliability, both cells.
+    G4  REPEATED TRANSITIONS MERGE TOKENS. The same-word overlap at R ~ 10 is
+        at least 0.03 above that at R ~ 1, both cells.
+
+### Interpretation, stated now
+
+* G1 to G4 pass: a token store pays for reuse through repeated transitions,
+  whatever the elements' frequency; a corpus whose bigrams repeat cannot be
+  held in one such area, and its statistics need a type-level store.
+* G1 passes, G3 fails: both repetition and recurrence cost; the cost model
+  needs both terms.
+* G2 fails: recurrence costs by itself at twenty uses per word (as Amendment
+  42's heavy-reuse arm suggested) and the i.i.d. control is not free.
+* G4 fails: repetition costs without merging tokens.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until G1 to G4 are evaluated and recorded below.
