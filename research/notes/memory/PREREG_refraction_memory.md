@@ -5886,3 +5886,80 @@ arm's mean has a standard error of about 0.07 to 0.09 (twenty brains), and the
 failing arm is off by about 1.9 of its own standard errors before the
 prediction's own error is counted. The separable form is approximately right
 and not established to the registered tolerance; S2 is recorded as failed.
+
+## Amendment 46 (2026-10-08, before running): adaptation at read time -- a control for the recurrence collapse, and only for it
+
+Registered before any run at the cells below. Every replay in this registration
+so far runs frozen and MASKED: no adaptation acts on the read-out. Amendment 45
+found a recurrence edge (whole brains collapsing near 40 uses per element) and a
+repetition edge (near 2.8 repeats per transition).
+
+**Seen before registering** (exploratory, seeds 980 to 999, after Amendment 45
+was judged; `research/notes/memory/probes/2026-10-08/` `probe_collapse.py`,
+`probe_control.py`, `probe_habit.py`, with logs; (10000, 75, 0.48), Amendment
+45's cell):
+
+* A collapsed brain's failed replays funnel into 7 to 36 shared states among
+  about 200 failures (mean pairwise overlap 0.11-0.19, chance 0.0075); a partly
+  failing brain's do not (0.01-0.05). The states are not made of over-used
+  neurons (usage ~1.1 x average).
+* Suppressing the 2k neurons the failed replays of the even-indexed sequences
+  converge on, while replaying the odd-indexed ones, lifts partly failing
+  brains (0.17, 0.30, 0.11 -> 0.82, 0.79, 0.94).
+* A session adaptation during replay -- every replay winner charged c x its
+  raw drive, the charge decaying by exp(-1/T) per step and kept across a
+  brain's sequences -- at c = 0.1, T = 50 lifts the 9 collapsed brains from
+  0.04 to 0.46 and the 11 others from 0.74 to 0.88; at c = 0.3 replay fails
+  everywhere (0.10). Over c = 0.03-0.2 and T = 10-100 the recurrence arm
+  (masked 0.43) is best near c T = 5-10 (0.69-0.72) and falls above ~15
+  (0.15-0.49); the repetition arm (U = 10, b = 3, masked 0.00) never exceeds
+  0.06.
+* A smoke run of the module (VOID, seeds 900 to 902) ran only the survey cell
+  (2000, 60, 0.5), recurrence arm: masked 0.55, habit 0.86, strong 0.21.
+* No run has touched (11000, 80, 0.45) or (8000, 60, 0.6).
+
+### Protocol
+
+`research/experiments/memory_read_adaptation.py` (`python -m research.runner
+read_adaptation`), seeds 702 to 721 (new brains), one run from a worktree pinned
+at the commit registering this amendment. Cells (11000, 80, 0.45) (n/k = 137,
+tau = 69) and (8000, 60, 0.6) (n/k = 133, tau = 67), by Amendment 41's rule;
+k p = 36 against 3 ln n = 27.9 and 27.0. Total load rho = 0.05; per-brain
+grammars and 16-element walks as Amendment 44. Three arms: RECURRENCE (U = 40,
+random successors), REPETITION (U = 10, b = 3), HEALTHY (U = 10, random
+successors). Each arm's memory is replayed three ways, in sequence order, from
+a uniformly random half of each first state: MASKED (the standard read: frozen,
+no adaptation), HABIT (c = 0.1, T = 50) and STRONG (c = 0.3, T = 50), the
+charge starting at zero for each mode and kept across the brain's sequences.
+Word-level reliability as Amendment 44.
+
+    python -m research.runner read_adaptation \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag read-adaptation-20261008 --seeds 702 ... 721
+
+### Bars
+
+    H1  READ-TIME ADAPTATION RESCUES THE COLLAPSE. Recurrence arm: habit
+        minus masked >= 0.15, with masked <= 0.85 (a rescue from the ceiling
+        is not counted), both cells.
+    H2  IT DOES NOT HARM A HEALTHY MEMORY. Healthy arm: habit >= 0.97, both
+        cells.
+    H3  IT DOES NOT TOUCH THE REPETITION FAILURE. Repetition arm: habit
+        minus masked <= 0.1, both cells.
+    H4  IT HAS A WINDOW. Recurrence arm: strong <= masked - 0.1, both cells.
+
+### Interpretation, stated now
+
+* H1 to H4 pass: the recurrence collapse is a spurious attractor that the
+  force replay lacks -- adaptation -- controls, inside a window; the
+  repetition failure is a different mechanism (a structural one) that it does
+  not reach; a store with adaptation at both write and read holds reuse that
+  a masked read cannot.
+* H1 fails: the probe's rescue does not carry to new cells.
+* H2 fails: the control costs a healthy memory; it is a trade-off.
+* H3 fails: adaptation also reaches the repetition failure -- one mechanism,
+  not two.
+* H4 fails: there is no upper side to the window at these settings.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until H1 to H4 are evaluated and recorded below.
