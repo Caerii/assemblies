@@ -1,0 +1,22 @@
+sleep threshold 1.446
+
+U = 60
+  standard                     0.009 (brains < 0.2: 20; min 0.00)
+  standard + sleep 300         0.543 (brains < 0.2:  0; min 0.34); removed 0.0611
+  comparator                   0.890 (brains < 0.2:  0; min 0.77); flags 0.0288
+  comparator + sleep 300       0.918 (brains < 0.2:  0; min 0.86); removed 0.0009
+  comparator + sleep 1000      0.919 (brains < 0.2:  0; min 0.87); removed 0.0011
+
+U = 80
+  standard                     0.000 (brains < 0.2: 20; min 0.00)
+  standard + sleep 300         0.167 (brains < 0.2: 14; min 0.07); removed 0.1230
+  comparator                   0.610 (brains < 0.2:  0; min 0.32); flags 0.0504
+  comparator + sleep 300       0.755 (brains < 0.2:  0; min 0.68); removed 0.0020
+  comparator + sleep 1000      0.772 (brains < 0.2:  0; min 0.69); removed 0.0025
+
+U = 100
+  standard                     0.000 (brains < 0.2: 20; min 0.00)
+  standard + sleep 300         0.034 (brains < 0.2: 20; min 0.00); removed 0.1968
+  comparator                   0.249 (brains < 0.2:  8; min 0.08); flags 0.0787
+  comparator + sleep 300       0.549 (brains < 0.2:  0; min 0.43); removed 0.0042
+  comparator + sleep 1000      0.576 (brains < 0.2:  0; min 0.45); removed 0.0051
