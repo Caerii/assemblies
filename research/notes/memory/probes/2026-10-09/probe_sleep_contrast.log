@@ -1,0 +1,13 @@
+calibration (U = 10 reference, 300 dreams): contrast mean 1.347, p99.9 1.368, max 1.374 -> threshold 1.402
+
+U = 50: dream contrast before sleep mean 7.762, p90 19.548, share above threshold 1.000
+  contrast-gated sleep     0 episodes: reliability 0.025 (brains < 0.2: 19); counts removed 0.0000 of held; steps gated 0.000
+  contrast-gated sleep   100 episodes: reliability 0.669 (brains < 0.2:  0); counts removed 0.0381 of held; steps gated 0.385
+  contrast-gated sleep   300 episodes: reliability 0.760 (brains < 0.2:  0); counts removed 0.0411 of held; steps gated 0.148
+  contrast-gated sleep  1000 episodes: reliability 0.787 (brains < 0.2:  0); counts removed 0.0433 of held; steps gated 0.049
+  contrast-gated sleep  3000 episodes: reliability 0.800 (brains < 0.2:  0); counts removed 0.0450 of held; steps gated 0.017
+
+U = 10: dream contrast before sleep mean 1.346, p90 1.355, share above threshold 0.000
+  contrast-gated sleep     0 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0.0000 of held; steps gated 0.000
+  contrast-gated sleep  1000 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0.0000 of held; steps gated 0.000
+  contrast-gated sleep  3000 episodes: reliability 1.000 (brains < 0.2:  0); counts removed 0.0000 of held; steps gated 0.000

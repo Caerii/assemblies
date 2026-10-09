@@ -1,0 +1,7 @@
+U=50 comparator E a=0.02 tau_link=512: reliability 0.906 (brains < 0.2:  0); same-first-word start overlap 0.264; continuation into q+1 0.000 vs q-1 0.000; comparator flags 1507
+U=50 comparator E a=0.05 tau_link=512: reliability 0.776 (brains < 0.2:  1); same-first-word start overlap 0.285; continuation into q+1 0.000 vs q-1 0.000; comparator flags 2111
+U=50 comparator E a=0.1 tau_link=512: reliability 0.094 (brains < 0.2: 18); same-first-word start overlap 0.286; continuation into q+1 0.000 vs q-1 0.000; comparator flags 5728
+U=50 comparator E a=0.05 tau_link=128: reliability 0.570 (brains < 0.2:  2); same-first-word start overlap 0.323; continuation into q+1 0.000 vs q-1 0.000; comparator flags 2930
+U=10 standard   E a=0.0 tau_link=1: reliability 1.000 (brains < 0.2:  0); same-first-word start overlap 0.270; continuation into q+1 0.000 vs q-1 0.000; comparator flags 0
+U=10 standard   E a=0.05 tau_link=512: reliability 0.999 (brains < 0.2:  0); same-first-word start overlap 0.307; continuation into q+1 0.000 vs q-1 0.000; comparator flags 0
+U=10 standard   E a=0.1 tau_link=512: reliability 0.998 (brains < 0.2:  0); same-first-word start overlap 0.313; continuation into q+1 0.000 vs q-1 0.000; comparator flags 0

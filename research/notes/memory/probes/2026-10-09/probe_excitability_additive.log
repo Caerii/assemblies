@@ -1,0 +1,2 @@
+U=50 comparator E a=0.0 tau_link=1: reliability 0.941 (brains < 0.2:  0); same-first-word start overlap 0.247; continuation into q+1 0.000 vs q-1 0.000; comparator flags 1276
+U=50 comparator E a=0.1 tau_link=512: reliability 0.000 (brains < 0.2: 20); same-first-word start overlap 0.877; continuation into q+1 0.000 vs q-1 0.000; comparator flags 63453
