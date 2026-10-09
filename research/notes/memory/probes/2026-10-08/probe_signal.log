@@ -1,0 +1,12 @@
+(6000,300,0.12) tau=10 (0.50 n/k) rho50=0.122: successor structural input z = 1.39 (late half 1.40); sqrt(ln n) = 2.95
+(6000,300,0.12) tau=20 (1.00 n/k) rho50=0.202: successor structural input z = 1.32 (late half 1.33); sqrt(ln n) = 2.95
+(5000,100,0.35) tau=25 (0.50 n/k) rho50=0.123: successor structural input z = 1.61 (late half 1.62); sqrt(ln n) = 2.92
+(5000,100,0.35) tau=50 (1.00 n/k) rho50=0.152: successor structural input z = 1.54 (late half 1.55); sqrt(ln n) = 2.92
+(10000,100,0.35) tau=50 (0.50 n/k) rho50=0.122: successor structural input z = 1.77 (late half 1.79); sqrt(ln n) = 3.03
+(10000,100,0.35) tau=100 (1.00 n/k) rho50=0.12: successor structural input z = 1.70 (late half 1.71); sqrt(ln n) = 3.03
+(14000,70,0.5) tau=100 (0.50 n/k) rho50=0.112: successor structural input z = 1.87 (late half 1.87); sqrt(ln n) = 3.09
+(14000,70,0.5) tau=200 (1.00 n/k) rho50=0.102: successor structural input z = 1.81 (late half 1.81); sqrt(ln n) = 3.09
+(21000,70,0.5) tau=64 (0.21 n/k) rho50=0.081: successor structural input z = 2.00 (late half 1.93); sqrt(ln n) = 3.15
+(21000,70,0.5) tau=150 (0.50 n/k) rho50=0.105: successor structural input z = 1.95 (late half 1.95); sqrt(ln n) = 3.15
+(2000,60,0.5) tau=8 (0.24 n/k) rho50=0.066: successor structural input z = 1.50 (late half 1.47); sqrt(ln n) = 2.76
+(2000,60,0.5) tau=33 (0.99 n/k) rho50=0.16: successor structural input z = 1.41 (late half 1.43); sqrt(ln n) = 2.76

@@ -1,0 +1,8 @@
+rho=0.05 V=17 successors b=1: whole 0.200 (brains 0.00-0.38); same-word overlap 0.211
+rho=0.05 V=17 successors b=2: whole 0.067 (brains 0.00-0.19); same-word overlap 0.108
+rho=0.05 V=17 successors b=4: whole 0.410 (brains 0.05-0.71); same-word overlap 0.081
+rho=0.05 V=17 successors b=V: whole 0.986 (brains 0.90-1.00); same-word overlap 0.095
+rho=0.08 V=27 successors b=1: whole 0.200 (brains 0.09-0.26); same-word overlap 0.415
+rho=0.08 V=27 successors b=2: whole 0.082 (brains 0.00-0.18); same-word overlap 0.132
+rho=0.08 V=27 successors b=4: whole 0.038 (brains 0.00-0.09); same-word overlap 0.115
+rho=0.08 V=27 successors b=V: whole 0.976 (brains 0.88-1.00); same-word overlap 0.094

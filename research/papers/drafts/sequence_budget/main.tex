@@ -348,12 +348,19 @@ The first part predicts how many exposures a downstream lexical area needs; the
 second, that identity becomes more legible as assemblies grow. If the shared
 core is the stimulus's strongest targets, its count is sub-Poisson and $d'$
 larger. Heavy recurrence (twenty uses per element) costs up to $36\%$ and fails
-brain by brain, apparently by each brain's draw of sequences; we conjecture
-that what costs is not recurrence but inconsistency of an element's successors
-across contexts --- a grammar would make shared transitions agree
-\OPEN. The division of labour suggested --- an area that keeps episodes apart,
-another that accumulates types --- is the complementary-learning-systems
-picture \citep{mcclelland1995why} arising within one mechanism.
+brain by brain, apparently by each brain's draw of sequences. We had
+conjectured that a grammar --- consistent successors --- would make recurrence
+cheap. An exploratory probe reversed it \EXP: with each element given $b$
+allowed successors at twenty uses per element, replay produces the right
+\emph{elements} (scored by the nearest stored token's identity) for $0.98$ of
+sequences when successors are random, and for $0.00$--$0.39$ when $b = 1$, $2$ or
+$4$; repeated transitions pull an element's tokens toward a shared code (overlap
+up to $0.42$) and merge their contexts. What varies with $b$ is how often each
+transition is stored. We conjecture that transition repetition, not element
+recurrence, sets the cost \OPEN; if so, one token store cannot hold a corpus with
+frequent bigrams, and its statistics must be consolidated in a separate
+type-level store --- the complementary-learning-systems division
+\citep{mcclelland1995why}, forced here by a failure rather than assumed.
 
 \begin{figure}[t]
 \centering

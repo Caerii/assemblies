@@ -55,3 +55,11 @@ the registration that disclosed it.
 | `probe_uses.py` -> `probe_uses.log` | Uses per word or vocabulary size? | Neither predicts heavy reuse cleanly; reported, not judged | Amendment 42 |
 | `probe_links.py`, `probe_links2.py` (+ logs) | The C -> S link budget | Set by the source area: doubling n_S changes A_50 by < 2%, doubling n_C multiplies it by 1.36-1.7 | links conjecture |
 | `probe_disp2.py` -> `probe_disp2.log` | Does every knob act through interference dispersion? | No: rho_50 * kappa ranges 0.12-0.56 | conjecture failed, recorded |
+
+## After Amendment 43
+
+| Probe | Question | Result | Informed |
+|---|---|---|---|
+| `probe_survival.py` -> `probe_survival.log` | Where along a sequence does it first fail? | No failure in steps 1-5; hazard then FALLS along the sequence (~ j^-1.2 to -1.7); survivors' overlap climbs more slowly at higher load (critical slowing?) | two-phase conjecture refuted; notebook |
+| `probe_signal.py` -> `probe_signal.log` | Is the tau peak on the signal side (successor selection)? | Successor structural input z = 1.3-2.0, slightly LOWER at the peak: no | signal conjecture refuted; notebook |
+| `probe_grammar.py`, `probe_grammar2.py`, `probe_grammar3.py` (+ logs) | Does a consistent grammar make reuse cheap? | Reversed: b = 1, 2, 4 successors per word break replay at the WORD level (0.00-0.39) where random reuse holds (0.98); repeated transitions merge tokens (overlap to 0.42) | transition-repetition conjecture; next registration |

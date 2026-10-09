@@ -974,6 +974,57 @@ grows with recurrence. Heavy reuse under bigram statistics against shuffled
 controls with the same word frequencies decides it.
 \end{conjecture}
 
+\paragraph{Probed the same day: the conjecture reversed (exploratory).}
+(\texttt{probes/2026-10-08/probe\_grammar*.py}; $(4000,100,0.35)$, $\tau = 40$,
+twenty uses per word, ten brains, each its own grammar.) Every word of a
+vocabulary of $V$ was given $b$ allowed successors and the sequences were random
+walks on that grammar. Scored by \emph{word} --- the read-out's nearest stored
+token, any sequence, and that token's word --- replay is whole for $0.98$ of
+sequences under i.i.d.\ words ($b = V$), but $0.19$--$0.39$ at $b = 1$, $0.35$ and
+$0.00$ at $b = 4$, and $0.00$ at $b = 2$ (two loads). Dropping the $0.3$ match
+threshold changes nothing: the read-out lands on wrong \emph{words}, not on
+blends. Consistency made reuse costly, not cheap, and the same-word overlap
+rose with it (to $0.42$ at $b = 1$): repeated transitions pull a word's tokens
+toward a shared code and merge their contexts. What varies with $b$ at fixed
+word frequency is how often each \emph{transition} is stored ($\approx U/b$:
+about $1$, $5$, $10$, $20$ repeats per bigram).
+
+\begin{conjecture}[Transition repetition sets the cost of reuse]\label{conj:bigram} \OPEN
+A token store pays for recurrence through the repetition of transitions, not
+of elements: at a fixed number of uses per word, replay fails once the same
+bigram is stored more than a few times, and at a fixed number of repeats per
+bigram the number of uses per word does not matter. If so, a corpus with
+frequent bigrams cannot be held in one such area: its statistics must be
+consolidated in a separate, type-level store --- the complementary-learning-systems
+division (McClelland, McNaughton and O'Reilly 1995), here forced by a failure rather than assumed.
+\end{conjecture}
+
+\paragraph{The survival curve along a sequence (exploratory).}
+(\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
+sequences.) No sequence fails in its first five steps at any load; the
+per-step hazard then \emph{falls} along the sequence --- at $\rho = 0.14$:
+$2.2\times10^{-2}$ at steps $6$--$10$, $1.1\times10^{-2}$ at $11$--$30$,
+$2.7\times10^{-3}$ at $31$--$100$, $4.7\times10^{-4}$ at $101$--$255$, roughly
+$h(j) \propto j^{-1.2\ \text{to}\ -1.7}$ --- and the overlap of surviving read-outs
+climbs more slowly the higher the load ($0.75 \to 0.92$ over eight steps at
+$\rho = 0.12$, $0.73 \to 0.80$ at $0.14$). Conjecture~\ref{conj:twophase}'s
+three-step transient is wrong: the transient is long and lengthens with load,
+as critical slowing near the saddle-node would make it, and a hazard decaying
+as $1/j$ gives power-law survival, which is one way to obtain the linear law in
+$\ln\ell$.
+
+\paragraph{The signal side of the $\tau$ peak (exploratory).}
+(\texttt{probe\_signal.py}, the twelve cases of the dispersion probe.) A
+successor's structural input from its predecessor is $z = 1.3$--$2.0$ standard
+deviations above a random neuron's --- comparable to the learned signal
+($\sqrt{\ln n} \approx 2.8$--$3.2$ at full overlap), so the omission in
+Definition~\ref{def:icm} is a large one --- but it is slightly \emph{lower} at
+$\tau = n/k$ than at $n/k/2$ ($1.32$ against $1.39$ at $n/k = 20$, where $\rho_{50}$
+rises $1.66$-fold). Conjecture~\ref{conj:disp} fails as stated: neither the
+variance of interference nor the selection of successors carries the peak. The
+next candidate is the \emph{tail} of the interference at the $k$-WTA threshold,
+which neither statistic sees.
+
 \paragraph{Where the variance sits decides the sample size.} In
 Proposition~\ref{prop:split} the brain-level intraclass correlation is near zero
 (each brain's whole fraction within binomial scatter), so sequences are
