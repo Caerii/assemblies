@@ -1053,6 +1053,35 @@ core-to-core links carry it, and in collapsed brains failed replays should
 converge on a few shared states if a spurious hub attractor carries the
 recurrence edge.
 
+\paragraph{The collapse is a spurious attractor, and replay-time adaptation
+controls it (exploratory).} (\texttt{probe\_collapse.py},
+\texttt{probe\_control.py}; $(10000,75,0.48)$, forty uses per word, random
+successors, twenty brains.) In a collapsed brain the failed replays funnel into
+a handful of shared states --- $7$ to $36$ distinct end states among about $200$
+failures, mean pairwise overlap $0.11$--$0.19$ against $0.0075$ by chance ---
+while in a partly failing brain every failure ends somewhere new (overlap
+$0.01$--$0.05$). The attractor is not made of hubs: its neurons are used about
+$1.1$ times as often as average and barely overlap the brain's most-used
+neurons ($0.00$--$0.20$). It is causal: suppressing the $2k$ neurons the failed
+replays of one half of the sequences converge on, while replaying the other
+half, raises partly failing brains from $0.17$, $0.30$, $0.11$ to $0.82$, $0.79$,
+$0.94$ (the deepest collapses do not recover from so small a lesion). And it is
+controllable by the force replay lacks: replay runs masked, with no adaptation
+at all, and a mild session adaptation --- each replay winner charged $0.1$ of
+its drive, decaying over $50$ steps, kept across sequences --- lifts every
+collapsed brain (from $0.04$ to $0.46$ on average, each to $0.31$--$0.51$) and
+the intact brains too ($0.74 \to 0.88$); a stronger one ($0.3$) suppresses
+correct states as well and replay fails everywhere. The anti-capture force has
+a window at read time as it has at write time.
+
+\begin{conjecture}[Capture is controlled by adaptation at both ends]\label{conj:readcontrol} \OPEN
+Every failure of this memory is a capture --- of neurons, synapse pairs, token
+cores or the whole area --- and adaptation is the force that opposes it: at
+write time (refraction, $\tau$ matched to reuse) and at read time (a session
+adaptation charging replay winners). A store with both, each inside its
+window, holds reuse that one without read-time adaptation cannot.
+\end{conjecture}
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the
