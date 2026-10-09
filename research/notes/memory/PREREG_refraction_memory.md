@@ -6478,3 +6478,88 @@ writes, catching 78-84% of the oracle's captures, with no captured token left
 and a healthy store untouched. It needs no stored-token lookup and no word
 identity. The threshold is set for n/k 130-145; in a small area (n/k = 33) it
 over-fires (smoke, disclosed).
+
+## Amendment 51 (2026-10-09, before running): a self-limiting sleep repairs a captured store
+
+Registered before any run at the cells below. Amendments 49 and 50 prevent the
+recurrence collapse at write; this tests repairing it offline. Unlearning
+(Hopfield, Feinstein & Palmer 1983; Crick & Mitchison 1983's proposed function
+of REM sleep): free dynamics from noise fall into the states a store is drawn
+to, and each transition taken loses one potentiation count on every synapse
+that has one (never below zero; the connectome's baseline untouched).
+
+**Seen before registering** (`probes/2026-10-09/`, seeds 980 to 999, the judged
+cell (10000, 75, 0.48)):
+* Ungated (`probe_sleep.py`): a WINDOW -- a collapsed store (U = 50) 0.025 ->
+  0.70 after 100 episodes, 0.74 after 300, 0.000 after 1000; a healthy store
+  (U = 10) erased too at 1000, by depression of random noise transitions.
+* Loop-gated (`probe_sleep_gated.py`): safe (a healthy store never touched) but
+  slow (0.47 after 3000 episodes).
+* Contrast-gated (`probe_sleep_contrast.py`): a collapsed store's dreams have
+  contrast (winners' mean drive / the area's) 7.76 on average vs a healthy
+  store's 1.35 (max 1.374 in 300 dreams). Gated at 1.02 x the healthy maximum:
+  U = 50 0.025 -> 0.669 / 0.760 / 0.787 / 0.800 after 100 / 300 / 1000 / 3000
+  episodes, no collapsed brain, 3.8% -> 4.5% of counts removed, the gate open
+  on 38% -> 1.7% of steps (cumulative); U = 10 nothing gated, nothing removed,
+  1.000. There the threshold was calibrated on the SAME brains' U = 10 store;
+  here it is calibrated on separate reference brains.
+* A smoke run of this module (VOID, seeds 900 to 902) ran only the survey cell
+  (2000, 60, 0.5), doses 0 and 30: reference contrast mean 1.350, max 2.176
+  (threshold 2.219 -- a rare settling dream in a healthy store raises the
+  threshold); U = 50 0.333 -> 0.381 (0.7% of counts removed); U = 10 1.000 ->
+  1.000, nothing removed. A reference outlier at a new cell would make the gate
+  conservative and could fail S1 although no harm is done.
+No run has touched (9000, 65, 0.5) or (11000, 85, 0.42).
+
+### Protocol
+
+`research/experiments/memory_sleep.py` (`python -m research.runner sleep`),
+subject brains seeds 802 to 821, reference brains 822 to 841 (all new), one run
+from a worktree pinned at the commit registering this amendment. Cells
+(9000, 65, 0.5) (n/k = 138, tau = 69) and (11000, 85, 0.42) (n/k = 129,
+tau = 65), by Amendment 41's rule; k p = 32.5 and 35.7 against
+3 ln n = 27.3 and 27.9. Per-brain grammars, random successors, 16-element
+walks, rho = 0.05, standard store_sequence. Per cell: a U = 10 store on the
+reference brains; 300 dreams (noise seed 777) give the healthy maximum
+contrast, threshold = 1.02 x it. The subject brains' U = 50 and U = 10 stores
+then sleep: episodes of 8 free steps (masked, frozen but for unlearning) from k
+random neurons (noise seed 4242), unlearning from step 3 on transitions whose
+contrast reaches the threshold; doses cumulative 100, 300, 1000, 3000; after
+each dose (and before), masked replay of every sequence, word-level. Recorded:
+reliability per brain, counts removed (share of those held), and the share of
+judged steps gated within each dose interval.
+
+    python -m research.runner sleep \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag sleep-20261009 --seeds 802 ... 821
+
+### Bars
+
+    S1  REPAIR. At both cells, U = 50 after 300 episodes >= 0.6 and at least
+        0.4 above its value before sleep (probe 0.760 vs 0.025).
+    S2  NO ERASURE. At both cells, U = 50 after 3000 episodes >= its value
+        after 300 - 0.05 (probe 0.800 vs 0.760).
+    S3  NO HARM. At both cells, U = 10 after 3000 episodes >= 0.97 with at
+        most 0.1% of counts removed (probe 1.000, 0).
+    S4  THE GATE CLOSES. At both cells, the U = 50 gate open on <= 2% of
+        steps in the 1000-3000 interval.
+    S5  FRUGAL. At both cells, U = 50 counts removed <= 10% after 3000
+        episodes (probe 4.5%).
+    S6  NO COLLAPSED BRAINS. At both cells, at most 2 brains below 0.2 at
+        U = 50 after 300 episodes.
+
+Reported, not judged: 100 and 1000 episodes; the calibration; contrasts before
+sleep.
+
+### Interpretation, stated now
+
+* S1 to S6 pass: a sleep gated by a signal the network has -- how hard its
+  current state is driven, relative to a healthy store -- repairs a captured
+  store, stops by itself, and never touches a healthy one; offline unlearning
+  is the complement of write-time separation.
+* S1 fails with S3 to S5 passing: the gate is safe but too conservative at new
+  cells (see the smoke's reference outlier).
+* S2 or S3 fails: the gate does not limit sleep; S4 fails: it does not close.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until S1 to S6 are evaluated and recorded below.
