@@ -229,8 +229,6 @@ class TestTheoryCitations(unittest.TestCase):
             "REUSE-BUDGET-TWO-EDGES",
             # 2026-10-09: every brain replays more with read-time adaptation (A47)
             "READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS",
-            # 2026-10-09: the logit margin falls with reuse; adaptation lifts every U = 50 brain (A48)
-            "LOGIT-MARGIN-DECIDES-REPLAY",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

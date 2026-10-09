@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`LOGIT-MARGIN-DECIDES-REPLAY`](#logit-margin-decides-replay) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, read through a logit lens | Read each replay step's net drive as a logit for every stored token (mean drive over its k neurons, in units of the k-WTA threshold). |
 | [`READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS`](#read-time-adaptation-helps-failing-brains) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, with a session adaptation in place of the masked read | Replay here normally runs with no adaptation (masked). |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
@@ -702,6 +703,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## LOGIT-MARGIN-DECIDES-REPLAY
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 48 (M1-M4 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; replay frozen, read through a logit lens
+
+**Claim.** Read each replay step's net drive as a logit for every stored token (mean drive over its k neurons, in units of the k-WTA threshold). A brain's slack -- the correct next word's margin over the best other word, on the steps it wins -- relative to a healthy reference brain's at the same cell places every brain on one logistic: the masked read holds above a relative margin of 0.75-0.76 at four cells (two new), and a read-time session adaptation lowers that to 0.64-0.65. Collapsed brains, all at 0.00 masked, are rescued in the order of their slack (Spearman 0.86, 0.87), and the size of their rescue is predicted before it is applied (within 0.03 and 0.05). The recurrence collapse is a loss of signal margin, not a deep false well.
+
+**Requires.**
+- random-successor reuse at 30-70 uses per word, rho = 0.05, n/k 136-147
+- reference arm U = 10; adaptation c = 0.1, T = 50; word-level score
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-48-result-2026-10-09
+
+**Evidence files.**
+- [research/results/runs/memory.signal-margin/signal-margin-20261009/results.json](../research/results/runs/memory.signal-margin/signal-margin-20261009/results.json) (artifact) â€” Amendment 48: slack, masked and adapted replay per brain, six arms, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain's logit margin falls with reuse, U = 10 above U = 50, at (7500, 55, 0.6) (Amendment 48): `observations/cells/7500~155~10.6/arms/10/slack` all-greater `observations/cells/7500~155~10.6/arms/50/slack` by at least 0.04, retained in [research/results/runs/memory.signal-margin/signal-margin-20261009/results.json](../research/results/runs/memory.signal-margin/signal-margin-20261009/results.json) and paired by `run/seeds`.
+- every brain at U = 50 replays more with read-time adaptation than masked, at (12500, 85, 0.42) (Amendment 48): `observations/cells/12500~185~10.42/arms/50/habit` all-greater `observations/cells/12500~185~10.42/arms/50/masked` by at least 0.01, retained in [research/results/runs/memory.signal-margin/signal-margin-20261009/results.json](../research/results/runs/memory.signal-margin/signal-margin-20261009/results.json) and paired by `run/seeds`.
+
+**Caveat.** One substrate (k-WTA, no separate inhibition), one reuse kind (random successors), one adaptation setting, n/k 127-147. The relative margin needs a reference arm at the same cell; the predicted rescue ran slightly high at both new cells (0.025, 0.052). The repetition failure is not covered.
 
 ## READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS
 

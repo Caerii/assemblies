@@ -1,0 +1,13 @@
+(7500, 55, 0.6) U=10: slack 0.347  masked 1.000  habit 1.000
+(7500, 55, 0.6) U=30: slack 0.313  masked 0.883  habit 0.928
+(7500, 55, 0.6) U=40: slack 0.272  masked 0.645  habit 0.759
+(7500, 55, 0.6) U=50: slack 0.230  masked 0.300  habit 0.549
+(7500, 55, 0.6) U=60: slack 0.197  masked 0.137  habit 0.346
+(7500, 55, 0.6) U=70: slack 0.152  masked 0.024  habit 0.096
+(12500, 85, 0.42) U=10: slack 0.410  masked 1.000  habit 1.000
+(12500, 85, 0.42) U=30: slack 0.374  masked 0.933  habit 0.958
+(12500, 85, 0.42) U=40: slack 0.292  masked 0.414  habit 0.652
+(12500, 85, 0.42) U=50: slack 0.221  masked 0.072  habit 0.239
+(12500, 85, 0.42) U=60: slack 0.176  masked 0.001  habit 0.018
+(12500, 85, 0.42) U=70: slack 0.147  masked 0.000  habit 0.004
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.signal-margin\signal-margin-20261009\results.json

@@ -388,6 +388,27 @@ corpus whose transitions repeat, and its statistics must be consolidated in a
 separate type-level store --- the complementary-learning-systems division
 \citep{mcclelland1995why}, forced here by a failure rather than assumed.
 
+The recurrence edge can be read off the replay itself. Read each replay step's
+net drive as a logit for every stored token --- the mean drive over its $k$
+neurons, in units of the $k$-WTA threshold --- and call a brain's \emph{slack}
+the correct next word's margin over the best other word on the steps it wins.
+Brains that the standard read leaves at $0.00$ are not alike: their slack
+differs, and it decides both whether they replay and how far an adaptation
+during replay (each winner charged $0.1$ of its drive, decaying over $50$ steps)
+recovers them.
+
+\begin{proposition}[One margin decides replay and its rescue]\label{prop:margin} \REG\
+Relative to a healthy brain's at the same cell (reuse $U = 10$), slack $x$ places
+every brain on one logistic: replay holds above $x \approx 0.75$--$0.76$ at four
+cells, two of them new ($0.748$, $0.760$ against the probes' $0.760$,
+$0.765$), and read-time adaptation lowers the requirement to $0.64$--$0.65$.
+Collapsed brains are rescued in the order of their slack (Spearman $0.86$,
+$0.87$ over $51$ and $69$ brain-arms), and the size of their rescue, predicted
+from slack before it was applied, was within $0.03$ and $0.05$ of the observed
+(Amendment~48). The attractor's own stability predicts nothing (exploratory):
+the collapse is a loss of signal margin, not a deep false well.
+\end{proposition}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
@@ -456,6 +477,9 @@ Registered again paired and conditional on collapse (Amendment~47), every
 failing brain was helped and none harmed ($52$ of $54$ gained, none lost), a
 healthy memory untouched and the repetition failure barely moved; the lift
 of collapsed brains ($0.18$--$0.23$) again missed its registered size at one cell.
+The size was then predicted, not guessed: a logit-lens margin measured before
+adaptation placed it within $0.05$ at two new cells (Amendment~48,
+Proposition~\ref{prop:margin}).
 
 \section{Discussion: a cost model}\label{sec:discussion}
 
@@ -472,7 +496,8 @@ Critical load falls $\approx 0.003$ per e-fold of sequence length & registered o
 Past it: losses per sequence; constant hazard good to $1024$ elements, pessimistic beyond & registered (one bar failed) \\
 Element identity: Spearman--Brown, $d' \approx \sqrt{\mathrm{ICC}\,k}$ & proved in a model; ICC registered \\
 Reuse: edges near $2.8$ repeats per transition and $40$ uses per element; product law approximate & registered (Props.~\ref{prop:bigram}, \ref{prop:edges}) \\
-Read-time adaptation helps every failing brain, harms none & registered (size not established) \\
+Read-time adaptation helps every failing brain, harms none & registered \\
+Replay holds above a relative logit margin $\approx 0.76$; adaptation lowers it to $\approx 0.65$ and its rescue is predicted & registered (Prop.~\ref{prop:margin}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -510,9 +535,10 @@ Transition repetition & 44 & $(9000,110,0.33)$, $(12000,80,0.45)$ & G1, G4 pass;
 Two edges of reuse & 45 & $(10000,75,0.48)$, $(7000,60,0.6)$ & S1 pass; S2 fail (by $0.006$) \\
 Read-time adaptation & 46 & $(11000,80,0.45)$, $(8000,60,0.6)$ & H2 pass; H1, H3, H4 fail \\
 Read-time rescue, paired & 47 & $(9000,70,0.5)$, $(13000,90,0.4)$ & Q1, Q3 pass; Q2, Q4 fail \\
+One logit margin & 48 & $(7500,55,0.6)$, $(12500,85,0.42)$ & M1--M4 pass \\
 \bottomrule
 \end{tabular}
-\caption{The registrations behind each claim; seeds 522--661, twenty new brains
+\caption{The registrations behind each claim; seeds 522--761, twenty new brains
 per amendment.}
 \label{tab:methods}
 \end{table}

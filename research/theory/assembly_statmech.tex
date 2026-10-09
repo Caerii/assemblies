@@ -1106,6 +1106,44 @@ missed at another. The direction is now registered; Conjecture~\ref{conj:readcon
 read-time half holds in sign and in specificity, not yet in a predicted size,
 which needs a model of how deep a spurious attractor's basin is.
 
+\paragraph{A logit lens: the basin is the wrong variable (exploratory, then
+Amendment 48).} (\texttt{probes/2026-10-09/probe\_basin.py}.) Read each replay
+step's net drive $D$ as a logit for every stored token $t$,
+$\ell_t = \frac{1}{k}\sum_{i\in t} D_i / D_{(k)}$ with $D_{(k)}$ the $k$-th largest
+drive, and a word's logit as the max over its tokens. Three candidates for the
+depth of a collapse were read from the masked replay of half the sequences and
+set against the rescue of the other half. The attractor's stability from
+itself predicts nothing ($\rho$ from $-0.42$ to $+0.23$), and at the first wrong
+step the attractor rarely out-drives the correct word: the correct word
+\emph{fades} (its logit $1.13 \to 0.65$ in four steps) rather than being beaten.
+What predicts the rescue is the brain's \emph{slack} $s$ --- the correct word's
+margin over the best other word, on the steps it wins. Relative to a healthy
+brain's at the same cell, $x = s/s_{\mathrm{ref}}$, replay is one logistic in
+$x$.
+
+\begin{proposition}[One margin decides replay and its rescue]\label{prop:logitmargin} \MEASURED
+With $s_{\mathrm{ref}}$ the median slack at reuse $U = 10$ (every brain within
+$0.004$ of it), word-level replay is a logistic in $x$ with midpoint $0.748$ and
+$0.760$ at two new cells ($0.760$, $0.765$ at the probes' cells), and read-time
+adaptation ($c = 0.1$, $T = 50$) lowers the midpoint by $0.105$ and $0.110$.
+Collapsed brains, all at $0.00$ masked, are rescued in the order of $x$
+(Spearman $0.86$, $0.87$), and the probes' adapted logistic predicted their mean
+rescue within $0.025$ and $0.052$ (Amendment 48, M1--M4 pass).
+\end{proposition}
+
+The reading is signal detection, not a well. A replay step succeeds when the
+correct successor's assembly clears the $k$-WTA threshold by more than the
+step's fluctuation; reuse adds interference to every token's drive and erodes
+the margin, and below a critical relative margin the successor loses the race
+within a few steps to whatever the background drives hardest --- which, being
+the same background in every replay, looks like a shared attractor. Read-time
+adaptation does not fill a well; it subtracts that recurring background, and so
+lowers the margin a step needs. A brain whose margin is gone has nothing to
+recover. This replaces the basin-depth question of Amendment 47 with a
+measurable one: what sets $s_{\mathrm{ref}}$ and the critical $x$ as functions of
+$(n,k,p,\beta)$ --- a signal-to-noise calculation the reduced model of
+Lemma~\ref{lem:load}'s neighbourhood is placed to attempt.
+
 \paragraph{The survival curve along a sequence (exploratory).}
 (\texttt{probe\_survival.py}; $(8000,80,0.5)$, $\tau = 50$, $256$-element
 sequences.) No sequence fails in its first five steps at any load; the

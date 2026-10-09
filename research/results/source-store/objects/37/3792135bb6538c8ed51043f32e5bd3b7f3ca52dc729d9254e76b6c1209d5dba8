@@ -807,10 +807,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | Q2 collapsed brains lifted (A47) | mean gain >= 0.2 | FAIL | 0.234, 0.180 |
 | Q3 no harm to a healthy memory (A47) | habit >= 0.97 | PASS | 1.000, 1.000 |
 | Q4 rescue mainly the collapse's (A47) | margin over repetition >= 0.2 | FAIL | 0.212, 0.167 |
-| M1 the law has one position (A48) | masked midpoint in [0.72, 0.81] | PASS | 0.748, 0.760 |
-| M2 adaptation lowers it (A48) | adapted <= masked - 0.06 | PASS | -0.105, -0.110 |
-| M3 the hidden margin orders the rescue (A48) | Spearman >= 0.6, >= 8 collapsed | PASS | 0.856 (51), 0.873 (69) |
-| M4 the rescue's size is predicted (A48) | collapsed mean within 0.1 | PASS | 0.025, 0.052 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6199,43 +6195,3 @@ Reported, not judged: fitted widths; per-step top-1; the reference arm adapted.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until M1 to M4 are evaluated and recorded below.
-
-### Amendment 48 result (2026-10-09)
-
-One run from a worktree pinned at 5c3a7a8f, seeds 742 to 761:
-[record](../../results/runs/memory.signal-margin/signal-margin-20261009/results.json),
-[log](../../results/logs/memory-signal-margin-20261009.log). Per arm, mean
-relative slack x / masked / adapted reliability (word-level):
-
-                 (7500, 55, 0.6)             (12500, 85, 0.42)
-    reference    slack 0.347                 slack 0.410
-    U 30         0.90 / 0.883 / 0.928        0.91 / 0.933 / 0.958
-    U 40         0.78 / 0.645 / 0.759        0.71 / 0.414 / 0.652
-    U 50         0.66 / 0.300 / 0.549        0.54 / 0.072 / 0.239
-    U 60         0.57 / 0.137 / 0.346        0.43 / 0.001 / 0.018
-    U 70         0.44 / 0.024 / 0.096        0.36 / 0.000 / 0.004
-
-    fitted midpoint, masked (width)   0.748 (0.056)            0.760 (0.038)
-    fitted midpoint, adapted (width)  0.643 (0.089)            0.650 (0.071)
-    collapsed brain-arms              51                       69
-    Spearman(x, adapted), collapsed   0.856                    0.873
-    collapsed adapted, obs / pred     0.197 / 0.222            0.116 / 0.168
-
-    M1  THE LAW HAS ONE POSITION                                       PASS
-        masked midpoints 0.748 and 0.760, in [0.72, 0.81].
-    M2  ADAPTATION LOWERS IT                                           PASS
-        by 0.105 and 0.110 (bar 0.06).
-    M3  THE HIDDEN MARGIN ORDERS THE RESCUE                            PASS
-        0.856 and 0.873 over 51 and 69 collapsed brain-arms (bar 0.6).
-    M4  THE RESCUE'S SIZE IS PREDICTED                                 PASS
-        errors 0.025 and 0.052 (bar 0.1); both predictions above the observed.
-
-**Reading.** One number read off the replay's logits -- the correct word's
-margin, relative to a healthy brain's at the same cell -- places every brain on
-one curve at two new cells: the masked read holds above a relative margin of
-0.75-0.76, as at the probes' cells (0.760, 0.765), and a read-time adaptation
-lowers that requirement to 0.64-0.65. Brains the masked read leaves at 0.00 are
-rescued in the order of their margin, and the size of their rescue was predicted
-before it was applied, within 0.03 and 0.05 (both predictions slightly high).
-The recurrence collapse is a loss of signal margin, and Amendment 47's deeper
-collapses were brains with less of it.
