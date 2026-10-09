@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS`](#read-time-adaptation-helps-failing-brains) | MEASURED | hashed AssemblyMemory as Amendment 44; replay frozen, with a session adaptation in place of the masked read | Replay here normally runs with no adaptation (masked). |
 | [`SEQUENCES-OF-SEQUENCES-ACROSS-AREAS`](#sequences-of-sequences-across-areas) | MEASURED | two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks | Two areas replay sequences of sequences: chunks written once into a sequence area are replayed in whatever order a plan in a chunk area dictates -- every plan whole, every brain, from the plan's first state alone -- with plans that share chunks kept apart by the chunk area and the content shared through the sequence area. |
 | [`BIDIRECTIONAL-RECALL-BY-LRI`](#bidirectional-recall-by-lri) | MEASURED | hashed AssemblyMemory, store_sequence with forward_counts/reverse_counts, LRI period 4 at recall with the cue and came-from state primed | One area replays a stored 200-element sequence forward, backward, and either way from its middle, on every brain, when its two directions are written about equally and long-range inhibition at recall vetoes the state just left; without LRI it goes nowhere, and with the directions unequal the stronger one wins whatever LRI does. |
 | [`RECOVERY-SETS-SEQUENCE-LENGTH`](#recovery-sets-sequence-length) | MEASURED | hashed AssemblyMemory, store_sequence one round per element, refraction 0.5 beta decaying as exp(-1/tau) per writing round, beta = theta | How long a sequence one area recalls by itself is set by how fast its refraction recovers: the limit rises from the unrefracted area's merging cliff as recovery slows, peaks at an interior recovery time (32 to 64 writing rounds at four cells), and falls back to the tiling deadline -- 6890 elements at (8000, 60, 0.5) against 861 unrefracted and 264 never recovering. |
@@ -701,6 +702,32 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 47 (Q1, Q3 PASS; Q2, Q4 FAIL); Amendment 46 (H2 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; replay frozen, with a session adaptation in place of the masked read
+
+**Claim.** Replay here normally runs with no adaptation (masked). A session adaptation during replay -- every replay winner charged 0.1 of its raw drive, decaying over 50 steps, kept across a brain's sequences -- helps every brain the recurrence collapse leaves failing and harms none (52 of 54 failing brain-arms gained, none lost, two new cells), leaves a healthy memory at 1.000, and barely moves the repetition failure (+0.01-0.02). The collapse is a spurious attractor (failed replays funnel into a few shared states, exploratory) and the force replay lacks pulls brains out of it.
+
+**Requires.**
+- random-successor reuse at 40 and 50 uses per word, rho = 0.05, n/k 129-144
+- c = 0.1, T = 50 replay steps; word-level score
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-47-result-2026-10-09
+- research/notes/memory/PREREG_refraction_memory.md#amendment-46-result-2026-10-09
+
+**Evidence files.**
+- [research/results/runs/memory.read-rescue/read-rescue-20261009/results.json](../research/results/runs/memory.read-rescue/read-rescue-20261009/results.json) (artifact) â€” Amendment 47: masked, habit and strong replay of the same memories, two cells, 20 brains
+- [research/results/runs/memory.read-adaptation/read-adaptation-20261008/results.json](../research/results/runs/memory.read-adaptation/read-adaptation-20261008/results.json) (artifact) â€” Amendment 46: the first registration of the control, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain replays more of its 40-use sequences with read-time adaptation than masked, at (9000, 70, 0.5) (Amendment 47): `observations/cells/9000~170~10.5/arms/recurrence40/modes/habit` all-greater `observations/cells/9000~170~10.5/arms/recurrence40/modes/masked` by at least 0.01, retained in [research/results/runs/memory.read-rescue/read-rescue-20261009/results.json](../research/results/runs/memory.read-rescue/read-rescue-20261009/results.json) and paired by `run/seeds`.
+- the same at (13000, 90, 0.4) (Amendment 47): `observations/cells/13000~190~10.4/arms/recurrence40/modes/habit` all-greater `observations/cells/13000~190~10.4/arms/recurrence40/modes/masked` by at least 0.01, retained in [research/results/runs/memory.read-rescue/read-rescue-20261009/results.json](../research/results/runs/memory.read-rescue/read-rescue-20261009/results.json) and paired by `run/seeds`.
+
+**Caveat.** The SIZE of the lift is not established: collapsed brains gain 0.18-0.23 here (registered >= 0.2, missed at one cell) against 0.38-0.39 in Amendment 46's shallower collapses; deeper collapses are lifted less. Its window does not transfer in absolute charge across cells (Amendment 46, H4). One setting tested.
 
 ## SEQUENCES-OF-SEQUENCES-ACROSS-AREAS
 

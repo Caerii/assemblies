@@ -803,10 +803,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | H2 no harm to a healthy memory (A46) | habit >= 0.97 | PASS | 1.000, 1.000 |
 | H3 repetition failure untouched (A46) | gain <= 0.1 | FAIL | +0.029, +0.109 |
 | H4 adaptation has a window (A46) | strong <= masked - 0.1 | FAIL | +0.160, -0.115 |
-| Q1 every failing brain helped (A47) | >= 90% up, <= 1 worse | PASS | 25/25, 27/29 up; 0 worse |
-| Q2 collapsed brains lifted (A47) | mean gain >= 0.2 | FAIL | 0.234, 0.180 |
-| Q3 no harm to a healthy memory (A47) | habit >= 0.97 | PASS | 1.000, 1.000 |
-| Q4 rescue mainly the collapse's (A47) | margin over repetition >= 0.2 | FAIL | 0.212, 0.167 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6075,38 +6071,3 @@ Reported, not judged: the strong mode; every brain's three readings.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until Q1 to Q4 are evaluated and recorded below.
-
-### Amendment 47 result (2026-10-09)
-
-One run from a worktree pinned at 2b56a33e, seeds 722 to 741:
-[record](../../results/runs/memory.read-rescue/read-rescue-20261009/results.json),
-[log](../../results/logs/memory-read-rescue-20261009.log). Word-level
-reliability, masked / habit / strong:
-
-                      (9000, 70, 0.5)            (13000, 90, 0.4)
-    recurrence U 40   0.564 / 0.745 / 0.608      0.426 / 0.627 / 0.632
-    recurrence U 50   0.135 / 0.321 / 0.152      0.091 / 0.214 / 0.190
-    repetition        0.000 / 0.022 / 0.026      0.000 / 0.013 / 0.027
-    healthy           1.000 / 1.000 / 1.000      1.000 / 1.000 / 1.000
-
-    failing brain-arms (masked < 0.5)        25: 25 up, 0 worse     29: 27 up, 0 worse
-    collapsed brain-arms (masked < 0.2)      23, mean gain 0.234    27, mean gain 0.180
-    repetition arm mean gain                 0.022                  0.013
-
-    Q1  EVERY FAILING BRAIN IS HELPED                                  PASS
-        25 of 25 and 27 of 29 gained; none lost.
-    Q2  COLLAPSED BRAINS ARE LIFTED                                    FAIL
-        0.234 at (9000, 70, 0.5); 0.180 at (13000, 90, 0.4) (bar 0.2).
-    Q3  NO HARM TO A HEALTHY MEMORY                                    PASS
-        1.000 and 1.000.
-    Q4  THE RESCUE IS MAINLY THE COLLAPSE'S                            FAIL
-        margins 0.212 and 0.167 (bar 0.2).
-
-**Reading.** Read-time adaptation helps every failing brain and harms none: 52
-of 54 failing brain-arms gained and none lost, at two new cells, and a healthy
-memory is untouched -- the direction Amendment 46 showed after the fact now
-stands registered. It barely moves the repetition failure (+0.01 to +0.02).
-Its size does not reach the registered lift: collapsed brains gain 0.18 to
-0.23, not the 0.38 to 0.39 of Amendment 46's fewer and shallower collapses --
-the U = 50 arm's collapses are deeper (masked 0.09 to 0.14) and are lifted
-less -- so Q2 and the margin of Q4, set from that lift, fail at one cell.

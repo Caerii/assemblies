@@ -227,6 +227,8 @@ class TestTheoryCitations(unittest.TestCase):
             "TRANSITION-REPETITION-BREAKS-REPLAY",
             # 2026-10-08: replay holds at 1 repeat and 10 uses, fails at 3.7 repeats or 60 uses (A45)
             "REUSE-BUDGET-TWO-EDGES",
+            # 2026-10-09: every brain replays more with read-time adaptation (A47)
+            "READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

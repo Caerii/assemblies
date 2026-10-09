@@ -1556,6 +1556,49 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
+        id="READ-TIME-ADAPTATION-HELPS-FAILING-BRAINS",
+        engine="hashed AssemblyMemory as Amendment 44; replay frozen, with a session adaptation in place of the masked read",
+        status=Status.MEASURED,
+        claim="Replay here normally runs with no adaptation (masked). A session adaptation "
+              "during replay -- every replay winner charged 0.1 of its raw drive, decaying over "
+              "50 steps, kept across a brain's sequences -- helps every brain the recurrence "
+              "collapse leaves failing and harms none (52 of 54 failing brain-arms gained, none "
+              "lost, two new cells), leaves a healthy memory at 1.000, and barely moves the "
+              "repetition failure (+0.01-0.02). The collapse is a spurious attractor (failed "
+              "replays funnel into a few shared states, exploratory) and the force replay lacks "
+              "pulls brains out of it.",
+        source="PREREG_refraction_memory.md Amendment 47 (Q1, Q3 PASS; Q2, Q4 FAIL); Amendment 46 (H2 PASS)",
+        preconditions=("random-successor reuse at 40 and 50 uses per word, rho = 0.05, n/k 129-144",
+                       "c = 0.1, T = 50 replay steps; word-level score"),
+        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-47-result-2026-10-09",
+                  "research/notes/memory/PREREG_refraction_memory.md#amendment-46-result-2026-10-09"),
+        evidence_refs=(
+            EvidenceRef("research/results/runs/memory.read-rescue/read-rescue-20261009/results.json", "artifact",
+                        "Amendment 47: masked, habit and strong replay of the same memories, two cells, 20 brains"),
+            EvidenceRef("research/results/runs/memory.read-adaptation/read-adaptation-20261008/results.json", "artifact",
+                        "Amendment 46: the first registration of the control, two cells, 20 brains"),
+        ),
+        sensitivity_checks=(SensitivityCheck(
+            artifact="research/results/runs/memory.read-rescue/read-rescue-20261009/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/9000~170~10.5/arms/recurrence40/modes/habit",
+            control_path="observations/cells/9000~170~10.5/arms/recurrence40/modes/masked",
+            relation="all-greater", minimum_effect=0.01,
+            mechanism="every brain replays more of its 40-use sequences with read-time adaptation than masked, at (9000, 70, 0.5) (Amendment 47)",
+        ), SensitivityCheck(
+            artifact="research/results/runs/memory.read-rescue/read-rescue-20261009/results.json",
+            sample_path="run/seeds",
+            treatment_path="observations/cells/13000~190~10.4/arms/recurrence40/modes/habit",
+            control_path="observations/cells/13000~190~10.4/arms/recurrence40/modes/masked",
+            relation="all-greater", minimum_effect=0.01,
+            mechanism="the same at (13000, 90, 0.4) (Amendment 47)",
+        )),
+        caveat="The SIZE of the lift is not established: collapsed brains gain 0.18-0.23 here "
+               "(registered >= 0.2, missed at one cell) against 0.38-0.39 in Amendment 46's "
+               "shallower collapses; deeper collapses are lifted less. Its window does not "
+               "transfer in absolute charge across cells (Amendment 46, H4). One setting tested.",
+    ),
+    Result(
         id="SEQUENCES-OF-SEQUENCES-ACROSS-AREAS",
         engine="two hashed AssemblyMemory areas (sequence S, chunk C) and a DenseOrganFiber C -> S; recall on two clocks",
         status=Status.MEASURED,

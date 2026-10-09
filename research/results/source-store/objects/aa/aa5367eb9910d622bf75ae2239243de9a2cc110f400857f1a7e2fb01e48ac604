@@ -1,0 +1,3 @@
+@echo off
+call scripts\cuda-dev.cmd >nul 2>nul
+.venv\Scripts\python.exe -m research.runner read_rescue --registration research/notes/memory/PREREG_refraction_memory.md --tag read-rescue-20261009 --seeds 722 723 724 725 726 727 728 729 730 731 732 733 734 735 736 737 738 739 740 741 > C:\Github\assemblies-runs-20260930b\a47.log 2>&1

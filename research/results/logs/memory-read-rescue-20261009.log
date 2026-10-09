@@ -1,0 +1,9 @@
+(9000, 70, 0.5) recurrence40 U=40 b=V: masked 0.564  habit 0.745  strong 0.608
+(9000, 70, 0.5) recurrence50 U=50 b=V: masked 0.135  habit 0.321  strong 0.152
+(9000, 70, 0.5) repetition U=10 b=3: masked 0.000  habit 0.022  strong 0.026
+(9000, 70, 0.5) healthy U=10 b=V: masked 1.000  habit 1.000  strong 1.000
+(13000, 90, 0.4) recurrence40 U=40 b=V: masked 0.426  habit 0.627  strong 0.632
+(13000, 90, 0.4) recurrence50 U=50 b=V: masked 0.091  habit 0.214  strong 0.190
+(13000, 90, 0.4) repetition U=10 b=3: masked 0.000  habit 0.013  strong 0.027
+(13000, 90, 0.4) healthy U=10 b=V: masked 1.000  habit 1.000  strong 1.000
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.read-rescue\read-rescue-20261009\results.json
