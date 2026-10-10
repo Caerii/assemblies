@@ -13,6 +13,8 @@ stay exactly as they ran, the record of what was run.
     bars      a bar as DATA: what it reads, how it compares, and how it is judged -- by the
               CONFIDENCE BOUND of an ensemble over brains (neural_assemblies.diagnostics), not by
               a bare mean -- and the text the registration states, generated from the same object
+    spec      a Registration: the text it registers, its bars, its result section and scorecard
+              rows, rendered from one object (research/amend.py writes them into the documents)
 
 The fast paths (replay, sleep, writing, packed counts) are research.experiments.memory_fast.
 """
@@ -21,6 +23,7 @@ from __future__ import annotations
 from .cells import Cell
 from .ledger import Entry, entries, check_new, next_brains, PROBE_BRAINS, NEW_FROM
 from .bars import Bar, Check, Reading, brains, delta, below, scalar, every, evaluate
+from .spec import Registration
 
 __all__ = ["Cell", "Entry", "entries", "check_new", "next_brains", "PROBE_BRAINS", "NEW_FROM",
-           "Bar", "Check", "Reading", "brains", "delta", "below", "scalar", "every", "evaluate"]
+           "Bar", "Check", "Reading", "brains", "delta", "below", "scalar", "every", "evaluate", "Registration"]
