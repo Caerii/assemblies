@@ -475,6 +475,17 @@ at $100$ ($0.45$) was missed at one cell, where an outlying reference brain
 raised the sleep threshold (Amendment~52).
 \end{proposition}
 
+\begin{proposition}[The repetition edge is the same disease]\label{prop:repetition} \REG\
+With each element followed by one of three successors ($3.3$ repeats per
+transition at $10$ uses per element), every standard brain collapses at two new
+cells; sleep alone recovers $0.50$--$0.59$, the comparator alone $0.80$--$0.85$
+(flagging $20$--$66$ times more writes than with random successors), and both
+$0.88$--$0.92$ with no brain below $0.8$; random successors are untouched. The
+tokens written at a repeated pair's first two occurrences overlap only at the
+same-element level: repetition seeds the capture cascade, it does not merge
+tokens (Amendment~53).
+\end{proposition}
+
 \begin{figure}[t]
 \centering
 \includegraphics[width=\textwidth]{figures/fig4_tokens_noise.png}
@@ -576,6 +587,7 @@ Separation at write ($<2\%$ of writes) removes the recurrence edge: $60$ uses pe
 A local comparator (recall vs write) does it without an oracle, on $2$--$3\%$ of writes & registered (Prop.~\ref{prop:comparator}) \\
 Contrast-gated sleep repairs a captured store and never touches a healthy one & registered (Prop.~\ref{prop:sleep}) \\
 Comparator and sleep together: $100$ uses per element at $0.37$--$0.64$ & registered, one bar failed (Prop.~\ref{prop:lifecycle}) \\
+The repetition edge yields to the same pair: $3.3$ repeats per transition at $0.88$--$0.92$ & registered (Prop.~\ref{prop:repetition}) \\
 Links: source-area law & exploratory \\
 \bottomrule
 \end{tabular}
@@ -618,9 +630,10 @@ Separation at write & 49 & $(9500,70,0.5)$, $(11500,80,0.45)$ & W1--W6 pass \\
 Local comparator & 50 & $(8500,65,0.5)$, $(12000,85,0.43)$ & C1--C6 pass \\
 Self-limiting sleep & 51 & $(9000,65,0.5)$, $(11000,85,0.42)$ & S1--S6 pass \\
 Separation and sleep compose & 52 & $(9500,75,0.46)$, $(12500,90,0.4)$ & L1, L2, L4, L5 pass; L3 fail \\
+The repetition edge yields & 53 & $(8500,64,0.52)$, $(11000,82,0.44)$ & P1--P7 pass \\
 \bottomrule
 \end{tabular}
-\caption{The registrations behind each claim; seeds 522--881, twenty new brains
+\caption{The registrations behind each claim; seeds 522--881 and 1000--1039, twenty new brains
 per amendment.}
 \label{tab:methods}
 \end{table}

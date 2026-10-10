@@ -1,0 +1,10 @@
+equivalence: the written store loop reproduces store_sequence
+(8500, 64, 0.52) sleep threshold 1.627 (mean 1.345, max 1.595, q99 1.364)
+  b3: standard 0.001 (pair overlap 0.113)  sleep 0.502 (removed 0.0912)  comparator 0.847 (flags 0.0468)  both 0.878 (removed 0.0004)
+  b5: standard 0.896 (pair overlap 0.109)  sleep 0.977 (removed 0.0017)  comparator 0.998 (flags 0.0072)  both 0.998 (removed 0.0000)
+  random: standard 1.000 (pair overlap 0.098)  sleep 1.000 (removed 0.0000)  comparator 1.000 (flags 0.0023)  both 1.000 (removed 0.0000)
+(11000, 82, 0.44) sleep threshold 1.417 (mean 1.363, max 1.390, q99 1.378)
+  b3: standard 0.000 (pair overlap 0.116)  sleep 0.587 (removed 0.1166)  comparator 0.805 (flags 0.0398)  both 0.923 (removed 0.0054)
+  b5: standard 0.832 (pair overlap 0.111)  sleep 0.982 (removed 0.0024)  comparator 0.996 (flags 0.0042)  both 0.998 (removed 0.0002)
+  random: standard 1.000 (pair overlap 0.100)  sleep 1.000 (removed 0.0000)  comparator 1.000 (flags 0.0006)  both 1.000 (removed 0.0000)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.repetition_reach\repetition-reach-20261009\results.json

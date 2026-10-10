@@ -834,13 +834,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | L3 reach at 100 (A52) | both >= 0.45 | FAIL | 0.641, 0.368 |
 | L4 no collapsed brains (A52) | <= 2 below 0.2 | PASS | 0, 0 |
 | L5 a sparing sleep (A52) | <= 2% of counts | PASS | <= 1.35% |
-| P1 the edge (A53) | standard at b = 3 <= 0.25 | PASS | 0.001, 0.000 |
-| P2 rescue (A53) | both at b = 3 >= 0.75 | PASS | 0.878, 0.923 |
-| P3 composition (A53) | both >= comparator, >= sleep + 0.15 | PASS | +0.03/+0.12, +0.38/+0.34 |
-| P4 the comparator sees repetition (A53) | flags >= 2% and >= 10x random | PASS | 4.7% vs 0.23%, 4.0% vs 0.06% |
-| P5 harmless and sparing (A53) | random >= 0.98, b = 5 >= 0.95, <= 2% removed | PASS | 1.000, 0.998, <= 0.54% |
-| P6 no collapsed brains (A53) | <= 2 below 0.2 | PASS | 0, 0 |
-| P7 not an immediate merge (A53) | pair overlap <= 0.2 | PASS | 0.113, 0.116 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6813,42 +6806,3 @@ the other cell.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until P1 to P7 are evaluated and recorded below.
-
-### Amendment 53 result (2026-10-09)
-
-One run from a worktree pinned at c32ad3d0, subject seeds 1000 to 1019,
-reference brains 1020 to 1039:
-[record](../../results/runs/memory.repetition_reach/repetition-reach-20261009/results.json),
-[log](../../results/logs/memory-repetition-reach-20261009.log). The written
-store loop reproduced store_sequence. Sleep thresholds 1.627 at
-(8500, 64, 0.52) (reference mean 1.345, 0.99 quantile 1.364, max 1.595 -- an
-outlier again) and 1.417 at (11000, 82, 0.44) (mean 1.363, 0.99 quantile
-1.378, max 1.390). Mean replay with nothing / sleep / the comparator / both
-(comparator flags; counts removed by the sleep after the comparator):
-
-    (8500, 64, 0.52)   b = 3    0.001 / 0.502 / 0.847 / 0.878   (4.68%; 0.04%)
-                       b = 5    0.896 / 0.977 / 0.998 / 0.998   (0.72%; 0.00%)
-                       random   1.000 / 1.000 / 1.000 / 1.000   (0.23%; 0.00%)
-    (11000, 82, 0.44)  b = 3    0.000 / 0.587 / 0.805 / 0.923   (3.98%; 0.54%)
-                       b = 5    0.832 / 0.982 / 0.996 / 0.998   (0.42%; 0.02%)
-                       random   1.000 / 1.000 / 1.000 / 1.000   (0.06%; 0.00%)
-
-    P1  THE EDGE                    PASS  0.001, 0.000
-    P2  RESCUE                      PASS  0.878, 0.923
-    P3  COMPOSITION                 PASS  +0.03 / +0.12 over the comparator, +0.38 / +0.34 over sleep
-    P4  THE COMPARATOR SEES IT      PASS  4.7% vs 0.23%, 4.0% vs 0.06%
-    P5  HARMLESS AND SPARING        PASS  random 1.000, b = 5 0.998; <= 0.54% removed
-    P6  NO COLLAPSED BRAINS         PASS  0 and 0 (lowest brain 0.80 and 0.84 at b = 3)
-    P7  NOT AN IMMEDIATE MERGE      PASS  0.113, 0.116 (random successors 0.098, 0.100)
-
-**Reading.** Both reuse edges of Amendment 45 are one disease and yield to one
-treatment. At 3.3 repeats per transition every standard brain collapses; the
-comparator flags 20-66 times more writes than with random successors, sleep
-alone recovers half, and both together 0.88-0.92 with no brain below 0.8. The
-tokens written at a repeated word pair's first two occurrences overlap only at
-the same-word level, so repetition does not write tokens together; it supplies
-the excess drive the capture cascade starts from. Not judged, post hoc: the
-sleep after the comparator did four times less where a reference brain's
-outlying contrast set the threshold (0.04% removed, +0.03 over the comparator)
-than where none did (0.54%, +0.12) -- the pattern of Amendment 52's L3, at a
-second cell.

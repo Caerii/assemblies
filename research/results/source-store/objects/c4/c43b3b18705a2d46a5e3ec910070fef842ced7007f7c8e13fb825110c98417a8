@@ -1556,44 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="REPETITION-EDGE-YIELDS-TO-LIFECYCLE",
-        engine="hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep",
-        status=Status.MEASURED,
-        claim="Amendment 45's second reuse edge -- repeated transitions -- is the same disease as the first "
-              "and yields to the same treatment. At 3.3 repeats per transition (10 uses per word, 3 "
-              "successors) every standard brain collapses (0.000-0.001); sleep alone recovers 0.50-0.59, "
-              "the comparator alone 0.80-0.85 (flagging 4-5% of writes against 0.06-0.23% with random "
-              "successors), and both 0.88-0.92 with no brain below 0.8. The tokens written at a repeated "
-              "word pair's first two occurrences overlap only at the same-word level (0.11-0.12): "
-              "repetition seeds the capture cascade by excess drive, it does not write tokens together.",
-        source="PREREG_refraction_memory.md Amendment 53 (P1-P7 PASS)",
-        preconditions=("10 uses per word with 3 or 5 successors, or random; rho = 0.05, n/k 133-134",
-                       "comparator threshold 0.5; sleep 300 episodes, threshold from reference brains"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-53-result-2026-10-09",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.repetition_reach/repetition-reach-20261009/results.json", "artifact",
-                        "Amendment 53: standard, sleep, comparator and both at b = 3, 5 and random, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.repetition_reach/repetition-reach-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8500~164~10.52/b3/both",
-            control_path="observations/cells/8500~164~10.52/b3/standard",
-            relation="all-greater", minimum_effect=0.7,
-            mechanism="every brain's repeated-transition store replays with the lifecycle and not without it, at (8500, 64, 0.52) (Amendment 53)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.repetition_reach/repetition-reach-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/11000~182~10.44/b3/both",
-            control_path="observations/cells/11000~182~10.44/b3/sleep",
-            relation="all-greater", minimum_effect=0.15,
-            mechanism="every brain gains from the comparator before sleep over sleep alone, at (11000, 82, 0.44) (Amendment 53)",
-        )),
-        caveat="One dose of repetition past the edge (3.3 repeats) and one near it (2); heavier repetition "
-               "is untested. The sleep threshold was again raised by an outlying reference brain at one "
-               "cell, where the sleep after the comparator added only +0.03.",
-    ),
-    Result(
         id="WRITE-SEPARATION-AND-SLEEP-COMPOSE",
         engine="hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep",
         status=Status.MEASURED,

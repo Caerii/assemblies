@@ -239,8 +239,6 @@ class TestTheoryCitations(unittest.TestCase):
             "SELF-LIMITING-SLEEP-REPAIRS-CAPTURE",
             # 2026-10-09: every 100-use brain gains from sleep after the comparator (A52)
             "WRITE-SEPARATION-AND-SLEEP-COMPOSE",
-            # 2026-10-09: every repeated-transition brain replays with the lifecycle only (A53)
-            "REPETITION-EDGE-YIELDS-TO-LIFECYCLE",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
