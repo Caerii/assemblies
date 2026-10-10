@@ -1,0 +1,22 @@
+
+torch::Tensor hashed_drive(torch::Tensor rows, torch::Tensor seeds, int64_t n, int64_t threshold);
+torch::Tensor hashed_indegree(torch::Tensor seeds, int64_t n_pre, int64_t n, int64_t threshold, double floor_);
+std::vector<torch::Tensor> column_mass(torch::Tensor cols, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold);
+void dev_correct(torch::Tensor S, torch::Tensor rowmask, torch::Tensor colids, torch::Tensor colmask, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+void dev_correct_csr(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+void dev_correct_exact(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+std::vector<torch::Tensor> column_mass_exact(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor tab, torch::Tensor seeds, int64_t n, int64_t threshold);
+void dev_correct_rel(torch::Tensor S, torch::Tensor keys, torch::Tensor cnts, torch::Tensor offs, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor cmax, torch::Tensor seeds, int64_t threshold, torch::Tensor out);
+std::vector<torch::Tensor> column_mass_rel(torch::Tensor cols, torch::Tensor keys, torch::Tensor cnts, torch::Tensor colmap, torch::Tensor rowmask, torch::Tensor colmask, torch::Tensor scratch, torch::Tensor rel, torch::Tensor seeds, int64_t n, int64_t threshold);
+torch::Tensor hashed_presence(torch::Tensor seeds, int64_t n_pre, int64_t n_post, int64_t threshold);
+torch::Tensor present_degree(torch::Tensor pres);
+void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj, torch::Tensor tab, torch::Tensor bmap, torch::Tensor out);
+void organ_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor C, torch::Tensor pres, torch::Tensor err);
+void stim_add(torch::Tensor drive, torch::Tensor base, torch::Tensor gain, torch::Tensor pot, double hi, torch::Tensor dj, double mult);
+void charge(torch::Tensor bias, torch::Tensor raw, torch::Tensor sel, torch::Tensor strength, double s0, torch::Tensor ever);
+torch::Tensor present_fill(torch::Tensor pres, int64_t n_post, int64_t dmax);
+void present_drive(torch::Tensor ent, torch::Tensor S, torch::Tensor cmax, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, int64_t nnz, torch::Tensor out, int64_t absolute);
+void present_write(torch::Tensor P, torch::Tensor Wn, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor rel, int64_t nnz, double setpoint, int64_t do_scale, torch::Tensor err);
+void present_train(torch::Tensor words, torch::Tensor bundles, torch::Tensor lex_cache, torch::Tensor bundle_drive, torch::Tensor jit, torch::Tensor ent, torch::Tensor cmax, torch::Tensor mass, torch::Tensor scale, torch::Tensor invdj, torch::Tensor rel, double setpoint, int64_t rounds, int64_t kw, torch::Tensor err, int64_t nsh, int64_t nnz, int64_t wpb, int64_t absolute);
+torch::Tensor present_probe(torch::Tensor ent, torch::Tensor S, int64_t rounds, int64_t wpb);
+std::vector<torch::Tensor> topk_select(torch::Tensor x, int64_t K);

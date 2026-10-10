@@ -76,6 +76,9 @@ all = [
 where = ["."]
 include = ["neural_assemblies*"]
 
+[tool.setuptools.package-data]
+"neural_assemblies.core.torch_engine" = ["kernels/*.cu", "kernels/*.cpp", "kernels/README.md"]
+
 [dependency-groups]
 dev = [
     "pytest>=7.0.0",
