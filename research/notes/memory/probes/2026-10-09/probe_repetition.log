@@ -1,0 +1,19 @@
+sleep threshold 1.446
+
+U = 10, b = 3
+  standard                 0.000 (brains < 0.2: 20); repeated-bigram token overlap 0.115
+  standard + sleep 300     0.586 (brains < 0.2:  0); removed 0.1032
+  comparator               0.849 (brains < 0.2:  0); flags 0.0403; repeated-bigram token overlap 0.120
+  comparator + sleep 300   0.918 (brains < 0.2:  0); removed 0.0022
+
+U = 10, b = 5
+  standard                 0.907 (brains < 0.2:  1); repeated-bigram token overlap 0.109
+  standard + sleep 300     0.989 (brains < 0.2:  0); removed 0.0012
+  comparator               0.998 (brains < 0.2:  0); flags 0.0051; repeated-bigram token overlap 0.109
+  comparator + sleep 300   0.999 (brains < 0.2:  0); removed 0.0001
+
+U = 10, b = random
+  standard                 1.000 (brains < 0.2:  0); repeated-bigram token overlap 0.098
+  standard + sleep 300     1.000 (brains < 0.2:  0); removed 0.0000
+  comparator               1.000 (brains < 0.2:  0); flags 0.0008; repeated-bigram token overlap 0.097
+  comparator + sleep 300   1.000 (brains < 0.2:  0); removed 0.0000
