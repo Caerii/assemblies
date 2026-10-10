@@ -6852,3 +6852,82 @@ sleep after the comparator did four times less where a reference brain's
 outlying contrast set the threshold (0.04% removed, +0.03 over the comparator)
 than where none did (0.54%, +0.12) -- the pattern of Amendment 52's L3, at a
 second cell.
+
+## Amendment 54 (2026-10-09, before running): a sleep threshold one reference brain cannot move
+
+Registered before any run at the cells below. Amendments 51 to 53 set sleep's
+contrast gate at 1.02 x the MAXIMUM contrast reached by 300 dreams of a healthy
+U = 10 store on reference brains. Amendment 52's L3 failed at
+(12500, 90, 0.4), where one reference brain reached 1.531 and the other
+nineteen 1.400-1.409; Amendment 53 met the same at (8500, 64, 0.52) (1.595
+against a 0.99 quantile of 1.364). The rule registered here is the MEDIAN over
+reference brains of each brain's maximum contrast, x 1.02: fewer than half the
+reference brains cannot move it, however often they settle.
+
+**Seen before registering.** On Amendment 52's own brains (subjects 842 to
+861, references 862 to 881; `probes/2026-10-09/probe_threshold.py`, a disclosed
+re-use of a judged run's brains), the comparator U = 100 store after 300
+episodes of sleep under max / 0.999 quantile / 0.99 quantile / median of brain
+maxima:
+
+    (9500, 75, 0.46)   0.641 / 0.660 / 0.685 / 0.658   (removed 1.35 / 1.74 / 2.21 / 1.67%)
+    (12500, 90, 0.4)   0.368 / 0.623 / 0.660 / 0.629   (removed 0.16 / 1.56 / 2.24 / 1.75%;
+                                                        lowest brain 0.25 / 0.56 / 0.60 / 0.57)
+
+Healthy U = 10 stores: 1.000 with nothing removed under every rule at both
+cells. A smoke run of this module (VOID, seeds 900 to 902) ran first with a
+pooled 0.999 quantile and showed, at the survey cell (2000, 60, 0.5), that one
+reference brain settling often moves that quantile with the maximum (3.197
+against 3.244; brain maxima 1.356-3.244) -- the reason the median is
+registered instead. Rerun with the median: threshold 1.458 against 3.309,
+healthy 1.000 -> 1.000 with nothing removed, U = 40 comparator 0.690 -> 0.714
+(max: 0.690). No run has touched (9000, 68, 0.5) or (10500, 80, 0.45).
+
+### Protocol
+
+`research/experiments/memory_robust_sleep.py` (`python -m research.runner
+robust_sleep`), subject seeds 1040 to 1059, reference brains 1060 to 1079 (all
+new), one run from a worktree pinned at the commit registering this amendment.
+Cells (9000, 68, 0.5) (n/k = 132, tau = 66) and (10500, 80, 0.45) (n/k = 131,
+tau = 66), by Amendment 41's rule; k p = 34 and 36 against 3 ln n = 27.3 and
+27.8. Per-brain grammars, random successors, 16-element walks, rho = 0.05.
+Per cell: 300 dreams of a U = 10 store on the reference brains give the two
+thresholds, MAX (as Amendments 51-53) and MEDIAN, each x 1.02. A healthy U = 10
+store on the subject brains is slept 300 episodes under each rule from the same
+written state and replayed. A COMPARATOR store at U = 100 (Amendment 50's rule)
+is replayed, then slept 300 episodes under each rule from the same written
+state and replayed. Masked replay, word-level. The written store loop is
+checked equal to store_sequence first; if not, every bar fails.
+
+    python -m research.runner robust_sleep \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag robust-sleep-20261009 --seeds 1040 ... 1059
+
+### Bars
+
+    R1  SAFE. At both cells, the healthy store slept under MEDIAN replays
+        >= 0.99 with <= 0.1% of counts removed (probe 1.000, 0).
+    R2  REACH. At both cells, the comparator U = 100 store slept under MEDIAN
+        replays >= 0.45 (Amendment 52's L3 bar; probe 0.629-0.658).
+    R3  NEVER WORSE. At both cells, MEDIAN >= MAX - 0.02 on the U = 100 store.
+    R4  SPARING. At both cells, MEDIAN's sleep removes <= 2% of counts from
+        the U = 100 store (probe 1.67-1.75%).
+    R5  NO COLLAPSED BRAINS. At both cells, at most 2 brains below 0.2 under
+        MEDIAN at U = 100.
+
+Reported, not judged: MAX's outcomes; the comparator before sleep; the
+reference brains' maxima (whether an outlier occurred at these cells is not
+under our control; if none did, R3 is expected to hold narrowly and the
+amendment tests safety and reach, not rescue from an outlier).
+
+### Interpretation, stated now
+
+* R1 to R5 pass: the median rule is safe and reaches Amendment 52's bar at new
+  cells; it replaces the maximum in later registrations.
+* R1 fails: lowering the threshold from the maximum to the median lets sleep
+  touch healthy stores; the maximum's conservatism was needed.
+* R4 fails with R2 passing: the robust gate reaches, at a cost in counts above
+  the registered sparing bar.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until R1 to R5 are evaluated and recorded below.
