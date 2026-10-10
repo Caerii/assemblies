@@ -2,7 +2,6 @@
 transition-repetition picture passes; recurrence that costs by itself fails G2
 and G3; repetition that does not cost fails G1; tokens that do not merge fail G4.
 And the grammar's walks have the registered branching."""
-import numpy as np
 import pytest
 
 from research.experiments import memory_reuse_grammar as rg

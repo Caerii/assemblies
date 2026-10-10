@@ -68,19 +68,8 @@ def test_outlier_brains_move_the_maximum_not_the_median():
 
 
 def test_the_cells_and_brains_are_new():
-    from research.experiments import memory_comparator as mc
-    from research.experiments import memory_lifecycle as lc
-    from research.experiments import memory_read_adaptation as ra
-    from research.experiments import memory_read_rescue as rre
-    from research.experiments import memory_repetition_reach as rr
-    from research.experiments import memory_reuse_budget as rb
-    from research.experiments import memory_signal_margin as sm
-    from research.experiments import memory_sleep as sl
-    from research.experiments import memory_write_separation as ws
-    used = ({c[:3] for c in ra.CELLS} | {c[:3] for c in rre.CELLS} | {c[:3] for c in rb.CELLS}
-            | {c[:3] for c in sm.CELLS} | {c[:3] for c in ws.CELLS} | {c[:3] for c in mc.CELLS}
-            | {c[:3] for c in sl.CELLS} | {c[:3] for c in lc.CELLS} | {c[:3] for c in rr.CELLS}
-            | {(10000, 75, 0.48), (12000, 80, 0.45), (8000, 60, 0.6)})
-    assert not {c[:3] for c in rs.CELLS} & used
-    assert min(rs.SEEDS) > max(rr.REFERENCE_SEEDS)
-    assert not set(rs.SEEDS) & set(rs.REFERENCE_SEEDS)
+    """by the ledger (research/experiments/memory_lib/ledger.py): new cells and new brains, outside
+    the probe range, against every earlier registration"""
+    from research.experiments import memory_lib as lib
+    entry = next(e for e in lib.entries() if e.module == "memory_robust_sleep")
+    assert lib.check_new(entry.cells, entry.seeds, entry.reference_seeds, entry.amendment) == []
