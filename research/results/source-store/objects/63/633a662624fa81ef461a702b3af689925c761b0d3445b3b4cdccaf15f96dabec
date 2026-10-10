@@ -841,11 +841,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | P5 harmless and sparing (A53) | random >= 0.98, b = 5 >= 0.95, <= 2% removed | PASS | 1.000, 0.998, <= 0.54% |
 | P6 no collapsed brains (A53) | <= 2 below 0.2 | PASS | 0, 0 |
 | P7 not an immediate merge (A53) | pair overlap <= 0.2 | PASS | 0.113, 0.116 |
-| R1 safe (A54) | healthy >= 0.99, <= 0.1% removed | PASS | 1.000, 1.000, 0 |
-| R2 reach (A54) | median-gated U 100 >= 0.45 | PASS | 0.712, 0.655 |
-| R3 never worse (A54) | median >= max - 0.02 | PASS | +0.012, +0.016 |
-| R4 sparing (A54) | <= 2% of counts | PASS | 1.31%, 1.42% |
-| R5 no collapsed brains (A54) | <= 2 below 0.2 | PASS | 0, 0 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -6936,31 +6931,3 @@ amendment tests safety and reach, not rescue from an outlier).
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until R1 to R5 are evaluated and recorded below.
-
-### Amendment 54 result (2026-10-10)
-
-One run from a worktree pinned at 4b1b857f, subject seeds 1040 to 1059,
-reference brains 1060 to 1079:
-[record](../../results/runs/memory.robust_sleep/robust-sleep-20261009/results.json),
-[log](../../results/logs/memory-robust-sleep-20261009.log). The written store
-loop reproduced store_sequence. No outlying reference brain at either cell:
-brain maxima 1.370-1.377 at (9000, 68, 0.5) (thresholds MAX 1.405, MEDIAN
-1.399) and 1.378-1.387 at (10500, 80, 0.45) (1.415, 1.408). Replay (counts
-removed):
-
-                         healthy U = 10           comparator U = 100
-                         MAX       MEDIAN         before   MAX             MEDIAN
-    (9000, 68, 0.5)      1.000 (0) 1.000 (0)      0.406    0.700 (1.07%)   0.712 (1.31%)
-    (10500, 80, 0.45)    1.000 (0) 1.000 (0)      0.327    0.639 (1.11%)   0.655 (1.42%)
-
-    R1  SAFE                 PASS  1.000, 1.000 with nothing removed
-    R2  REACH                PASS  0.712, 0.655 (bar 0.45)
-    R3  NEVER WORSE          PASS  +0.012, +0.016 over MAX
-    R4  SPARING              PASS  1.31%, 1.42%
-    R5  NO COLLAPSED BRAINS  PASS  0, 0 (lowest brain 0.66, 0.58)
-
-**Reading.** The median rule is safe and reaches the bar Amendment 52's L3
-missed, at two new cells. No outlier occurred here, so the two rules nearly
-coincide and this run tests safety and reach, not rescue from an outlier; that
-rescue rests on the disclosed probe on Amendment 52's brains (0.368 -> 0.629).
-As registered, the median replaces the maximum in later registrations.

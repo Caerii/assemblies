@@ -1,0 +1,160 @@
+{
+  "engine": "hashed_assembly_memory",
+  "environment": {
+    "policy": "repository-environment-v1",
+    "variables_sha256": {
+      "ASSEMBLIES_VCVARS64": "4f8e42768dc92e11e4f32efb495020ad43e49e2dfca1322a4928d7f4dedfd1a2",
+      "ASSEMBLIES_VSWHERE": "44564d56dfa6c2af8c632137228d0b7d773445fdce24fdec8da14ca0030615f5"
+    }
+  },
+  "execution_semantics": {
+    "kind": "organ",
+    "profiles": {
+      "beta-0.36592": {
+        "arc_refraction_charge": 0.18296,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      },
+      "beta-0.37611": {
+        "arc_refraction_charge": 0.188055,
+        "convergence_gate": false,
+        "feature_register": false,
+        "horizon": 0,
+        "inference_schedule": "frozen-recurrent-completion",
+        "organ": "assembly-memory",
+        "prediction_gain": 0.0,
+        "state_code": "none",
+        "state_refraction_charge": 0.0,
+        "substrate": {
+          "arithmetic": "float32",
+          "candidate_domain": "all-neurons",
+          "connectome": "fixed-hash-regenerated",
+          "default_tie_break": "lowest-neuron-id",
+          "normalization": "inverse-indegree",
+          "plasticity": "multiplicative-clipped",
+          "stimulus_drive": "zero-or-size-afferent-count",
+          "weight_ceiling": 20.0
+        },
+        "successor_gain": 1.0,
+        "tie_jitter": 0.0,
+        "training_schedule": "stimulus-plus-recurrence"
+      }
+    }
+  },
+  "git_commit": "4b1b857fbc408d29cad5dba8a22413a18c292145",
+  "input_artifacts": {},
+  "mode": "study",
+  "observation_policy": null,
+  "parameters": {
+    "cells": [
+      {
+        "beta": 0.36592,
+        "episodes": 300,
+        "k": 68,
+        "n": 9000,
+        "p": 0.5,
+        "rho": 0.05,
+        "tau": 66,
+        "uses": 100
+      },
+      {
+        "beta": 0.37611,
+        "episodes": 300,
+        "k": 80,
+        "n": 10500,
+        "p": 0.45,
+        "rho": 0.05,
+        "tau": 66,
+        "uses": 100
+      }
+    ],
+    "comparator_threshold": 0.5,
+    "device": "cuda",
+    "length": 16,
+    "match": 0.3,
+    "reference_seeds": [
+      1060,
+      1061,
+      1062,
+      1063,
+      1064,
+      1065,
+      1066,
+      1067,
+      1068,
+      1069,
+      1070,
+      1071,
+      1072,
+      1073,
+      1074,
+      1075,
+      1076,
+      1077,
+      1078,
+      1079
+    ],
+    "rule": "median of per-brain maxima",
+    "sleep_margin": 1.02,
+    "sleep_steps": 8,
+    "strength": 0.5,
+    "w_max": 20.0
+  },
+  "protocol": "memory.robust_sleep",
+  "protocol_version": "1",
+  "registration": "research/notes/memory/PREREG_refraction_memory.md",
+  "registration_sha256": "633a662624fa81ef461a702b3af689925c761b0d3445b3b4cdccaf15f96dabec",
+  "schema_version": 10,
+  "scientific_status": "UNJUDGED",
+  "script": "research/experiments/memory_robust_sleep.py",
+  "script_sha256": "6307a663ac72a5eb8e8c464a0bb42670e78dee1442497c2122350a0c769be373",
+  "seeds": [
+    1040,
+    1041,
+    1042,
+    1043,
+    1044,
+    1045,
+    1046,
+    1047,
+    1048,
+    1049,
+    1050,
+    1051,
+    1052,
+    1053,
+    1054,
+    1055,
+    1056,
+    1057,
+    1058,
+    1059
+  ],
+  "source_archive": {
+    "file": "source.zip",
+    "sha256": "0289637b6cd877f41d2615c500c2d32e0b0e80afd245acbbb6099252a33f5031"
+  },
+  "source_inventory": "source-inputs-v3",
+  "source_sha256": "44ff658fbc477cc4fb1c41d4416844ccd9fac2a0d16f7fb61a3bf1e51d3860bf",
+  "started_utc": "2026-10-10T03:55:19.174309+00:00",
+  "tag": "robust-sleep-20261009"
+}

@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`ROBUST-SLEEP-THRESHOLD`](#robust-sleep-threshold) | MEASURED | hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep | Sleep's contrast gate set from the MEDIAN over reference brains of each brain's maximum dream contrast (x 1.02), which fewer than half of them cannot move, is safe and reaches the bar the maximum missed: at two new cells healthy stores stay at 1.000 with nothing removed, and 100 uses per word written through the comparator replay at 0.66-0.71 (0.33-0.41 before sleep) with no brain collapsed, removing 1.3-1.4% of counts. |
 | [`REPETITION-EDGE-YIELDS-TO-LIFECYCLE`](#repetition-edge-yields-to-lifecycle) | MEASURED | hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep | Amendment 45's second reuse edge -- repeated transitions -- is the same disease as the first and yields to the same treatment. |
 | [`WRITE-SEPARATION-AND-SLEEP-COMPOSE`](#write-separation-and-sleep-compose) | MEASURED | hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep | The local comparator at write (Amendment 50) and contrast-gated sleep (Amendment 51) compose and do more together than either alone. |
 | [`SELF-LIMITING-SLEEP-REPAIRS-CAPTURE`](#self-limiting-sleep-repairs-capture) | MEASURED | hashed AssemblyMemory as Amendment 44; standard store_sequence, then unlearning on the count matrix | Unlearning from noise (Hopfield, Feinstein & Palmer 1983; Crick & Mitchison's proposed function of REM sleep) gated by settling contrast -- a dream transition is depressed only if its winners' mean drive over the area's exceeds a healthy reference store's maximum -- repairs a captured store and spares a healthy one. |
@@ -708,6 +709,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## ROBUST-SLEEP-THRESHOLD
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 54 (R1-R5 PASS)
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep
+
+**Claim.** Sleep's contrast gate set from the MEDIAN over reference brains of each brain's maximum dream contrast (x 1.02), which fewer than half of them cannot move, is safe and reaches the bar the maximum missed: at two new cells healthy stores stay at 1.000 with nothing removed, and 100 uses per word written through the comparator replay at 0.66-0.71 (0.33-0.41 before sleep) with no brain collapsed, removing 1.3-1.4% of counts. On Amendment 52's brains, where one reference brain was an outlier, it lifts the failed cell from 0.37 to 0.63 (exploratory).
+
+**Requires.**
+- random-successor reuse at 100 uses per word, rho = 0.05, n/k 131-132
+- comparator threshold 0.5; sleep 300 episodes, 20 reference brains
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-54-result-2026-10-10
+
+**Evidence files.**
+- [research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json](../research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json) (artifact) â€” Amendment 54: max- and median-gated sleep on the same stores, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain's 100-use store gains from median-gated sleep, at (9000, 68, 0.5) (Amendment 54): `observations/cells/9000~168~10.5/reuse/median` all-greater `observations/cells/9000~168~10.5/reuse/comparator` by at least 0.08, retained in [research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json](../research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json) and paired by `run/seeds`.
+- the same at (10500, 80, 0.45) (Amendment 54): `observations/cells/10500~180~10.45/reuse/median` all-greater `observations/cells/10500~180~10.45/reuse/comparator` by at least 0.1, retained in [research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json](../research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json) and paired by `run/seeds`.
+
+**Caveat.** No outlying reference brain occurred at the registered cells, so the two rules nearly coincided there; the rescue from an outlier rests on an exploratory re-reading of Amendment 52's brains.
 
 ## REPETITION-EDGE-YIELDS-TO-LIFECYCLE
 

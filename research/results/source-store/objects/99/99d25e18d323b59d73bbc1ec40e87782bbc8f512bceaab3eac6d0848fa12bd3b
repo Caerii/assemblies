@@ -241,8 +241,6 @@ class TestTheoryCitations(unittest.TestCase):
             "WRITE-SEPARATION-AND-SLEEP-COMPOSE",
             # 2026-10-09: every repeated-transition brain replays with the lifecycle only (A53)
             "REPETITION-EDGE-YIELDS-TO-LIFECYCLE",
-            # 2026-10-10: every 100-use brain gains from median-gated sleep (A54)
-            "ROBUST-SLEEP-THRESHOLD",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):

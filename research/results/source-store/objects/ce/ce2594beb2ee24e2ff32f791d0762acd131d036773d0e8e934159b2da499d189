@@ -1556,44 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="ROBUST-SLEEP-THRESHOLD",
-        engine="hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep",
-        status=Status.MEASURED,
-        claim="Sleep's contrast gate set from the MEDIAN over reference brains of each brain's maximum "
-              "dream contrast (x 1.02), which fewer than half of them cannot move, is safe and reaches "
-              "the bar the maximum missed: at two new cells healthy stores stay at 1.000 with nothing "
-              "removed, and 100 uses per word written through the comparator replay at 0.66-0.71 "
-              "(0.33-0.41 before sleep) with no brain collapsed, removing 1.3-1.4% of counts. On "
-              "Amendment 52's brains, where one reference brain was an outlier, it lifts the failed "
-              "cell from 0.37 to 0.63 (exploratory).",
-        source="PREREG_refraction_memory.md Amendment 54 (R1-R5 PASS)",
-        preconditions=("random-successor reuse at 100 uses per word, rho = 0.05, n/k 131-132",
-                       "comparator threshold 0.5; sleep 300 episodes, 20 reference brains"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-54-result-2026-10-10",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json", "artifact",
-                        "Amendment 54: max- and median-gated sleep on the same stores, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/9000~168~10.5/reuse/median",
-            control_path="observations/cells/9000~168~10.5/reuse/comparator",
-            relation="all-greater", minimum_effect=0.08,
-            mechanism="every brain's 100-use store gains from median-gated sleep, at (9000, 68, 0.5) (Amendment 54)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.robust_sleep/robust-sleep-20261009/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/10500~180~10.45/reuse/median",
-            control_path="observations/cells/10500~180~10.45/reuse/comparator",
-            relation="all-greater", minimum_effect=0.1,
-            mechanism="the same at (10500, 80, 0.45) (Amendment 54)",
-        )),
-        caveat="No outlying reference brain occurred at the registered cells, so the two rules nearly "
-               "coincided there; the rescue from an outlier rests on an exploratory re-reading of "
-               "Amendment 52's brains.",
-    ),
-    Result(
         id="REPETITION-EDGE-YIELDS-TO-LIFECYCLE",
         engine="hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep",
         status=Status.MEASURED,
