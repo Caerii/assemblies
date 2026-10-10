@@ -105,3 +105,47 @@ def test_a_registration_on_used_cells_or_brains_has_problems():
     import dataclasses
     reg = dataclasses.replace(_registration(), cells=(lib.Cell.of(10000, 75, 0.48),), seeds=tuple(range(1000, 1020)))
     assert len(reg.problems()) == 2
+
+
+# ----------------------------------------------------------------- the pre-registration's sources
+def test_the_preregistration_is_its_sources_concatenated():
+    """PREREG_refraction_memory.md is built from research/notes/memory/prereg/ (amend.Prereg);
+    edit the sources and rebuild, never the built file"""
+    import pathlib
+    root = pathlib.Path(__file__).resolve().parents[2]
+    pre = amend.Prereg(root)
+    built = pre.file.read_bytes().decode("utf-8")
+    assert pre.text().replace("\r\n", "\n") == built.replace("\r\n", "\n")
+    names = pre.order()
+    assert names[0] == "A00.md" and "scorecard.md" in names and len(set(names)) == len(names)
+    assert sorted(p.name for p in pre.dir.glob("*.md") if p.name != "README.md") == sorted(names)
+
+
+def test_register_record_and_scorecard_on_a_copy(tmp_path):
+    import pathlib
+    import shutil
+    root = pathlib.Path(__file__).resolve().parents[2]
+    src = root / "research" / "notes" / "memory"
+    dst = tmp_path / "research" / "notes" / "memory"
+    shutil.copytree(src / "prereg", dst / "prereg")
+    shutil.copy(src / "PREREG_refraction_memory.md", dst / "PREREG_refraction_memory.md")
+    pre = amend.Prereg(tmp_path)
+    before = pre.text()
+    pre.register(99, "## Amendment 99 (2026-10-11, before running): a test\n\nRegistered.\n")
+    pre.record(99, "### Amendment 99 result (2026-10-12)\n\nPassed.\n")
+    pre.scorecard("| Q1 test (A99) | >= 1 | PASS | 2 |\n")
+    after = pre.file.read_bytes().decode("utf-8")
+    assert "\r\n" in after and "\n" not in after.replace("\r\n", "")         # still CRLF throughout
+    flat = after.replace("\r\n", "\n")
+    assert flat.endswith("\n\n## Amendment 99 (2026-10-11, before running): a test\n\nRegistered.\n\n"
+                         "### Amendment 99 result (2026-10-12)\n\nPassed.\n")
+    assert flat.index("| Q1 test (A99) |") < flat.index("## Amendment 7 ")
+    assert before.replace("\r\n", "\n").rstrip("\n") in flat.replace("| Q1 test (A99) | >= 1 | PASS | 2 |\n", "")
+    with pytest.raises(ValueError, match="already registered"):
+        pre.register(99, "## Amendment 99 again\n")
+
+
+def test_the_preregistration_index_is_fresh():
+    import pathlib
+    pre = amend.Prereg(pathlib.Path(__file__).resolve().parents[2])
+    assert (pre.dir / "README.md").read_text(encoding="utf-8") == pre.index()
