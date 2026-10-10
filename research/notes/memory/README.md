@@ -2,6 +2,7 @@
 
 The refracted memory and assembly capacity: registrations, the capacity harness, and the ceiling studies.
 The reading map is [../README.md](../README.md).
+How a memory study goes from a question to the paper, step by step with each step's owning module: [PIPELINE.md](PIPELINE.md).
 
 - [AUDIT_refraction_scaling.md](AUDIT_refraction_scaling.md): AUDIT: refraction + synaptic scaling on the same area
 - [PREREG_anchor_ratio.md](PREREG_anchor_ratio.md): PREREG: is M* a function of the ANCHOR-TO-RECURRENCE ratio?
