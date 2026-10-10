@@ -6964,3 +6964,94 @@ missed, at two new cells. No outlier occurred here, so the two rules nearly
 coincide and this run tests safety and reach, not rescue from an outlier; that
 rescue rests on the disclosed probe on Amendment 52's brains (0.368 -> 0.629).
 As registered, the median replaces the maximum in later registrations.
+
+## Amendment 55 (2026-10-10, before running): a sleep gate fixed at birth
+
+Registered before any run at the cells below. Amendments 51 to 54 calibrate
+sleep's contrast gate on twenty separate healthy reference brains, which no
+brain has. Here each brain fixes its own gate once, before it learns anything:
+1.02 x the largest contrast its own EMPTY network's dreams reach (300 dreams,
+memory_sleep's calibration). Because healthy dreams do not settle, a healthy
+store's dreams should stay below that set point, while a captured store's
+exceed it.
+
+**Seen before registering.** At (10000, 75, 0.48) (n/k = 133), subject seeds
+980 to 999, reference brains 960 to 979 (`probes/2026-10-10/probe_setpoint.py`):
+empty-network brain maxima 1.349-1.357, healthy-store brain maxima 1.366-1.374,
+so each brain's healthy maximum lay 0.3-1.2% below its own set point. Replay
+under the reference median (Amendment 54) / the set point:
+
+    healthy U = 10         1.000 / 1.000   (nothing removed under either)
+    standard U = 50        0.025 -> 0.766 / 0.779   (removed 4.2% / 4.9%)
+    comparator U = 100     0.249 -> 0.670 / 0.712   (removed 1.5% / 3.0%; none collapsed)
+
+A smoke run of this module (VOID, seeds 900 to 902) at the survey cell
+(2000, 60, 0.5) (n/k = 33) showed the margin is not universal: there healthy
+maxima were 5-10% ABOVE each brain's set point (empty 1.311-1.315, healthy
+1.409-1.473) and the set point removed 2.7% of a healthy store's counts (replay
+still 1.000); standard U = 30 0.143 -> 0.738 / 0.810, comparator U = 40
+0.690 -> 0.714 / 0.833. Whether the margin holds at n/k near 120 and 145 is
+what this amendment asks. No run has touched (8400, 70, 0.52) or
+(11600, 80, 0.44).
+
+### Protocol
+
+`research/experiments/memory_setpoint_sleep.py` (`python -m research.runner
+setpoint_sleep`), subject seeds 1080 to 1099, reference brains 1100 to 1119
+(all new), one run from a worktree pinned at the commit registering this
+amendment. Cells (8400, 70, 0.52) (n/k = 120, tau = 60) and (11600, 80, 0.44)
+(n/k = 145, tau = 72), by Amendment 41's rule; k p = 36.4 and 35.2 against
+3 ln n = 27.1 and 28.1. Per-brain grammars, random successors, 16-element
+walks, rho = 0.05. Per cell: each subject brain's SET POINT from 300 dreams of
+its own empty network; Amendment 54's MEDIAN rule from 300 dreams of a U = 10
+store on the reference brains; both x 1.02. A healthy U = 10 store on the
+subject brains: 300 dreams give each brain's largest contrast, then it is
+slept 300 episodes under each gate from the same written state and replayed.
+A standard U = 50 store and a comparator U = 100 store (Amendment 50's rule):
+each replayed, then slept 300 episodes under each gate from the same written
+state and replayed. Masked replay, word-level. The written store loop is
+checked equal to store_sequence first; if not, every bar fails.
+
+    python -m research.runner setpoint_sleep \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag setpoint-sleep-20261010 --seeds 1080 ... 1099
+
+### Bars
+
+    G1  SAFE. At both cells, the healthy store slept under the set point
+        replays >= 0.99 with <= 0.1% of counts removed (probe 1.000, 0).
+    G2  REPAIR. At both cells, the standard U = 50 store slept under the set
+        point replays >= 0.6 (Amendment 51's bar; probe 0.779).
+    G3  LIFECYCLE REACH. At both cells, the comparator U = 100 store slept
+        under the set point replays >= 0.45 (probe 0.712).
+    G4  AS GOOD AS THE REFERENCE. At both cells, on both reused stores, the
+        set point >= the reference median - 0.05.
+    G5  NO COLLAPSED BRAINS. At both cells, at most 2 brains below 0.2 under
+        the set point, on each reused store.
+    G6  FRUGAL. At both cells, the set point removes <= 10% of counts at
+        U = 50 (Amendment 51's bar) and <= 5% at U = 100.
+    G7  THE MECHANISM. At both cells, every subject brain's largest
+        healthy-store dream contrast lies below its own set point.
+
+Reported, not judged: the reference median's outcomes; the empty and healthy
+contrasts.
+
+### Risk, stated now
+
+The probe's margin was 0.3-1.2% and the smoke showed it reversed at a small
+cell; G7 and G1 can fail at the cell with the smaller n/k (120). If G7 fails
+with G1 passing, a set point gates a few healthy dreams without harm.
+
+### Interpretation, stated now
+
+* G1 to G7 pass: sleep's gate needs nothing from outside the brain -- a set
+  point fixed before learning separates healthy from captured dreams at
+  n/k 120-145 and repairs as the reference rule does.
+* G7 or G1 fails: the margin 1.02 does not cover learning's rise in dream
+  contrast at that cell; a set point needs a margin that grows as n/k falls,
+  which is a measurement for a later amendment.
+* G2, G3 or G4 fails with G1 and G7 passing: the set point is safe but repairs
+  less than reference brains do.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until G1 to G7 are evaluated and recorded below.
