@@ -9,9 +9,10 @@ from . import _fused_cuda
 from .._pricing import (chain_table as _chain_table,
                         count_saturation_is_exact)
 from ._hashed_common import per_brain, clip_count
+from ._hashed_organ_counts import OrganCounts
 
 
-class DenseOrganFiber:
+class DenseOrganFiber(OrganCounts):
     """An area -> area fiber in the ORGAN's regime (DESIGN_sequence_port.md):
     organ_p ~ 0.2, k ~ 200, n to 50,000. Present-only lists do not fit a row
     of thousands of synapses; the int16 count MATRIX does, and at this
@@ -50,17 +51,33 @@ class DenseOrganFiber:
         if count_dtype is None:
             count_dtype = "int8" if clip is not None and clip <= 127 else (
                 "int16" if clip is not None else "int8")
-        if count_dtype not in ("int8", "int16"):
-            raise ValueError("count_dtype must be int8 or int16")
+        # PACKED 4-BIT COUNTS, opt-in ("int4"; kernels/06a_organ_packed_kernels.cu):
+        # two counts a byte, half the bytes of int8 and half a drive's count
+        # traffic. Writing and reading are bit-identical to int8 wherever the
+        # clip binds by count 15 -- the drive depends only on min(count, clip).
+        # UNLEARNING IS NOT: a count held at 15 falls below the clip after fewer
+        # decrements than an int8 count that ran on toward 127, so a study that
+        # sleeps or downscales with packed counts runs the "counts saturate at 15"
+        # variant and must say so. A packed fiber's `C` is None (code reading it
+        # as counts fails); `Cp` holds the bytes, read and edited through
+        # OrganCounts (_hashed_organ_counts.py).
+        if count_dtype not in ("int8", "int16", "int4"):
+            raise ValueError("count_dtype must be int8, int16 or int4")
         self.count_dtype = count_dtype
-        self.MAX_COUNT = 127 if count_dtype == "int8" else 32767
+        self.packed = count_dtype == "int4"
+        self.MAX_COUNT = {"int8": 127, "int16": 32767, "int4": 15}[count_dtype]
+        if self.packed and clip is None:
+            raise ValueError("packed counts need a weight clip that binds by count 15")
         if clip is not None and clip > self.MAX_COUNT:
             raise ValueError(f"the weight clip binds at count {clip}, past the "
                              f"{count_dtype} range: counts would saturate inexactly")
         if clip is not None and clip + 1 > int(max_rounds):
             max_rounds = clip + 1                   # one entry past: the table reads saturated
-        width = 1 if count_dtype == "int8" else 2
-        need = B * n_pre * (n_post * width + ((n_post + 31) // 32) * 4)
+        #: bytes per row of the packed layout: four columns in one aligned 16-bit load
+        self.NB = ((n_post + 3) // 4) * 2
+        row_bytes = (self.NB if self.packed
+                     else n_post * (1 if count_dtype == "int8" else 2))
+        need = B * n_pre * (row_bytes + ((n_post + 31) // 32) * 4)
         if need > self.MAX_BYTES:
             raise ValueError(f"organ count matrices would be {need / 2**30:.1f} "
                              "GiB; fewer brains per launch")
@@ -75,8 +92,13 @@ class DenseOrganFiber:
         self.learns = any(self.betas) if self.betas else bool(beta)
         self.relative, self.absolute = False, True
         self.pres = self.mod.hashed_presence(self.seeds, n_pre, n_post, self.threshold)
-        self.C = torch_ops.zeros(B, n_pre, n_post, dtype=getattr(torch_ops, count_dtype),
-                                 device=device)
+        if self.packed:
+            self.C = None
+            self.Cp = torch_ops.zeros(B, n_pre, self.NB, dtype=torch_ops.uint8, device=device)
+        else:
+            self.C = torch_ops.zeros(B, n_pre, n_post, dtype=getattr(torch_ops, count_dtype),
+                                     device=device)
+            self.Cp = None
         self.err = torch_ops.zeros(1, dtype=torch_ops.int32, device=device)
         self.max_rounds = int(max_rounds)
         self._no_map = torch_ops.zeros(0, dtype=torch_ops.int32, device=device)
@@ -95,7 +117,8 @@ class DenseOrganFiber:
         return torch_ops.from_numpy(np.stack([rows[b] for b in self.betas])).to(self.device)
 
     def counts(self):
-        return self.C
+        """the count matrix (an unpacked int16 copy for packed counts)"""
+        return self.unpacked() if self.packed else self.C
 
     def select(self, keep):
         """Keep only the brains ``keep`` [B'] (indices), in that order: a
@@ -108,16 +131,21 @@ class DenseOrganFiber:
         GiB second copy, which ran a full card out of memory."""
         order = [int(i) for i in keep]
         keep = torch_ops.as_tensor(order, dtype=torch_ops.int64, device=self.device)
+        store = self.storage
         if all(a < b for a, b in zip(order, order[1:])):
             for j, src in enumerate(order):
                 if src != j:                      # src > j: slot j is free by now
-                    self.C[j].copy_(self.C[src])
+                    store[j].copy_(store[src])
                     self.pres[j].copy_(self.pres[src])
-            self.C = self.C[:len(order)]
+            store = store[:len(order)]
             self.pres = self.pres[:len(order)]
         else:
-            self.C = self.C.index_select(0, keep)
+            store = store.index_select(0, keep)
             self.pres = self.pres.index_select(0, keep)
+        if self.packed:
+            self.Cp = store
+        else:
+            self.C = store
         self.seeds = self.seeds.index_select(0, keep)
         if self.dj is not None:
             self.dj = self.dj.index_select(0, keep)
@@ -129,13 +157,15 @@ class DenseOrganFiber:
 
     @property
     def nnz(self):
-        return int((self.C > 0).sum())
+        return self.nonzero()
 
     @property
     def store(self):
         self.check()
+        top = int(self.unpacked().max()) if self.packed else int(self.C.max())
+
         class _S:
-            max_count = int(self.C.max())
+            max_count = top
         return _S()
 
     @property
@@ -176,7 +206,7 @@ class DenseOrganFiber:
         omitted, row b is brain b."""
         if rows.shape[1] == 0:
             return
-        self.mod.organ_drive(rows.to(torch_ops.int32), self.C, self.pres, self.invdj,
+        self.mod.organ_drive(rows.to(torch_ops.int32), self.storage, self.pres, self.invdj,
                              self.tab, self._no_map if brains is None else brains, drive)
 
     def begin_episode(self):
@@ -185,7 +215,7 @@ class DenseOrganFiber:
     def observe(self, prev, new):
         if not (self.learns and prev.shape[1] and new.shape[1]):
             return
-        self.mod.organ_write(prev.to(torch_ops.int32), new.to(torch_ops.int32), self.C,
+        self.mod.organ_write(prev.to(torch_ops.int32), new.to(torch_ops.int32), self.storage,
                              self.pres, self.err)
 
     def end_episode(self):

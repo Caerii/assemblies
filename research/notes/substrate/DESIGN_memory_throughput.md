@@ -193,3 +193,29 @@ flags forced off writes exactly the plain store, a gate at infinity never
 unlearns, so arms differ only in per-brain parameters), and narrower counts
 (they saturate at the clip, 10-13 here: 4 bits would halve the matrices,
 which needs the drive and write kernels templated on a packed type).
+
+## Packed 4-bit organ counts, opt-in (2026-10-10)
+
+`DenseOrganFiber(count_dtype="int4")` (through `AssemblyMemory(count_dtype=...)` and
+`memory_fast.build_memory(..., count_dtype=...)`; the registered builds stay as recorded) stores two counts a byte
+(`kernels/06a_organ_packed_kernels.cu`; count editing in `_hashed_organ_counts.py`). The drive
+prices a count min(count, clip) in either layout, so wherever the clip binds by count 15 (10-13
+for the memory cells) writing and reading are BIT-IDENTICAL to int8: the same drives through both
+kernels and the brain map, the same stores and replays (`test_organ_packed_counts.py`). A write
+past 15 saturates there; two columns of a row share a byte, so the write is a compare-and-swap on
+its 32-bit word, and a decrement adds its two's complement byte-wise (no `unique`, no host sync,
+so the graphed sleep captures it).
+
+Under UNLEARNING it is a different model, and the tests pin which: packed sleep equals int8 sleep
+with every count first capped at 15, because an int8 count that ran on toward 127 needs more
+decrements to fall below the clip. A study that sleeps or downscales with packed counts runs the
+"counts saturate at 15" variant and must declare it. A packed fiber's `C` is None, so code that
+reads `C` as counts fails rather than misreading nibbles; `OrganCounts` reads and edits either
+layout (`unpacked`, `count_sum`, `nonzero`, `clamp_counts`, `decrement`, `downscale`).
+
+Measured at (10000, 75, 0.48), B = 20: the count matrices 1.86 -> 0.93 GB; a 2048-virtual-brain
+drive 3.58 -> 3.06 ms; the replay check 0.208 -> 0.193 s; 300 dreams 0.41 -> 0.44 s (the packed
+decrement does more arithmetic). The win is CAPACITY -- twice the brains per launch, or a
+20,000-neuron area for 20 brains in 3.7 GB -- not speed: the drive is not bound by count bytes
+alone. Found on the way: the graphed dream held its memory object, a reference cycle (the graph is
+cached on that object) that kept 2 GB alive until the cycle collector ran; it now holds the area.

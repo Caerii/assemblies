@@ -16,6 +16,7 @@ former `_CUDA_SRC` string with the hash unchanged (`na_fused_cuda_e178998e2fd0`)
 | `04_relative_pricing.cu` | max-relative pricing kernels (column scaling, no clip) |
 | `05_presence_and_scheduling.cu` | the connectome as a presence bitmask; the scheduled organ's price and key helpers |
 | `06_organ_kernels.cu` | the DENSE ORGAN fiber: count-matrix drive (scalar and four-column) and write, templated on the count width |
+| `06a_organ_packed_kernels.cu` | opt-in PACKED 4-bit organ counts (`count_dtype="int4"`): drive and write kernels and their host launchers; two counts a byte, rows of `RB` bytes (not `NB`: the prelude defines that name) |
 | `07_present_kernels.cu` | the PRESENT-ONLY fiber: per-row lists of existing synapses; drive, write, train, probe |
 | `08_store_and_presence_bindings.cu` | host bindings: exact and relative corrections and column masses, `hashed_presence` |
 | `09_organ_drive_binding.cu` | host binding: `organ_drive` (dispatch on the count width, brain map, per-brain tables) |

@@ -27,12 +27,13 @@ CUDA generator per cue (1.2 s of a 3.8 s check). What replaces them, and why eac
 from __future__ import annotations
 
 from ._guard import vram_guard
+from ._build import build_memory
 from ._cues import cue_index, philox_matches_torch, philox_uniform
 from ._token_index import TokenIndex
 from ._replay import MAX_VIRTUAL, frozen_step, reliability
 from ._writer import SequenceWriter
 from ._sleep import DreamGraph, _acc, _dream, _graph_for, calibrate, sleep
 
-__all__ = ["vram_guard", "cue_index", "philox_matches_torch", "philox_uniform", "TokenIndex", "MAX_VIRTUAL",
+__all__ = ["vram_guard", "build_memory", "cue_index", "philox_matches_torch", "philox_uniform", "TokenIndex", "MAX_VIRTUAL",
            "frozen_step", "reliability", "SequenceWriter", "DreamGraph", "calibrate", "sleep",
            "_acc", "_dream", "_graph_for"]

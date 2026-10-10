@@ -12,7 +12,7 @@ def _dream(mem, gen, threshold, acc, contrasts):
     import torch
     from research.experiments import memory_sleep as sl
     area, fib = mem.area, mem.fiber
-    C = fib.C
+    C = fib.storage
     B, n, k = mem.B, mem.n, mem.k
     ar = torch.arange(B, device=C.device)
     area.bias = torch.zeros(B, n, device=C.device)
@@ -36,11 +36,9 @@ def _dream(mem, gen, threshold, acc, contrasts):
         if threshold is None:
             continue
         g = con >= threshold
-        ri, ci = prev.view(B, k, 1), x.view(B, 1, k)
-        old = C[bi, ri, ci]
-        dec = ((old > 0) & g.view(B, 1, 1)).to(old.dtype)
-        C[bi, ri, ci] = old - dec
-        acc["removed"] += dec.sum(dtype=torch.int64)
+        # one count off each transition taken, in brains whose gate is open (either count layout:
+        # DenseOrganFiber.decrement is this function's former indexing for int8 counts)
+        acc["removed"] += fib.decrement(bi, prev.view(B, k, 1), x.view(B, 1, k), g)
         acc["gated"] += g.sum(dtype=torch.int64)
 
 
@@ -61,7 +59,9 @@ class DreamGraph:
     def __init__(self, mem, gen, threshold, device, record=False):
         import torch
         # the generator and a tensor gate are held: the graph reads them through their pointers
-        self.mem, self.gen, self.threshold = mem, gen, threshold
+        # the AREA, not the memory: the graph is cached on the memory, and a reference back to it
+        # would be a cycle that keeps every count alive until the cycle collector runs
+        self.area, self.gen, self.threshold = mem.area, gen, threshold
         self.acc = _acc(device)
         self.graph = torch.cuda.CUDAGraph()
         self.graph.register_generator_state(gen)
@@ -74,14 +74,14 @@ class DreamGraph:
         self.judged = self.acc["judged"]                     # per episode (a host count)
 
     def replay(self):
-        area = self.mem.area
+        area = self.area
         self.graph.replay()
         area.winners, area.bias = self.winners, self.bias
 
 
 def _graph_for(mem, gen, threshold, device, record=False):
     key = (id(gen), threshold if not hasattr(threshold, "data_ptr") else ("t", threshold.data_ptr()),
-           record, id(mem.fiber.C))
+           record, id(mem.fiber.storage))
     cache = mem.__dict__.setdefault("_dream_graphs", {})
     if key not in cache:
         while len(cache) >= 4:                               # a graph holds its pool: keep a few

@@ -6,8 +6,13 @@ static void organ_drive_t(torch::Tensor S, CT* Cp, torch::Tensor C, torch::Tenso
 void organ_drive(torch::Tensor S, torch::Tensor C, torch::Tensor pres, torch::Tensor invdj,
                  torch::Tensor tab, torch::Tensor bmap, torch::Tensor out) {
     S = S.contiguous(); tab = tab.contiguous(); bmap = bmap.contiguous();
-    TORCH_CHECK(C.scalar_type() == torch::kInt8 || C.scalar_type() == torch::kInt16,
-                "counts are int8 or int16");
+    TORCH_CHECK(C.scalar_type() == torch::kInt8 || C.scalar_type() == torch::kInt16 ||
+                C.scalar_type() == torch::kUInt8,
+                "counts are int8, int16 or packed 4-bit (uint8)");
+    if (C.scalar_type() == torch::kUInt8) {
+        organ_drive_packed(S, C, pres, invdj, tab, bmap, out);
+        return;
+    }
     if (C.scalar_type() == torch::kInt16) {
         organ_drive_t<short>(S, C.data_ptr<short>(), C, pres, invdj, tab, bmap, out);
         return;

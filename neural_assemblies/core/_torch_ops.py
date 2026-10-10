@@ -37,6 +37,7 @@ class TorchOps(Protocol):
     float32: Any
     float64: Any
     int8: Any
+    uint8: Any
     int16: Any
     int32: Any
     int64: Any
@@ -80,6 +81,7 @@ class TorchOps(Protocol):
     # Structured-return operations are intentionally left open until their
     # per-call result contracts are modeled (indices/values/inverse maps).
     argsort: Callable[..., Any]
+    broadcast_tensors: Callable[..., Any]
     meshgrid: Callable[..., Any]
     sort: Callable[..., Any]
     topk: Callable[..., Any]

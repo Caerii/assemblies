@@ -44,7 +44,7 @@ RECALL_BYTES = 1 << 28
 
 
 def recurrent_fiber(seeds, n, p, *, beta, w_max, norm_init, synaptic_scaling,
-                    max_rounds, device):
+                    max_rounds, device, count_dtype=None):
     """THE fiber for a recurrent area, chosen once for every caller.
 
     The organ's regime (clip, no scaling) takes the count-matrix fiber:
@@ -62,7 +62,9 @@ def recurrent_fiber(seeds, n, p, *, beta, w_max, norm_init, synaptic_scaling,
         return DenseOrganFiber(seeds, n, n, p, beta=beta, w_max=w_max,
                                norm_init=norm_init,
                                max_rounds=min(int(max_rounds), 256),
-                               device=device)
+                               device=device, count_dtype=count_dtype)
+    if count_dtype is not None:
+        raise ValueError("count_dtype selects the organ fiber's count width; this regime takes the store fiber")
     return AreaFiber(seeds, n, n, p, beta=beta, w_max=w_max,
                      norm_init=norm_init, synaptic_scaling=synaptic_scaling,
                      max_rounds=int(max_rounds), device=device,
@@ -75,7 +77,7 @@ class AssemblyMemory:
     def __init__(self, seeds, n, k, p, *, beta=0.1, w_max=20.0, norm_init=True,
                  synaptic_scaling=False, rounds=8, strength=0.5, gate=False,
                  max_items=4096, device="cuda", organ_semantics=None, graphs=False,
-                 write_rule="round", burst_min=2, bias_decay=None):
+                 write_rule="round", burst_min=2, bias_decay=None, count_dtype=None):
         from ..semantics import OrganSemantics, describe_assembly_memory
 
         self.seeds = [int(s) for s in seeds]
@@ -130,7 +132,7 @@ class AssemblyMemory:
                                      w_max=w_max, norm_init=norm_init,
                                      synaptic_scaling=synaptic_scaling,
                                      max_rounds=int(max_items) * self.rounds,
-                                     device=device)
+                                     device=device, count_dtype=count_dtype)
         self.items = 0
         self._last_used = None
         #: THE WRITE RULE. "round": every round, a synapse whose pre fired the
