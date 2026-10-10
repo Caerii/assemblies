@@ -198,24 +198,29 @@ def frozen_step(mem, winners, brains):
     return sel.to(torch.int64), ovf
 
 
-def reliability(store, device, index=None):
+def reliability(store, device, index=None, qs=None):
     """memory_sleep.reliability, every sequence at once: per brain the fraction of sequences whose
     every step reads the right word. Leaves the area as memory_sleep.reliability does (bias zero,
     winners the last sequence's last read). ``index``: a TokenIndex over store["allst"] (built
-    when omitted)."""
+    when omitted). ``qs``: only these sequences, in this order (each read exactly as there: the
+    cue is drawn from the WHOLE store's length L and the sequence's own index)."""
     import torch
     mem, seqs, allst, wordof, M, L, seeds = (store[x] for x in ("mem", "seqs", "allst", "wordof", "M", "L", "seeds"))
     B, n, k = mem.B, mem.n, mem.k
     LEN = rg.LENGTH
     mem.area.check_overflow()
     index = index or TokenIndex.build(allst, n, device)
-    # cues: sequence-major virtual brains v = q * B + b
-    gseeds = [int(sd) * 1_000_003 + int(L * 100_000 + q) for q in range(M) for sd in seeds]
-    keep = cue_index(gseeds, k, device)                                  # [M B, k/2]
-    first = torch.stack([seqs[q][0] for q in range(M)]).long().view(M * B, k)
+    qs = list(range(M)) if qs is None else [int(q) for q in qs]
+    Q = len(qs)
+    # cues: sequence-major virtual brains v = i * B + b for the i-th sequence read
+    gseeds = [int(sd) * 1_000_003 + int(L * 100_000 + q) for q in qs for sd in seeds]
+    keep = cue_index(gseeds, k, device)                                  # [Q B, k/2]
+    first = torch.stack([seqs[q][0] for q in qs]).long().view(Q * B, k)
     cues = torch.gather(first, 1, keep)
-    brains = torch.arange(B, dtype=torch.int32, device=device).repeat(M)
-    target = wordof.view(M, LEN, B).permute(0, 2, 1).reshape(M * B, LEN)  # true word per step
+    brains = torch.arange(B, dtype=torch.int32, device=device).repeat(Q)
+    qi = torch.as_tensor(qs, device=device)
+    target = wordof.view(-1, LEN, B)[qi].permute(0, 2, 1).reshape(Q * B, LEN)  # true word per step
+    M = Q
     alive = torch.ones(M * B, dtype=torch.bool, device=device)
     last = None
     ovf_acc = torch.zeros((), dtype=torch.int32, device=device)
@@ -302,8 +307,13 @@ class SequenceWriter:
     between (a sequence starts from an inhibited area, so the winners are not an input)."""
 
     def __init__(self, mem, device, compare=False):
+        """``compare``: a bool, or a bool tensor [B] -- the comparator per brain (a brain with it
+        off writes exactly the plain store: its previews change nothing and its flag is forced
+        off), so arms with and without it can share one launch"""
         import torch
-        self.mem, self.device, self.compare = mem, device, bool(compare)
+        self.mem, self.device = mem, device
+        self.mask = compare if torch.is_tensor(compare) else None
+        self.compare = bool(compare.any()) if torch.is_tensor(compare) else bool(compare)
         self.graph = None
         self.warm = False
         self.flags = torch.zeros((), dtype=torch.int64, device=device)
@@ -335,6 +345,8 @@ class SequenceWriter:
             hP = torch.zeros(B, n, device=self.device)
             hP.scatter_(1, P.long(), 1.0)
             flag = (torch.gather(hP, 1, R.long()).sum(1) / k) >= mc.THRESHOLD
+            if self.mask is not None:
+                flag = flag & self.mask
             self.flags += flag.sum(dtype=torch.int64)
             added = torch.zeros(B, n, device=self.device)
             added.scatter_(1, R.long(), mc.INHIBIT * flag.float().view(-1, 1).expand(-1, k).contiguous())

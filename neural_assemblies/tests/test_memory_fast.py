@@ -152,6 +152,66 @@ def test_graphed_writer_is_the_store_loop(mod, compare):
         assert stats["flag"] == int(w.flags) > 0 and stats["judged"] == w.judged
 
 
+def test_comparator_switched_off_per_brain_is_the_plain_store(mod):
+    """arms as brains: brains with the comparator off write exactly what the plain loop writes,
+    brains with it on exactly what the comparator writes"""
+    from research.experiments import memory_comparator as mc
+    from research.experiments import memory_fast as mf
+    from research.experiments import memory_load_law as ml
+    from research.experiments import memory_reuse_grammar as rg
+    from research.experiments import memory_write_separation as ws
+    from research.experiments.seq_capacity_scaling import to_i32
+    from neural_assemblies.core.numpy_engine import _seeding
+    LEN, U = rg.LENGTH, 40
+    M = max(1, round(rg.RHO * ml.unit(N, K, P) / LEN))
+    V = max(8, round(M * LEN / U))
+    words = [rg.walks(sd, M, V, None, 4242) for sd in SEEDS]
+    ES = [[[to_i32(_seeding.fnv1a_pair_seed(sd, f"w{int(words[i][q, e])}", "A")) for i, sd in enumerate(SEEDS)]
+           for e in range(LEN)] for q in range(M)]
+    on = torch.tensor([True, False, True, False], device=DEV)
+    a = ws.build(N, K, P, TAU, SEEDS, DEV)
+    w = mf.SequenceWriter(a, DEV, compare=on)
+    sa = torch.stack([w.write(ES[q]) for q in range(M)])
+    plain, comp = ws.build(N, K, P, TAU, SEEDS, DEV), ws.build(N, K, P, TAU, SEEDS, DEV)
+    stats = {"judged": 0, "flag": 0, "oracle": 0, "hit": 0}
+    sp = torch.stack([ws.store(plain, ES[q], [], False, DEV)[0] for q in range(M)])
+    stored_c = []
+    sc = torch.stack([mc.store(comp, ES[q], stored_c, True, DEV, stats) for q in range(M)])
+    for b in range(len(SEEDS)):
+        ref, mem = (sc, comp) if bool(on[b]) else (sp, plain)
+        assert torch.equal(sa[:, :, b], ref[:, :, b])
+        assert torch.equal(a.fiber.C[b], mem.fiber.C[b]) and torch.equal(a.area.bias[b], mem.area.bias[b])
+    assert int(w.flags) > 0
+
+
+def test_reliability_of_a_subset_is_the_loop_on_it(mod):
+    from research.experiments import memory_fast as mf
+    from research.experiments import memory_load_drift as md
+    from research.experiments import memory_reuse_grammar as rg
+    from research.experiments import memory_sleep as sl
+    st = sl.build_store(_spec(), 40, SEEDS, DEV)
+    mem, seqs, allst, wordof, L = st["mem"], st["seqs"], st["allst"], st["wordof"], st["L"]
+    B, n, k = mem.B, mem.n, mem.k
+    ar = torch.arange(B, device=DEV)
+    qs = [5, 0, 11, 3]
+    alive_ref = []
+    for q in qs:                                   # memory_sleep.reliability's read of sequence q
+        mem.area.bias = torch.zeros(B, n, device=DEV)
+        mem.area.winners = torch.stack([md.cue(seqs[q][0, i], sd, L * 100_000 + q, k, DEV)
+                                        for i, sd in enumerate(SEEDS)]).long()
+        alive = torch.ones(B, dtype=torch.bool, device=DEV)
+        for j in range(1, rg.LENGTH):
+            x = mem.area.project(1, [mem.fiber], freeze=True, mask_bias=False)
+            hot = torch.zeros(B, n, device=DEV)
+            hot.scatter_(1, x.long(), 1.0)
+            ov = torch.gather(hot.unsqueeze(0).expand(L, B, n), 2, allst).sum(2)
+            alive &= wordof[ov.argmax(0), ar] == wordof[q * rg.LENGTH + j]
+        alive_ref.append(alive.float())
+    ref = (torch.stack(alive_ref).sum(0) / len(qs)).tolist()
+    assert mf.reliability(st, DEV, qs=qs) == ref
+    assert mf.reliability(st, DEV, qs=list(range(st["M"]))) == sl.reliability(st, DEV)
+
+
 def test_vram_guard_refuses_a_full_card(mod):
     from research.experiments import memory_fast as mf
     with pytest.raises(RuntimeError, match="free"):
