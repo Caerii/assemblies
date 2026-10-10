@@ -15,6 +15,8 @@ stay exactly as they ran, the record of what was run.
               a bare mean -- and the text the registration states, generated from the same object
     spec      a Registration: the text it registers, its bars, its result section and scorecard
               rows, rendered from one object (research/amend.py writes them into the documents)
+    stores    a Plan (the sequences a study writes) and a Store (the memory written, on the fast
+              paths): replay, sleep, downscaling; the two registered sleep gates
 
 The fast paths (replay, sleep, writing, packed counts) are research.experiments.memory_fast.
 """
@@ -24,6 +26,8 @@ from .cells import Cell
 from .ledger import Entry, entries, check_new, next_brains, PROBE_BRAINS, NEW_FROM
 from .bars import Bar, Check, Reading, brains, delta, below, scalar, every, evaluate
 from .spec import Registration
+from .stores import Plan, Store, birth_setpoint, reference_median
 
 __all__ = ["Cell", "Entry", "entries", "check_new", "next_brains", "PROBE_BRAINS", "NEW_FROM",
-           "Bar", "Check", "Reading", "brains", "delta", "below", "scalar", "every", "evaluate", "Registration"]
+           "Bar", "Check", "Reading", "brains", "delta", "below", "scalar", "every", "evaluate", "Registration",
+           "Plan", "Store", "birth_setpoint", "reference_median"]
