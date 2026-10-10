@@ -1,0 +1,28 @@
+  reference brains (max contrast, captured cross-word pairs): 1.382/1 1.383/0 1.384/1 1.384/0 1.384/0 1.384/0 1.384/0 1.385/0 1.385/0 1.385/0 1.385/1 1.386/0 1.386/1 1.386/0 1.387/0 1.387/0 1.388/0 1.389/0 1.390/1 1.391/0
+
+(9500, 75, 0.46) reference contrasts: mean 1.361; max 1.391  q999 1.383  q99 1.377  median-brain-max 1.385
+  per-brain maxima (sorted): 1.382 1.383 1.384 1.384 1.384 1.384 1.384 1.385 1.385 1.385 1.385 1.386 1.386 1.386 1.387 1.387 1.388 1.389 1.390 1.391
+  healthy U=10: before sleep 1.000
+    max               threshold 1.419: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+    q999              threshold 1.411: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+    q99               threshold 1.405: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+    median-brain-max  threshold 1.412: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+  comparator U=100: before sleep 0.240
+    max               threshold 1.419: 0.641 (brains < 0.2:  0, lowest 0.50); removed 0.0135
+    q999              threshold 1.411: 0.660 (brains < 0.2:  0, lowest 0.57); removed 0.0174
+    q99               threshold 1.405: 0.685 (brains < 0.2:  0, lowest 0.57); removed 0.0221
+    median-brain-max  threshold 1.412: 0.658 (brains < 0.2:  0, lowest 0.55); removed 0.0167
+  reference brains (max contrast, captured cross-word pairs): 1.400/0 1.400/0 1.400/0 1.401/0 1.402/0 1.402/0 1.402/0 1.403/0 1.403/2 1.404/0 1.404/0 1.404/0 1.404/1 1.404/0 1.404/0 1.404/0 1.405/0 1.407/0 1.409/0 1.531/2
+
+(12500, 90, 0.4) reference contrasts: mean 1.380; max 1.531  q999 1.407  q99 1.397  median-brain-max 1.404
+  per-brain maxima (sorted): 1.400 1.400 1.400 1.401 1.402 1.402 1.402 1.403 1.403 1.404 1.404 1.404 1.404 1.404 1.404 1.404 1.405 1.407 1.409 1.531
+  healthy U=10: before sleep 1.000
+    max               threshold 1.561: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+    q999              threshold 1.435: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+    q99               threshold 1.425: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+    median-brain-max  threshold 1.432: 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+  comparator U=100: before sleep 0.176
+    max               threshold 1.561: 0.368 (brains < 0.2:  0, lowest 0.25); removed 0.0016
+    q999              threshold 1.435: 0.623 (brains < 0.2:  0, lowest 0.56); removed 0.0156
+    q99               threshold 1.425: 0.660 (brains < 0.2:  0, lowest 0.60); removed 0.0224
+    median-brain-max  threshold 1.432: 0.629 (brains < 0.2:  0, lowest 0.57); removed 0.0175
