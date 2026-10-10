@@ -48,6 +48,7 @@ B = len(seeds)
 LEN = rg.LENGTH
 spec = {"n": n, "k": k, "p": p, "tau": tau, "rho": rg.RHO, "beta": round(tl.theta(n, k, p), 5)}
 DAYS, RHO_DAY, U_END, EPISODES, EVERY, SAMPLE = 24, 0.01, 100, 100, 4, 40
+LIVE = int(os.environ.get("LIFETIME_DAYS", DAYS))          # days actually lived (the life is planned for DAYS)
 D = round(RHO_DAY * ml.unit(n, k, p) / LEN)
 M_END = D * DAYS
 V = max(8, round(M_END * LEN / U_END))
@@ -112,13 +113,14 @@ def downscale(mem, r, gen):
     return removed
 
 
-def replay(mem, seqs, stored, qs):
+def replay(mem, seqs, stored, qs, since=0):
     """masked replay of sequences qs, word-level, as memory_sleep.reliability: per sequence, the
-    fraction of brains whose whole sequence is read correctly"""
+    fraction of brains whose whole sequence is read correctly. The read-out compares the state with
+    the tokens stored from token index `since` on (0: every token ever stored)"""
     area, fib = mem.area, mem.fiber
-    allst = torch.stack(stored).long()
-    L = allst.shape[0]
-    wordof = WORDOF[:L]
+    allst = torch.stack(stored[since:]).long()
+    L = len(stored)
+    wordof = WORDOF[since:L]
     ar = torch.arange(B, device=dev)
     out = []
     for q in qs:
@@ -131,7 +133,7 @@ def replay(mem, seqs, stored, qs):
             hot = torch.zeros(B, n, device=dev)
             hot.scatter_(1, x.long(), 1.0)
             ov = torch.gather(hot.unsqueeze(0).expand(L, B, n), 2, allst).sum(2)
-            alive &= wordof[ov.argmax(0), ar] == wordof[q * LEN + j]
+            alive &= wordof[ov.argmax(0), ar] == WORDOF[q * LEN + j]
         out.append(float(alive.float().mean()))
     return out
 
@@ -152,6 +154,25 @@ def dreams_settled(mem, stored, gen, dreams=20, steps=12):
             settled += int((o >= 0.5).sum())
             total += B
     return settled / total
+
+
+def word_overlap(stored, day):
+    """TYPE HUBS: mean overlap / k of the tokens written on `day` that carry the same word (from
+    different sequences), and of those carrying different words -- in every brain"""
+    allst = torch.stack(stored[day * D * LEN:(day + 1) * D * LEN]).long()      # [T, B, k]
+    T = allst.shape[0]
+    w = WORDOF[day * D * LEN:(day + 1) * D * LEN]
+    q = torch.arange(T, device=dev) // LEN
+    same, diff = [], []
+    for b in range(B):
+        H = torch.zeros(T, n, device=dev)
+        H.scatter_(1, allst[:, b], 1.0)
+        O = (H @ H.T) / k
+        other = q.view(-1, 1) != q.view(1, -1)
+        sw = (w[:, b].view(-1, 1) == w[:, b].view(1, -1)) & other
+        same.append(float(O[sw].mean()))
+        diff.append(float(O[~sw & other].mean()))
+    return float(np.mean(same)), float(np.mean(diff))
 
 
 def bins(day):
@@ -204,7 +225,9 @@ ARMS = (("awake", False, None, 0, False), ("reference", False, median_thr, 0, Fa
         ("lifecycle + downscale 0.05", True, setpoint, 0.05, False),
         ("lifecycle + downscale 0.1", True, setpoint, 0.1, False),
         ("sat lifecycle", True, setpoint, 0, True), ("sat lifecycle + downscale 0.05", True, setpoint, 0.05, True),
-        ("sat lifecycle + downscale 0.1", True, setpoint, 0.1, True))
+        ("sat lifecycle + downscale 0.1", True, setpoint, 0.1, True),
+        ("sat lifecycle + downscale 0.25", True, setpoint, 0.25, True),
+        ("sat comparator + downscale 0.1 no sleep", True, None, 0.1, True))
 ONLY = [x.strip() for x in os.environ.get("LIFETIME_ARMS", "").split(",") if x.strip()]
 for name, compare, gate, rate, sat in [arm for arm in ARMS if not ONLY or arm[0] in ONLY]:
     print(f"\n=== {name} ===", flush=True)
@@ -215,7 +238,7 @@ for name, compare, gate, rate, sat in [arm for arm in ARMS if not ONLY or arm[0]
     probe_gen = torch.Generator(device=dev).manual_seed(4242)
     removed_life = 0
     scale_gen = torch.Generator(device=dev).manual_seed(99)
-    for day in range(DAYS):
+    for day in range(LIVE):
         write_day(mem, stored, seqs, day, compare, stats)
         if sat:
             saturate(mem)
@@ -228,6 +251,7 @@ for name, compare, gate, rate, sat in [arm for arm in ARMS if not ONLY or arm[0]
                 gated += g
                 judged += j
             removed_life += night
+        held = int(mem.fiber.C.sum())
         faded = downscale(mem, rate, scale_gen) if rate else 0
         if (day + 1) % EVERY == 0:
             uses = (day + 1) * D * LEN / V
@@ -236,6 +260,13 @@ for name, compare, gate, rate, sat in [arm for arm in ARMS if not ONLY or arm[0]
             for b, qs in bins(day).items():
                 line.append(f"{b} {np.mean(replay(mem, seqs, stored, qs)):.3f}")
             set_ = dreams_settled(mem, stored, probe_gen)
+            ws_, wd_ = word_overlap(stored, day)
+            line.append(f"synapses potentiated {float((mem.fiber.C > 0).float().mean()):.3f} of all pairs")
+            recent = bins(day)["today"]
+            for window in (1, 3):
+                since = max(0, day + 1 - window) * D * LEN
+                line.append(f"today read against the last {window} day(s) {np.mean(replay(mem, seqs, stored, recent, since)):.3f}")
+            line.append(f"same-word overlap today {ws_:.3f} (different words {wd_:.4f})")
             extra = (f"; tonight gate open {gated / max(1, judged):.4f}, removed {night / max(1, held):.4f}"
                      if gate is not None else "")
             flags = f"; flags {stats['flag'] / max(1, stats['judged']):.4f}" if compare else ""
