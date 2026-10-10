@@ -128,7 +128,14 @@ def theory_result(*, id, engine, claim, source, preconditions, evidence, artifac
 
 
 def add_claim(path, block, before_id):
-    """insert a Result block (LF-authored) before the claim ``before_id`` in theory.py"""
+    """insert a Result block (LF-authored) before the claim ``before_id`` -- in the file ``path``,
+    or, given the claims package (neural_assemblies/theory_claims/), in the module that holds it"""
+    path = Path(path)
+    if path.is_dir():
+        holders = [p for p in sorted(path.glob("*.py")) if f'id="{before_id}",' in p.read_text(encoding="utf-8")]
+        if len(holders) != 1:
+            raise ValueError(f"expected one module holding {before_id!r}, found {len(holders)}")
+        path = holders[0]
     body, nl = _read(path)
     anchor_text = "    Result(" + nl + f'        id="{before_id}",'
     if body.count(anchor_text) != 1:

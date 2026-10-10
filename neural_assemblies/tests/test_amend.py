@@ -149,3 +149,15 @@ def test_the_preregistration_index_is_fresh():
     import pathlib
     pre = amend.Prereg(pathlib.Path(__file__).resolve().parents[2])
     assert (pre.dir / "README.md").read_text(encoding="utf-8") == pre.index()
+
+
+def test_add_claim_finds_the_programme_module(tmp_path):
+    pkg = tmp_path / "theory_claims"
+    pkg.mkdir()
+    (pkg / "a.py").write_text('CLAIMS = [\n    Result(\n        id="A1",\n    ),\n]\n', encoding="utf-8")
+    (pkg / "b.py").write_text('CLAIMS = [\n    Result(\n        id="B1",\n    ),\n]\n', encoding="utf-8")
+    amend.add_claim(pkg, '    Result(\n        id="B0",\n    ),\n', before_id="B1")
+    assert 'id="B0"' in (pkg / "b.py").read_text(encoding="utf-8")
+    assert 'id="B0"' not in (pkg / "a.py").read_text(encoding="utf-8")
+    with pytest.raises(ValueError, match="one module"):
+        amend.add_claim(pkg, "x", before_id="NONE")
