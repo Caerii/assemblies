@@ -1,0 +1,26 @@
+life: 24 days x 43 sequences (rho 0.01/day), vocabulary 165 words (4.2 uses per word per day), 100 sleep episodes per night
+gates: reference median 1.397; set points 1.376-1.384
+
+=== lifecycle ===
+day  4 (rho 0.04,  16.7 uses/word): today 0.999, 1-3 days 0.999; dreams settled 0.000; tonight gate open 0.0000, removed 0.0000; flags 0.0020
+day  8 (rho 0.08,  33.4 uses/word): today 0.961, 1-3 days 0.960, 4-7 days 0.972; dreams settled 0.000; tonight gate open 0.2964, removed 0.0137; flags 0.0179
+day 12 (rho 0.12,  50.0 uses/word): today 0.755, 1-3 days 0.569, 4-7 days 0.561, 8+ days 0.339; dreams settled 0.000; tonight gate open 0.8642, removed 0.0339; flags 0.0666
+day 16 (rho 0.16,  66.7 uses/word): today 0.481, 1-3 days 0.235, 4-7 days 0.015, 8+ days 0.001; dreams settled 0.000; tonight gate open 0.9871, removed 0.0349; flags 0.1361
+day 20 (rho 0.20,  83.4 uses/word): today 0.248, 1-3 days 0.049, 4-7 days 0.001, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.9998, removed 0.0328; flags 0.2155
+day 24 (rho 0.24, 100.1 uses/word): today 0.090, 1-3 days 0.029, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 1.0000, removed 0.0309; flags 0.2966
+
+=== lifecycle + downscale 0.05 ===
+day  4 (rho 0.04,  16.7 uses/word): today 0.999, 1-3 days 0.895; dreams settled 0.000; tonight gate open 0.0000, removed 0.0000; flags 0.0013; downscaled 0.0452 tonight, 150882905 counts held
+day  8 (rho 0.08,  33.4 uses/word): today 0.964, 1-3 days 0.783, 4-7 days 0.038; dreams settled 0.000; tonight gate open 0.1642, removed 0.0079; flags 0.0115; downscaled 0.0409 tonight, 276665236 counts held
+day 12 (rho 0.12,  50.0 uses/word): today 0.751, 1-3 days 0.235, 4-7 days 0.009, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.7530, removed 0.0312; flags 0.0421; downscaled 0.0373 tonight, 355488401 counts held
+day 16 (rho 0.16,  66.7 uses/word): today 0.563, 1-3 days 0.108, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.9442, removed 0.0360; flags 0.0848; downscaled 0.0354 tonight, 404759158 counts held
+day 20 (rho 0.20,  83.4 uses/word): today 0.343, 1-3 days 0.024, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.9928, removed 0.0359; flags 0.1317; downscaled 0.0342 tonight, 441213998 counts held
+day 24 (rho 0.24, 100.1 uses/word): today 0.226, 1-3 days 0.023, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.9994, removed 0.0348; flags 0.1797; downscaled 0.0333 tonight, 471137419 counts held
+
+=== lifecycle + downscale 0.1 ===
+day  4 (rho 0.04,  16.7 uses/word): today 0.996, 1-3 days 0.291; dreams settled 0.000; tonight gate open 0.0000, removed 0.0000; flags 0.0010; downscaled 0.0908 tonight, 133749819 counts held
+day  8 (rho 0.08,  33.4 uses/word): today 0.949, 1-3 days 0.238, 4-7 days 0.000; dreams settled 0.000; tonight gate open 0.0730, removed 0.0036; flags 0.0069; downscaled 0.0832 tonight, 228863678 counts held
+day 12 (rho 0.12,  50.0 uses/word): today 0.734, 1-3 days 0.076, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.6078, removed 0.0266; flags 0.0250; downscaled 0.0766 tonight, 281474271 counts held
+day 16 (rho 0.16,  66.7 uses/word): today 0.519, 1-3 days 0.041, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.8275, removed 0.0338; flags 0.0515; downscaled 0.0733 tonight, 307405854 counts held
+day 20 (rho 0.20,  83.4 uses/word): today 0.363, 1-3 days 0.004, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.9203, removed 0.0361; flags 0.0789; downscaled 0.0714 tonight, 321988506 counts held
+day 24 (rho 0.24, 100.1 uses/word): today 0.285, 1-3 days 0.003, 4-7 days 0.000, 8+ days 0.000; dreams settled 0.000; tonight gate open 0.9625, removed 0.0369; flags 0.1049; downscaled 0.0702 tonight, 331173552 counts held
