@@ -1,0 +1,18 @@
+contrasts of 300 dreams
+  empty networks (subjects)    mean 1.330  p99 1.344  brain maxima 1.349-1.357 (median 1.352)
+  healthy U=10 (references)    mean 1.347  p99 1.363  brain maxima 1.367-1.418 (median 1.370)
+  healthy U=10 (subjects)      mean 1.347  p99 1.363  brain maxima 1.366-1.374 (median 1.369)
+  subjects' healthy-store max over their own set point: 1.008-1.017
+thresholds: reference median 1.397; set points 1.376-1.384
+
+healthy U=10: before sleep 1.000
+  reference median : 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+  own set point    : 1.000 (brains < 0.2:  0, lowest 1.00); removed 0.0000
+
+standard U=50: before sleep 0.025
+  reference median : 0.766 (brains < 0.2:  0, lowest 0.60); removed 0.0422
+  own set point    : 0.779 (brains < 0.2:  0, lowest 0.59); removed 0.0494
+
+comparator U=100: before sleep 0.249
+  reference median : 0.670 (brains < 0.2:  0, lowest 0.59); removed 0.0154
+  own set point    : 0.712 (brains < 0.2:  0, lowest 0.63); removed 0.0301
