@@ -164,3 +164,32 @@ error. Below ~0.024 the fiber now uses int16 counts with a table one entry
 past the clip (`clip_count`); the kernels are templated on the count type,
 and a sweep's int16 rates launch apart from its int8 rates. Every rate used
 before keeps int8 and its table; committed studies replay identically.
+
+## The sleep studies' fast paths (2026-10-10)
+
+The sleep, lifecycle and lifetime probes (Amendments 51-55 and their probes)
+looped one sequence and one step at a time and used none of the levers
+above. Profiled at (10000, 75, 0.48), B = 20, every phase was launch-bound
+(a frozen projection moves 15 MB in 0.40 ms, 37 GB/s of ~760; on this
+Windows driver each launch or sync costs ~80 us against ~1 ms of real work
+per dream episode), and the lifetime arms ran ~90x slower than the same code
+alone because the card was full -- the 2026-10-02 lesson, bypassed.
+`research/experiments/memory_fast.py` replaces each loop with a path that is
+bit-identical by construction and tested so
+(`neural_assemblies/tests/test_memory_fast.py`):
+
+| path | what it removes | measured (217 sequences, B = 20) |
+|---|---|---|
+| `reliability` | a sequence at a time -> all sequences as virtual brains (the organ fiber's brain map); a scan of all L tokens per step -> a token index (neuron -> tokens), k (L k / n) work instead of L k, n/k ~ 133x less; a fresh CUDA generator per cue -> the cue's Philox4x32-10 words computed for every cue at once (checked against torch.rand before use; exact ties re-sorted by the original 1-D argsort) | 3.6 s -> 0.21 s (17x) |
+| `sleep`, `calibrate` | ~100 launches and a host sync per step -> one recorded CUDA graph per episode, the generator registered with it (replay i draws what eager call i would); the gated decrement applied unconditionally (a shut gate writes back unchanged counts) | 300 episodes 3.6 s -> 0.50 s (7x) |
+| `SequenceWriter` | 16 element writes, a host seed copy each, and the comparator's host branch -> one graph per sequence; the branch becomes an unconditional scatter of INHIBIT x flag (adding then removing zero changes no bit); previews defer the overflow check | plain 4.3 s -> 0.65 s (6.6x); comparator 20.3 s -> 1.5 s (13x, its oracle bookkeeping dropped) |
+| `vram_guard` | a study that starts on a card another process fills | refuses to start |
+
+What is left is GPU work, not overhead: a replay check reads 75 count rows
+per virtual brain per step (49 GB over 217 sequences x 20 brains, ~3x the
+bandwidth floor), and a write element costs ~0.19 ms. The next factors are
+structural: experimental ARMS as brains of one launch (a comparator with its
+flags forced off writes exactly the plain store, a gate at infinity never
+unlearns, so arms differ only in per-brain parameters), and narrower counts
+(they saturate at the clip, 10-13 here: 4 bits would halve the matrices,
+which needs the drive and write kernels templated on a packed type).
