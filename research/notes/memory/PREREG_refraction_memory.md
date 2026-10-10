@@ -6706,3 +6706,103 @@ comparator removed a tenth of what it removed at the other cell (0.16% vs
 reference outlier makes the gate conservative). Post hoc and untested: a
 threshold on a high quantile of the reference contrasts rather than their
 maximum would not be moved by one brain.
+
+## Amendment 53 (2026-10-09, before running): the lifecycle reaches the repetition edge
+
+Registered before any run at the cells below. Amendment 45 found two reuse
+edges: recurrence (~40 uses per word, random successors) and repetition (~2.8
+repeats per transition, each word followed by one of b successors).
+Amendment 52 registered the comparator and contrast-gated sleep composing
+against the first. This amendment asks whether they reach the second, or
+whether repetition is a different failure (a word-level read that cannot tell
+which successor an occurrence had, which no write rule can fix).
+
+**Seen before registering.** At (10000, 75, 0.48), tau = 67, U = 10, subject
+seeds 980 to 999, reference brains 960 to 979
+(`probes/2026-10-09/probe_repetition.py`), mean replay with nothing / sleep
+(300 episodes) / the comparator / both:
+
+    b = 3 (3.3 repeats)   0.000 / 0.586 / 0.849 / 0.918   (collapsed 20/0/0/0;
+                          flags 4.0%; sleep after the comparator removed 0.22%)
+    b = 5 (2 repeats)     0.907 / 0.989 / 0.998 / 0.999   (flags 0.5%)
+    random                1.000 / 1.000 / 1.000 / 1.000   (flags 0.08%; nothing removed)
+
+The first two tokens written after a repeated word pair overlapped 0.115
+(b = 3), 0.109 (b = 5) and 0.098 (random) in the standard store. A smoke run of
+this module (VOID, seeds 900 to 902) ran only the survey cell (2000, 60, 0.5)
+at 30 episodes (n/k = 33, far below the cells here): b = 3 0.048 / 0.048 /
+0.333 / 0.333, b = 5 0.381 / 0.381 / 0.810 / 0.810, random 1.000 / 1.000 /
+0.952 / 0.952, the written loop equal to store_sequence. No run has touched
+(8500, 64, 0.52) or (11000, 82, 0.44).
+
+### Protocol
+
+`research/experiments/memory_repetition_reach.py` (`python -m research.runner
+repetition_reach`), subject seeds 1000 to 1019, reference brains 1020 to 1039
+(all new), one run from a worktree pinned at the commit registering this
+amendment. Cells (8500, 64, 0.52) (n/k = 133, tau = 66) and (11000, 82, 0.44)
+(n/k = 134, tau = 67), by Amendment 41's rule; k p = 33.3 and 36.1 against
+3 ln n = 27.1 and 27.9. Per-brain grammars, 16-element walks, rho = 0.05,
+U = 10 uses per word, with b = 3, b = 5 and random successors. Per cell, the
+sleep threshold exactly as Amendments 51 and 52 (300 dreams of a U = 10 store
+on the reference brains, 1.02 x the maximum contrast); the 0.99 quantile of the
+reference contrasts is recorded, not used. Per b: a STANDARD store
+(store_sequence) replayed, then slept 300 episodes and replayed; a COMPARATOR
+store (Amendment 50's rule) replayed, then slept 300 episodes and replayed --
+the same memories on the same brains. On the standard store, per brain, the
+mean overlap (/k) of the tokens written at the first two occurrences of each
+repeated word pair (the pair's second word; sequence boundaries excluded).
+Masked replay, word-level. The written store loop is checked equal to
+store_sequence first; if not, every bar fails.
+
+    python -m research.runner repetition_reach \
+        --registration research/notes/memory/PREREG_refraction_memory.md \
+        --tag repetition-reach-20261009 --seeds 1000 ... 1019
+
+### Bars
+
+    P1  THE EDGE. At both cells, the standard store at b = 3 replays <= 0.25
+        (probe 0.000).
+    P2  RESCUE. At both cells, both at b = 3 >= 0.75 (probe 0.918).
+    P3  COMPOSITION. At both cells at b = 3, both >= the comparator alone and
+        both >= sleep alone + 0.15 (probe 0.918 vs 0.849 and 0.586).
+    P4  THE COMPARATOR SEES REPETITION. At both cells, its flag rate at b = 3
+        is >= 2% and >= 10x its rate with random successors (probe 4.0% vs
+        0.08%).
+    P5  HARMLESS AND SPARING. At both cells, both >= 0.98 with random
+        successors and >= 0.95 at b = 5, and the sleep after the comparator
+        removes <= 2% of counts in every arm.
+    P6  NO COLLAPSED BRAINS. At both cells, at most 2 brains below 0.2 with
+        both, at b = 3 and at b = 5.
+    P7  NOT AN IMMEDIATE MERGE. At both cells, the standard store's
+        first-two-occurrence overlap at b = 3 is <= 0.2 (probe 0.115; the
+        same-word level is 0.10-0.15).
+
+Reported, not judged: sleep alone and the comparator alone at b = 5 and
+random; the calibration and its 0.99 quantile.
+
+### Risk, stated now
+
+Amendment 52's L3 failed because one reference brain's outlying dream contrast
+raised the maximum-based threshold. The registered rule is kept here unchanged
+(one rule across Amendments 51 to 53); an outlier would most likely show as P2
+or P3 failing with the sleep after the comparator removing far less than at
+the other cell.
+
+### Interpretation, stated now
+
+* P1 to P7 pass: both reuse edges of Amendment 45 are one disease -- spurious
+  attractors grown at write, which repetition seeds by excess drive rather than
+  by writing tokens together -- and yield to one treatment; a word-level read
+  does not need a type store to survive repetition at this dose.
+* P1 fails: the edge has moved at these cells (b = 3 is not past it); P2 to P7
+  are then read as a test of harmlessness, not of rescue.
+* P2 or P3 fails with P1 passing: the lifecycle's reach on repetition is
+  cell-specific, or the threshold risk above.
+* P4 fails: the comparator's rescue does not come through detecting the
+  repeated-pair captures.
+* P7 fails: repetition does merge tokens at once; the mechanism stated in the
+  probe is wrong even if the rescue holds.
+* A failed bar is recorded as failed and not moved.
+
+The run is UNJUDGED until P1 to P7 are evaluated and recorded below.
