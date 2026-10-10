@@ -129,10 +129,9 @@ def plot(table):
 
 def main():
     table = build()
-    os.makedirs(os.path.dirname(TABLE), exist_ok=True)
-    with open(TABLE, "w", encoding="utf-8", newline="\n") as f:
-        json.dump(table, f, indent=1)
-        f.write("\n")
+    from pathlib import Path
+    from research.json_documents import write_derived_document
+    write_derived_document(Path(TABLE), table)
     plot(table)
     for key, cell in table["cells"].items():
         on = cell["onsets"]

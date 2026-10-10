@@ -65,9 +65,6 @@ def test_the_fit_reproduces_the_nine_cells_it_was_fitted_to():
 
 @pytest.mark.requires_cuda
 def test_a_brains_record_does_not_depend_on_its_batch():
-    import torch
-    if not torch.cuda.is_available():
-        pytest.skip("needs CUDA")
     n, k, p = 2000, 60, 0.5
     seeds = [900, 901, 902]
     spec = {"n": n, "k": k, "p": p, "beta": round(md.tl.theta(n, k, p), 5)}

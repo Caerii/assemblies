@@ -64,6 +64,15 @@ def write_new_document(path, value):
         stream.flush()
 
 
+def write_derived_document(path, value):
+    """Replace a DERIVED artifact -- a figure's data or a table rebuilt from recorded runs.
+
+    A result is created once (`write_new_document`); a derived artifact is regenerated from
+    results whenever its builder runs, so it is replaced atomically, with the same canonical
+    encoding, by the checkpoint writer."""
+    write_checkpoint_document(path, value)
+
+
 def write_checkpoint_document(path, value):
     """Atomically replace a resumable study checkpoint.
 

@@ -137,7 +137,21 @@
     "research/experiments/unaligned_scenes.py": 1,
     "research/experiments/universality_composition.py": 6,
     "research/experiments/refraction_memory_numpy.py": 1,
-    "research/experiments/refraction_period_law.py": 3
+    "research/experiments/refraction_period_law.py": 3,
+    "research/notes/memory/probes/2026-10-08/probe_collapse.py": 1,
+    "research/notes/memory/probes/2026-10-08/probe_kernel.py": 1,
+    "research/notes/memory/probes/2026-10-08/probe_kernel2.py": 1,
+    "research/notes/memory/probes/2026-10-08/probe_markov.py": 5,
+    "research/notes/memory/probes/2026-10-08/probe_survival.py": 1,
+    "research/notes/memory/probes/2026-10-08/probe_vocab.py": 1,
+    "research/notes/memory/probes/2026-10-09/probe_basin.py": 1,
+    "research/notes/memory/probes/2026-10-09/probe_excitability.py": 1,
+    "research/notes/memory/probes/2026-10-09/probe_plausible.py": 1,
+    "research/notes/memory/probes/2026-10-09/probe_repetition.py": 1,
+    "research/notes/memory/probes/2026-10-10/probe_consolidation.py": 1,
+    "research/notes/memory/probes/2026-10-10/probe_dreams.py": 3,
+    "research/notes/memory/probes/2026-10-10/probe_lifetime.py": 4,
+    "research/notes/memory/probes/2026-10-10/probe_position.py": 9
   },
   "unpinned_engine": {
     "research/experiments/_substrate.py": 4,

@@ -329,7 +329,7 @@ class AssemblyMemory:
         ever-fired record, the deferred overflow -- is updated in place, so a
         replay is the eager write (tested bit for bit)."""
         import torch
-        seeds = torch.as_tensor(stim_seeds, dtype=torch.int32, device=self.device)
+        seeds = torch_ops.as_tensor(stim_seeds, dtype=torch_ops.int32, device=self.device)
         key = (self.B, size)
         if self._graph is None or self._graph[0] != key:
             if self._warm != key:

@@ -115,6 +115,19 @@ Jaccard similarities over ORGANS x noisy readouts of one trained brain each;
 the verdict is a SET comparison (are the soft pairs identical under noise?)
 and its bars are thresholds on that descriptive mean plus exact counts (zero
 hard defects, count ratio). No seed-level interval is claimed or judged.
+
+RAISED 2026-10-10 for fourteen EXPLORATORY PROBES of the refraction memory
+(`research/notes/memory/probes/2026-10-08` to `2026-10-10`). They average a
+reading over 10-20 brains and print it beside per-brain extremes (lowest
+brain, brains below 0.2); none judges a bar, and each is disclosed in
+PREREG_refraction_memory.md as exploratory, the reason a registration was
+designed as it was, never evidence for a claim. A probe is also a RECORD: its
+script must keep matching the log it wrote, so it is baselined, not rewritten.
+The honest caveat this ratchet forced: the registrations those probes led to
+(Amendments 48-55) judge their bars on bare means over brains as well,
+computed as `sum(v) / len(v)` and so invisible to this scan. New memory
+registrations judge confidence bounds (`diagnostics.ensemble`, `paired_delta`)
+through the declarative bars of the memory-study library instead.
 """
 
 from __future__ import annotations

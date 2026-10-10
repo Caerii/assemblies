@@ -328,8 +328,10 @@ def main():
     os.makedirs(OUT, exist_ok=True)
     cv = curves()
     iv = intervals(cv)
-    with open(os.path.join(OUT, "crossings.json"), "w", encoding="utf-8", newline="\n") as fh:
-        json.dump({k: {str(q): v for q, v in d.items()} for k, d in iv.items()}, fh, indent=1)
+    from pathlib import Path
+    from research.json_documents import write_derived_document
+    write_derived_document(Path(OUT) / "crossings.json",
+                           {k: {str(q): v for q, v in d.items()} for k, d in iv.items()})
     write_table(iv)
     figures(cv, iv)
     for name, q in iv.items():
