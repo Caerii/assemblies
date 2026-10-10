@@ -1478,6 +1478,23 @@ the dreams are empty again, contrast $1.36$, best overlaps $0.07$--$0.15$: a fai
 scar of the erased track. In this substrate, then, a healthy dream is
 unremarkable by construction, and a vivid, recurring one is the symptom.
 
+\paragraph{A capture hijacks the rest of the sequence (exploratory).}
+(\texttt{probe\_position.py}.) The dreams' position-keeping jumps are not a
+position code: in a healthy store, different-word tokens of different sequences
+overlap equally at the same position and at others ($0.0072$ against $0.0071$).
+What refraction writes is distance in \emph{time} --- tokens one sequence apart
+overlap $0.0001$, eight apart $0.0097$, against chance $k/n = 0.0075$. The jumps come
+from how captures propagate. Given a captured pair, token $e$ of a new sequence
+written onto token $e'$ of an older one, the next pair along the diagonal,
+$(e+1, e'+1)$, is captured with probability $0.83$, against a base rate of $1.6
+\times 10^{-4}$: once a write lands on an old token, recurrence carries the old
+continuation, which outbids the new stimulus, and the remaining $\sim 6$ tokens of
+the sequence are rewritten onto the old sequence's tail. A capture is therefore
+not a token-level error but a \emph{hijack}, which is why a single intervention at
+write (the comparator, Proposition~\ref{prop:comparator}) prevents so much, and
+why the word-level read-out of a collapsed store returns the older sequence's
+words. The capture cascade described earlier is a cascade of hijacks.
+
 \paragraph{A slow excitability trace is not a context here (exploratory,
 negative).} (\texttt{probe\_excitability.py}.) A CREB-like allocation bias (a
 trace raising the drive of recently allocated cells, decaying over
