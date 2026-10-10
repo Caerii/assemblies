@@ -1556,44 +1556,6 @@ _RESULTS: List[Result] = [
                "n/k 117-150 only; small vocabularies, 16-element walks.",
     ),
     Result(
-        id="BIRTH-SETPOINT-GATES-SLEEP",
-        engine="hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep",
-        status=Status.MEASURED,
-        claim="Sleep's contrast gate needs no reference brains: each brain can fix it once, before it "
-              "learns anything, at 1.02 x the largest contrast its own empty network's dreams reach. "
-              "Learning a healthy store raises dream contrast by only 1.3-1.5%, so at two new cells "
-              "(n/k 120 and 145) healthy stores keep 1.000 replay, a collapsed U = 50 store is repaired "
-              "from 0.11-0.15 to 0.80-0.83 and a comparator U = 100 store reaches 0.72, no brain "
-              "collapsed, at least as well as gates calibrated on twenty reference brains.",
-        source="PREREG_refraction_memory.md Amendment 55 (G1-G6 PASS; G7 FAIL)",
-        preconditions=("random-successor reuse at 50 and 100 uses per word, rho = 0.05, n/k 120-145",
-                       "sleep 300 episodes; set point from 300 dreams of the brain's own empty network"),
-        evidence=("research/notes/memory/PREREG_refraction_memory.md#amendment-55-result-2026-10-10",),
-        evidence_refs=(
-            EvidenceRef("research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json", "artifact",
-                        "Amendment 55: set-point and reference-median gates on the same stores, two cells, 20 brains"),
-        ),
-        sensitivity_checks=(SensitivityCheck(
-            artifact="research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/8400~170~10.52/comparator/setpoint",
-            control_path="observations/cells/8400~170~10.52/comparator/before",
-            relation="all-greater", minimum_effect=0.15,
-            mechanism="every brain's 100-use comparator store gains from set-point-gated sleep, at (8400, 70, 0.52) (Amendment 55)",
-        ), SensitivityCheck(
-            artifact="research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json",
-            sample_path="run/seeds",
-            treatment_path="observations/cells/11600~180~10.44/comparator/setpoint",
-            control_path="observations/cells/11600~180~10.44/comparator/before",
-            relation="all-greater", minimum_effect=0.2,
-            mechanism="the same at (11600, 80, 0.44) (Amendment 55)",
-        )),
-        caveat="The mechanism bar failed: at each cell one brain's healthy store dreamt just past its own "
-               "set point (by 0.16% and 0.01%) and the gate removed 5-7 healthy counts per million without "
-               "cost to replay. The 2% margin barely covers learning's rise in dream contrast, and a smoke "
-               "at n/k = 33 showed it reversed; the margin's dependence on n/k is unmeasured.",
-    ),
-    Result(
         id="ROBUST-SLEEP-THRESHOLD",
         engine="hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep",
         status=Status.MEASURED,

@@ -1,0 +1,10 @@
+equivalence: the written store loop reproduces store_sequence
+(8400, 70, 0.52) empty maxima 1.326-1.334; healthy maxima 1.343-1.356; healthy max / own set point 0.990-1.002; reference median threshold 1.374
+  healthy    before 1.000; median 1.000 (removed 0.0000, lowest 1.00); setpoint 1.000 (removed 0.0000, lowest 1.00)
+  standard   before 0.114; median 0.785 (removed 0.0352, lowest 0.60); setpoint 0.802 (removed 0.0440, lowest 0.61)
+  comparator before 0.446; median 0.673 (removed 0.0120, lowest 0.56); setpoint 0.722 (removed 0.0286, lowest 0.60)
+(11600, 80, 0.44) empty maxima 1.371-1.382; healthy maxima 1.390-1.401; healthy max / own set point 0.989-1.000; reference median threshold 1.421
+  healthy    before 1.000; median 1.000 (removed 0.0000, lowest 1.00); setpoint 1.000 (removed 0.0000, lowest 1.00)
+  standard   before 0.154; median 0.816 (removed 0.0292, lowest 0.66); setpoint 0.833 (removed 0.0374, lowest 0.68)
+  comparator before 0.240; median 0.671 (removed 0.0160, lowest 0.61); setpoint 0.717 (removed 0.0323, lowest 0.63)
+wrote C:\Github\assemblies-runs-20260930b\research\results\runs\memory.setpoint_sleep\setpoint-sleep-20261010\results.json

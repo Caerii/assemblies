@@ -28,6 +28,7 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 | [`LENGTH-COSTS-LOGARITHMICALLY`](#length-costs-logarithmically) | MEASURED | hashed AssemblyMemory, one store_sequence per sequence, refraction 0.5 beta recovering over tau = n/k / 2 rounds, beta = theta | The critical load of a sequence area depends on the length of what it holds, logarithmically: at equal total load, rho_50 falls through sequences of 16, 64, 256, 1024 elements and one of the whole load (~10^4) at both cells, linearly in ln l (0.0027 and 0.0032 per e-fold, no point 0.002 off the line, fitted after the run). |
 | [`TRANSITION-REPETITION-BREAKS-REPLAY`](#transition-repetition-breaks-replay) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element sequence, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | Inside the load law's safe budget (rho = 0.05), a token store loses word-level replay entirely -- every sequence, every brain, two cells -- once each transition (bigram) is stored about five times, whatever the words' frequency (10, 20 or 40 uses per word), while random successors at the same frequency keep 0.77 and 0.95 of sequences whole; repeated transitions also raise the overlap of a word's tokens (+0.05-0.06). |
 | [`REUSE-BUDGET-TWO-EDGES`](#reuse-budget-two-edges) | MEASURED | hashed AssemblyMemory, one store_sequence per 16-element walk, refraction 0.5 beta recovering over tau by the Amendment 41 rule, beta = theta | A token store's reuse budget has two edges, at a safe total load (rho = 0.05) and two new cells: a REPETITION edge -- word-level replay 1.00 at one repeat per transition, ~0.35-0.68 at 2.8, ~0 at 3.7 -- and a RECURRENCE edge -- with random successors, 1.00 at 10-20 uses per word, ~0.5 at 40, ~0-0.09 at 60, failing whole brains at a time. |
+| [`BIRTH-SETPOINT-GATES-SLEEP`](#birth-setpoint-gates-sleep) | MEASURED | hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep | Sleep's contrast gate needs no reference brains: each brain can fix it once, before it learns anything, at 1.02 x the largest contrast its own empty network's dreams reach. |
 | [`ROBUST-SLEEP-THRESHOLD`](#robust-sleep-threshold) | MEASURED | hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep | Sleep's contrast gate set from the MEDIAN over reference brains of each brain's maximum dream contrast (x 1.02), which fewer than half of them cannot move, is safe and reaches the bar the maximum missed: at two new cells healthy stores stay at 1.000 with nothing removed, and 100 uses per word written through the comparator replay at 0.66-0.71 (0.33-0.41 before sleep) with no brain collapsed, removing 1.3-1.4% of counts. |
 | [`REPETITION-EDGE-YIELDS-TO-LIFECYCLE`](#repetition-edge-yields-to-lifecycle) | MEASURED | hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep | Amendment 45's second reuse edge -- repeated transitions -- is the same disease as the first and yields to the same treatment. |
 | [`WRITE-SEPARATION-AND-SLEEP-COMPOSE`](#write-separation-and-sleep-compose) | MEASURED | hashed AssemblyMemory as Amendment 44; comparator store loop, then contrast-gated sleep | The local comparator at write (Amendment 50) and contrast-gated sleep (Amendment 51) compose and do more together than either alone. |
@@ -709,6 +710,30 @@ Rendered from `neural_assemblies/theory.py` by `python -m neural_assemblies.theo
 - every brain replays at 10 uses per word and none at 60, random successors, at (10000, 75, 0.48) (Amendment 45): `observations/cells/10000~175~10.48/arms/U10~1bV/word` all-greater `observations/cells/10000~175~10.48/arms/U60~1bV/word` by at least 0.5, retained in [research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json](../research/results/runs/memory.reuse-budget/reuse-budget-20261008/results.json) and paired by `run/seeds`.
 
 **Caveat.** The separable product form is approximate, not established (S2 failed by 0.006 at one arm). The recurrence failure is whole-brain collapse of unknown mechanism (not predicted by the draws' bigram statistics, Amendment 44). Edges measured at n/k 117-150 only; small vocabularies, 16-element walks.
+
+## BIRTH-SETPOINT-GATES-SLEEP
+
+**Status.** MEASURED. **Source.** PREREG_refraction_memory.md Amendment 55 (G1-G6 PASS; G7 FAIL)
+
+**Engine / substrate.** hashed AssemblyMemory as Amendment 44; standard and comparator store loops, then contrast-gated sleep
+
+**Claim.** Sleep's contrast gate needs no reference brains: each brain can fix it once, before it learns anything, at 1.02 x the largest contrast its own empty network's dreams reach. Learning a healthy store raises dream contrast by only 1.3-1.5%, so at two new cells (n/k 120 and 145) healthy stores keep 1.000 replay, a collapsed U = 50 store is repaired from 0.11-0.15 to 0.80-0.83 and a comparator U = 100 store reaches 0.72, no brain collapsed, at least as well as gates calibrated on twenty reference brains.
+
+**Requires.**
+- random-successor reuse at 50 and 100 uses per word, rho = 0.05, n/k 120-145
+- sleep 300 episodes; set point from 300 dreams of the brain's own empty network
+
+**Evidence.**
+- research/notes/memory/PREREG_refraction_memory.md#amendment-55-result-2026-10-10
+
+**Evidence files.**
+- [research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json](../research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json) (artifact) â€” Amendment 55: set-point and reference-median gates on the same stores, two cells, 20 brains
+
+**Mechanism sensitivity.**
+- every brain's 100-use comparator store gains from set-point-gated sleep, at (8400, 70, 0.52) (Amendment 55): `observations/cells/8400~170~10.52/comparator/setpoint` all-greater `observations/cells/8400~170~10.52/comparator/before` by at least 0.15, retained in [research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json](../research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json) and paired by `run/seeds`.
+- the same at (11600, 80, 0.44) (Amendment 55): `observations/cells/11600~180~10.44/comparator/setpoint` all-greater `observations/cells/11600~180~10.44/comparator/before` by at least 0.2, retained in [research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json](../research/results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json) and paired by `run/seeds`.
+
+**Caveat.** The mechanism bar failed: at each cell one brain's healthy store dreamt just past its own set point (by 0.16% and 0.01%) and the gate removed 5-7 healthy counts per million without cost to replay. The 2% margin barely covers learning's rise in dream contrast, and a smoke at n/k = 33 showed it reversed; the margin's dependence on n/k is unmeasured.
 
 ## ROBUST-SLEEP-THRESHOLD
 

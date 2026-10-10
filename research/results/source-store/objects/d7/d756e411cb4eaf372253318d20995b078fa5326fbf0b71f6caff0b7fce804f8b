@@ -846,13 +846,6 @@ decided it. Cells are (n, k); 20 brains unless stated.
 | R3 never worse (A54) | median >= max - 0.02 | PASS | +0.012, +0.016 |
 | R4 sparing (A54) | <= 2% of counts | PASS | 1.31%, 1.42% |
 | R5 no collapsed brains (A54) | <= 2 below 0.2 | PASS | 0, 0 |
-| G1 safe (A55) | healthy >= 0.99, <= 0.1% removed | PASS | 1.000, 1.000; <= 0.0007% |
-| G2 repair (A55) | set point U 50 >= 0.6 | PASS | 0.802, 0.833 |
-| G3 lifecycle reach (A55) | set point U 100 >= 0.45 | PASS | 0.722, 0.717 |
-| G4 as good as the reference (A55) | >= median - 0.05 | PASS | +0.02/+0.05, +0.02/+0.05 |
-| G5 no collapsed brains (A55) | <= 2 below 0.2 | PASS | 0, 0 |
-| G6 frugal (A55) | <= 10% at U 50, <= 5% at U 100 | PASS | 4.4%/2.9%, 3.7%/3.2% |
-| G7 the mechanism (A55) | every healthy brain below its set point | FAIL | 19/20, 19/20 |
 | CV instrument (A24) | (4000, 60, 0.5) within 15% of 1597 | PASS | 1613 |
 | F1 onset sharpens (A24) | sd non-rising (10%), sd(16000) <= 0.6 sd(2000) | FAIL | 0.0031-0.0041 theta, at the grid's resolution at every n |
 | F2 onset converges (A24) | means in [0.13, 0.21], 16000/8000 within 10% | PASS | 0.163-0.170; 1.029 |
@@ -7062,46 +7055,3 @@ with G1 passing, a set point gates a few healthy dreams without harm.
 * A failed bar is recorded as failed and not moved.
 
 The run is UNJUDGED until G1 to G7 are evaluated and recorded below.
-
-### Amendment 55 result (2026-10-10)
-
-One run from a worktree pinned at 09484299, subject seeds 1080 to 1099,
-reference brains 1100 to 1119:
-[record](../../results/runs/memory.setpoint_sleep/setpoint-sleep-20261010/results.json),
-[log](../../results/logs/memory-setpoint-sleep-20261010.log). The written store
-loop reproduced store_sequence. Empty-network brain maxima 1.326-1.334 at
-(8400, 70, 0.52) and 1.371-1.382 at (11600, 80, 0.44); healthy-store maxima
-1.343-1.356 and 1.390-1.401; each brain's healthy maximum over its own set
-point 0.990-1.002 and 0.989-1.000 (the largest 1.0016 and 1.0001). Replay
-under the reference median (Amendment 54) / the set point (counts removed by
-the set point):
-
-                          before   median   set point
-    (8400, 70, 0.52)
-      healthy U = 10      1.000    1.000    1.000   (0.0005%)
-      standard U = 50     0.114    0.785    0.802   (4.4%)
-      comparator U = 100  0.446    0.673    0.722   (2.9%)
-    (11600, 80, 0.44)
-      healthy U = 10      1.000    1.000    1.000   (0.0007%)
-      standard U = 50     0.154    0.816    0.833   (3.7%)
-      comparator U = 100  0.240    0.671    0.717   (3.2%)
-
-    G1  SAFE                      PASS  1.000, 1.000; <= 0.0007% removed
-    G2  REPAIR                    PASS  0.802, 0.833
-    G3  LIFECYCLE REACH           PASS  0.722, 0.717
-    G4  AS GOOD AS THE REFERENCE  PASS  +0.02 / +0.05, +0.02 / +0.05
-    G5  NO COLLAPSED BRAINS       PASS  0 at every arm (lowest 0.60-0.68)
-    G6  FRUGAL                    PASS  4.4% / 2.9%, 3.7% / 3.2%
-    G7  THE MECHANISM             FAIL  19 of 20 brains below their set point at each cell
-
-**Reading.** A gate each brain fixes before learning, from its own empty
-network's dreams, is safe in practice and repairs at least as well as twenty
-reference brains: a collapsed U = 50 store goes from 0.11-0.15 to 0.80-0.83 and
-a comparator U = 100 store from 0.24-0.45 to 0.72, no brain collapsed, healthy
-stores untouched in replay. Its mechanism bar fails: at each cell one brain's
-healthy store dreams just past its own set point (by 0.16% and 0.01%), and
-the set point then removes a few healthy counts (5-7 per million) without
-cost. Learning raises dream contrast by 1.3-1.5%, close to the 2% margin, so
-the separation is not guaranteed; G7 failed as the risk stated, and the reading
-registered for it applies: a margin that grows as n/k falls is the measurement
-for a later amendment.

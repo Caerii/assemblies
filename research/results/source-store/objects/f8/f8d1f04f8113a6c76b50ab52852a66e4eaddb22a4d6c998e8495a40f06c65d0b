@@ -243,8 +243,6 @@ class TestTheoryCitations(unittest.TestCase):
             "REPETITION-EDGE-YIELDS-TO-LIFECYCLE",
             # 2026-10-10: every 100-use brain gains from median-gated sleep (A54)
             "ROBUST-SLEEP-THRESHOLD",
-            # 2026-10-10: every 100-use brain gains from set-point-gated sleep (A55)
-            "BIRTH-SETPOINT-GATES-SLEEP",
         })
 
     def test_all_retained_sensitivities_fail_their_constructed_true_negative(self):
