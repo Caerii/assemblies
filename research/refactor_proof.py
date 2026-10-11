@@ -16,7 +16,9 @@ name (and every method and property of a class defined there) the snapshot recor
 
     a constant       its repr; containers element-wise; the root's own path replaced by <ROOT>
     a module         its name
-    a class          where it is defined
+    a class          where it is defined; and each of its methods and properties --
+                     its own, and those of bases under --follow, resolved as the class
+                     resolves them, so a method moved into a mixin keeps its entry
     a function       its IDENTITY: the hash of its body -- docstring and name removed -- with every
                      global it reads (a bare name, alias.attr, or a name a function-local import
                      binds) replaced by what that resolves to: constants by repr, modules by name,
@@ -134,7 +136,13 @@ class Meaning:
                 continue
             entry[k] = self.token(v)
             if isinstance(v, type) and v.__module__ == mod.__name__:
-                for mk, mv in sorted(vars(v).items()):
+                # every member the class resolves, its own or a followed base's: a method moved
+                # into a mixin keeps its key and, computing the same, its identity
+                members = {}
+                for base in reversed(v.__mro__):
+                    if base is v or (base.__module__ or "").startswith(self.follow):
+                        members.update(vars(base))
+                for mk, mv in sorted(members.items()):
                     if isinstance(mv, types.FunctionType):
                         entry[f"{k}.{mk}"] = "fn:" + self.identity(mv)
                     elif isinstance(mv, (staticmethod, classmethod)) and isinstance(mv.__func__, types.FunctionType):

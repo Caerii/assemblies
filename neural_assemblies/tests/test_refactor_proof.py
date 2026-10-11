@@ -50,6 +50,21 @@ def test_a_pure_move_changes_no_meaning(tmp_path):
     assert before["proofpkg.b"]["h"] == after["proofpkg.b"]["h"]       # local import moved, same object
 
 
+def test_a_method_moved_into_a_mixin_keeps_its_entry(tmp_path):
+    cls = ("W = 2.0\n\n\nclass Engine:\n    def step(self, x):\n        return self.scale(x) * W\n\n"
+           "    def scale(self, x):\n        return x + 1\n")
+    before = _snap(tmp_path, "before", {"engine.py": cls})
+    mixed = {"_steps.py": "W = 2.0\n\n\nclass Steps:\n    def step(self, x):\n        return self.scale(x) * W\n",
+             "engine.py": "from proofpkg._steps import Steps\n\n\nclass Engine(Steps):\n"
+                          "    def scale(self, x):\n        return x + 1\n"}
+    after = _snap(tmp_path, "after", mixed)
+    assert after["proofpkg.engine"]["Engine.step"] == before["proofpkg.engine"]["Engine.step"]
+    assert after["proofpkg.engine"]["Engine.scale"] == before["proofpkg.engine"]["Engine.scale"]
+    broken = dict(mixed, **{"_steps.py": mixed["_steps.py"].replace("* W", "* W * 2")})
+    worse = _snap(tmp_path, "broken", broken)
+    assert worse["proofpkg.engine"]["Engine.step"] != before["proofpkg.engine"]["Engine.step"]
+
+
 def test_a_move_that_changes_a_value_is_caught(tmp_path):
     before = _snap(tmp_path, "before", BEFORE)
     broken = dict(MOVED, **{"lib.py": MOVED["lib.py"].replace("W = 20.0", "W = 20.5")})

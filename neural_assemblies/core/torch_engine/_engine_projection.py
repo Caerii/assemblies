@@ -2,8 +2,9 @@
 area (project_into), the Hebbian update w *= (1 + beta) clipped at w_max, and homeostatic
 synaptic scaling of area-to-area fibers.
 
-A mixin of TorchSparseEngine (_engine.py), which owns the state these methods read;
-the methods were moved out of _engine.py unchanged."""
+A mixin of TorchSparseEngine (_engine.py), which owns the state these methods read.
+project_into is a sequence of phases over a _ProjectionRound, the same phases as the
+numpy engine's."""
 import numpy as np
 from typing import Any, cast
 
@@ -26,6 +27,44 @@ except ImportError:
     from compute.winner_policies import TopKPolicy
 
 
+class _ProjectionRound:
+    """What the phases of one TorchSparseEngine.project_into hand each other.
+
+    The call's arguments, then, in the order the phases set them:
+
+        tgt                       the target area's state
+        rng                       the round's generator, drawn from the engine's
+        empty_fibers              area fibers with no synapses yet: grown after the round
+        prev_winner_inputs        the drive of every materialized neuron
+        input_sizes, src_pops     per fiber: the active inputs it prices, its population
+        all_inputs                the drive of the materialized neurons and the sampled
+                                  candidates: the vector k-WTA ranks
+        _pre_kwta_snapshot, _pre_kwta_total_val, _raw_prev_t
+                                  the activation snapshots a recording round takes
+        winners_gpu, k            the winners (positions in all_inputs) and their number
+        num_first, first_winner_inputs_cpu, new_w
+                                  the recruits, their sampled inputs, the area's new size
+        new_winner_indices, remapped_gpu
+                                  the winners as neuron indices (host and device)
+
+    A field read before any phase set it raises AttributeError, where the single
+    function the phases were cut from raised UnboundLocalError."""
+
+    __slots__ = ("target", "from_stimuli", "from_areas", "plasticity_enabled",
+                 "record_activation", "tgt", "rng", "empty_fibers", "prev_winner_inputs",
+                 "input_sizes", "src_pops", "all_inputs", "_pre_kwta_snapshot",
+                 "_pre_kwta_total_val", "_raw_prev_t", "winners_gpu", "k", "num_first",
+                 "first_winner_inputs_cpu", "new_w", "new_winner_indices", "remapped_gpu")
+
+    def __init__(self, *, target, from_stimuli, from_areas, plasticity_enabled,
+                 record_activation):
+        self.target = target
+        self.from_stimuli = from_stimuli
+        self.from_areas = from_areas
+        self.plasticity_enabled = plasticity_enabled
+        self.record_activation = record_activation
+
+
 class ProjectionMixin:
     """One projection round, its Hebbian update and synaptic scaling."""
 
@@ -33,13 +72,58 @@ class ProjectionMixin:
 
     def project_into(self, target, from_stimuli, from_areas,
                      plasticity_enabled=True, record_activation=False):
-        tgt = self._areas[target]
-        self.validate_probe_target(target)
-        rng = np.random.default_rng(self._rng.integers(0, 2**32))
+        """One round of projection into ``target``: drive, k-WTA, learning.
+
+        The phases, in order (each a method below; the state they hand each other is
+        a _ProjectionRound; the numpy engine's project_into has the same phases, and a
+        compiled-topology one this engine lacks):
+
+            _project_admit        the round's generator, live sources
+            _project_fixed        a fixed target: winners kept, afferents learn  -> result
+            _project_no_inputs    nothing projects: the assembly is kept         -> result
+            _project_drive        the drive of every materialized neuron
+                                  (an explicit dense source bootstraps instead)  -> result
+            _project_zero_signal  no drive: kept, or noise picks the winners     -> result
+            _project_candidates   the never-fired neurons' best sampled inputs
+            _project_penalties    LRI and refracted bias; recording snapshots
+            _project_select       k-WTA
+            _project_recruit      first-time winners become neurons
+            _project_learn        the Hebbian update; synapses for the recruits
+            _project_commit       winners, LRI history and bias become the area's state
+            _project_result       total drive, the result
+
+        A phase marked -> result may end the round early with its result.
+        """
+        proj = _ProjectionRound(target=target, from_stimuli=from_stimuli, from_areas=from_areas,
+                                plasticity_enabled=plasticity_enabled,
+                                record_activation=record_activation)
+        self._project_admit(proj)
+        if (out := self._project_fixed(proj)) is not None:
+            return out
+        if (out := self._project_no_inputs(proj)) is not None:
+            return out
+        if (out := self._project_drive(proj)) is not None:
+            return out
+        if (out := self._project_zero_signal(proj)) is not None:
+            return out
+        self._project_candidates(proj)
+        self._project_penalties(proj)
+        self._project_select(proj)
+        self._project_recruit(proj)
+        self._project_learn(proj)
+        self._project_commit(proj)
+        return self._project_result(proj)
+
+    def _project_admit(self, proj):
+        """Admit the round: the target's state, the round's generator, and the source areas that
+        have an assembly."""
+        proj.tgt = self._areas[proj.target]
+        self.validate_probe_target(proj.target)
+        proj.rng = np.random.default_rng(self._rng.integers(0, 2**32))
 
         # Filter sourceless areas
-        from_areas = [
-            a for a in from_areas
+        proj.from_areas = [
+            a for a in proj.from_areas
             if self._areas[a].winners.numel() > 0
             and (
                 self._areas[a].w > 0
@@ -47,6 +131,10 @@ class ProjectionMixin:
             )
         ]
 
+    def _project_fixed(self, proj):
+        """A FIXED target keeps its winners; its afferents still learn onto them (the reference's
+        semantics), after the fibers grow to the current sizes. Returns the round's
+        result, or None for an area that is not fixed."""
         # Fixed assembly -- the winners do not move, but the AFFERENTS learn.
         # This used to be a bare short-circuit (inputs discarded, no
         # plasticity), the exact footgun the numpy engine already fixed: a
@@ -56,63 +144,70 @@ class ProjectionMixin:
         # and the demand never came -- so every step read state 0. See
         # NumpySparseEngine.project_into's fixed-target branch for the
         # history and `_fixed_target_plasticity_enabled` for the A/B gate.
-        if tgt.fixed_assembly:
-            learn = (plasticity_enabled and (from_stimuli or from_areas)
+        if proj.tgt.fixed_assembly:
+            learn = (proj.plasticity_enabled and (proj.from_stimuli or proj.from_areas)
                      and _np_fixed_target_plasticity_enabled())
             if learn:
                 # Size any never-used source block FIRST -- a multiplicative
                 # `w *= 1 + beta` cannot touch entries that do not exist, and
                 # `hebbian_update` no-ops on an empty CSR.
-                for src_name in from_areas:
-                    csr = self._maybe_densify(src_name, target)
+                for src_name in proj.from_areas:
+                    csr = self._maybe_densify(src_name, proj.target)
                     src = self._areas[src_name]
-                    if int(src.w) > 0 and int(tgt.w) > 0:
+                    if int(src.w) > 0 and int(proj.tgt.w) > 0:
                         r, c, v = self._hash_grow_parts(
-                            csr, self._get_pair_seed(src_name, target),
-                            self._p_for(src_name, target),
+                            csr, self._get_pair_seed(src_name, proj.target),
+                            self._p_for(src_name, proj.target),
                             max(int(src.w), csr._log_rows),
-                            max(int(tgt.w), csr._log_cols))
+                            max(int(proj.tgt.w), csr._log_cols))
                         if r:
                             csr.expand(csr._log_rows, csr._log_cols,
                                        torch_ops.cat(r), torch_ops.cat(c),
                                        torch_ops.cat(v))
                 self._apply_plasticity(
-                    target, from_stimuli, from_areas, tgt.winners)
+                    proj.target, proj.from_stimuli, proj.from_areas, proj.tgt.winners)
             return ProjectionResult(
-                winners=tgt.winners.cpu().numpy().astype(np.uint32),
+                winners=proj.tgt.winners.cpu().numpy().astype(np.uint32),
                 num_first_winners=0,
-                num_ever_fired=tgt.w)
+                num_ever_fired=proj.tgt.w)
 
+    def _project_no_inputs(self, proj):
+        """With no inputs the assembly is kept. Returns the result, or None when there are inputs."""
         # No inputs
-        if not from_stimuli and not from_areas:
+        if not proj.from_stimuli and not proj.from_areas:
             return ProjectionResult(
-                winners=tgt.winners.cpu().numpy().astype(np.uint32),
+                winners=proj.tgt.winners.cpu().numpy().astype(np.uint32),
                 num_first_winners=0,
-                num_ever_fired=tgt.w)
+                num_ever_fired=proj.tgt.w)
 
+    def _project_drive(self, proj):
+        """The drive every materialized neuron receives from the inputs' current winners: stimulus
+        fibers, then area fibers (explicit dense sources, CSR fibers; empty fibers
+        noted). An explicit dense source into an empty target bootstraps instead, and
+        returns its result."""
         # --- Accumulate inputs from previous winners ---
-        prev_winner_inputs = torch_ops.zeros(
-            tgt.w, dtype=torch_ops.float32, device=self._device)
+        proj.prev_winner_inputs = torch_ops.zeros(
+            proj.tgt.w, dtype=torch_ops.float32, device=self._device)
         explicit_dense_act = None
-        empty_fibers = []
+        proj.empty_fibers = []
 
-        limit = tgt.w
-        for stim in from_stimuli:
-            stim_conn = self._stim_conns[stim][target]
+        limit = proj.tgt.w
+        for stim in proj.from_stimuli:
+            stim_conn = self._stim_conns[stim][proj.target]
             stim_w = stim_conn.weights
             end = min(limit, len(stim_w))
             if end > 0:
                 contrib = stim_w[:end].float()
                 if self.norm_init:
                     nscale = self._norm_scale_stim(
-                        stim_conn, tgt.n, self._stimuli[stim].size, end)
+                        stim_conn, proj.tgt.n, self._stimuli[stim].size, end)
                     if nscale is not None:
                         contrib = contrib * nscale[:end]
-                prev_winner_inputs[:end] += contrib
+                proj.prev_winner_inputs[:end] += contrib
 
-        for src_name in from_areas:
+        for src_name in proj.from_areas:
             src = self._areas[src_name]
-            dense_conn = self._dense_area_conns.get(src_name, {}).get(target)
+            dense_conn = self._dense_area_conns.get(src_name, {}).get(proj.target)
             if dense_conn is not None and getattr(src, "explicit_source", False):
                 w = self._dense_weights(dense_conn)
                 valid = src.winners.long()
@@ -128,7 +223,7 @@ class ProjectionMixin:
                 enorm = None
                 if self.norm_init:
                     enorm = self._norm_scale_dense(w, src.n, int(w.shape[1]))
-                if tgt.w == 0:
+                if proj.tgt.w == 0:
                     contrib = w[valid].sum(dim=0)
                     if enorm is not None:
                         contrib = contrib * enorm[:len(contrib)]
@@ -137,9 +232,9 @@ class ProjectionMixin:
                     else:
                         explicit_dense_act += contrib
                     continue
-                if tgt.compact_to_neuron_id:
+                if proj.tgt.compact_to_neuron_id:
                     id_t = torch_ops.tensor(
-                        tgt.compact_to_neuron_id,
+                        proj.tgt.compact_to_neuron_id,
                         dtype=torch_ops.long,
                         device=self._device,
                     )
@@ -150,10 +245,10 @@ class ProjectionMixin:
                             contrib = contrib * enorm[valid_cols]
                         end = min(limit, len(contrib))
                         if end > 0:
-                            prev_winner_inputs[:end] += contrib[:end]
+                            proj.prev_winner_inputs[:end] += contrib[:end]
                 continue
 
-            csr = self._area_conns[src_name][target]
+            csr = self._area_conns[src_name][proj.target]
             if csr.nnz == 0:
                 # An unmaterialised fiber delivers zero drive. That is FINE as
                 # a transient -- a self-fiber is empty for the one round before
@@ -162,7 +257,7 @@ class ProjectionMixin:
                 # `_expand_connectomes` never runs, so the fiber stays empty
                 # forever. Handled at the zero-signal branch below, which is
                 # exactly the condition that separates the two.
-                empty_fibers.append((src_name, csr))
+                proj.empty_fibers.append((src_name, csr))
                 continue
             contrib = csr.accumulate_rows(src.winners.long(), limit)
             end = min(limit, len(contrib))
@@ -177,25 +272,29 @@ class ProjectionMixin:
                         m = min(end, int(nscale.numel()))
                         contrib = contrib.clone()
                         contrib[:m] = contrib[:m] * nscale[:m]
-                prev_winner_inputs[:end] += contrib
+                proj.prev_winner_inputs[:end] += contrib
 
-        if explicit_dense_act is not None and tgt.w == 0:
+        if explicit_dense_act is not None and proj.tgt.w == 0:
             return self._bootstrap_from_explicit_dense(
-                target,
+                proj.target,
                 explicit_dense_act,
-                from_stimuli,
-                from_areas,
-                plasticity_enabled=plasticity_enabled,
-                rng=rng,
-                record_activation=record_activation,
+                proj.from_stimuli,
+                proj.from_areas,
+                plasticity_enabled=proj.plasticity_enabled,
+                rng=proj.rng,
+                record_activation=proj.record_activation,
             )
 
+    def _project_zero_signal(self, proj):
+        """No drive at all: the empty fibers are grown and the assembly is preserved (or, with
+        input noise, noise alone picks the winners). Returns the result, or None when
+        there is signal."""
         # Zero signal — preserve current assembly
         # Specification: neural_assemblies/ir/VERIFICATION.md#contract-noise-only-observation
-        zero_signal = prev_winner_inputs.numel() > 0 and not prev_winner_inputs.any()
-        if zero_signal and tgt.input_noise_std > 0 and tgt.w < tgt.n:
+        zero_signal = proj.prev_winner_inputs.numel() > 0 and not proj.prev_winner_inputs.any()
+        if zero_signal and proj.tgt.input_noise_std > 0 and proj.tgt.w < proj.tgt.n:
             raise ValueError('noise-only projection requires a fully materialized population')
-        if zero_signal and tgt.input_noise_std == 0:
+        if zero_signal and proj.tgt.input_noise_std == 0:
             # UNLESS the silence is a DEAD FIBER rather than a quiet source.
             # Driving a converged target from a SECOND source left that
             # fiber at nrows=0 ncols=0 nnz=0 for every round while numpy grew
@@ -211,11 +310,11 @@ class ProjectionMixin:
             # never reaches this branch and its construction order is left
             # alone. Same defect the fixed-assembly branch above already fixes.
             grew = False
-            for src_name, csr in empty_fibers:
+            for src_name, csr in proj.empty_fibers:
                 src = self._areas[src_name]
-                if int(src.w) <= 0 or int(tgt.w) <= 0:
+                if int(src.w) <= 0 or int(proj.tgt.w) <= 0:
                     continue
-                if src_name == target:
+                if src_name == proj.target:
                     # A SELF-fiber that is silent means the area has nothing
                     # to say to itself yet; seeding it mid-run replaces the
                     # assembly with a fresh random draw, measured at stability
@@ -224,10 +323,10 @@ class ProjectionMixin:
                     # ANOTHER area, which no other input will ever build.
                     continue
                 r, c, v = self._hash_grow_parts(
-                    csr, self._get_pair_seed(src_name, target),
-                    self._p_for(src_name, target),
+                    csr, self._get_pair_seed(src_name, proj.target),
+                    self._p_for(src_name, proj.target),
                     max(int(src.w), csr._log_rows),
-                    max(int(tgt.w), csr._log_cols))
+                    max(int(proj.tgt.w), csr._log_cols))
                 if r:
                     csr.expand(csr._log_rows, csr._log_cols,
                                torch_ops.cat(r), torch_ops.cat(c), torch_ops.cat(v))
@@ -235,34 +334,38 @@ class ProjectionMixin:
             if grew:
                 # Once: the fibers are non-empty now, so this cannot recur.
                 return self.project_into(
-                    target, from_stimuli, from_areas,
-                    plasticity_enabled=plasticity_enabled,
-                    record_activation=record_activation)
+                    proj.target, proj.from_stimuli, proj.from_areas,
+                    plasticity_enabled=proj.plasticity_enabled,
+                    record_activation=proj.record_activation)
             result = ProjectionResult(
-                winners=tgt.winners.cpu().numpy().astype(np.uint32),
+                winners=proj.tgt.winners.cpu().numpy().astype(np.uint32),
                 num_first_winners=0,
-                num_ever_fired=tgt.w)
-            if record_activation:
+                num_ever_fired=proj.tgt.w)
+            if proj.record_activation:
                 # Every existing candidate summed to exactly zero: a measured
                 # zero over those candidates, not a missing observation.
-                result.record_zero_signal(int(prev_winner_inputs.numel()))
+                result.record_zero_signal(int(proj.prev_winner_inputs.numel()))
             return result
 
+    def _project_candidates(self, proj):
+        """The best inputs the never-fired neurons could receive, sampled as order statistics of
+        each fiber's truncated-normal tail (or i.i.d. under dense drive) and appended to
+        the drive: all_inputs, the vector k-WTA ranks."""
         # --- Sample new winner candidates via truncated normal ---
-        input_sizes = (
-            [self._stimuli[s].size for s in from_stimuli]
+        proj.input_sizes = (
+            [self._stimuli[s].size for s in proj.from_stimuli]
             + [area_fiber_activity(int(self._areas[a].winners.numel()),
                                    self._areas[a].k, self.norm_init)
-               for a in from_areas])
+               for a in proj.from_areas])
         # Presynaptic POPULATION per fiber, parallel to input_sizes. Used only
         # to price candidates on the incumbent scale -- see
         # `core._pricing.candidate_divisor`. Stimulus fibers use the target's
         # own n, matching the convention in `inverse_indegree`.
-        src_pops = (
-            [tgt.n for _ in from_stimuli]
-            + [self._areas[a].n for a in from_areas])
+        proj.src_pops = (
+            [proj.tgt.n for _ in proj.from_stimuli]
+            + [self._areas[a].n for a in proj.from_areas])
 
-        if self.readonly or (self._no_recruitment and tgt.w >= tgt.k):
+        if self.readonly or (self._no_recruitment and proj.tgt.w >= proj.tgt.k):
             # No new candidates -> topk selects only among materialized neurons,
             # so the projection never grows the area (deterministic inference).
             # The second arm is `brain.read_only()` / `probe()`: same
@@ -282,27 +385,27 @@ class ProjectionMixin:
                     "brain has per-fiber densities (add_connectivity). "
                     "Refusing rather than sampling with the wrong statistics.")
             potential_new = self._sample_dense_candidates(
-                input_sizes, tgt.n - tgt.w, rng)
+                proj.input_sizes, proj.tgt.n - proj.tgt.w, proj.rng)
         elif self._gpu_sampling and not self.heterogeneous():
             potential_new = self._sample_truncated_normal_gpu(
-                input_sizes, tgt.n, tgt.w, tgt.k, self.p, rng)
+                proj.input_sizes, proj.tgt.n, proj.tgt.w, proj.tgt.k, self.p, proj.rng)
         else:
             # Heterogeneous brains take the SHARED CPU sampler: it already
             # carries the per-fiber law (Poisson-binomial moment-matched by
             # `_pricing.effective_binomial` -- see NumpySparseEngine.
             # add_connectivity), and candidates are O(k), so there is no law
             # duplicated on the GPU and nothing material lost off it.
-            input_ps = ([self._p_for(s, target) for s in from_stimuli]
-                        + [self._p_for(a, target) for a in from_areas]
+            input_ps = ([self._p_for(s, proj.target) for s in proj.from_stimuli]
+                        + [self._p_for(a, proj.target) for a in proj.from_areas]
                         ) if self.heterogeneous() else self.p
             old_rng = self._sparse_sim.rng
-            self._sparse_sim.rng = rng
+            self._sparse_sim.rng = proj.rng
             if self._deterministic:
                 potential_new_np = self._sparse_sim.sample_new_winner_inputs_legacy(
-                    input_sizes, tgt.n, tgt.w, tgt.k, input_ps)
+                    proj.input_sizes, proj.tgt.n, proj.tgt.w, proj.tgt.k, input_ps)
             else:
                 potential_new_np = self._sparse_sim.sample_new_winner_inputs(
-                    input_sizes, tgt.n, tgt.w, tgt.k, input_ps)
+                    proj.input_sizes, proj.tgt.n, proj.tgt.w, proj.tgt.k, input_ps)
             self._sparse_sim.rng = old_rng
             if hasattr(potential_new_np, 'get'):
                 potential_new_np = cast(Any, potential_new_np).get()
@@ -315,32 +418,36 @@ class ProjectionMixin:
         # weights and the sampler stay unit-scale (see _norm_candidate_divisor).
         if self.norm_init:
             potential_new = potential_new / self._norm_candidate_divisor(
-                tgt.n, input_sizes, src_pops)
+                proj.tgt.n, proj.input_sizes, proj.src_pops)
 
-        if prev_winner_inputs.numel() > 0:
-            all_inputs = torch_ops.cat([prev_winner_inputs, potential_new])
+        if proj.prev_winner_inputs.numel() > 0:
+            proj.all_inputs = torch_ops.cat([proj.prev_winner_inputs, potential_new])
         else:
-            all_inputs = potential_new
+            proj.all_inputs = potential_new
 
+    def _project_penalties(self, proj):
+        """What the drive owes the area's history before ranking: the LRI penalty on recently fired
+        neurons and the refracted cumulative bias; the activation snapshots a recording
+        round takes."""
         # --- Snapshot raw prev_winner_inputs before penalties ---
-        _raw_prev_t = None
-        _pre_kwta_snapshot = None
-        _pre_kwta_total_val = None
-        if record_activation:
-            _raw_prev_t = prev_winner_inputs.clone()
+        proj._raw_prev_t = None
+        proj._pre_kwta_snapshot = None
+        proj._pre_kwta_total_val = None
+        if proj.record_activation:
+            proj._raw_prev_t = proj.prev_winner_inputs.clone()
 
         # --- LRI: penalise recently-fired neurons ---
-        if (tgt.refractory_period > 0
-                and tgt.inhibition_strength > 0
-                and len(tgt._refractory_history) > 0):
+        if (proj.tgt.refractory_period > 0
+                and proj.tgt.inhibition_strength > 0
+                and len(proj.tgt._refractory_history) > 0):
             pen_indices = []
             pen_values = []
-            n_inputs = len(all_inputs)
+            n_inputs = len(proj.all_inputs)
             for steps_ago_idx, winner_set in enumerate(
-                    reversed(list(tgt._refractory_history))):
+                    reversed(list(proj.tgt._refractory_history))):
                 steps_ago = steps_ago_idx + 1
-                decay = 1.0 - (steps_ago - 1) / tgt.refractory_period
-                penalty = tgt.inhibition_strength * decay
+                decay = 1.0 - (steps_ago - 1) / proj.tgt.refractory_period
+                penalty = proj.tgt.inhibition_strength * decay
                 for cidx in winner_set:
                     if cidx < n_inputs:
                         pen_indices.append(cidx)
@@ -350,24 +457,26 @@ class ProjectionMixin:
                                      device=self._device)
                 val_t = torch_ops.tensor(pen_values, dtype=torch_ops.float32,
                                      device=self._device)
-                all_inputs.scatter_add_(
+                proj.all_inputs.scatter_add_(
                     0, idx_t, -val_t)
 
         # --- Refracted mode: cumulative bias penalty ---
-        if tgt.refracted and tgt._cumulative_bias is not None:
-            bias = tgt._cumulative_bias
-            end = min(len(bias), len(all_inputs))
+        if proj.tgt.refracted and proj.tgt._cumulative_bias is not None:
+            bias = proj.tgt._cumulative_bias
+            end = min(len(bias), len(proj.all_inputs))
             if end > 0:
-                all_inputs[:end] -= bias[:end]
+                proj.all_inputs[:end] -= bias[:end]
 
         # --- Snapshot full all_inputs before top-k ---
-        if record_activation:
-            _pre_kwta_snapshot = all_inputs.detach().cpu().numpy().astype(
+        if proj.record_activation:
+            proj._pre_kwta_snapshot = proj.all_inputs.detach().cpu().numpy().astype(
                 np.float32).copy()
-            _pre_kwta_total_val = float(all_inputs.sum().item())
+            proj._pre_kwta_total_val = float(proj.all_inputs.sum().item())
 
+    def _project_select(self, proj):
+        """k-WTA: the winners, by the area's competition policy or the default top-k."""
         # --- Select winners (policy-aware or default top-k) ---
-        policy = tgt.winner_policy or TopKPolicy(k=tgt.k)
+        policy = proj.tgt.winner_policy or TopKPolicy(k=proj.tgt.k)
         # On-device fast path for the default top-k policy: run torch_ops.topk on
         # the GPU-resident drive vector so it never crosses to host, then bring
         # back only the k selected indices for compact-id bookkeeping. The CPU
@@ -375,28 +484,31 @@ class ProjectionMixin:
         # argpartition every round -- measured 55-159x slower at large W. Custom
         # policies (threshold / e-percent / slotted) and additive input noise
         # keep the CPU path, which owns those semantics.
-        if isinstance(policy, TopKPolicy) and tgt.input_noise_std == 0.0:
-            k_sel = min(int(policy.k), int(all_inputs.numel()))
-            _, sel = torch_ops.topk(all_inputs, k_sel, sorted=True)
-            winners_gpu = sel.to(torch_ops.int32)
+        if isinstance(policy, TopKPolicy) and proj.tgt.input_noise_std == 0.0:
+            k_sel = min(int(policy.k), int(proj.all_inputs.numel()))
+            _, sel = torch_ops.topk(proj.all_inputs, k_sel, sorted=True)
+            proj.winners_gpu = sel.to(torch_ops.int32)
         else:
-            inputs_cpu = all_inputs.detach().cpu().numpy().astype(np.float64)
-            if tgt.input_noise_std > 0:
-                inputs_cpu = inputs_cpu + rng.normal(
-                    0.0, tgt.input_noise_std, size=inputs_cpu.shape,
+            inputs_cpu = proj.all_inputs.detach().cpu().numpy().astype(np.float64)
+            if proj.tgt.input_noise_std > 0:
+                inputs_cpu = inputs_cpu + proj.rng.normal(
+                    0.0, proj.tgt.input_noise_std, size=inputs_cpu.shape,
                 )
             winner_indices = self._winner_sel.select_with_policy(
                 inputs_cpu, policy)
-            winners_gpu = torch_ops.tensor(
+            proj.winners_gpu = torch_ops.tensor(
                 [int(i) for i in winner_indices],
                 dtype=torch_ops.int32,
                 device=self._device,
             )
-        k = int(winners_gpu.numel())
+        proj.k = int(proj.winners_gpu.numel())
 
+    def _project_recruit(self, proj):
+        """Winners that never fired before become neurons: each takes the next index, and the
+        winners are remapped to their indices."""
         # --- Process first-time winners ---
-        first_mask = winners_gpu.long() >= tgt.w
-        first_input_vals = all_inputs[winners_gpu[first_mask].long()]
+        first_mask = proj.winners_gpu.long() >= proj.tgt.w
+        first_input_vals = proj.all_inputs[proj.winners_gpu[first_mask].long()]
         if self.norm_init and first_input_vals.numel() > 0:
             # New winners are sampled candidates, so their drive was divided by
             # the candidate divisor above. Connectome expansion splits an INTEGER
@@ -407,89 +519,96 @@ class ProjectionMixin:
             # asymmetric and the recovered synapse count is wrong.
             first_input_vals = (
                 first_input_vals * self._norm_candidate_divisor(
-                    tgt.n, input_sizes, src_pops))
+                    proj.tgt.n, proj.input_sizes, proj.src_pops))
 
-        winners_cpu = winners_gpu.cpu().tolist()
+        winners_cpu = proj.winners_gpu.cpu().tolist()
         first_inputs_cpu = (first_input_vals.cpu().tolist()
                             if first_input_vals.numel() > 0 else [])
 
-        num_first = 0
-        first_winner_inputs_cpu = []
-        new_winner_indices = list(winners_cpu)
+        proj.num_first = 0
+        proj.first_winner_inputs_cpu = []
+        proj.new_winner_indices = list(winners_cpu)
         first_idx = 0
 
-        for i in range(k):
-            if new_winner_indices[i] >= tgt.w:
-                first_winner_inputs_cpu.append(
+        for i in range(proj.k):
+            if proj.new_winner_indices[i] >= proj.tgt.w:
+                proj.first_winner_inputs_cpu.append(
                     int(first_inputs_cpu[first_idx]))
                 first_idx += 1
-                actual_id = tgt.next_neuron_id()
-                tgt.compact_to_neuron_id.append(actual_id)
-                new_winner_indices[i] = tgt.w + num_first
-                num_first += 1
+                actual_id = proj.tgt.next_neuron_id()
+                proj.tgt.compact_to_neuron_id.append(actual_id)
+                proj.new_winner_indices[i] = proj.tgt.w + proj.num_first
+                proj.num_first += 1
 
-        new_w = tgt.w + num_first
-        remapped_gpu = torch_ops.tensor(
-            new_winner_indices, dtype=torch_ops.int32, device=self._device)
+        proj.new_w = proj.tgt.w + proj.num_first
+        proj.remapped_gpu = torch_ops.tensor(
+            proj.new_winner_indices, dtype=torch_ops.int32, device=self._device)
 
+    def _project_learn(self, proj):
+        """Learning: the Hebbian update onto the winners, then synapses for the recruits."""
         # --- Apply plasticity ---
-        if plasticity_enabled and self._plasticity_enabled_global:
+        if proj.plasticity_enabled and self._plasticity_enabled_global:
             self._apply_plasticity(
-                target, from_stimuli, from_areas, remapped_gpu)
+                proj.target, proj.from_stimuli, proj.from_areas, proj.remapped_gpu)
 
         # --- Expand connectomes for new winners ---
-        if num_first > 0:
+        if proj.num_first > 0:
             self._expand_connectomes(
-                target, from_stimuli, from_areas,
-                input_sizes, new_winner_indices,
-                first_winner_inputs_cpu, new_w)
+                proj.target, proj.from_stimuli, proj.from_areas,
+                proj.input_sizes, proj.new_winner_indices,
+                proj.first_winner_inputs_cpu, proj.new_w)
 
+    def _project_commit(self, proj):
+        """The round becomes the area's state: its winners, its LRI history, its refracted bias."""
         # --- Commit state ---
-        tgt.winners = remapped_gpu
-        tgt.w = new_w
+        proj.tgt.winners = proj.remapped_gpu
+        proj.tgt.w = proj.new_w
 
         # --- Update LRI refractory history ---
-        if tgt.refractory_period > 0:
-            tgt._refractory_history.append(
-                set(int(i) for i in new_winner_indices))
+        if proj.tgt.refractory_period > 0:
+            proj.tgt._refractory_history.append(
+                set(int(i) for i in proj.new_winner_indices))
 
         # --- Update refracted cumulative bias ---
         # Rule and gating live in `core._homeostasis`; see that module for why
         # the increment is proportional to raw drive and why charging is tied
         # to the same condition as the Hebbian update.
-        if (tgt.refracted and tgt.refracted_strength > 0
-                and plasticity_enabled and self._plasticity_enabled_global):
-            if len(tgt._cumulative_bias) < new_w:
-                old = tgt._cumulative_bias
-                tgt._cumulative_bias = torch_ops.zeros(
-                    new_w, dtype=torch_ops.float32, device=self._device)
+        if (proj.tgt.refracted and proj.tgt.refracted_strength > 0
+                and proj.plasticity_enabled and self._plasticity_enabled_global):
+            if len(proj.tgt._cumulative_bias) < proj.new_w:
+                old = proj.tgt._cumulative_bias
+                proj.tgt._cumulative_bias = torch_ops.zeros(
+                    proj.new_w, dtype=torch_ops.float32, device=self._device)
                 if len(old) > 0:
-                    tgt._cumulative_bias[:len(old)] = old
-            bias = tgt._cumulative_bias
+                    proj.tgt._cumulative_bias[:len(old)] = old
+            bias = proj.tgt._cumulative_bias
             widx = torch_ops.as_tensor(
-                np.asarray(new_winner_indices, dtype=np.int64),
+                np.asarray(proj.new_winner_indices, dtype=np.int64),
                 device=bias.device)
             widx = widx[widx < len(bias)]
             if widx.numel() > 0:
                 bias[widx] += refraction_increment(
-                    all_inputs[widx], bias[widx], tgt.refracted_strength)
+                    proj.all_inputs[widx], bias[widx], proj.tgt.refracted_strength)
 
-        total_act = float(all_inputs[new_winner_indices].sum().item())
+    def _project_result(self, proj):
+        """The winners' total drive and the round's result (with the activation snapshots of a
+        recording round)."""
+        total_act = float(proj.all_inputs[proj.new_winner_indices].sum().item())
 
         result = ProjectionResult(
-            winners=np.array(new_winner_indices, dtype=np.uint32),
-            num_first_winners=num_first,
-            num_ever_fired=new_w,
+            winners=np.array(proj.new_winner_indices, dtype=np.uint32),
+            num_first_winners=proj.num_first,
+            num_ever_fired=proj.new_w,
             total_activation=total_act)
-        if record_activation:
-            assert (_pre_kwta_snapshot is not None
-                    and _raw_prev_t is not None
-                    and _pre_kwta_total_val is not None)
-            result.pre_kwta_inputs = _pre_kwta_snapshot
-            result.pre_kwta_prev_only = _raw_prev_t.cpu().numpy().astype(
+        if proj.record_activation:
+            assert (proj._pre_kwta_snapshot is not None
+                    and proj._raw_prev_t is not None
+                    and proj._pre_kwta_total_val is not None)
+            result.pre_kwta_inputs = proj._pre_kwta_snapshot
+            result.pre_kwta_prev_only = proj._raw_prev_t.cpu().numpy().astype(
                 np.float32)
-            result.pre_kwta_total = _pre_kwta_total_val
-            result.pre_kwta_count = int(len(_pre_kwta_snapshot))
+            result.pre_kwta_total = proj._pre_kwta_total_val
+            result.pre_kwta_count = int(len(proj._pre_kwta_snapshot))
         return result
 
     # -- Plasticity ---------------------------------------------------------
