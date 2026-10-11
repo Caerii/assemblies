@@ -137,8 +137,9 @@ class TestEnginesCallTheOwner(unittest.TestCase):
         # Engines bind the owner's function BY NAME at import, so the patch
         # goes where the engine looks it up; patching the owner module's
         # attribute would leave the bound reference untouched and read 0.
-        from neural_assemblies.core.numpy_engine import _sparse
-        with mock.patch.object(_sparse, "column_scale",
+        # (the numpy engine's synaptic scaling lives in its _sparse_plasticity mixin)
+        from neural_assemblies.core.numpy_engine import _sparse_plasticity
+        with mock.patch.object(_sparse_plasticity, "column_scale",
                                wraps=H.column_scale) as cs:
             self._run_scaled("numpy_sparse")
         self.assertGreater(cs.call_count, 0, "numpy engine bypassed the owner")

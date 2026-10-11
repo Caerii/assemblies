@@ -109,8 +109,15 @@ class Meaning:
         if key in self._active:
             return f"cycle:{cls.__qualname__}"
         self._active.add(key)
-        parts = [",".join(b.__qualname__ for b in cls.__bases__)]
-        for k, v in sorted(vars(cls).items()):
+        # what the class RESOLVES: members of itself and its followed bases (a mixin split
+        # moves them, but the class resolves the same), the other bases by name
+        members = {}
+        for base in reversed(cls.__mro__):
+            if base is cls or (base.__module__ or "").startswith(self.follow):
+                members.update(vars(base))
+        parts = [",".join(f"{b.__module__}.{b.__qualname__}" for b in cls.__mro__
+                          if b is not cls and not (b.__module__ or "").startswith(self.follow))]
+        for k, v in sorted(members.items()):
             if k in ("__module__", "__dict__", "__weakref__", "__doc__", "__qualname__"):
                 continue
             if isinstance(v, (staticmethod, classmethod)):
@@ -202,19 +209,29 @@ def _locals(fn_node):
 
 
 def _local_imports(fn_node):
-    """name -> object, for every absolute import inside the function"""
+    """name -> object, for every absolute import inside the function that resolves here; an
+    import that fails (the fallback arm of a try/except ImportError) is left in the text, as
+    written, and binds nothing"""
     out = {}
     for n in ast.walk(fn_node):
-        if isinstance(n, ast.ImportFrom) and not n.level and n.module:
-            mod = importlib.import_module(n.module)
-            for a in n.names:
-                out[a.asname or a.name] = (getattr(mod, a.name) if hasattr(mod, a.name)
-                                           else importlib.import_module(f"{n.module}.{a.name}"))
-        elif isinstance(n, ast.Import):
-            for a in n.names:
-                importlib.import_module(a.name)
-                top = a.name.split(".")[0]
-                out[a.asname or top] = importlib.import_module(a.name if a.asname else top)
+        try:
+            if isinstance(n, ast.ImportFrom) and not n.level and n.module:
+                mod = importlib.import_module(n.module)
+                got = {a.asname or a.name: (getattr(mod, a.name) if hasattr(mod, a.name)
+                                            else importlib.import_module(f"{n.module}.{a.name}"))
+                       for a in n.names}
+            elif isinstance(n, ast.Import):
+                got = {}
+                for a in n.names:
+                    importlib.import_module(a.name)
+                    top = a.name.split(".")[0]
+                    got[a.asname or top] = importlib.import_module(a.name if a.asname else top)
+            else:
+                continue
+        except ImportError:
+            continue
+        out.update(got)
+        n._resolved = True                      # noqa: SLF001 -- marks the node for _Resolve
     return out
 
 
@@ -226,11 +243,11 @@ class _Resolve(ast.NodeTransformer):
 
     def visit_ImportFrom(self, node):
         # an absolute function-local import binds names resolved through glb; where it imports
-        # them from is not meaning
-        return node if node.level else None
+        # them from is not meaning (one that did not resolve stays, as written)
+        return None if getattr(node, "_resolved", False) else node
 
     def visit_Import(self, node):
-        return None
+        return None if getattr(node, "_resolved", False) else node
 
     def visit_Attribute(self, node):
         if isinstance(node.ctx, ast.Load):

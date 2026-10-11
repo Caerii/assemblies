@@ -25,7 +25,7 @@ tooling, walked by the fingerprint, and read as a real module.
 | concern | lives in |
 |---|---|
 | data structure | `core/connectome.py` |
-| sparse / explicit logic | `core/numpy_engine/_sparse.py`, `_explicit.py` |
+| sparse / explicit logic | `core/numpy_engine/_sparse.py` and its mixins `_sparse_projection.py` (project_into's phases), `_sparse_candidates.py`, `_sparse_plasticity.py`, `_sparse_prune.py`, `_sparse_controls.py`, `_sparse_switches.py`; `_explicit.py` |
 | exact (computed, not sampled) drive | `core/numpy_engine/_exact.py` |
 | implicit hash-based connectivity | `core/cuda_engine.py` |
 | initial weights, content-addressed | `core/numpy_engine/_seeding.py` |
@@ -44,7 +44,7 @@ tooling, walked by the fingerprint, and read as a real module.
 | concern | lives in |
 |---|---|
 | Hebbian rules | `compute/plasticity.py` |
-| application during projection | `core/numpy_engine/_sparse.py`, `_exact.py` |
+| application during projection | `core/numpy_engine/_sparse_projection.py`, `_exact.py` |
 | CUDA update kernel | `core/cuda_engine.py` |
 | k-WTA pricing law | `core/_pricing.py` -- ONE definition, deliberately; it was implemented twice and one copy missed two fixes |
 
