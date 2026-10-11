@@ -84,7 +84,9 @@ class Meaning:
         if isinstance(obj, dict):
             return "dict{" + ",".join(f"{self.token(k)}:{self.token(v)}" for k, v in obj.items()) + "}"
         if isinstance(obj, type):
-            return f"class:{obj.__module__}.{obj.__qualname__}"
+            if not (obj.__module__ or "").startswith(self.follow):
+                return f"class:{obj.__module__}.{obj.__qualname__}"
+            return f"class:{obj.__qualname__}:{self.class_identity(obj)}"
         if isinstance(obj, str):
             for r in {self.root, self.root.replace("\\", "/"), self.root.replace("/", "\\")}:
                 obj = obj.replace(r, "<ROOT>")
@@ -92,7 +94,34 @@ class Meaning:
             return "const:" + repr(obj)
         if callable(obj) and hasattr(obj, "__module__") and hasattr(obj, "__qualname__"):
             return f"callable:{obj.__module__}.{obj.__qualname__}"
+        if (type(obj).__module__ or "").startswith(self.follow):
+            return f"obj:{self.token(type(obj))}"           # an instance of a followed class
         return f"obj:{type(obj).__module__}.{type(obj).__qualname__}"
+
+    # -------------------------------------------------------------- classes
+    def class_identity(self, cls):
+        """a followed class by what it is, not where it lives: its bases and every member it
+        defines (methods by identity, other attributes by token); a class moved to another
+        module keeps it"""
+        key = id(cls)
+        if key in self._memo:
+            return self._memo[key]
+        if key in self._active:
+            return f"cycle:{cls.__qualname__}"
+        self._active.add(key)
+        parts = [",".join(b.__qualname__ for b in cls.__bases__)]
+        for k, v in sorted(vars(cls).items()):
+            if k in ("__module__", "__dict__", "__weakref__", "__doc__", "__qualname__"):
+                continue
+            if isinstance(v, (staticmethod, classmethod)):
+                v = v.__func__
+            if isinstance(v, property):
+                v = v.fget
+            parts.append(f"{k}={self.token(v)}")
+        h = _sha("|".join(parts))
+        self._active.discard(key)
+        self._memo[key] = h
+        return h
 
     # -------------------------------------------------------------- functions
     def identity(self, fn):
@@ -122,7 +151,7 @@ class Meaning:
             node = _Resolve(self, {**fn.__globals__, **bound}, local).visit(node)
             h = _sha(ast.dump(node, include_attributes=False))
         except (OSError, TypeError):
-            h = f"nosource:{fn.__module__}.{fn.__qualname__}"
+            h = f"nosource:{fn.__qualname__}"      # generated (e.g. a dataclass __init__)
         self._active.discard(key)
         self._memo[key] = h
         return h
@@ -135,7 +164,9 @@ class Meaning:
             if k.startswith("__"):
                 continue
             entry[k] = self.token(v)
-            if isinstance(v, type) and v.__module__ == mod.__name__:
+            # a class defined here, or a followed class re-exported here (a facade)
+            if isinstance(v, type) and (v.__module__ == mod.__name__
+                                        or (v.__module__ or "").startswith(self.follow)):
                 # every member the class resolves, its own or a followed base's: a method moved
                 # into a mixin keeps its key and, computing the same, its identity
                 members = {}

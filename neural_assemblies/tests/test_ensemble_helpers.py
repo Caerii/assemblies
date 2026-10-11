@@ -268,8 +268,8 @@ class TestRankStatistics:
         import importlib.util
         import os
         from neural_assemblies import diagnostics
-        path = os.path.join(os.path.dirname(diagnostics.__file__), "..",
-                            "research", "experiments", "overlap_ceiling.py")
+        root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+        path = os.path.join(root, "research", "experiments", "overlap_ceiling.py")
         if not os.path.exists(path):
             pytest.skip("research/ not present in this checkout")
         spec = importlib.util.spec_from_file_location("_oc_reexport", path)

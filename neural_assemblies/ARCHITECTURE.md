@@ -61,13 +61,13 @@ tooling, walked by the fingerprint, and read as a real module.
 | concern | lives in |
 |---|---|
 | standalone scripts | `research/experiments/` |
-| shared statistical helpers | `diagnostics.py` -- `ensemble`, `paired_delta`, `compare_arms`, `separation` |
+| shared statistical helpers | `diagnostics/` -- `ensemble`, `paired_delta`, `compare_arms` (`ensembles.py`), `separation` (`separation.py`) |
 | parser training cache | `assembly_calculus/emergent/evaluation/sweep.py` |
 
 ## Measurement discipline
 
 Not in the original stubs, and the part most often got wrong. Before trusting a
-number, see `diagnostics.py`:
+number, see `diagnostics/` (one module per question; its `__init__` maps them):
 
 | question | tool |
 |---|---|

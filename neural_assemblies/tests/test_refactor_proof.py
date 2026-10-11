@@ -65,6 +65,20 @@ def test_a_method_moved_into_a_mixin_keeps_its_entry(tmp_path):
     assert worse["proofpkg.engine"]["Engine.step"] != before["proofpkg.engine"]["Engine.step"]
 
 
+def test_a_class_moved_to_another_module_keeps_its_callers(tmp_path):
+    one = {"m.py": "from dataclasses import dataclass\n\n\n@dataclass\nclass Verdict:\n    ok: bool\n\n"
+                   "    def text(self):\n        return 'ok' if self.ok else 'no'\n\n\n"
+                   "def judge(x):\n    return Verdict(x > 0)\n"}
+    two = {"verdict.py": "from dataclasses import dataclass\n\n\n@dataclass\nclass Verdict:\n    ok: bool\n\n"
+                         "    def text(self):\n        return 'ok' if self.ok else 'no'\n",
+           "m.py": "from proofpkg.verdict import Verdict\n\n\ndef judge(x):\n    return Verdict(x > 0)\n"}
+    before, after = _snap(tmp_path, "before", one), _snap(tmp_path, "after", two)
+    assert after["proofpkg.m"]["judge"] == before["proofpkg.m"]["judge"]
+    assert after["proofpkg.m"]["Verdict"] == before["proofpkg.m"]["Verdict"]
+    changed = dict(two, **{"verdict.py": two["verdict.py"].replace("'no'", "'not ok'")})
+    assert _snap(tmp_path, "changed", changed)["proofpkg.m"]["judge"] != before["proofpkg.m"]["judge"]
+
+
 def test_a_move_that_changes_a_value_is_caught(tmp_path):
     before = _snap(tmp_path, "before", BEFORE)
     broken = dict(MOVED, **{"lib.py": MOVED["lib.py"].replace("W = 20.0", "W = 20.5")})

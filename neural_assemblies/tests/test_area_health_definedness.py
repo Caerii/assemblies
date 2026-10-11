@@ -40,7 +40,8 @@ def _health(stored, live_for=None, monkeypatch=None):
     """Run area_health with the live read stubbed to `live_for[key]`."""
     state = {"key": None}
     if live_for is not None:
-        monkeypatch.setattr(diagnostics, "read_assembly",
+        # area_health reads the readout through its own module's binding
+        monkeypatch.setattr(diagnostics.health, "read_assembly",
                             lambda brain, area: live_for[state["key"]])
         cues = {key: (lambda key=key: state.__setitem__("key", key))
                 for key in stored}
