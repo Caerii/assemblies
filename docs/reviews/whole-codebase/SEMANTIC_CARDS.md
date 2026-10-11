@@ -177,7 +177,7 @@ Code: `ops.py:merge`.
 
 ## D: separation measurement
 
-Code: `ops.py:separate`, `contracts.py:SeparationPlan`.
+Code: `ops.py:separate`, `contracts/association.py:SeparationPlan`.
 
 - **Reads:** two registered stimulus fibers and one target area with its current
   recurrent state.
@@ -303,7 +303,7 @@ Code: `_hashed_fsm.py:HashedArcFSM`, `_arc_core.py:HashedArcCore`,
 
 Code: `assembly_calculus/ops.py:sequence_memorize` and
 `assembly_calculus/ops.py:ordered_recall`; immutable schedules live in
-`assembly_calculus/contracts.py:SequenceMemorizePlan` and
+`assembly_calculus/contracts/sequence.py:SequenceMemorizePlan` and
 `OrderedRecallPlan`.
 
 - **State:** an ordered tuple of stimulus names, one target area, recurrent and

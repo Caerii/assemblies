@@ -1,0 +1,49 @@
+"""Every operation's contract, by operation name.
+
+Part of neural_assemblies.assembly_calculus.contracts."""
+from types import MappingProxyType
+
+
+
+from .association import ASSOCIATION_CONTRACT, MERGE_CONTRACT, SEPARATION_CONTRACT
+from .attention import ATTENTION_CONTRACT
+from .binding import BINDING_CONTRACT, BINDING_READ_CONTRACT, BINDING_RECALL_CONTRACT, BINDING_STRENGTH_CONTRACT, INPUT_DRIVE_CONTRACT, SOURCE_BINDING_CONTRACT
+from .consolidation import CONSOLIDATION_CONTRACT, CONSOLIDATION_PROTOCOL_CONTRACT, CONTEXT_ACCUMULATION_CONTRACT, CONTEXT_STEP_CONTRACT
+from .next_token import LEXICON_BUILD_CONTRACT, NEXT_TOKEN_PREDICTION_CONTRACT, NEXT_TOKEN_SCORE_CONTRACT, NEXT_TOKEN_TRAINING_CONTRACT
+from .projection import ACTIVATION_CONTRACT, CONVERGENCE_CONTRACT, FIBER_MATERIALIZATION_CONTRACT, PROJECTION_CONTRACT, READOUT_CONTRACT, RECIPROCAL_PROJECTION_CONTRACT
+from .recovery import COMPLETION_CONTRACT, CUE_REPLACEMENT_CONTRACT, RECOVERY_CONTRACT
+from .sequence import ORDERED_RECALL_CONTRACT, SEQUENCE_MEMORIZE_CONTRACT
+
+
+OPERATION_CONTRACTS = MappingProxyType({
+    "activate_assembly": ACTIVATION_CONTRACT,
+    "fuzzy_readout": READOUT_CONTRACT,
+    "materialize_fiber": FIBER_MATERIALIZATION_CONTRACT,
+    "build_lexicon": LEXICON_BUILD_CONTRACT,
+    "predict_next_token": NEXT_TOKEN_PREDICTION_CONTRACT,
+    "train_on_corpus": NEXT_TOKEN_TRAINING_CONTRACT,
+    "score_corpus": NEXT_TOKEN_SCORE_CONTRACT,
+    "observe_recovery": RECOVERY_CONTRACT,
+    "replace_neurons": CUE_REPLACEMENT_CONTRACT,
+    "projection": PROJECTION_CONTRACT,
+    "reciprocal_projection": RECIPROCAL_PROJECTION_CONTRACT,
+    "association": ASSOCIATION_CONTRACT,
+    "merge": MERGE_CONTRACT,
+    "pattern_completion": COMPLETION_CONTRACT,
+    "ordered_recall": ORDERED_RECALL_CONTRACT,
+    "sequence_memorize": SEQUENCE_MEMORIZE_CONTRACT,
+    "separate": SEPARATION_CONTRACT,
+    "attention": ATTENTION_CONTRACT,
+    "bind": BINDING_CONTRACT,
+    "read_binding": BINDING_READ_CONTRACT,
+    "input_drive": INPUT_DRIVE_CONTRACT,
+    "binding_strength": BINDING_STRENGTH_CONTRACT,
+    "source_binding": SOURCE_BINDING_CONTRACT,
+    "binding_recall": BINDING_RECALL_CONTRACT,
+    "consolidate_pair": CONSOLIDATION_CONTRACT,
+    "consolidate": CONSOLIDATION_PROTOCOL_CONTRACT,
+    "accumulate_context": CONTEXT_ACCUMULATION_CONTRACT,
+    "accumulate_context_step": CONTEXT_STEP_CONTRACT,
+    "learn_assembly": CONVERGENCE_CONTRACT,
+    "learn_assembly_from_pattern": CONVERGENCE_CONTRACT,
+})
