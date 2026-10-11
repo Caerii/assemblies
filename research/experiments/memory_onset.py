@@ -42,10 +42,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_recall_law as rl                # noqa: E402
 from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((2000, 60, 0.5), (4000, 60, 0.5), (4000, 80, 0.5), (4000, 160, 0.5),
@@ -68,8 +68,8 @@ SPARSE_BEST_OVER_ONSET = 1.4
 
 
 def betas(n, k, p):
-    theta = tl.theta(n, k, p)
-    top = F_HI_ABOVE if tl.above_floor(n, k, p) else F_HI_BELOW
+    theta = lib.theta(n, k, p)
+    top = F_HI_ABOVE if lib.above_floor(n, k, p) else F_HI_BELOW
     out, j = [], 0
     while F_LO * 2 ** (j / STEPS_PER_OCTAVE) <= top + 1e-12:
         b = round(theta * F_LO * 2 ** (j / STEPS_PER_OCTAVE), 4)
@@ -84,8 +84,8 @@ def plan(cells, *, smoke=False):
     for n, k, p in cells:
         guess = max(rl.predicted(n, k, p), 64.0)
         grid = betas(n, k, p)
-        out.append({"n": n, "k": k, "p": p, "above_floor": tl.above_floor(n, k, p),
-                    "theta": tl.theta(n, k, p),
+        out.append({"n": n, "k": k, "p": p, "above_floor": lib.above_floor(n, k, p),
+                    "theta": lib.theta(n, k, p),
                     "betas": grid[len(grid) // 2: len(grid) // 2 + 2] if smoke else grid,
                     "cap": 32 if smoke else int(min(8 * guess, 40000)),
                     "give_up": 16 if smoke else GIVE_UP})
@@ -102,7 +102,7 @@ def experiment(record):
         n, k, p = spec["n"], spec["k"], spec["p"]
         grid = spec["betas"]
         results = lr.run_betas(n, k, grid, seeds, spec["cap"], device,
-                               {b: profiles[lr.profile_name(b)] for b in grid},
+                               {b: profiles[lib.profile_name(b)] for b in grid},
                                stop_on=("complete_distinct",), p=p, grid_start=2,
                                give_up=spec["give_up"], stop_from=STOP_FROM)
         sweep = {}
@@ -193,7 +193,7 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 18 is registered on seeds 162..181")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in s["betas"]}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in s["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.onset", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
@@ -201,10 +201,10 @@ def main(argv=None):
         parameters={"cells": specs, "f_lo": F_LO, "f_hi_above": F_HI_ABOVE,
                     "f_hi_below": F_HI_BELOW, "steps_per_octave": STEPS_PER_OCTAVE,
                     "onset_items": ONSET_ITEMS, "min_beta": MIN_BETA,
-                    "stop_from": STOP_FROM, "strength": lr.STRENGTH, "w_max": pe.W_MAX,
-                    "rounds": pe.T, "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "grid_start": 2,
+                    "stop_from": STOP_FROM, "strength": lib.STRENGTH, "w_max": lib.W_MAX,
+                    "rounds": lib.ROUNDS, "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "grid_start": 2,
                     "device": args.device},
     )
     print(f"wrote {path}")

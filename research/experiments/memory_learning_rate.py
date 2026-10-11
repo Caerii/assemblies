@@ -42,15 +42,17 @@ import numpy as np
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from neural_assemblies import describe_assembly_memory                  # noqa: E402
 from neural_assemblies.core.numpy_engine import _seeding                # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
-from research.experiments.seq_capacity_scaling import seeds_for, to_i32  # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
+from research.experiments.memory_lib.seeding import seeds_for, to_i32  # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.model import (                     # noqa: E402
+    STRENGTH, profile, profile_name)
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
-STRENGTH = 0.5
 BETAS = (0.025, 0.0354, 0.05, 0.0707, 0.1, 0.1414, 0.2, 0.2828)
 #: (n, k) -> the refracted rank-1 ceiling at beta = 0.1 where measured
 #: (Amendments 7 and 8); (8000, 240) is new and has none
@@ -74,15 +76,6 @@ DISTINCT_SEEDS = tuple(range(62, 82))
 GAMMA = 0.29
 
 
-def profile_name(beta):
-    return f"beta-{beta:g}"
-
-
-def profile(beta):
-    return describe_assembly_memory(w_max=pe.W_MAX, beta=beta, strength=STRENGTH,
-                                    gate=False, norm_init=True, synaptic_scaling=False)
-
-
 #: items whose stimulus seeds go to the device in one copy
 STIMULUS_BLOCK = 1024
 #: elements of the [brains, items x k] membership gather a reading holds at once
@@ -102,7 +95,7 @@ def readings(mem, St, M, n, k, recall_rounds=None, settle_rounds=None):
     own = torch.zeros(B, device=St.device)
     done = torch.zeros(B, device=St.device)
     distinct = torch.zeros(B, device=St.device)
-    sample = pe.sample_for(M)
+    sample = lib.sample_for(M)
     index = torch.as_tensor(np.asarray(sample), dtype=torch.int64, device=St.device)
     cues = St.index_select(0, index)[:, :, : k // 2].permute(1, 0, 2)  # [B, S, k/2]
     recalled = mem.recall_many(cues.to(torch.int64), rounds=recall_rounds)  # [B, S, k]
@@ -118,8 +111,8 @@ def readings(mem, St, M, n, k, recall_rounds=None, settle_rounds=None):
             hits[rows] += hit.float()
             o = ov[:, int(i)].float() / k
             own[rows] += o
-            done[rows] += (o >= ws.COMPLETE).float()
-            distinct[rows] += ((o >= ws.COMPLETE) & hit).float()
+            done[rows] += (o >= lib.COMPLETE).float()
+            distinct[rows] += ((o >= lib.COMPLETE) & hit).float()
     S = len(sample)
     out = {"rank1": (hits / S).tolist(), "own": (own / S).tolist(),
            "complete": (done / S).tolist(),
@@ -201,7 +194,7 @@ def run_betas(n, k, betas, seeds, cap, device, organ_semantics,
     betas = [float(b) for b in betas]
     # rates whose clip binds past count 127 need int16 counts: they launch
     # apart from the int8 rates, which would otherwise pay double memory
-    wide = [b for b in betas if (clip_count(b, pe.W_MAX) or 0) > 127]
+    wide = [b for b in betas if (clip_count(b, lib.W_MAX) or 0) > 127]
     groups = [(g, 2 if g is wide else 1) for g in (wide, [b for b in betas if b not in wide]) if g]
     # an overcommit must raise, not page: cap the allocator at what is free
     free, total = torch.cuda.mem_get_info()
@@ -236,8 +229,8 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
     brains = seeds_for(seeds)
     mem = AssemblyMemory(brains * G, n, k, pe.P if p is None else p,
                          beta=(betas[0] if G == 1 else [b for b in betas for _ in brains]),
-                         w_max=pe.W_MAX, norm_init=True, synaptic_scaling=False,
-                         rounds=pe.T if rounds is None else rounds,
+                         w_max=lib.W_MAX, norm_init=True, synaptic_scaling=False,
+                         rounds=lib.ROUNDS if rounds is None else rounds,
                          strength=strength, gate=False, max_items=cap, device=device,
                          graphs=write_rule == "round", write_rule=write_rule,
                          burst_min=burst_min,
@@ -289,7 +282,7 @@ def _run_launch(n, k, betas, seeds, cap, device, organ_semantics, stop_on, *,
             # is right with probability 1/M by chance, the 0.5 bar at M = 2
             # (Amendment 22's defect: a chance 0.53 at M = 2 stopped stores at
             # M = 32 before their recognition windows opened)
-            if any(v > pe.HALF_BAR for v in means) and (seen_from is None or M >= seen_from):
+            if any(v > lib.HALF_BAR for v in means) and (seen_from is None or M >= seen_from):
                 seen[g], below[g] = True, 0
             elif seen[g]:
                 below[g] += 1
@@ -524,10 +517,10 @@ def main(argv=None):
         organ_semantics={profile_name(b): profile(b) for b in betas},
         parameters={"cells": plan(cells, smoke=args.smoke, table=table), "betas": betas,
                     "completion": "distinct" if args.distinct else "any",
-                    "strength": STRENGTH, "p": pe.P, "w_max": pe.W_MAX, "rounds": pe.T,
-                    "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "device": args.device},
+                    "strength": STRENGTH, "p": pe.P, "w_max": lib.W_MAX, "rounds": lib.ROUNDS,
+                    "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "device": args.device},
     )
     print(f"wrote {path}")
 

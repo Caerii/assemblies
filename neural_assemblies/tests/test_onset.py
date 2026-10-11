@@ -5,6 +5,7 @@ onset that completes from the first item, and an onset at the grid's first
 rate must each fail."""
 import pytest
 
+from research.experiments import memory_lib as lib
 from research.experiments import memory_onset as on
 
 pytestmark = pytest.mark.requires_torch
@@ -40,7 +41,7 @@ def _observations(onset_of, *, dense_lower=200.0, start_at_grid=False):
 
 
 def _law(n, k, p):
-    return 0.16 * on.tl.theta(n, k, p)
+    return 0.16 * lib.theta(n, k, p)
 
 
 def test_a_universal_onset_passes_every_bar():
@@ -63,7 +64,7 @@ def test_an_onset_at_the_grid_start_is_not_found():
 def test_grids_are_fine_and_bracket_the_band():
     for n, k, p in on.CELLS:
         grid = on.betas(n, k, p)
-        theta = on.tl.theta(n, k, p)
+        theta = lib.theta(n, k, p)
         assert min(grid) >= on.MIN_BETA
         assert min(grid) / theta <= on.FRACTION_BAND[0] and max(grid) / theta >= 0.29
         assert all(b / a < 1.07 for a, b in zip(grid, grid[1:]))

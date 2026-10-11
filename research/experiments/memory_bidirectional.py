@@ -28,10 +28,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((4000, 60, 0.5), (8000, 60, 0.5))
@@ -49,7 +46,7 @@ FULL, NONE, WEAK, LOST = 0.9, 0.1, 0.5, 0.5
 
 def plan(cells, *, smoke=False, design="reverse"):
     arms = ([[0, 0], [0, 2]] if smoke else [[0, r] for r in REVERSE]) if design == "reverse"         else ([[0, 2], [1, 2]] if smoke else [list(a) for a in BALANCED])
-    return [{"n": n, "k": k, "p": p, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5),
              "length": 24 if smoke else LENGTH, "arms": arms} for n, k, p in cells]
 
 
@@ -65,7 +62,7 @@ def _chain(mem, states, order, k):
     steps = torch.zeros(states.shape[1], device=states.device)
     for idx in order[1:]:
         x = mem.recall(x, rounds=1)
-        alive &= sq._overlap(x, states[idx]) >= 0.3
+        alive &= lib.overlap(x, states[idx]) >= 0.3
         steps += alive.float()
     return (steps / (len(order) - 1)).tolist()
 
@@ -81,11 +78,11 @@ def _lri_chain(mem, states, order, k, came_from=None):
 
 
 def run_case(spec, reverse, seeds, device, forward=0):
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p, L = spec["n"], spec["k"], spec["p"], spec["length"]
-    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
+    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
                          norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                          device=device, bias_decay=math.exp(-1.0 / TAU))
     elements = [[to_i32(_seeding.fnv1a_pair_seed(sd, f"q0e{e}", "A")) for sd in seeds]
@@ -189,14 +186,14 @@ def main(argv=None):
         ap.error("Amendment 32 is registered on seeds 442..461" if balanced
                  else "Amendment 31 is registered on seeds 422..441")
     specs = plan(cells, smoke=args.smoke, design=args.design)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.bidirectional", protocol_version="2" if balanced else "1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "design": args.design, "tau": TAU, "strength": STRENGTH,
                     "lri_period": LRI_PERIOD, "lri_strength": LRI_STRENGTH,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

@@ -5,14 +5,16 @@ registrations derive from them.
              n/k ~ 50, tau = n/k / 2 from n/k ~ 100 (rho_50 then nearly constant across n/k).
              Between 50 and 100 the rule was not measured: the cell refuses to guess, and a
              registration there names its tau explicitly.
-    beta     the learning rate theta(n, k, p) (Amendment 13's fan-in law), rounded to 5 places
-             as every registration since has used it
+    beta     the learning rate theta(n, k, p) (laws.theta, the projection-convergence
+             threshold), rounded to 5 places as every registration since has used it
     regime   k p >= 3 ln n: the recurrent in-degree the n/k laws need (AssemblyMemory.in_regime)
 """
 from __future__ import annotations
 
 import math
 from dataclasses import dataclass
+
+from .laws import above_floor, theta
 
 
 @dataclass(frozen=True)
@@ -42,12 +44,11 @@ class Cell:
 
     @property
     def beta(self):
-        from research.experiments import memory_threshold_law as tl
-        return round(tl.theta(self.n, self.k, self.p), 5)
+        return round(theta(self.n, self.k, self.p), 5)
 
     @property
     def in_regime(self):
-        return self.k * self.p >= 3.0 * math.log(self.n)
+        return above_floor(self.n, self.k, self.p)
 
     @property
     def key(self):

@@ -23,13 +23,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from research.experiments import memory_comparator as mc                # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_reuse_grammar as rg             # noqa: E402
 from research.experiments import memory_sleep as sl                     # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_separation as ws          # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((9500, 75, 0.46, 63), (12500, 90, 0.4, 69))
@@ -45,7 +42,7 @@ SYNERGY_OVER_COMPARATOR, SYNERGY_OVER_SLEEP, REACH80, REACH100, MAX_COLLAPSED, C
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "tau": tau, "rho": rg.RHO, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "tau": tau, "rho": lib.RHO, "beta": round(lib.theta(n, k, p), 5),
              "uses": list(SMOKE_USES if smoke else USES), "episodes": SMOKE_EPISODES if smoke else EPISODES}
             for n, k, p, tau in cells]
 
@@ -54,11 +51,11 @@ def comparator_store(spec, U, seeds, device):
     """memory_sleep.build_store's store, written through the comparator."""
     import numpy as np
     import torch
-    from research.experiments.seq_capacity_scaling import to_i32
+    from research.experiments.memory_lib.seeding import to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     n, k, p, tau = spec["n"], spec["k"], spec["p"], spec["tau"]
-    LEN = rg.LENGTH
-    M = max(1, round(spec["rho"] * ml.unit(n, k, p) / LEN))
+    LEN = lib.LENGTH
+    M = max(1, round(spec["rho"] * lib.unit(n, k, p) / LEN))
     L = M * LEN
     V = max(8, round(L / U))
     words = [rg.walks(sd, M, V, None, L * 1000 + U) for sd in seeds]
@@ -176,14 +173,14 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 52 is registered on seeds 842..861 (reference brains 862..881)")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.lifecycle", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "comparator_threshold": mc.THRESHOLD,
+        parameters={"cells": specs, "length": lib.LENGTH, "comparator_threshold": mc.THRESHOLD,
                     "sleep_steps": sl.STEPS, "sleep_margin": sl.MARGIN, "reference_seeds": list(REFERENCE_SEEDS),
-                    "strength": ml.STRENGTH, "match": ml.MATCH, "w_max": pe.W_MAX, "device": args.device},
+                    "strength": lib.STRENGTH, "match": lib.MATCH, "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

@@ -36,6 +36,7 @@ from research.experiments import memory_learning_rate as lr             # noqa: 
 from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_recall_law as rl                # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((2000, 60), (4000, 60))
@@ -81,7 +82,7 @@ def experiment(record):
         sweep = {}
         betas = spec["betas"]
         results = lr.run_betas(n, k, betas, seeds, spec["cap"], device,
-                               {b: profiles[lr.profile_name(b)] for b in betas},
+                               {b: profiles[lib.profile_name(b)] for b in betas},
                                stop_on=("complete_distinct",), grid_start=2,
                                give_up=spec["give_up"], rounds=T,
                                recall_rounds=parameters["recall_rounds"])
@@ -170,16 +171,16 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 15 is registered on seeds 102..121")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in s["betas"]}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in s["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.time-depth", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "recall_rounds": RECALL_ROUNDS, "min_beta": MIN_BETA,
-                    "strength": lr.STRENGTH, "w_max": pe.W_MAX, "p": pe.P,
-                    "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "grid_start": 2,
+                    "strength": lib.STRENGTH, "w_max": lib.W_MAX, "p": pe.P,
+                    "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "grid_start": 2,
                     "device": args.device},
     )
     print(f"wrote {path}")

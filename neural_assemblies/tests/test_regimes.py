@@ -5,6 +5,7 @@ must pass; an (n/k)^2 law must fail X1, and a constant recognition-to-recall
 ratio must fail R1 and R3."""
 import pytest
 
+from research.experiments import memory_lib as lib
 from research.experiments import memory_regimes as rg
 
 pytestmark = pytest.mark.requires_torch
@@ -38,7 +39,7 @@ def _observations(distinct_of, ratio_of):
 def _two_regimes(n, k, p):
     if p == 0.01:
         return 0.0 if k * p < 1.5 else 50.0 * k * p
-    if rg.tl.above_floor(n, k, p):
+    if lib.above_floor(n, k, p):
         return 1600.0 * (56 / k) ** 0.5
     if (n, k, p) == (4000, 40, 0.5):
         return rg.A17[(4000, 40, 0.5)]

@@ -46,6 +46,8 @@ from neural_assemblies.core.numpy_engine import _seeding                # noqa: 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from neural_assemblies import describe_assembly_memory                  # noqa: E402
 from research.experiments._substrate import ceiling_from_curve          # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.seeding import seeds_for, to_i32   # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 DEV = "cuda"
@@ -96,15 +98,6 @@ class CapacityProtocol:
             raise ValueError("refraction factor must be finite and nonnegative")
         if self.readout not in {"net", "masked"}:
             raise ValueError("unknown readout")
-
-
-def to_i32(v):
-    v &= 0xFFFFFFFF
-    return v - 0x100000000 if v >= 0x80000000 else v
-
-
-def seeds_for(seeds):
-    return [to_i32(_seeding.fnv1a_pair_seed(seed, "A", "A")) for seed in seeds]
 
 
 def _fill(mem):

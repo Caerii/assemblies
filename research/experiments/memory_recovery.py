@@ -26,10 +26,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((2000, 60, 0.5), (4000, 60, 0.5), (8000, 60, 0.5), (4000, 30, 0.5))
@@ -53,18 +51,18 @@ def decay_of(tau):
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "tile": n / k, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "tile": n / k, "beta": round(lib.theta(n, k, p), 5),
              "taus": [tau_name(t) for t in ((0, 16, None) if smoke else TAUS)],
              "ladder": list(LADDER[:3] if smoke else LADDER)} for n, k, p in cells]
 
 
 def replay_fraction(spec, tau, L, seeds, device):
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p = spec["n"], spec["k"], spec["p"]
-    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
+    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
                          norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                          device=device, bias_decay=decay_of(tau))
     elements = [[to_i32(_seeding.fnv1a_pair_seed(sd, f"q0e{e}", "A")) for sd in seeds]
@@ -75,7 +73,7 @@ def replay_fraction(spec, tau, L, seeds, device):
     steps = torch.zeros(len(seeds), device=states.device)
     for j in range(1, L):
         x = mem.recall(x, rounds=1)
-        alive &= sq._overlap(x, states[j]) >= MATCH
+        alive &= lib.overlap(x, states[j]) >= MATCH
         steps += alive.float()
     return (steps / (L - 1)).tolist()
 
@@ -152,13 +150,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 29 is registered on seeds 382..401")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.recovery", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "strength": STRENGTH, "match": MATCH, "stop": STOP,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

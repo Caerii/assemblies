@@ -29,12 +29,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_reuse_grammar as rg             # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((7500, 55, 0.6, 68), (12500, 85, 0.42, 74))
@@ -52,8 +49,8 @@ SHIFT, MIN_SIDE, MIN_COLLAPSED, RANK, SIZE = 0.06, 5, 8, 0.6, 0.1
 
 def plan(cells, *, smoke=False):
     uses = (REFERENCE, USES[1]) if smoke else (REFERENCE,) + USES
-    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "rho": rg.RHO,
-             "beta": round(tl.theta(n, k, p), 5), "batch": md.batch_size(n)}
+    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "rho": lib.RHO,
+             "beta": round(lib.theta(n, k, p), 5), "batch": md.batch_size(n)}
             for n, k, p, tau in cells for u in uses]
 
 
@@ -62,12 +59,12 @@ def measure(spec, seeds, device):
     masked and adapted reliability (odd half), word-level."""
     import numpy as np
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p = spec["n"], spec["k"], spec["p"]
-    M = max(1, round(spec["rho"] * ml.unit(n, k, p) / rg.LENGTH))
-    L = M * rg.LENGTH
+    M = max(1, round(spec["rho"] * lib.unit(n, k, p) / lib.LENGTH))
+    L = M * lib.LENGTH
     V = max(8, round(L / spec["uses"]))
     salt = L * 1000 + spec["uses"]
     out = {"L": L, "M": M, "V": V, "slack": [], "top1": [], "masked": [], "habit": []}
@@ -75,12 +72,12 @@ def measure(spec, seeds, device):
     for i0 in range(0, len(seeds), spec["batch"]):
         part = list(seeds[i0:i0 + spec["batch"]])
         B = len(part)
-        mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
-                             norm_init=True, rounds=1, strength=ml.STRENGTH, max_items=4,
+        mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
+                             norm_init=True, rounds=1, strength=lib.STRENGTH, max_items=4,
                              device=device, bias_decay=math.exp(-1.0 / spec["tau"]))
         words = [rg.walks(sd, M, V, None, salt) for sd in part]
         seqs = [mem.store_sequence([[to_i32(_seeding.fnv1a_pair_seed(sd, f"w{int(words[i][q, e])}", "A"))
-                                     for i, sd in enumerate(part)] for e in range(rg.LENGTH)])[0]
+                                     for i, sd in enumerate(part)] for e in range(lib.LENGTH)])[0]
                 for q in range(M)]
         allst = torch.cat(seqs, 0).long()
         wordof = torch.tensor(np.stack([w.reshape(-1) for w in words], 1), device=device).long()
@@ -93,9 +90,9 @@ def measure(spec, seeds, device):
             area.winners = torch.stack([md.cue(seqs[q][0, i], sd, L * 100_000 + q, k, device)
                                         for i, sd in enumerate(part)]).long()
             alive = torch.ones(B, dtype=torch.bool, device=device)
-            for j in range(1, rg.LENGTH):
+            for j in range(1, lib.LENGTH):
                 x, drive = area.project(1, [mem.fiber], freeze=True, mask_bias=False, return_drive=True)
-                want = wordof[q * rg.LENGTH + j]
+                want = wordof[q * lib.LENGTH + j]
                 if lens is not None:
                     thr = torch.topk(drive, k, dim=1).values[:, -1].clamp_min(1e-9)
                     tok = torch.gather(drive.unsqueeze(0).expand(L, B, n), 2, allst).mean(2) / thr
@@ -238,13 +235,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 48 is registered on seeds 742..761")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.signal-margin", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "charge": CHARGE, "decay_t": DECAY_T,
-                    "strength": ml.STRENGTH, "match": ml.MATCH, "w_max": pe.W_MAX, "device": args.device},
+        parameters={"cells": specs, "length": lib.LENGTH, "charge": CHARGE, "decay_t": DECAY_T,
+                    "strength": lib.STRENGTH, "match": lib.MATCH, "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

@@ -20,6 +20,10 @@ from __future__ import annotations
 
 from dataclasses import dataclass, field
 
+from .laws import unit
+from .seeding import to_i32
+from .walks import LENGTH, RHO
+
 
 @dataclass
 class Plan:
@@ -35,12 +39,10 @@ class Plan:
     def of(cls, cell, seeds, uses, rho=None, successors=None, M=None):
         """the registrations' sizing: M = rho * unit / LENGTH sequences (rho by default the
         programme's 0.05), V = L / uses words, salt L * 1000 + 7 b + uses"""
-        from research.experiments import memory_load_law as ml
-        from research.experiments import memory_reuse_grammar as rg
-        rho = rg.RHO if rho is None else rho
+        rho = RHO if rho is None else rho
         if M is None:
-            M = max(1, round(rho * ml.unit(cell.n, cell.k, cell.p) / rg.LENGTH))
-        L = M * rg.LENGTH
+            M = max(1, round(rho * unit(cell.n, cell.k, cell.p) / LENGTH))
+        L = M * LENGTH
         V = max(8, round(L / uses))
         return cls(cell, tuple(seeds), M, V, successors, L * 1000 + (successors or 0) * 7 + uses)._walk()
 
@@ -48,9 +50,8 @@ class Plan:
     def lifetime(cls, cell, seeds, days, per_day, uses_end, salt):
         """a life: days x per_day sequences on a fixed vocabulary sized so each word reaches
         ``uses_end`` uses on the last day (probe_lifetime's plan)"""
-        from research.experiments import memory_reuse_grammar as rg
         M = days * per_day
-        V = max(8, round(M * rg.LENGTH / uses_end))
+        V = max(8, round(M * LENGTH / uses_end))
         return cls(cell, tuple(seeds), M, V, None, salt)._walk()
 
     def _walk(self):
@@ -60,8 +61,7 @@ class Plan:
 
     @property
     def L(self):
-        from research.experiments import memory_reuse_grammar as rg
-        return self.M * rg.LENGTH
+        return self.M * LENGTH
 
     def wordof(self, device):
         """[L, B] the word of every element of every sequence"""
@@ -71,11 +71,9 @@ class Plan:
 
     def element_seeds(self, q):
         """[LENGTH][B] the stimulus seeds of sequence q"""
-        from research.experiments import memory_reuse_grammar as rg
-        from research.experiments.seq_capacity_scaling import to_i32
         from neural_assemblies.core.numpy_engine import _seeding
         return [[to_i32(_seeding.fnv1a_pair_seed(sd, f"w{int(self.words[i][q, e])}", "A"))
-                 for i, sd in enumerate(self.seeds)] for e in range(rg.LENGTH)]
+                 for i, sd in enumerate(self.seeds)] for e in range(LENGTH)]
 
 
 class Store:

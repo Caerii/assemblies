@@ -43,8 +43,6 @@ import math
 import os
 import sys
 
-import numpy as np
-
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
@@ -52,17 +50,15 @@ from neural_assemblies import describe_assembly_memory                  # noqa: 
 from neural_assemblies.core.numpy_engine import _seeding                # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments._substrate import ceiling_from_curve          # noqa: E402
-from research.experiments.seq_capacity_scaling import seeds_for, to_i32  # noqa: E402
+from research.experiments.memory_lib.seeding import seeds_for, to_i32  # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.model import STRENGTH, W_MAX       # noqa: E402
+from research.experiments.memory_lib.readout import (                   # noqa: E402
+    HALF_BAR, MEASUREMENT_SEED, RECALL_SAMPLE, ROUNDS as T, sample_for)
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 P = 0.5
 BETA = 0.1
-W_MAX = 20.0
-T = 8
-STRENGTH = 0.5
-HALF_BAR = 0.5
-RECALL_SAMPLE = 32
-MEASUREMENT_SEED = 1234
 CHUNK = 2048
 
 #: Amendment 8's replayed refracted ceilings (A7 for (4000, 60)): they place
@@ -173,11 +169,6 @@ def rank1(W, patterns, sample, k):
     hit = (ov.argmax(1) == idx).float().mean().item()
     own = (ov[torch.arange(len(sample), device=W.device), idx].float() / k).mean().item()
     return hit, own
-
-
-def sample_for(M):
-    return np.random.default_rng([MEASUREMENT_SEED, M]).choice(
-        M, min(RECALL_SAMPLE, M), replace=False)
 
 
 def first_item_count(C, pres_bits, first, n):

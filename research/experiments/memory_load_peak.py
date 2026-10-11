@@ -26,11 +26,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
 from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: the judged cells, n/k = 20, 50, 100, 200 at k p ~ 35
@@ -48,9 +46,9 @@ def tau(n, k, f):
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "f": f, "tau": tau(n, k, f), "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "f": f, "tau": tau(n, k, f), "beta": round(lib.theta(n, k, p), 5),
              "batch": md.batch_size(n),
-             "ladder": [max(8, int(round(r * ml.unit(n, k, p)))) for r in (LADDER[:2] if smoke else LADDER)]}
+             "ladder": [max(8, int(round(r * lib.unit(n, k, p)))) for r in (LADDER[:2] if smoke else LADDER)]}
             for n, k, p in cells for f in ARMS]
 
 
@@ -65,9 +63,9 @@ def experiment(record):
         for L in spec["ladder"]:
             steps = md.reliability(spec, L, seeds, device)
             full = sum(s >= L - 1 for s in steps) / len(steps)
-            rows[str(L)] = {"rho": L / ml.unit(n, k, p), "steps": steps, "full": full}
+            rows[str(L)] = {"rho": L / lib.unit(n, k, p), "steps": steps, "full": full}
             print(f"({n}, {k}, {p}) tau={spec['tau']} ({spec['f']} n/k) L={L} "
-                  f"rho={L / ml.unit(n, k, p):.3f}: full {full:.2f}", flush=True)
+                  f"rho={L / lib.unit(n, k, p):.3f}: full {full:.2f}", flush=True)
             zeros = zeros + 1 if full == 0 else 0
             if zeros >= 2:
                 break
@@ -127,13 +125,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 41 is registered on seeds 602..621")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.load-peak", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "strength": ml.STRENGTH, "match": ml.MATCH,
-                    "w_max": pe.W_MAX, "device": args.device},
+        parameters={"cells": specs, "strength": lib.STRENGTH, "match": lib.MATCH,
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

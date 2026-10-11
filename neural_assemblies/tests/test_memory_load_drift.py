@@ -6,6 +6,7 @@ import math
 
 import pytest
 
+from research.experiments import memory_lib as lib
 from research.experiments import memory_load_drift as md
 from research.experiments import memory_load_law as ml
 
@@ -67,7 +68,7 @@ def test_the_fit_reproduces_the_nine_cells_it_was_fitted_to():
 def test_a_brains_record_does_not_depend_on_its_batch():
     n, k, p = 2000, 60, 0.5
     seeds = [900, 901, 902]
-    spec = {"n": n, "k": k, "p": p, "beta": round(md.tl.theta(n, k, p), 5)}
+    spec = {"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5)}
     L = int(round(0.15 * ml.unit(n, k, p)))     # at the cliff: replay lengths vary
     one = md.reliability({**spec, "batch": 1}, L, seeds, "cuda")
     three = md.reliability({**spec, "batch": 3}, L, seeds, "cuda")

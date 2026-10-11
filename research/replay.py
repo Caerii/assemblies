@@ -10,7 +10,10 @@ observations with the recorded ones byte for byte after a JSON round trip
 and fails nothing it did not fail; an exact change reproduces it entirely.
 
 The run's measure function is found in the script its record names, as the
-runner called it: ``measure`` if the module defines one, else ``experiment``.
+runner called it: the runner's contract is ``measure(record)``, one argument, so
+it is ``measure`` if the module's ``measure`` takes the record alone, else
+``experiment`` (studies whose ``measure(spec, seeds, device)`` is a helper pass
+``experiment`` to the runner).
 With ``--cells``, only those cells of a study whose parameters list cells
 (``n/k/p``) are rerun and compared -- a quick gate before the whole replay.
 
@@ -21,6 +24,7 @@ from __future__ import annotations
 
 import argparse
 import importlib.util
+import inspect
 import json
 import sys
 import time
@@ -43,9 +47,18 @@ def measure_of(script: Path):
     spec.loader.exec_module(module)
     for name in ("measure", "experiment"):
         fn = getattr(module, name, None)
-        if callable(fn):
+        if callable(fn) and _takes_one(fn):
             return fn
-    raise LookupError(f"{script} defines neither measure nor experiment")
+    raise LookupError(f"{script} defines no measure(record) or experiment(record)")
+
+
+def _takes_one(fn) -> bool:
+    """whether ``fn`` can be called as the runner calls a measure: with the record alone"""
+    try:
+        inspect.signature(fn).bind(None)
+    except TypeError:
+        return False
+    return True
 
 
 def replay(record_path, *, cells=None, root: Path = ROOT, measure=None) -> dict:

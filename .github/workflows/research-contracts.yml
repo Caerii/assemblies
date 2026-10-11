@@ -66,6 +66,7 @@ jobs:
           neural_assemblies/tests/test_threshold_law.py
           neural_assemblies/tests/test_collect.py
           neural_assemblies/tests/test_replay.py
+          neural_assemblies/tests/test_refactor_proof.py
           neural_assemblies/tests/test_onset.py
           neural_assemblies/tests/test_regimes.py
           neural_assemblies/tests/test_degree_law.py

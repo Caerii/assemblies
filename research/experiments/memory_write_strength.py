@@ -43,12 +43,14 @@ from neural_assemblies import describe_assembly_memory                  # noqa: 
 from neural_assemblies.core.numpy_engine import _seeding                # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.experiments._substrate import ceiling_from_curve          # noqa: E402
-from research.experiments.seq_capacity_scaling import seeds_for, to_i32  # noqa: E402
+from research.experiments.memory_lib.seeding import seeds_for, to_i32  # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.readout import COMPLETE            # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 COUNTS = (1, 2, 3, 4, 5, 6, 8, 11, 16, 23, 32)
-COMPLETE = 0.8
 CAP = 1 << 17
 CELLS = tuple(pe.ANCHORS)
 #: Amendment 9's random-pattern rank-1 ceilings at the model's own c (WS-V)
@@ -79,7 +81,7 @@ def evaluate_at(M, brains, c, k, n, pres_bits, invdj, tab):
         N = pe.pattern_counts(pats[:M], n)
         pot, share = pe.pattern_stats(N, present, M, k)
         W = pe.weights((N * c).clamp_(max=tab.numel() - 1), present, invdj[b], tab)
-        hit, own, done = readings(W, pats[:M], pe.sample_for(M), k)
+        hit, own, done = readings(W, pats[:M], lib.sample_for(M), k)
         for name, value in (("rank1", hit), ("own", own), ("complete", done),
                             ("potentiated", pot), ("pair_sharing", share)):
             out[name].append(value)
@@ -97,13 +99,13 @@ def adaptive_ceiling(measure_at, metric, start, cap, cache):
         return ensemble_from_values(cache[M][metric]).mean
 
     M = start
-    while mean_at(M) <= pe.HALF_BAR and M > 16:
+    while mean_at(M) <= lib.HALF_BAR and M > 16:
         M //= 2
-    if mean_at(M) <= pe.HALF_BAR:
+    if mean_at(M) <= lib.HALF_BAR:
         return
-    while M < cap and mean_at(M) > pe.HALF_BAR:
+    while M < cap and mean_at(M) > lib.HALF_BAR:
         M *= 2
-    if M <= cap and mean_at(M) <= pe.HALF_BAR:
+    if M <= cap and mean_at(M) <= lib.HALF_BAR:
         mean_at(3 * M // 4)
 
 
@@ -124,7 +126,7 @@ def scan(measure_at, cap, give_up, cache):
 
     M, seen, below = 16, False, 0
     while M <= cap:
-        above = any(v > pe.HALF_BAR for v in means(M).values())
+        above = any(v > lib.HALF_BAR for v in means(M).values())
         if above:
             seen, below = True, 0
         elif seen:
@@ -136,7 +138,7 @@ def scan(measure_at, cap, give_up, cache):
     for a, b in zip(points, points[1:]):
         if b == 2 * a:
             ma, mb = means(a), means(b)
-            if any((ma[m] > pe.HALF_BAR) != (mb[m] > pe.HALF_BAR) for m in metrics):
+            if any((ma[m] > lib.HALF_BAR) != (mb[m] > lib.HALF_BAR) for m in metrics):
                 means(3 * a // 2)
 
 
@@ -147,11 +149,11 @@ def edges(points):
     `upper_censored` when it still does at its last."""
     import math
     pts = sorted(points)
-    above = [i for i, (_, v) in enumerate(pts) if v > pe.HALF_BAR]
+    above = [i for i, (_, v) in enumerate(pts) if v > lib.HALF_BAR]
 
     def cross(i, j):
         (m0, v0), (m1, v1) = pts[i], pts[j]
-        t = 0.0 if v0 == v1 else (v0 - pe.HALF_BAR) / (v0 - v1)
+        t = 0.0 if v0 == v1 else (v0 - lib.HALF_BAR) / (v0 - v1)
         t = min(max(t, 0.0), 1.0)
         return 2.0 ** (math.log2(m0) + t * (math.log2(m1) - math.log2(m0)))
 
@@ -209,9 +211,9 @@ def circuit(n, k, seeds, device, organ_semantics):
     """The cell's presence, in-degree and the model's own write strength c
     (one stored item, the capacity study's first stimulus)."""
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
-    mem = AssemblyMemory(seeds_for(seeds), n, k, pe.P, beta=pe.BETA, w_max=pe.W_MAX,
-                         norm_init=True, synaptic_scaling=False, rounds=pe.T,
-                         strength=pe.STRENGTH, gate=False, max_items=1, device=device,
+    mem = AssemblyMemory(seeds_for(seeds), n, k, pe.P, beta=pe.BETA, w_max=lib.W_MAX,
+                         norm_init=True, synaptic_scaling=False, rounds=lib.ROUNDS,
+                         strength=lib.STRENGTH, gate=False, max_items=1, device=device,
                          organ_semantics=organ_semantics)
     ss = [to_i32(_seeding.fnv1a_pair_seed(seed, "s0", "A")) for seed in seeds]
     first = mem.store(ss, stim_size=k)
@@ -427,7 +429,7 @@ def main(argv=None):
     if any(nk not in pe.ANCHORS for nk in cells) or len(set(cells)) != len(cells):
         ap.error(f"cells must be distinct members of {sorted(pe.ANCHORS)}")
     profiles = {
-        "refracted": describe_assembly_memory(w_max=pe.W_MAX, beta=pe.BETA, strength=pe.STRENGTH,
+        "refracted": describe_assembly_memory(w_max=lib.W_MAX, beta=pe.BETA, strength=lib.STRENGTH,
                                               gate=False, norm_init=True, synaptic_scaling=False),
     }
     path = run_experiment(
@@ -437,9 +439,9 @@ def main(argv=None):
         parameters={"cells": plan(cells),
                     "counts": [1, 5, 32] if args.smoke else list(COUNTS),
                     "cap": 1024 if args.smoke else CAP, "complete": COMPLETE,
-                    "p": pe.P, "beta": pe.BETA, "w_max": pe.W_MAX, "rounds": pe.T,
-                    "strength": pe.STRENGTH, "half_bar": pe.HALF_BAR,
-                    "recall_sample": pe.RECALL_SAMPLE, "measurement_seed": pe.MEASUREMENT_SEED,
+                    "p": pe.P, "beta": pe.BETA, "w_max": lib.W_MAX, "rounds": lib.ROUNDS,
+                    "strength": lib.STRENGTH, "half_bar": lib.HALF_BAR,
+                    "recall_sample": lib.RECALL_SAMPLE, "measurement_seed": lib.MEASUREMENT_SEED,
                     "device": args.device, "search": "scan" if args.scan else "adaptive"},
     )
     print(f"wrote {path}")

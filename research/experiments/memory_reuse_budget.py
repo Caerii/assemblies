@@ -28,12 +28,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_reuse_grammar as rg             # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: the judged cells and their recovery times (Amendment 41's rule)
@@ -53,8 +50,8 @@ def name(u, b):
 
 def plan(cells, *, smoke=False):
     arms = ((10, None), (10, 3)) if smoke else ARMS
-    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "b": b, "rho": rg.RHO,
-             "beta": round(tl.theta(n, k, p), 5), "batch": md.batch_size(n)}
+    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "b": b, "rho": lib.RHO,
+             "beta": round(lib.theta(n, k, p), 5), "batch": md.batch_size(n)}
             for n, k, p, tau in cells for u, b in arms]
 
 
@@ -126,13 +123,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 45 is registered on seeds 682..701")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.reuse-budget", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "strength": ml.STRENGTH, "match": ml.MATCH,
-                    "w_max": pe.W_MAX, "device": args.device},
+        parameters={"cells": specs, "length": lib.LENGTH, "strength": lib.STRENGTH, "match": lib.MATCH,
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

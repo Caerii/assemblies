@@ -25,14 +25,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from research.experiments import memory_comparator as mc                # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_lifecycle as lc                 # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_reuse_grammar as rg             # noqa: E402
 from research.experiments import memory_sleep as sl                     # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_separation as ws          # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((9000, 68, 0.5, 66), (10500, 80, 0.45, 66))
@@ -47,7 +43,7 @@ SAFE, SAFE_COST, REACH, NOT_WORSE, SPARING, MAX_COLLAPSED, COLLAPSED = 0.99, 0.0
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "tau": tau, "rho": rg.RHO, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "tau": tau, "rho": lib.RHO, "beta": round(lib.theta(n, k, p), 5),
              "uses": SMOKE_USES if smoke else USES, "episodes": SMOKE_EPISODES if smoke else EPISODES}
             for n, k, p, tau in cells]
 
@@ -163,15 +159,15 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 54 is registered on seeds 1040..1059 (reference brains 1060..1079)")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.robust_sleep", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "comparator_threshold": mc.THRESHOLD,
+        parameters={"cells": specs, "length": lib.LENGTH, "comparator_threshold": mc.THRESHOLD,
                     "sleep_steps": sl.STEPS, "sleep_margin": sl.MARGIN, "rule": "median of per-brain maxima",
-                    "reference_seeds": list(REFERENCE_SEEDS), "strength": ml.STRENGTH, "match": ml.MATCH,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "reference_seeds": list(REFERENCE_SEEDS), "strength": lib.STRENGTH, "match": lib.MATCH,
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

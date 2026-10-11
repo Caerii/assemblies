@@ -29,7 +29,6 @@ decision before M = 32.
 from __future__ import annotations
 
 from dataclasses import asdict
-import math
 import os
 import sys
 
@@ -38,9 +37,11 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_recall_law as rl                # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.laws import above_floor, theta     # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 FRACTION = 0.20
@@ -53,15 +54,6 @@ STOP_FROM = 32
 SEEDS = tuple(range(142, 162))
 #: Amendment 14's best capacity at the shared cell (TV)
 A14 = {(4000, 60, 0.5): 1616.0}
-
-
-def theta(n, k, p):
-    """The convergence-threshold form sqrt((1 - p) ln n / (p k))."""
-    return math.sqrt((1 - p) * math.log(n) / (p * k))
-
-
-def above_floor(n, k, p):
-    return k * p >= 3 * math.log(n)
 
 
 def beta_pred(n, k, p):
@@ -97,7 +89,7 @@ def experiment(record):
         sweep = {}
         betas = spec["betas"]
         results = lr.run_betas(n, k, betas, seeds, spec["cap"], device,
-                               {b: profiles[lr.profile_name(b)] for b in betas},
+                               {b: profiles[lib.profile_name(b)] for b in betas},
                                stop_on=("complete_distinct",), p=p, grid_start=2,
                                give_up=spec["give_up"], stop_from=STOP_FROM)
         for beta, (c, cache) in zip(betas, results):
@@ -163,16 +155,16 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 17 is registered on seeds 142..161")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in s["betas"]}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in s["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.threshold-law", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "fraction": FRACTION, "min_beta": MIN_BETA,
-                    "stop_from": STOP_FROM, "strength": lr.STRENGTH, "w_max": pe.W_MAX,
-                    "rounds": pe.T, "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "grid_start": 2,
+                    "stop_from": STOP_FROM, "strength": lib.STRENGTH, "w_max": lib.W_MAX,
+                    "rounds": lib.ROUNDS, "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "grid_start": 2,
                     "device": args.device},
     )
     print(f"wrote {path}")

@@ -40,8 +40,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from neural_assemblies import describe_assembly_memory                  # noqa: E402
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: (n, k, p) -> block
@@ -82,8 +82,8 @@ def name(memory, beta):
 
 
 def profile(memory, beta):
-    return describe_assembly_memory(w_max=pe.W_MAX, beta=beta,
-                                    strength=lr.STRENGTH if memory == "refracted" else 0.0,
+    return describe_assembly_memory(w_max=lib.W_MAX, beta=beta,
+                                    strength=lib.STRENGTH if memory == "refracted" else 0.0,
                                     gate=False, norm_init=True, synaptic_scaling=False)
 
 
@@ -121,7 +121,7 @@ def experiment(record):
                 {b: profiles[name(memory, b)] for b in betas},
                 stop_on=("rank1", "complete_distinct") if memory == "control"
                 else ("complete_distinct",),
-                p=p, strength=lr.STRENGTH if memory == "refracted" else 0.0,
+                p=p, strength=lib.STRENGTH if memory == "refracted" else 0.0,
                 grid_start=2, give_up=plan_m["give_up"])
             for beta, (c, cache) in zip(betas, results):
                 windows = {m: ws.edges([(M, ensemble_from_values(r[m]).mean)
@@ -230,9 +230,9 @@ def main(argv=None):
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "gamma": lr.GAMMA, "c_guess": C_GUESS,
-                    "strength": lr.STRENGTH, "w_max": pe.W_MAX, "rounds": pe.T,
-                    "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE, "measurement_seed": pe.MEASUREMENT_SEED,
+                    "strength": lib.STRENGTH, "w_max": lib.W_MAX, "rounds": lib.ROUNDS,
+                    "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE, "measurement_seed": lib.MEASUREMENT_SEED,
                     "grid_start": 2, "device": args.device},
     )
     print(f"wrote {path}")

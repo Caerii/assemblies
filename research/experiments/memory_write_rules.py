@@ -40,9 +40,10 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_degree_law as dl                # noqa: E402
 from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.readout import overlap as _overlap # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 RULES = ("round", "online_burst", "deferred", "burst")
@@ -65,7 +66,7 @@ GATING_RATIO, NEXT_FLOOR, NEXT_OVER_SAME, OWN_CEIL, ATTRACTOR_FLOOR = 0.5, 0.4, 
 
 
 def betas(n, k, p):
-    theta = tl.theta(n, k, p)
+    theta = lib.theta(n, k, p)
     return sorted({round(theta * F_LO * 2 ** (j / STEPS_PER_OCTAVE), 5) for j in range(N_RATES)})
 
 
@@ -74,7 +75,7 @@ def plan(cells, *, smoke=False):
     for n, k, p in cells:
         guess = dl.predicted(n, k, p)
         grid = betas(n, k, p)
-        out.append({"n": n, "k": k, "p": p, "theta": tl.theta(n, k, p),
+        out.append({"n": n, "k": k, "p": p, "theta": lib.theta(n, k, p),
                     "betas": grid[7:9] if smoke else grid,
                     "cap": 32 if smoke else int(3 * guess + 256),
                     "give_up": 16 if smoke else NULL_LOAD,
@@ -87,22 +88,17 @@ def reads(items):
     return (items - 1, 3 * items // 4, items // 2, items // 4)
 
 
-def _overlap(a, b):
-    """Mean fraction of a's rows found in b's rows, per brain: [B, k] x [B, k] -> [B]."""
-    return (a.unsqueeze(2) == b.unsqueeze(1)).any(2).float().mean(dim=1)
-
-
 def trajectory(n, k, p, beta, seeds, rule, items, device):
     """Store `items` items under `rule`; for the items `reads(items)`, one
     frozen round from half of round t's winners scored against round t + 1's
     ("next") and round t's ("same"), and the rounds' own overlap of round t
     with t + 1 ("own"), per brain, averaged over t and items."""
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
-    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=beta, w_max=pe.W_MAX,
-                         norm_init=True, rounds=pe.T, strength=lr.STRENGTH,
+    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=beta, w_max=lib.W_MAX,
+                         norm_init=True, rounds=lib.ROUNDS, strength=lib.STRENGTH,
                          max_items=items + 1, device=device, write_rule=rule,
                          burst_min=BURST_MIN)
     project, trace, burst = mem.area.project, [], []
@@ -146,7 +142,7 @@ def experiment(record):
         cell = {"n": n, "k": k, "p": p, "theta": spec["theta"], "rules": {}}
         for rule in parameters["rules"]:
             results = lr.run_betas(n, k, grid, seeds, spec["cap"], device,
-                                   {b: profiles[lr.profile_name(b)] for b in grid},
+                                   {b: profiles[lib.profile_name(b)] for b in grid},
                                    stop_on=("complete_distinct",), p=p, grid_start=2,
                                    give_up=spec["give_up"], stop_from=STOP_FROM,
                                    write_rule=rule, burst_min=BURST_MIN)
@@ -227,7 +223,7 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 25 is registered on seeds 302..321")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in s["betas"]}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in s["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.write_rules", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
@@ -237,10 +233,10 @@ def main(argv=None):
                     "null_load": NULL_LOAD, "stop_from": STOP_FROM,
                     "traj_rate": TRAJ_RATE,
                     "traj_reads": [list(reads(s["traj_items"])) for s in specs],
-                    "strength": lr.STRENGTH, "w_max": pe.W_MAX, "rounds": pe.T,
-                    "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "grid_start": 2,
+                    "strength": lib.STRENGTH, "w_max": lib.W_MAX, "rounds": lib.ROUNDS,
+                    "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "grid_start": 2,
                     "device": args.device},
     )
     print(f"wrote {path}")

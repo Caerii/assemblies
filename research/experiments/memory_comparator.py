@@ -26,13 +26,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_reuse_grammar as rg             # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_separation as ws          # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((8500, 65, 0.5, 65), (12000, 85, 0.43, 71))
@@ -47,8 +44,8 @@ COST_REUSE, COST_HEALTHY, HIT, CAPTURED = 0.05, 0.01, 0.6, 0.001
 
 def plan(cells, *, smoke=False):
     uses = (10, 40) if smoke else USES
-    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "rho": rg.RHO,
-             "beta": round(tl.theta(n, k, p), 5)}
+    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "rho": lib.RHO,
+             "beta": round(lib.theta(n, k, p), 5)}
             for n, k, p, tau in cells for u in uses]
 
 
@@ -102,11 +99,11 @@ def measure(spec, seeds, device):
     flags and their agreement with the oracle."""
     import numpy as np
     import torch
-    from research.experiments.seq_capacity_scaling import to_i32
+    from research.experiments.memory_lib.seeding import to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     n, k, p, tau = spec["n"], spec["k"], spec["p"], spec["tau"]
-    LEN = rg.LENGTH
-    M = max(1, round(spec["rho"] * ml.unit(n, k, p) / LEN))
+    LEN = lib.LENGTH
+    M = max(1, round(spec["rho"] * lib.unit(n, k, p) / LEN))
     L = M * LEN
     V = max(8, round(L / spec["uses"]))
     B = len(seeds)
@@ -220,13 +217,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 50 is registered on seeds 782..801")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.comparator", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "threshold": THRESHOLD, "inhibit": INHIBIT,
-                    "oracle": ORACLE, "strength": ml.STRENGTH, "match": ml.MATCH, "w_max": pe.W_MAX,
+        parameters={"cells": specs, "length": lib.LENGTH, "threshold": THRESHOLD, "inhibit": INHIBIT,
+                    "oracle": ORACLE, "strength": lib.STRENGTH, "match": lib.MATCH, "w_max": lib.W_MAX,
                     "device": args.device},
     )
     print(f"wrote {path}")

@@ -3,7 +3,7 @@
 Part of research.experiments.memory_fast (see its __init__ for why each path is exact)."""
 from __future__ import annotations
 
-from research.experiments import memory_reuse_grammar as rg
+from research.experiments.memory_lib.walks import LENGTH
 from ._token_index import TokenIndex
 from ._cues import cue_index
 
@@ -31,7 +31,7 @@ def reliability(store, device, index=None, qs=None):
     import torch
     mem, seqs, allst, wordof, M, L, seeds = (store[x] for x in ("mem", "seqs", "allst", "wordof", "M", "L", "seeds"))
     B, n, k = mem.B, mem.n, mem.k
-    LEN = rg.LENGTH
+    LEN = LENGTH
     mem.area.check_overflow()
     index = index or TokenIndex.build(allst, n, device)
     qs = list(range(M)) if qs is None else [int(q) for q in qs]

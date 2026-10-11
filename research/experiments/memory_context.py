@@ -24,10 +24,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((4000, 60, 0.5), (8000, 60, 0.5))
@@ -45,7 +42,7 @@ def decay_of(name):
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5),
              "taus": list(TAUS), "shared": [4] if smoke else list(SHARED),
              "gaps": [0, 16] if smoke else list(GAPS)} for n, k, p in cells]
 
@@ -55,11 +52,11 @@ def run_case(spec, tau, m, gap, seeds, device):
     and whether each sequence's replay ends on its OWN continuation (own
     overlap >= 0.5 and above the other sequence's) at the branch."""
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p = spec["n"], spec["k"], spec["p"]
-    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
+    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
                          norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                          device=device, bias_decay=decay_of(tau))
 
@@ -70,14 +67,14 @@ def run_case(spec, tau, m, gap, seeds, device):
     if gap:
         mem.store_sequence(els([f"F{i}" for i in range(gap)]))
     x2, _ = mem.store_sequence(els(["B0", "B1", "B2"] + shared + ["E0", "E1", "E2"]))
-    sep = torch.stack([sq._overlap(x1[PREFIX + i], x2[PREFIX + i]) for i in range(m)]).mean(dim=0)
+    sep = torch.stack([lib.overlap(x1[PREFIX + i], x2[PREFIX + i]) for i in range(m)]).mean(dim=0)
     branch = PREFIX + m
     correct = []
     for own, other in ((x1, x2), (x2, x1)):
         x = own[0][:, :k // 2]
         for _ in range(branch):
             x = mem.recall(x, rounds=1)
-        o, t = sq._overlap(x, own[branch]), sq._overlap(x, other[branch])
+        o, t = lib.overlap(x, own[branch]), lib.overlap(x, other[branch])
         correct.append(((o >= 0.5) & (o > t)).float())
     return sep.tolist(), (correct[0] * correct[1]).tolist()
 
@@ -149,13 +146,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 30 is registered on seeds 402..421")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.context", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "strength": STRENGTH, "prefix": PREFIX, "suffix": SUFFIX,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

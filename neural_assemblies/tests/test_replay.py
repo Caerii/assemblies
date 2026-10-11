@@ -54,3 +54,18 @@ def test_an_unknown_cell_is_refused(tmp_path):
     path = _record(tmp_path, {}, _cells())
     with pytest.raises(ValueError):
         R.replay(path, cells=["999/1/0.5"], root=tmp_path, measure=_measure)
+
+
+def test_the_measure_is_the_function_the_runner_called(tmp_path):
+    """the runner calls measure(record); a study whose measure(spec, seeds, device) is a helper
+    passed experiment(record) to the runner, and that is what a replay must call"""
+    helper = tmp_path / "helper_study.py"
+    helper.write_text(
+        "def measure(spec, seeds, device):\n    return 'helper'\n\n\n"
+        "def experiment(record):\n    return 'experiment'\n", encoding="utf-8")
+    assert R.measure_of(helper)(None) == "experiment"
+    direct = tmp_path / "direct_study.py"
+    direct.write_text(
+        "def measure(record):\n    return 'measure'\n\n\n"
+        "def experiment(record):\n    return 'experiment'\n", encoding="utf-8")
+    assert R.measure_of(direct)(None) == "measure"

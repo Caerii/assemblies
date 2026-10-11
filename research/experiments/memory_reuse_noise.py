@@ -30,13 +30,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
 from research.experiments import memory_noise as mn                     # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: the judged cells and their recovery times (Amendment 41's rule)
@@ -57,7 +53,7 @@ PAIRS = 200
 def plan(cells, *, smoke=False):
     out = []
     for n, k, p, tau in cells:
-        base = {"n": n, "k": k, "p": p, "tau": tau, "beta": round(tl.theta(n, k, p), 5),
+        base = {"n": n, "k": k, "p": p, "tau": tau, "beta": round(lib.theta(n, k, p), 5),
                 "batch": md.batch_size(n)}
         for rho in (REUSE_RHO[:1] if smoke else REUSE_RHO):
             for u in ((None, 5) if smoke else USES):
@@ -78,19 +74,19 @@ def measure(spec, seeds, device):
     """Per brain: the fraction of its sequences replayed whole, and (reuse arms)
     the mean same-word and different-word code overlaps."""
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p = spec["n"], spec["k"], spec["p"]
-    M = max(1, round(spec["rho"] * ml.unit(n, k, p) / LENGTH))
+    M = max(1, round(spec["rho"] * lib.unit(n, k, p) / LENGTH))
     L = M * LENGTH
     V = None if spec["uses"] is None else max(2, round(L / spec["uses"]))
     salt = L * 1000 + (V or 0)
     out = {"L": L, "M": M, "V": V, "whole": [], "same": [], "different": []}
     for i in range(0, len(seeds), spec["batch"]):
         part = list(seeds[i:i + spec["batch"]])
-        mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
-                             norm_init=True, rounds=1, strength=ml.STRENGTH, max_items=4,
+        mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
+                             norm_init=True, rounds=1, strength=lib.STRENGTH, max_items=4,
                              device=device, bias_decay=math.exp(-1.0 / spec["tau"]))
         if V is None:
             words = [None] * len(part)
@@ -110,7 +106,7 @@ def measure(spec, seeds, device):
                 x = mem.recall(x, rounds=1)
                 if spec["nu"]:
                     x = mn._corrupt(x, spec["nu"], n, gen, uniform=True)
-                alive &= sq._overlap(x, st[j]) >= ml.MATCH
+                alive &= lib.overlap(x, st[j]) >= lib.MATCH
             done += alive.float()
         out["whole"] += (done / M).tolist()
         if V is not None:
@@ -124,9 +120,9 @@ def measure(spec, seeds, device):
                     cross = [(a, c) for a in occ for c in occ if a[0] < c[0]]
                     if cross and len(same) < PAIRS:
                         (q1, e1), (q2, e2) = cross[0]
-                        same.append(float(sq._overlap(seqs[q1][e1, b:b + 1], seqs[q2][e2, b:b + 1])))
+                        same.append(float(lib.overlap(seqs[q1][e1, b:b + 1], seqs[q2][e2, b:b + 1])))
                     if prev is not None and len(diff) < PAIRS:
-                        diff.append(float(sq._overlap(seqs[prev[0]][prev[1], b:b + 1],
+                        diff.append(float(lib.overlap(seqs[prev[0]][prev[1], b:b + 1],
                                                       seqs[occ[0][0]][occ[0][1], b:b + 1])))
                     prev = occ[0]
                 out["same"].append(sum(same) / len(same) if same else None)
@@ -208,13 +204,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 42 is registered on seeds 622..641")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.reuse-noise", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": LENGTH, "strength": ml.STRENGTH, "match": ml.MATCH,
-                    "w_max": pe.W_MAX, "device": args.device},
+        parameters={"cells": specs, "length": LENGTH, "strength": lib.STRENGTH, "match": lib.MATCH,
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

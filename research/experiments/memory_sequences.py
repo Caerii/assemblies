@@ -39,9 +39,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.readout import overlap as _overlap # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: (n, k, p): n/k = 33, 67, 33 and in-degree d = n p = 1000, 2000, 2000 --
@@ -72,7 +72,7 @@ def arm_name(rule, s):
 def plan(cells, *, smoke=False):
     out = []
     for n, k, p in cells:
-        theta = tl.theta(n, k, p)
+        theta = lib.theta(n, k, p)
         arms = []
         for rule, s, rates in ARMS:
             grid = (rates[2:3] or rates[:1]) if smoke else rates
@@ -81,11 +81,6 @@ def plan(cells, *, smoke=False):
         out.append({"n": n, "k": k, "p": p, "theta": theta, "arms": arms,
                     "checkpoints": [m for m in CHECKPOINTS if m <= (64 if smoke else 16384)]})
     return out
-
-
-def _overlap(a, b):
-    """[B, k] x [B, k] -> [B]: the fraction of a's winners in b."""
-    return (a.unsqueeze(2) == b.unsqueeze(1)).any(2).float().mean(dim=1)
 
 
 def replay(mem, trace, items, k):
@@ -115,10 +110,10 @@ def run_rate(n, k, p, beta, rule, s, seeds, checkpoints, device):
     at each checkpoint; returns {M: {metric: [B]}} and the during-write
     consecutive overlap at OWN_AT items."""
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
-    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=beta, w_max=pe.W_MAX,
+    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=beta, w_max=lib.W_MAX,
                          norm_init=True, rounds=T, strength=s,
                          max_items=checkpoints[-1] + 1, device=device, write_rule=rule)
     project, trace = mem.area.project, []
@@ -261,7 +256,7 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 26 is registered on seeds 322..341")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b)
+    profiles = {lib.profile_name(b): lib.profile(b)
                 for s in specs for arm in s["arms"] for b in arm["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.sequences", protocol_version="1",
@@ -269,7 +264,7 @@ def main(argv=None):
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "rounds": T, "read_items": READ_ITEMS,
                     "null_load": NULL_LOAD, "stop_len": STOP_LEN, "own_items": [OWN_FROM, OWN_AT],
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

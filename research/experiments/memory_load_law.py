@@ -30,28 +30,24 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
+#: registered names, owned by research.experiments.memory_lib since 2026-10-10 (re-exported)
+from research.experiments.memory_lib.laws import unit                   # noqa: E402
+from research.experiments.memory_lib.model import STRENGTH              # noqa: E402
+from research.experiments.memory_lib.readout import MATCH               # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: the held-out cells (judged) and an out-of-regime cell (reported)
 CELLS = ((6000, 90, 0.4), (12000, 80, 0.5))
 REPORTED = ((6000, 40, 0.5),)
-TAU, STRENGTH, MATCH = 64, 0.5, 0.3
+TAU = 64
 LADDER = tuple(0.06 * 2 ** (j / 8) for j in range(18))                  # rho 0.06 .. 0.26
 SEEDS = tuple(range(522, 542))
 RHO_50, BAND, SAFE, SHARP = 0.142, 1.3, 0.09, 1.6
 
 
-def unit(n, k, p):
-    """The L at rho = 1."""
-    return n * n * p / (k * math.log(n))
-
-
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5),
              "ladder": [max(8, int(round(r * unit(n, k, p)))) for r in (LADDER[6:8] if smoke else LADDER)]}
             for n, k, p in cells]
 
@@ -59,11 +55,11 @@ def plan(cells, *, smoke=False):
 def reliability(spec, L, seeds, device):
     """Each brain's replay length [B] for one fresh sequence of L elements."""
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p = spec["n"], spec["k"], spec["p"]
-    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
+    mem = AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
                          norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                          device=device, bias_decay=math.exp(-1.0 / TAU))
     els = [[to_i32(_seeding.fnv1a_pair_seed(sd, f"L{L}e{e}", "A")) for sd in seeds] for e in range(L)]
@@ -76,7 +72,7 @@ def reliability(spec, L, seeds, device):
     steps = torch.zeros(B, device=device)
     for j in range(1, L):
         x = mem.recall(x, rounds=1)
-        alive &= sq._overlap(x, states[j]) >= MATCH
+        alive &= lib.overlap(x, states[j]) >= MATCH
         steps += alive.float()
         if not bool(alive.any()):
             break
@@ -144,13 +140,13 @@ def main(argv=None):
         ap.error("Amendment 37 is registered on seeds 522..541")
     cells = CELLS + REPORTED
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.load-law", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "tau": TAU, "strength": STRENGTH, "match": MATCH,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

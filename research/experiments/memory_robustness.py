@@ -31,10 +31,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((4000, 60, 0.5), (8000, 60, 0.5))
@@ -51,21 +49,21 @@ BUDGET_BAND, HARMLESS, HORIZON_GAIN, CUE_FLOOR = (0.6, 1.6), 18, 2.0, 0.9
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5),
              "m_ladder": list(M_LADDER[:2] if smoke else M_LADDER),
              "noise_len": 40 if smoke else NOISE_LEN} for n, k, p in cells]
 
 
 def _memory(spec, seeds, device):
-    from research.experiments.seq_capacity_scaling import seeds_for
+    from research.experiments.memory_lib.seeding import seeds_for
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     return AssemblyMemory(seeds_for(list(seeds)), spec["n"], spec["k"], spec["p"], beta=spec["beta"],
-                          w_max=pe.W_MAX, norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
+                          w_max=lib.W_MAX, norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                           device=device, bias_decay=math.exp(-1.0 / TAU))
 
 
 def _elements(seeds, tag, length):
-    from research.experiments.seq_capacity_scaling import to_i32
+    from research.experiments.memory_lib.seeding import to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     return [[to_i32(_seeding.fnv1a_pair_seed(sd, f"{tag}e{e}", "A")) for sd in seeds]
             for e in range(length)]
@@ -90,7 +88,7 @@ def replay(mem, states, *, nu=0.0, eta=0.0, gen=None):
     steps = torch.zeros(states.shape[1], device=states.device)
     for j in range(1, L):
         x = _corrupt(mem.recall(x, rounds=1), nu, n, gen)
-        alive &= sq._overlap(x, states[j]) >= MATCH
+        alive &= lib.overlap(x, states[j]) >= MATCH
         steps += alive.float()
     return steps
 
@@ -174,14 +172,14 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 34 is registered on seeds 482..501")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.robustness", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "tau": TAU, "strength": STRENGTH, "seq_len": SEQ_LEN,
                     "nus": list(NUS), "draws": DRAWS, "etas": list(ETAS), "noise_seed": NOISE_SEED,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

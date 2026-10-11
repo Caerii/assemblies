@@ -30,11 +30,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_robustness as mr                # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = mr.CELLS
@@ -49,7 +46,7 @@ MILDER, FULL_BRAINS, A34_TOL, CUE_FLOOR = 2.0, 18, 0.35, 0.9
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5),
              "noise_len": 40 if smoke else NOISE_LEN} for n, k, p in cells]
 
 
@@ -75,7 +72,7 @@ def replay(mem, states, *, nu=0.0, uniform=False, cue="strong", eta=0.0, gen=Non
     steps = torch.zeros(states.shape[1], device=states.device)
     for j in range(1, L):
         x = _corrupt(mem.recall(x, rounds=1), nu, n, gen, uniform)
-        alive &= sq._overlap(x, states[j]) >= mr.MATCH
+        alive &= lib.overlap(x, states[j]) >= mr.MATCH
         steps += alive.float()
     return steps
 
@@ -137,14 +134,14 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 36 is registered on seeds 502..521")
     specs = plan(CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.noise", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "tau": mr.TAU, "strength": mr.STRENGTH, "nus": list(NUS),
                     "draws": DRAWS, "slots": list(SLOTS), "cues": list(CUES), "etas": list(ETAS),
-                    "noise_seed": NOISE_SEED, "w_max": pe.W_MAX, "device": args.device},
+                    "noise_seed": NOISE_SEED, "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

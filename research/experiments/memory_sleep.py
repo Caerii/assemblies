@@ -26,13 +26,10 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_reuse_grammar as rg             # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_separation as ws          # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((9000, 65, 0.5, 69), (11000, 85, 0.42, 65))
@@ -50,18 +47,18 @@ REPAIRED, LIFT, PLATEAU, HEALTHY, HEALTHY_COST, CLOSED, FRUGAL, MAX_COLLAPSED, C
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "tau": tau, "rho": rg.RHO, "beta": round(tl.theta(n, k, p), 5),
+    return [{"n": n, "k": k, "p": p, "tau": tau, "rho": lib.RHO, "beta": round(lib.theta(n, k, p), 5),
              "doses": list(SMOKE_DOSES if smoke else DOSES)} for n, k, p, tau in cells]
 
 
 def build_store(spec, U, seeds, device):
     import numpy as np
     import torch
-    from research.experiments.seq_capacity_scaling import to_i32
+    from research.experiments.memory_lib.seeding import to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     n, k, p, tau = spec["n"], spec["k"], spec["p"], spec["tau"]
-    LEN = rg.LENGTH
-    M = max(1, round(spec["rho"] * ml.unit(n, k, p) / LEN))
+    LEN = lib.LENGTH
+    M = max(1, round(spec["rho"] * lib.unit(n, k, p) / LEN))
     L = M * LEN
     V = max(8, round(L / U))
     words = [rg.walks(sd, M, V, None, L * 1000 + U) for sd in seeds]
@@ -121,12 +118,12 @@ def reliability(store, device):
         area.winners = torch.stack([md.cue(seqs[q][0, i], sd, L * 100_000 + q, k, device)
                                     for i, sd in enumerate(seeds)]).long()
         alive = torch.ones(B, dtype=torch.bool, device=device)
-        for j in range(1, rg.LENGTH):
+        for j in range(1, lib.LENGTH):
             x = area.project(1, [fib], freeze=True, mask_bias=False)
             hot = torch.zeros(B, n, device=device)
             hot.scatter_(1, x.long(), 1.0)
             ov = torch.gather(hot.unsqueeze(0).expand(L, B, n), 2, allst).sum(2)
-            alive &= wordof[ov.argmax(0), ar] == wordof[q * rg.LENGTH + j]
+            alive &= wordof[ov.argmax(0), ar] == wordof[q * lib.LENGTH + j]
         rel += alive.float()
     return (rel / M).tolist()
 
@@ -229,14 +226,14 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 51 is registered on seeds 802..821 (reference brains 822..841)")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.sleep", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "steps": STEPS, "settle": SETTLE, "margin": MARGIN,
+        parameters={"cells": specs, "length": lib.LENGTH, "steps": STEPS, "settle": SETTLE, "margin": MARGIN,
                     "calibration": CALIBRATION, "reference_seeds": list(REFERENCE_SEEDS), "uses": list(USES),
-                    "strength": ml.STRENGTH, "match": ml.MATCH, "w_max": pe.W_MAX, "device": args.device},
+                    "strength": lib.STRENGTH, "match": lib.MATCH, "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

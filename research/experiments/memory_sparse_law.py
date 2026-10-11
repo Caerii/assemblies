@@ -34,9 +34,9 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_recall_law as rl                # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((1333, 40, 0.75), (2000, 60, 0.5), (4000, 120, 0.25), (8000, 240, 0.125),
@@ -84,7 +84,7 @@ def experiment(record):
         sweep = {}
         betas = spec["betas"]
         results = lr.run_betas(n, k, betas, seeds, spec["cap"], device,
-                               {b: profiles[lr.profile_name(b)] for b in betas},
+                               {b: profiles[lib.profile_name(b)] for b in betas},
                                stop_on=("complete_distinct",), p=p, grid_start=2,
                                give_up=spec["give_up"], stop_from=STOP_FROM)
         for beta, (c, cache) in zip(betas, results):
@@ -163,16 +163,16 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 16 is registered on seeds 122..141")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in s["betas"]}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in s["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.sparse-law", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "gamma": lr.GAMMA, "min_beta": MIN_BETA,
-                    "strength": lr.STRENGTH, "w_max": pe.W_MAX, "rounds": pe.T,
-                    "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "grid_start": 2,
+                    "strength": lib.STRENGTH, "w_max": lib.W_MAX, "rounds": lib.ROUNDS,
+                    "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "grid_start": 2,
                     "stop_from": STOP_FROM, "device": args.device},
     )
     print(f"wrote {path}")

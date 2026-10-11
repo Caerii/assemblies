@@ -31,18 +31,15 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: the judged cells: n/k = 300 at two (n, k, p), both in regime (k p >= 3 ln n)
 CELLS = ((18000, 60, 0.6), (24000, 80, 0.5))
 #: the smoke exercises the code on a survey cell, never on a judged one
 SMOKE_CELL = (4000, 60, 0.5)
-TAU, STRENGTH, MATCH = ml.TAU, ml.STRENGTH, ml.MATCH
+TAU, STRENGTH, MATCH = ml.TAU, lib.STRENGTH, lib.MATCH
 LADDER = ml.LADDER[2:]                                                  # rho 0.071 .. 0.26
 SEEDS = tuple(range(542, 562))
 #: the post hoc fit over the nine in-regime cells (Amendments 37 and its survey)
@@ -66,8 +63,8 @@ def batch_size(n):
 
 
 def plan(cells, *, smoke=False):
-    return [{"n": n, "k": k, "p": p, "beta": round(tl.theta(n, k, p), 5), "batch": batch_size(n),
-             "ladder": [max(8, int(round(r * ml.unit(n, k, p)))) for r in (LADDER[:2] if smoke else LADDER)]}
+    return [{"n": n, "k": k, "p": p, "beta": round(lib.theta(n, k, p), 5), "batch": batch_size(n),
+             "ladder": [max(8, int(round(r * lib.unit(n, k, p)))) for r in (LADDER[:2] if smoke else LADDER)]}
             for n, k, p in cells]
 
 
@@ -83,14 +80,14 @@ def reliability(spec, L, seeds, device):
     """Each brain's replay length, brains in batches of spec["batch"] (recovery
     time spec["tau"], default TAU)."""
     import torch
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
     n, k, p = spec["n"], spec["k"], spec["p"]
     out = []
     for i in range(0, len(seeds), spec["batch"]):
         part = list(seeds[i:i + spec["batch"]])
-        mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=pe.W_MAX,
+        mem = AssemblyMemory(seeds_for(part), n, k, p, beta=spec["beta"], w_max=lib.W_MAX,
                              norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                              device=device, bias_decay=math.exp(-1.0 / spec.get("tau", TAU)))
         els = [[to_i32(_seeding.fnv1a_pair_seed(sd, f"L{L}e{e}", "A")) for sd in part] for e in range(L)]
@@ -100,7 +97,7 @@ def reliability(spec, L, seeds, device):
         steps = torch.zeros(len(part), device=device)
         for j in range(1, L):
             x = mem.recall(x, rounds=1)
-            alive &= sq._overlap(x, states[j]) >= MATCH
+            alive &= lib.overlap(x, states[j]) >= MATCH
             steps += alive.float()
             if not bool(alive.any()):
                 break
@@ -121,8 +118,8 @@ def experiment(record):
         for L in spec["ladder"]:
             steps = reliability(spec, L, seeds, device)
             full = sum(s >= L - 1 for s in steps) / len(steps)
-            rows[str(L)] = {"rho": L / ml.unit(n, k, p), "steps": steps, "full": full}
-            print(f"({n}, {k}, {p}) L={L} rho={L / ml.unit(n, k, p):.3f}: full {full:.2f}", flush=True)
+            rows[str(L)] = {"rho": L / lib.unit(n, k, p), "steps": steps, "full": full}
+            print(f"({n}, {k}, {p}) L={L} rho={L / lib.unit(n, k, p):.3f}: full {full:.2f}", flush=True)
             zeros = zeros + 1 if full == 0 else 0
             if zeros >= 2:
                 break
@@ -165,13 +162,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 38 is registered on seeds 542..561")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.load-drift", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
         parameters={"cells": specs, "tau": TAU, "strength": STRENGTH, "match": MATCH,
-                    "w_max": pe.W_MAX, "fit": list(FIT), "device": args.device},
+                    "w_max": lib.W_MAX, "fit": list(FIT), "device": args.device},
     )
     print(f"wrote {path}")
 

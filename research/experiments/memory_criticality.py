@@ -37,9 +37,8 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
 from research.experiments import memory_degree_law as dl                # noqa: E402
 from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
 from research.experiments import memory_write_strength as ws            # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = tuple((n, 60, 0.5) for n in (2000, 4000, 8000, 16000))
@@ -54,7 +53,7 @@ SHARPEN, SETTLE_RATIO, BAND, DRIFT = 0.6, 1.5, (0.13, 0.21), 0.10
 
 
 def betas(n, k, p):
-    theta = tl.theta(n, k, p)
+    theta = lib.theta(n, k, p)
     out, j = [], 0
     while F_LO * 2 ** (j / STEPS_PER_OCTAVE) <= F_HI + 1e-12:
         out.append(round(theta * F_LO * 2 ** (j / STEPS_PER_OCTAVE), 5))
@@ -67,7 +66,7 @@ def plan(cells, *, smoke=False):
     for n, k, p in cells:
         guess = dl.predicted(n, k, p)
         grid = betas(n, k, p)
-        out.append({"n": n, "k": k, "p": p, "theta": tl.theta(n, k, p),
+        out.append({"n": n, "k": k, "p": p, "theta": lib.theta(n, k, p),
                     "betas": grid[6:8] if smoke else grid,
                     "cap": 32 if smoke else int(3 * guess + 256),
                     "give_up": 16 if smoke else int(max(8192, 2 * guess))})
@@ -84,7 +83,7 @@ def experiment(record):
         n, k, p = spec["n"], spec["k"], spec["p"]
         grid = spec["betas"]
         results = lr.run_betas(n, k, grid, seeds, spec["cap"], device,
-                               {b: profiles[lr.profile_name(b)] for b in grid},
+                               {b: profiles[lib.profile_name(b)] for b in grid},
                                stop_on=("complete_distinct",), p=p, grid_start=2,
                                give_up=spec["give_up"], stop_from=STOP_FROM,
                                settle_rounds=parameters["settle_rounds"])
@@ -121,7 +120,7 @@ def seed_onsets(cell):
             if int(M) < ONSET_FROM:
                 continue
             for seed, v in _per_seed(metrics["complete_distinct"]).items():
-                if v > pe.HALF_BAR and seed not in onsets:
+                if v > lib.HALF_BAR and seed not in onsets:
                     onsets[seed] = s["beta"] / cell["theta"]
     return onsets
 
@@ -130,7 +129,7 @@ def settle_at(s):
     """Mean settling round over the checkpoints inside the rate's distinct
     window (where the ensemble's distinct completion exceeds one half)."""
     values = [statistics.fmean(m["settle"]["values"]) for M, m in s["ensembles"].items()
-              if "settle" in m and statistics.fmean(m["complete_distinct"]["values"]) > pe.HALF_BAR]
+              if "settle" in m and statistics.fmean(m["complete_distinct"]["values"]) > lib.HALF_BAR]
     return statistics.fmean(values) if values else None
 
 
@@ -192,7 +191,7 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 24 is registered on seeds 282..301")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in s["betas"]}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in s["betas"]}
     path = run_experiment(
         script=__file__, protocol="memory.criticality", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
@@ -200,10 +199,10 @@ def main(argv=None):
         parameters={"cells": specs, "f_lo": F_LO, "f_hi": F_HI,
                     "steps_per_octave": STEPS_PER_OCTAVE, "settle_rounds": SETTLE_ROUNDS,
                     "onset_from": ONSET_FROM, "stop_from": STOP_FROM,
-                    "strength": lr.STRENGTH, "w_max": pe.W_MAX, "rounds": pe.T,
-                    "half_bar": pe.HALF_BAR, "complete": ws.COMPLETE,
-                    "recall_sample": pe.RECALL_SAMPLE,
-                    "measurement_seed": pe.MEASUREMENT_SEED, "grid_start": 2,
+                    "strength": lib.STRENGTH, "w_max": lib.W_MAX, "rounds": lib.ROUNDS,
+                    "half_bar": lib.HALF_BAR, "complete": lib.COMPLETE,
+                    "recall_sample": lib.RECALL_SAMPLE,
+                    "measurement_seed": lib.MEASUREMENT_SEED, "grid_start": 2,
                     "device": args.device},
     )
     print(f"wrote {path}")

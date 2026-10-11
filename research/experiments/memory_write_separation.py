@@ -27,12 +27,9 @@ import sys
 sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
-from research.experiments import memory_learning_rate as lr             # noqa: E402
 from research.experiments import memory_load_drift as md                # noqa: E402
-from research.experiments import memory_load_law as ml                  # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
 from research.experiments import memory_reuse_grammar as rg             # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 CELLS = ((9500, 70, 0.5, 68), (11500, 80, 0.45, 72))
@@ -46,16 +43,16 @@ HEALTHY, RESCUED, LIFT, REACH, COST, CAPTURED, COLLAPSED, MAX_COLLAPSED = 0.97, 
 
 def plan(cells, *, smoke=False):
     uses = (10, 40) if smoke else USES
-    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "rho": rg.RHO,
-             "beta": round(tl.theta(n, k, p), 5)}
+    return [{"n": n, "k": k, "p": p, "tau": tau, "uses": u, "rho": lib.RHO,
+             "beta": round(lib.theta(n, k, p), 5)}
             for n, k, p, tau in cells for u in uses]
 
 
 def build(n, k, p, tau, seeds, device):
-    from research.experiments.seq_capacity_scaling import seeds_for
+    from research.experiments.memory_lib.seeding import seeds_for
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
-    return AssemblyMemory(seeds_for(seeds), n, k, p, beta=round(tl.theta(n, k, p), 5), w_max=pe.W_MAX,
-                          norm_init=True, rounds=1, strength=ml.STRENGTH, max_items=4, device=device,
+    return AssemblyMemory(seeds_for(seeds), n, k, p, beta=round(lib.theta(n, k, p), 5), w_max=lib.W_MAX,
+                          norm_init=True, rounds=1, strength=lib.STRENGTH, max_items=4, device=device,
                           bias_decay=math.exp(-1.0 / tau))
 
 
@@ -100,12 +97,12 @@ def store(mem, elem_seeds, stored, separate, device):
 def equivalent(device):
     """The written loop, separation off, equals store_sequence (3 sequences, 4 brains, n = 2000)."""
     import torch
-    from research.experiments.seq_capacity_scaling import to_i32
+    from research.experiments.memory_lib.seeding import to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     sd = list(range(980, 984))
     a, b = build(2000, 60, 0.5, 17, sd, device), build(2000, 60, 0.5, 17, sd, device)
     for q in range(3):
-        es = [[to_i32(_seeding.fnv1a_pair_seed(s, f"w{q}-{e}", "A")) for s in sd] for e in range(rg.LENGTH)]
+        es = [[to_i32(_seeding.fnv1a_pair_seed(s, f"w{q}-{e}", "A")) for s in sd] for e in range(lib.LENGTH)]
         sa = a.store_sequence(es)[0]
         sb, _ = store(b, es, [], False, device)
         if not torch.equal(torch.sort(sa, -1).values, torch.sort(sb, -1).values):
@@ -119,11 +116,11 @@ def measure(spec, seeds, device):
     token of another word), largest cluster; per store, interventions."""
     import numpy as np
     import torch
-    from research.experiments.seq_capacity_scaling import to_i32
+    from research.experiments.memory_lib.seeding import to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     n, k, p, tau = spec["n"], spec["k"], spec["p"], spec["tau"]
-    LEN = rg.LENGTH
-    M = max(1, round(spec["rho"] * ml.unit(n, k, p) / LEN))
+    LEN = lib.LENGTH
+    M = max(1, round(spec["rho"] * lib.unit(n, k, p) / LEN))
     L = M * LEN
     V = max(8, round(L / spec["uses"]))
     B = len(seeds)
@@ -234,13 +231,13 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 49 is registered on seeds 762..781")
     specs = plan((SMOKE_CELL,) if args.smoke else CELLS, smoke=args.smoke)
-    profiles = {lr.profile_name(s["beta"]): lr.profile(s["beta"]) for s in specs}
+    profiles = {lib.profile_name(s["beta"]): lib.profile(s["beta"]) for s in specs}
     path = run_experiment(
         script=__file__, protocol="memory.write-separation", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
         smoke=args.smoke, measure=experiment, organ_semantics=profiles,
-        parameters={"cells": specs, "length": rg.LENGTH, "capture": CAPTURE, "inhibit": INHIBIT,
-                    "strength": ml.STRENGTH, "match": ml.MATCH, "w_max": pe.W_MAX, "device": args.device},
+        parameters={"cells": specs, "length": lib.LENGTH, "capture": CAPTURE, "inhibit": INHIBIT,
+                    "strength": lib.STRENGTH, "match": lib.MATCH, "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 

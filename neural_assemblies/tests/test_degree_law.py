@@ -4,6 +4,7 @@ must fail the prediction (D1) and the equal-degree agreement (D2); a law
 linear in d must fail the exponent (D3)."""
 import pytest
 
+from research.experiments import memory_lib as lib
 from research.experiments import memory_degree_law as dl
 
 pytestmark = pytest.mark.requires_torch
@@ -49,5 +50,5 @@ def test_a_law_linear_in_d_fails_d3():
 def test_every_grid_brackets_the_onset_band():
     for n, k, p in dl.CELLS:
         grid = dl.betas(n, k, p)
-        theta = dl.tl.theta(n, k, p)
+        theta = lib.theta(n, k, p)
         assert min(grid) / theta <= 0.16 and max(grid) / theta >= 0.29 and min(grid) >= dl.MIN_BETA

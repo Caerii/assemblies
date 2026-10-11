@@ -37,10 +37,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.dirname(
     os.path.abspath(__file__)))))
 
 from neural_assemblies.diagnostics import ensemble_from_values          # noqa: E402
-from research.experiments import memory_learning_rate as lr             # noqa: E402
-from research.experiments import memory_pattern_efficiency as pe        # noqa: E402
-from research.experiments import memory_sequences as sq                 # noqa: E402
-from research.experiments import memory_threshold_law as tl             # noqa: E402
+from research.experiments import memory_lib as lib                      # noqa: E402
 from research.runner import experiment_parser, run_experiment           # noqa: E402
 
 #: (n_S, n_C), both k = 60, p = 0.5
@@ -79,7 +76,7 @@ def plans(chunks=None, plan_len=None, count=None, seed=PLAN_SEED):
 
 def plan(cells, *, smoke=False):
     return [{"n_s": ns, "n_c": nc, "k": K, "p": P,
-             "beta_s": round(tl.theta(ns, K, P), 5), "beta_c": round(tl.theta(nc, K, P), 5),
+             "beta_s": round(lib.theta(ns, K, P), 5), "beta_c": round(lib.theta(nc, K, P), 5),
              "links": list(LINKS), "loads": [[8, 6]] if smoke else [list(l) for l in LOADS],
              "chunk_len": 4 if smoke else CHUNK_LEN} for ns, nc in cells]
 
@@ -94,7 +91,7 @@ def load_shape(load):
 def build(spec, link, seeds, device, load=None):
     """Write the chunks into S, the plans into C, and the links C -> S.
     Returns (S, C, CS, chunk_states [chunks][L, B, k], plan_states [plans][Lp, B, k])."""
-    from research.experiments.seq_capacity_scaling import seeds_for, to_i32
+    from research.experiments.memory_lib.seeding import seeds_for, to_i32
     from neural_assemblies.core.numpy_engine import _seeding
     from neural_assemblies.core.torch_engine._hashed import DenseOrganFiber
     from neural_assemblies.core.torch_engine._memory import AssemblyMemory
@@ -102,7 +99,7 @@ def build(spec, link, seeds, device, load=None):
     decay = math.exp(-1.0 / TAU)
 
     def area(n, beta):
-        return AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=beta, w_max=pe.W_MAX,
+        return AssemblyMemory(seeds_for(list(seeds)), n, k, p, beta=beta, w_max=lib.W_MAX,
                               norm_init=True, rounds=1, strength=STRENGTH, max_items=4,
                               device=device, bias_decay=decay)
 
@@ -115,7 +112,7 @@ def build(spec, link, seeds, device, load=None):
     orders = plans(n_chunks, plan_len, n_plans)
     plan_states = [C.store_sequence(els("chunk", order))[0] for order in orders]
     CS = DenseOrganFiber([to_i32(_seeding.fnv1a_pair_seed(sd, "C->S", "A")) for sd in seeds],
-                         spec["n_c"], spec["n_s"], p, beta=spec["beta_s"], w_max=pe.W_MAX,
+                         spec["n_c"], spec["n_s"], p, beta=spec["beta_s"], w_max=lib.W_MAX,
                          norm_init=True, device=device)
     for _ in range(link):
         for order, states in zip(orders, plan_states):
@@ -140,17 +137,17 @@ def recall_plan(S, C, CS, chunks, order, states, k):
     for i, chunk in enumerate(order):
         s = S.area.project(1, [CS], rows_for={id(CS): c}, freeze=True, mask_bias=True,
                            manage_episodes=False)
-        hit = sq._overlap(s, chunks[chunk][0]) >= MATCH
+        hit = lib.overlap(s, chunks[chunk][0]) >= MATCH
         starts += hit.float()
         alive &= hit
         steps += alive.float()
         for j in range(1, chunks[chunk].shape[0]):
             s = S.recall(s, rounds=1)
-            alive &= sq._overlap(s, chunks[chunk][j]) >= MATCH
+            alive &= lib.overlap(s, chunks[chunk][j]) >= MATCH
             steps += alive.float()
         if i + 1 < len(order):
             c = C.recall(c, rounds=1)
-            c_alive &= sq._overlap(c, states[i + 1]) >= MATCH
+            c_alive &= lib.overlap(c, states[i + 1]) >= MATCH
             c_steps += c_alive.float()
     return ((steps / total).tolist(), (starts / len(order)).tolist(),
             (c_steps / (len(order) - 1)).tolist())
@@ -238,7 +235,7 @@ def main(argv=None):
     if not args.smoke and list(args.seeds) != list(SEEDS):
         ap.error("Amendment 33 is registered on seeds 462..481")
     specs = plan(cells, smoke=args.smoke)
-    profiles = {lr.profile_name(b): lr.profile(b) for s in specs for b in (s["beta_s"], s["beta_c"])}
+    profiles = {lib.profile_name(b): lib.profile(b) for s in specs for b in (s["beta_s"], s["beta_c"])}
     path = run_experiment(
         script=__file__, protocol="memory.hierarchy", protocol_version="1",
         registration=args.registration, engine=args.engine, seeds=args.seeds, tag=args.tag,
@@ -246,7 +243,7 @@ def main(argv=None):
         parameters={"cells": specs, "plan_len": PLAN_LEN, "load_plan_len": LOAD_PLAN_LEN,
                     "read_plans": READ_PLANS,
                     "tau": TAU, "strength": STRENGTH, "match": MATCH, "plan_seed": PLAN_SEED,
-                    "w_max": pe.W_MAX, "device": args.device},
+                    "w_max": lib.W_MAX, "device": args.device},
     )
     print(f"wrote {path}")
 
