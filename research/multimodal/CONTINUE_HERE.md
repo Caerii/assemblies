@@ -187,3 +187,19 @@ Before extending to full compositionality, separately validate R1b/R1c,
 audit the native read-only scopes, run a same-memory-budget episodic
 control, then hold out complete sentences without writing test pairs.
 The old ZIP remains archival; Git branch is the continuation authority.
+
+## R1d follow-up — collapse diagnostics
+
+R1d now records the fraction of **distinct** lexical assemblies and role
+bindings (before and after held-out one-shot writes). This is necessary
+because uniform role-area attractors could otherwise masquerade as a
+successful top-1 retrieval, especially with deterministic tie-breaking.
+The diagnostic and its mock regression test were committed separately.
+
+**Latest experiment is still NOT run on native Brain.** Do not infer any
+accuracy from these commits. The next investigator should execute
+`test_role_recombination.py` and the R1d CLI on a complete checkout,
+then inspect both exact retrieval and assembly distinctness before writing
+a scientific claim. Run R1b and R1c native gates as well.
+
+The same branch remains canonical; no new research branch was created.
