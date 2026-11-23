@@ -43,6 +43,15 @@ def test_rank_is_role_local_and_chance_is_real_n():
     assert bad["top1"] == 0
 
 
+def test_distinctness_detects_attractor_collapse():
+    def a(ids):
+        return SimpleNamespace(neuron_ids=np.array(ids, dtype=np.uint32))
+    distinct = [a([1, 2, 3]), a([4, 5, 6]), a([7, 8, 9])]
+    collapsed = [a([1, 2, 3]), a([1, 2, 3]), a([7, 8, 9])]
+    assert R.distinct_fraction(distinct, 3) == 1.
+    assert R.distinct_fraction(collapsed, 3) == pytest.approx(2 / 3)
+
+
 def test_native_api_schedule_is_not_train_on_test_before_one_shot(monkeypatch):
     events = []
     class FakeBrain:
@@ -90,6 +99,9 @@ def test_native_api_schedule_is_not_train_on_test_before_one_shot(monkeypatch):
     result = R.run(cfg)
     run = result["runs"][0]
     train, heldout = R.split(4, cfg.roles)
+    assert run["lexical_distinctness"] == 1.
+    assert run["initial_role_distinctness"] == {"SUBJ": 1., "OBJ": 1.}
+    assert run["final_role_distinctness"] == {"SUBJ": 1., "OBJ": 1.}
     assert run["familiar_before_top1"] == 1.
     assert run["heldout_after_one_binding_top1"] == 1.
     assert run["familiar_after_top1"] == 1.
