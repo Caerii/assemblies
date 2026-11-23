@@ -11,6 +11,20 @@ import json
 import numpy as np
 
 
+def _validate_task_geometry(n, k, contents, roles, transform_family):
+    """One semantic owner for public and private task-shape validation."""
+    if type(n) is not int or type(k) is not int or not 0 < k < n:
+        raise ValueError("invalid population and winner count")
+    if type(contents) is not int or contents < 4 or contents % 2:
+        raise ValueError("contents must be even and at least 4")
+    if (not isinstance(roles, (tuple, list)) or len(roles) != 2
+            or any(type(role) is not str or not role for role in roles)
+            or roles[0] == roles[1]):
+        raise ValueError("two distinct nonempty string roles required")
+    if transform_family not in ("random_permutation", "cyclic_shift"):
+        raise ValueError("unknown transform family")
+
+
 @dataclass(frozen=True)
 class Config:
     n: int = 512
@@ -22,20 +36,14 @@ class Config:
     transform_family: str = "random_permutation"
 
     def validate(self):
-        if not isinstance(self.n, int) or not isinstance(self.k, int) or not 0 < self.k < self.n:
-            raise ValueError("invalid population and winner count")
-        if not isinstance(self.contents, int) or self.contents < 4 or self.contents % 2:
-            raise ValueError("contents must be even and at least 4")
-        if len(self.roles) != 2 or len(set(self.roles)) != 2:
-            raise ValueError("two distinct roles required")
+        _validate_task_geometry(self.n, self.k, self.contents,
+                                self.roles, self.transform_family)
         if type(self.seed) is not int or self.seed < 0:
             raise ValueError("data-generation seed must be nonnegative")
         if type(self.model_seed) is not int or self.model_seed < 0:
             raise ValueError("model initialization seed must be nonnegative")
         if self.seed == self.model_seed:
             raise ValueError("private data seed and public model seed must differ")
-        if self.transform_family not in ("random_permutation", "cyclic_shift"):
-            raise ValueError("unknown transform family")
         return self
 
 
@@ -59,10 +67,8 @@ class ModelConfig:
     def validate(self):
         if type(self.seed) is not int or self.seed < 0:
             raise ValueError("invalid learner seed")
-        # Reuse shape validation with independent test seed.
-        Config(n=self.n, k=self.k, contents=self.contents,
-               seed=self.seed + 1, model_seed=self.seed, roles=self.roles,
-               transform_family=self.transform_family).validate()
+        _validate_task_geometry(self.n, self.k, self.contents,
+                                self.roles, self.transform_family)
         return self
 
 
