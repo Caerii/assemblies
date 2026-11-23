@@ -61,3 +61,17 @@ def test_read_only_probe_must_leave_fingerprint_equal():
     first = weight_fingerprint(brain, ('SUBJ', 'OBJ'))
     _ = brain.weights['OBJ'][[0, 1]].sum(axis=0)
     assert weight_fingerprint(brain, ('SUBJ', 'OBJ')) == first
+
+
+def test_zero_plasticity_teacher_clamp_does_not_count_as_learning():
+    brain = Dummy()
+    cue = np.array([1, 2], dtype=np.uint32)
+    target = np.array([3, 4], dtype=np.uint32)
+    before = active_synapses(brain, 'SUBJ', cue, target)
+    # Clamping winners alone should not change a single edge.
+    winners = target.copy()
+    after = active_synapses(brain, 'SUBJ', cue, target)
+    stats = write_diagnostic(before, after, target, winners)
+    assert stats['teacher_target_overlap'] == 1.
+    assert stats['active_edge_changed'] == 0
+    assert stats['active_edge_delta_sum'] == 0.
