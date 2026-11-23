@@ -54,6 +54,7 @@ snapshots (stable neuron IDs), not compact `Area.winners`.
 - Familiar role binding top-1 BEFORE and AFTER acquiring held-out pairs.
 - Held-out top-1 and normalized k-overlap after one binding exposure.
 - Familiar retention delta.
+- Fraction of distinct lexical winner sets, and per-role binding distinctness before and after the new writes. Identical attractors are failures, not successful compositions.
 - Pre-exposure maximum overlap against existing role memories (unbound
   control).
 - Exact-key episodic dictionary baseline: perfect for uniquely keyed
