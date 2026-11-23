@@ -285,3 +285,22 @@ resolve any native API/shape errors, then implement teacher-guided native
 training using only the observed pairs. Compare to `ShiftRoleLearner`
 and report failure if native assembly calculus does not learn the
 held-out cyclic role transform.
+
+## R1h checkpoint — supervised native role projection (2026-11-23)
+
+Committed `native_teacher_drive.py`, `test_native_teacher_drive.py`,
+and `NATIVE_R1H_PROTOCOL.md` on this same branch. Unlike the R1g
+unsupervised lower bound, R1h uses **train-only teacher external drive**
+on a dense explicit native Brain role area; it never supplies hidden
+role permutations or held-out target codes to inference.
+
+**Unverified:** The native implementation and mock tests have not run
+from a complete checkout in this session. This is an experimental
+training schedule, not a measured compositional result. It may merely
+clamp winners without learning a reusable transform. Read the protocol
+and run its commands before scientific interpretation.
+
+Next: execute R1b–R1h tests and numerical runs on the full repo;
+inspect source->target weight changes and read-only invariance, compare
+against the cyclic-shift learner and Hebbian controls, and preserve
+failures on this branch. Do not create a new branch.
