@@ -8,7 +8,8 @@ from research.multimodal import native_teacher_drive as M
 from research.multimodal.zero_shot_gate import Config
 
 
-def test_supervision_only_during_training(monkeypatch):
+@pytest.mark.parametrize("beta", [0.0, 0.1])
+def test_supervision_only_during_training(monkeypatch, beta):
     events = []
     class Brain:
         def __init__(self, **kwargs):
@@ -16,10 +17,12 @@ def test_supervision_only_during_training(monkeypatch):
             self.frozen_state = False
             self.areas = {}
             self.fibers = {}
+            self.area_beta = {}
             self.current_cue = np.array([], dtype=np.uint32)
         def add_area(self, name, **kwargs):
             assert kwargs["explicit"] is True
             self.areas[name] = SimpleNamespace(winners=np.array([], dtype=np.uint32))
+            self.area_beta[name] = kwargs["beta"]
             if name != "LEX":
                 self.fibers[name] = SimpleNamespace(
                     weights=np.ones((kwargs["n"], kwargs["n"]), dtype=np.float32))
@@ -37,7 +40,7 @@ def test_supervision_only_during_training(monkeypatch):
                 target_ids = np.flatnonzero(external_drive[role])
                 self.areas[role].winners = target_ids.astype(np.uint32)
                 matrix = self.fibers[role].weights
-                matrix[np.ix_(self.current_cue, target_ids)] *= 1.1
+                matrix[np.ix_(self.current_cue, target_ids)] *= (1. + self.area_beta[role])
             events.append(("project", tuple(b["LEX"]), external_drive))
         @contextmanager
         def read_only(self, *, seed):
@@ -75,14 +78,14 @@ def test_supervision_only_during_training(monkeypatch):
         monkeypatch.setitem(sys.modules, name, value)
 
     model = M.NativeTeacherDriven(Config(n=20, k=3, contents=4),
-                                  teacher_gain=50., presentations=2)
+                                  teacher_gain=50., presentations=2, beta=beta)
     cue = np.array([1, 2, 3], dtype=np.uint32)
     target = np.array([4, 5, 6], dtype=np.uint32)
     model.train(0, "SUBJ", cue, target)
     assert model.training_calls == 1
     assert model.train_pairs == {(0, "SUBJ")}
     assert model.clamp_diagnostics[0]["teacher_target_overlap"] == 1.
-    assert model.clamp_diagnostics[0]["active_edge_changed"] == 9
+    assert model.clamp_diagnostics[0]["active_edge_changed"] == (9 if beta else 0)
     before_read_hash = model.state_fingerprint()
     train_projections = [e for e in events if e[0] == "project"]
     assert len(train_projections) == 2
