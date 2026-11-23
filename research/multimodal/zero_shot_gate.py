@@ -16,7 +16,8 @@ class Config:
     n: int = 512
     k: int = 16
     contents: int = 12
-    seed: int = 42
+    seed: int = 42  # PRIVATE task/dataset generation seed; never pass to learner
+    model_seed: int = 1729  # independent public learner initialization seed
     roles: tuple[str, str] = ("SUBJ", "OBJ")
     transform_family: str = "random_permutation"
 
@@ -27,11 +28,46 @@ class Config:
             raise ValueError("contents must be even and at least 4")
         if len(self.roles) != 2 or len(set(self.roles)) != 2:
             raise ValueError("two distinct roles required")
-        if not isinstance(self.seed, int) or self.seed < 0:
-            raise ValueError("seed must be nonnegative")
+        if type(self.seed) is not int or self.seed < 0:
+            raise ValueError("data-generation seed must be nonnegative")
+        if type(self.model_seed) is not int or self.model_seed < 0:
+            raise ValueError("model initialization seed must be nonnegative")
         if self.transform_family not in ("random_permutation", "cyclic_shift"):
             raise ValueError("unknown transform family")
         return self
+
+
+@dataclass(frozen=True)
+class ModelConfig:
+    """Unprivileged learner view. Dataset generation seed is NOT exposed.
+
+    ModelConfig.seed is a *separate* learner initialization seed. Keeping this
+    separate from Config.seed prevents an adapter from accidentally generating
+    its own copy of held-out labels by reconstructing Dataset(cfg).
+    Python is not a sandbox against hostile reflection; this protects the
+    intended evaluation interface, not arbitrary adversarial code execution.
+    """
+    n: int
+    k: int
+    contents: int
+    seed: int
+    roles: tuple[str, str]
+    transform_family: str
+
+    def validate(self):
+        if type(self.seed) is not int or self.seed < 0:
+            raise ValueError("invalid learner seed")
+        # Reuse shape validation with independent test seed.
+        Config(n=self.n, k=self.k, contents=self.contents,
+               seed=0, model_seed=self.seed, roles=self.roles,
+               transform_family=self.transform_family).validate()
+        return self
+
+
+def learner_view(cfg: Config) -> ModelConfig:
+    cfg.validate()
+    return ModelConfig(cfg.n, cfg.k, cfg.contents, cfg.model_seed,
+                       cfg.roles, cfg.transform_family)
 
 
 class Dataset:
@@ -86,9 +122,14 @@ def _rank(got, target, distractors):
 
 
 def evaluate(cfg: Config, model_factory: Callable, *, expose_labels=False):
-    """Never train on held-out pair. Only the engineered oracle gets labels."""
+    """Train never receives held-out targets or the dataset-generation seed.
+
+    The sole exception is the explicitly labeled privileged oracle, which
+    receives the entire Dataset by design. This is an interface-level guard,
+    NOT a Python security boundary against reflection or caller collusion.
+    """
     d = Dataset(cfg)
-    model = model_factory(d if expose_labels else cfg)
+    model = model_factory(d if expose_labels else learner_view(cfg))
     for i, role in d.train:
         model.train(i, role, d.cues[i].copy(), d.target(i, role))
     records = []
