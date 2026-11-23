@@ -76,10 +76,14 @@ def score(probe, references, target, k, n):
                       key=lambda pair: (-pair[0], pair[1]))
     target_hits = len(np.intersect1d(x, _ids(references[target], k),
                                     assume_unique=True))
+    competitor = max((hits for hits, key in rankings if key != target), default=-1)
+    margin = target_hits - competitor
     return {
-        "top1": int(rankings[0][1] == target),
-        "top1_margin": int(target_hits - max(
-            [hits for hits, key in rankings if key != target], default=0)),
+        # A tie is NOT successful discriminative retrieval, even if an
+        # arbitrary deterministic order happens to favor the target.
+        "top1": int(rankings[0][1] == target and margin > 0),
+        "tie_broken_top1": int(rankings[0][1] == target),
+        "top1_margin": int(margin),
         "overlap": float(target_hits / k),
         "chance_overlap": float(k / n),
         "rankings": rankings[:3],
