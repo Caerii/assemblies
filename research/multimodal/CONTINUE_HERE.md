@@ -156,3 +156,34 @@ uv run python research/multimodal/refraction_paired.py --n 2000 --k 60 --loads 8
 Compare against the established `research.runner refraction-memory-numpy`
 study, review discrepancies in read-only state management, and add native
 state-invariance tests before treating any R1c values as established.
+
+## R1d checkpoint — native role/content recombination (2026-11-23)
+
+New files on `research/multimodal-continual-assemblies`:
+- `role_recombination.py`: balanced held-out role/content split; native
+  `Brain` + `project` + `bind` + `read_binding` protocols; pre-exposure
+  unbound control; one-shot bindings; old-binding retention and role-local
+  ranked readout; native stable neuron IDs throughout.
+- `test_role_recombination.py`: schedule and leakage guards, config checks,
+  role-local ranking, mocked native API call ordering.
+- `ROLE_R1D_PROTOCOL.md`: preregistration, limitations, execution commands,
+  strong episodic baseline and separate zero-shot gate.
+
+R1d has been **committed but not executed on the native Brain runtime** in this
+environment; the full repo isn't mounted here and the shell cannot resolve
+github.com. Mock tests have not been run from a checkout either. Do not
+claim a measured R1d accuracy, model speedup, or compositional benefit.
+
+Immediate next gate:
+
+```sh
+uv sync --no-group gpu
+uv run python -m pytest -q research/multimodal/test_role_recombination.py
+uv run python -m research.multimodal.role_recombination \
+  --seeds 11 17 23 --contents 8 --output /tmp/role-r1d.json
+```
+
+Before extending to full compositionality, separately validate R1b/R1c,
+audit the native read-only scopes, run a same-memory-budget episodic
+control, then hold out complete sentences without writing test pairs.
+The old ZIP remains archival; Git branch is the continuation authority.
