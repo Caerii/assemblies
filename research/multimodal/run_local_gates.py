@@ -54,6 +54,15 @@ def specs(python=sys.executable):
     }
 
 
+# Native studies may only execute AFTER provenance and API smoke pass.
+# Synthetic evidence replay remains independent of native availability.
+NATIVE_GATES = frozenset({
+    "r1b-native", "r1c-refraction", "r1d-bindings",
+    "r1g-unsupervised", "r1h-supervised", "r1i-controls",
+    "r1o-native-composition",
+})
+
+
 def sha(data: bytes) -> str:
     return hashlib.sha256(data).hexdigest()
 
@@ -80,9 +89,15 @@ def run(root: Path, output: Path, *, names=None, timeout=180, dry_run=False,
     manifest = {"schema": 1, "git_head": git_revision(root),
                 "python": sys.version.split()[0], "root": str(root),
                 "dry_run": dry_run, "gates": []}
+    native_preflight_ok = False
     for name in chosen:
         command = available[name]
         record = {"name": name, "argv": command, "status": "not-executed"}
+        if name in NATIVE_GATES and not native_preflight_ok and not dry_run:
+            record["status"] = "blocked"
+            record["blocked_by"] = "native-preflight"
+            manifest["gates"].append(record)
+            continue
         if not dry_run:
             start = time.perf_counter()
             try:
@@ -101,6 +116,8 @@ def run(root: Path, output: Path, *, names=None, timeout=180, dry_run=False,
                     data = data.encode()
                 (output / f"{name}.{label}.txt").write_bytes(data)
                 record[f"{label}_sha256"] = sha(data)
+        if name == "native-preflight":
+            native_preflight_ok = record["status"] == "passed"
         manifest["gates"].append(record)
     manifest["all_passed"] = (not dry_run and all(
         record["status"] == "passed" for record in manifest["gates"]))
