@@ -140,7 +140,11 @@ def trial(seed: int, cfg: Protocol):
         role: distinct_fraction(list(references[role].values()), cfg.k)
         for role in cfg.roles
     }
-    old_before = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
+    # Freeze the decoder's candidate universe BEFORE adding held-out pairs.
+    # Otherwise a lower post-learning top-1 score can be caused simply by
+    # adding distractors, not by forgetting a learned association.
+    original_candidates = {role: dict(references[role]) for role in cfg.roles}
+    old_before = {(i, role): score(read(i, role), original_candidates[role], i, cfg.k, cfg.n)
                   for i, role in train}
 
     # One exposure per held-out combination, with no extra sentence training.
@@ -154,8 +158,15 @@ def trial(seed: int, cfg: Protocol):
         role: distinct_fraction(list(references[role].values()), cfg.k)
         for role in cfg.roles
     }
-    old_after = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
-                 for i, role in train}
+    # One read per item, two decoders: fixed candidates isolate retrieval
+    # drift; expanded candidates measure actual post-learning discrimination.
+    old_probes = {(i, role): read(i, role) for i, role in train}
+    old_after_fixed = {(i, role): score(old_probes[i, role],
+                                      original_candidates[role], i, cfg.k, cfg.n)
+                       for i, role in train}
+    old_after_expanded = {(i, role): score(old_probes[i, role],
+                                         references[role], i, cfg.k, cfg.n)
+                          for i, role in train}
     novel = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
              for i, role in heldout}
 
@@ -175,15 +186,18 @@ def trial(seed: int, cfg: Protocol):
             for i in range(cfg.contents))).hexdigest(),
         "pretest": pretest,
         "familiar_before_top1": mean(old_before, "top1"),
-        "familiar_after_top1": mean(old_after, "top1"),
+        "familiar_after_top1": mean(old_after_fixed, "top1"),
+        "familiar_after_expanded_top1": mean(old_after_expanded, "top1"),
         "heldout_after_one_binding_top1": mean(novel, "top1"),
         "heldout_after_one_binding_overlap": mean(novel, "overlap"),
-        "old_retention_delta": mean(old_after, "top1") - mean(old_before, "top1"),
+        "old_retention_delta": mean(old_after_fixed, "top1") - mean(old_before, "top1"),
+        "candidate_expansion_penalty": mean(old_after_expanded, "top1") - mean(old_after_fixed, "top1"),
         "exact_key_baseline_after_one_exposure_top1": 1.0,
         "per_item": {
             f"{role}/{i}": {"phase": "heldout" if (i, role) in heldout else "train",
                             "before": old_before.get((i, role)),
-                            "after": (novel if (i, role) in heldout else old_after)[(i, role)]}
+                            "after": (novel if (i, role) in heldout else old_after_fixed)[(i, role)],
+                            "after_expanded": old_after_expanded.get((i, role))}
             for i in range(cfg.contents) for role in cfg.roles
         },
     }
@@ -199,7 +213,8 @@ def run(cfg: Protocol):
             key: float(np.mean([r[key] for r in runs]))
             for key in ("familiar_before_top1", "familiar_after_top1",
                         "heldout_after_one_binding_top1",
-                        "heldout_after_one_binding_overlap", "old_retention_delta")
+                        "heldout_after_one_binding_overlap", "old_retention_delta",
+                        "familiar_after_expanded_top1", "candidate_expansion_penalty")
         },
         "limitations": [
             "Held-out role/content pairs receive one binding exposure; this is NOT zero-shot.",
@@ -207,6 +222,7 @@ def run(cfg: Protocol):
             "Reference snapshots are created during binding; self-retrieval may be easier than external semantic readout.",
             "Same-role top-1 identity does not demonstrate sentence-level compositional semantics.",
             "Distinctness metrics expose attractor collapse but do not prove meaningful semantic separation.",
+            "Fixed-candidate retention isolates decoder expansion; expanded-candidate scores measure changed discriminability.",
             "Exact-key episodic memory is a strong positive control but lacks budget matching.",
             "Native engine execution and results are unverified until run in full checkout.",
         ],
