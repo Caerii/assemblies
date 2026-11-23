@@ -394,3 +394,70 @@ checkout, regenerate R1k's raw JSON and compare the canonical rows hash,
 then run the R1i teacher-control matrix with teacher weight audits.
 Keep committing further work to this branch, update this handoff and
 preserve failed seeds.
+
+
+## R1L checkpoint — twenty updates × twenty controlled stages (2026-11-23)
+
+**Same branch, no new branches.** Latest checkpoint before this handoff:
+\`bc65c7d27432e1cf5f28f40bcfd4d265b38c125f\`.
+
+Completed and committed:
+
+- \`continual_twenty.py\` — 20 sequential writes with a role-rule shift after
+  round 10, disjoint held-out probe codes, corrupted examples at rounds 7
+  and 16, prequential before/after metrics and read-state SHA checks.
+- \`analyze_twenty.py\` — seed-level paired bootstrap, explicitly rejecting
+  per-round pseudoreplication.
+- \`campaign_twenty.py\` — exactly 20 controlled ablation stages over
+  memory-window size, wrong labels, shift timing and n/k geometry.
+- \`verify_twenty_evidence.py\` — decodes the Git-archived compressed 20-stage
+  manifest, verifies SHA-256, and optionally recomputes all 8,000 learning
+  updates. The first replay check exposed JSON tuple/list representation
+  differences; canonical serialized comparison fixed the false mismatch.
+- Four corresponding test modules plus the evidence archive at
+  \`evidence/r1l-20stage-manifest.json.xz.base64\`.
+- \`R1L_TWENTY_ROUNDS.md\` — detailed protocol, 20-stage table, statistics,
+  validity caveats, raw JSON hashes and exact replay commands.
+
+**Measured synthetic results:** Default n=128, k=8, 20 seeds, 20 sequential
+updates per seed: mean exact held-out recall during rounds 11–20 was
+79.5% for last-three rule evidence, 85.0% for last-one, 15.5% for
+all-history and 0% for plain pairwise Hebbian / copy. Last-three minus
+all-history paired seed mean +0.64, percentile 95% bootstrap interval
+[+0.615,+0.665]. At round 20, all-history retained 50% old-rule accuracy
+while last-three retained 0%; this is an engineered stability–plasticity
+tradeoff, not native assembly behavior.
+
+**20-stage campaign:** 20 stages × 20 seeds × 20 updates = **8,000**
+learning updates, completed. The Git-tracked compressed campaign manifest
+decodes to JSON SHA-256
+\`35b42065dfff39a16133ad6857302c6bc9e616ea2ab54e5e24d5c694a44980d1\`.
+The Git blob SHA-1 for the base64 archive exactly matches local source
+bytes: \`6ecccb5fc4d324da332b909b5595de3eb6a602e2\`.
+
+**Validation:** The eight newly committed Python source/test files were
+compared to the exact locally tested Git blob hashes. A combined local
+research-only mirror (prior R1k plus R1L) passed **82/82** tests, including
+a full regeneration of the 8,000-update campaign. An older locally copied
+\`teacher_control_matrix.py\` caused eight temporary import failures:
+the **GitHub branch version was already correct**. The mirror was reconciled
+and rerun successfully; do not attribute these failures to Git.
+
+**Critical boundary:** This evidence is SYNTHETIC and hypothesis-aware.
+It establishes neither native \`Brain\` compositional transfer nor
+Rust/CUDA/FPGA acceleration. The complete native repository and toolchain
+were unavailable in this execution environment. The seed space is small and
+models share the evaluator process; publication-grade blinding remains open.
+
+Next executable work:
+1. On a complete checkout of THIS branch:
+   \`python -m pytest -q research/multimodal\`
+2. Verify evidence:
+   \`python -m research.multimodal.verify_twenty_evidence --recompute\`
+3. Run native checks through:
+   \`python -m research.multimodal.run_local_gates --output /tmp/r1l-native-gates\`
+4. Port the twenty-round prequential protocol to native teacher-driven
+   \`Brain\` with matched baselines, independently logged weight changes,
+   read-only matrix fingerprints, correct/no-plasticity/shuffled controls.
+5. Only after native accuracy and semantics pass, compile and benchmark the
+   existing Rust kernel candidates. No GitHub Actions dependency.
