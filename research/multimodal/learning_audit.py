@@ -57,3 +57,35 @@ def write_diagnostic(before, after, target, winners):
     return {'active_edge_delta_sum': float(delta.sum()),
             'active_edge_changed': int(np.count_nonzero(delta)),
             'teacher_target_overlap': len(win & tgt) / len(tgt) if tgt else 0.}
+
+
+def full_explicit_fingerprint(brain, areas: tuple[str, ...]) -> str:
+    """Hash all area-to-area matrices in the common explicit engine.
+
+    This is intentionally an engine-specific research diagnostic. It refuses
+    mixed engine ownership rather than claiming a partial fingerprint is full.
+    """
+    if not areas or len(set(areas)) != len(areas):
+        raise ValueError('areas must be nonempty and unique')
+    owner = brain.engine_for(areas[0])
+    for name in areas[1:]:
+        if brain.engine_for(name) is not owner:
+            raise RuntimeError('cannot audit mixed-engine network as one explicit engine')
+    connections = getattr(owner, '_area_conns', None)
+    if not connections:
+        raise RuntimeError('native explicit area-to-area connections unavailable')
+    h = hashlib.sha256()
+    count = 0
+    for src in sorted(connections):
+        for dst in sorted(connections[src]):
+            weights = connections[src][dst].weights
+            if not isinstance(weights, np.ndarray) or weights.ndim != 2:
+                raise RuntimeError('non-dense native connectome in explicit audit')
+            if not np.issubdtype(weights.dtype, np.floating) or not np.isfinite(weights).all():
+                raise RuntimeError('invalid native connectome values')
+            h.update(f'{src}->{dst}|{weights.dtype.str}|{weights.shape}'.encode())
+            h.update(np.ascontiguousarray(weights).tobytes())
+            count += 1
+    if count < 1:
+        raise RuntimeError('nothing to audit')
+    return h.hexdigest()
