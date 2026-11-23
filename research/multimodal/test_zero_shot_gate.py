@@ -3,7 +3,8 @@ import numpy as np
 import pytest
 from research.multimodal.zero_shot_gate import (
     Config, Dataset, evaluate, KnownPermutationOracle, ExactPairMemory,
-    CopyBaseline, HebbianRoleMap, ShiftRoleLearner, _validate_output, _rank,
+    CopyBaseline, HebbianRoleMap, ShiftRoleLearner, ModelConfig, learner_view,
+    _validate_output, _rank,
 )
 
 
@@ -103,3 +104,51 @@ def test_learnable_shift_distinguishes_rule_learning_from_pair_memory(seed):
 def test_rejects_unknown_transform_family():
     with pytest.raises(ValueError):
         Config(transform_family="unknown").validate()
+
+
+def test_unprivileged_model_never_gets_data_seed():
+    private = Config(seed=47, model_seed=709, contents=8)
+    observed = []
+
+    class Spy:
+        def __init__(self, public):
+            observed.append(public)
+            assert isinstance(public, ModelConfig)
+            assert public.seed == 709  # independent model initializer seed
+            assert not hasattr(public, "model_seed")
+            assert not hasattr(public, "data_seed")
+        def train(self, *args): pass
+        def predict(self, *args): return None
+
+    evaluate(private, Spy)
+    assert len(observed) == 1
+    assert learner_view(private) == observed[0]
+
+
+def test_replay_dataset_from_public_model_seed_is_not_hidden_ground_truth():
+    """Regression for the old leaked-seed attack.
+
+    Previously the model got Config(seed=dataset_seed), so a model could
+    instantiate Dataset(cfg) and return every held-out target. With the
+    new interface this reconstruction uses an independent model seed.
+    This is NOT protection against malicious Python introspection.
+    """
+    class SeedReplay:
+        def __init__(self, public):
+            assert isinstance(public, ModelConfig)
+            self.replay = Dataset(public)
+        def train(self, *args): pass
+        def predict(self, i, role, cue):
+            return self.replay.target(i, role)
+
+    for family in ("cyclic_shift", "random_permutation"):
+        private = Config(seed=47, model_seed=709, transform_family=family)
+        report = evaluate(private, SeedReplay)
+        assert report["summary"]["heldout"]["exact"] < 1.0
+
+
+def test_independent_learner_seed_does_not_change_ground_truth():
+    a = Config(seed=17, model_seed=101)
+    b = Config(seed=17, model_seed=102)
+    assert Dataset(a).manifest()["targets_sha256"] == Dataset(b).manifest()["targets_sha256"]
+    assert learner_view(a).seed != learner_view(b).seed
