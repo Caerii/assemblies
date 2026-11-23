@@ -72,10 +72,9 @@ uv run python -m research.runner refraction-memory-numpy \
 IMPORTANT differences to audit before comparison:
 the new R1c uses `brain.read_only` and `brain.frozen` for each
 probe while the existing experiment directly calls the engine with
-`plasticity_enabled=False`; R1c sorts each stored assembly before
-taking the half cue, while the existing experiment takes the first
-half of the originally returned winner order. These choices can shift
-scores even when underlying weights match. **No equivalence is claimed.**
+`plasticity_enabled=False`; R1c now preserves the original winner order when selecting the half cue,
+matching the existing experiment on that dimension. However probe-scoping
+and internal engine state handling can still differ. **No equivalence is claimed.**
 Do not label a discrepancy a model failure until these are reconciled.
 
 ## Next experiment (R1d)
