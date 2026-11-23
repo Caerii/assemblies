@@ -23,6 +23,8 @@ def specs(python=sys.executable):
         # audit and provenance regression tests. Enumerating a few files here
         # silently excluded most of R1b–R1i from the previous gate.
         "protocol-tests": [python, "-m", "pytest", "-q", "research/multimodal"],
+        "native-preflight": [python, "-m",
+                             "research.multimodal.native_execution_preflight"],
         "r1b-native": [python, "-m", "research.multimodal.native_retention",
                         "--n", "256", "--k", "12", "--loads", "2", "4",
                         "--seeds", "1"],
