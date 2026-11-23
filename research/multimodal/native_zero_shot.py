@@ -22,8 +22,10 @@ class NativeProjectionBaseline:
         self.cfg = cfg
         self.brain = Brain(engine="numpy_exact", seed=cfg.seed, p=0.1, norm_init=False)
         self.brain.add_area("LEX", n=cfg.n, k=cfg.k, beta=0.1)
+        self.brain.materialize_area("LEX", storage="dense")
         for role in cfg.roles:
             self.brain.add_area(role, n=cfg.n, k=cfg.k, beta=0.1)
+            self.brain.materialize_area(role, storage="dense")
         self.writes = 0
 
     def _activate(self, cue):
