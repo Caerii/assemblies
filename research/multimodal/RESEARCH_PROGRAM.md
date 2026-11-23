@@ -15,8 +15,8 @@ A faster associative table does not answer this question. Every scientific claim
 | P0 | Scientific foundations | frozen definitions, provenance, and baseline inventory | claims and benchmark protocol match current native `Brain` behavior | in progress |
 | P1 | Native semantics (P0) | multiplicative Hebbian, clipping, stable IDs, gating, WTA, refraction parity | equal winner IDs and exact weights vs native engine across seeded explicit graphs, including read-only and error paths | partial: independent standalone parity; native comparison outstanding |
 | P2 | Systems core (P1) | Rust packed CSR + copy-on-write delta + safe compaction | native compiled/loaded; zero mismatches against reference across >10k mixed operations, checkpoint/restore/fault tests | prototype only; Rust not compiled here |
-| P3 | Memory scaling (P1,P2) | lifelong association, capacity and forgetting curves | paired seeds; retention vs inverted episodic, nearest-neighbor, and refraction/no-refraction arms | pending |
-| P4 | Typed compositional binding (P1,P3) | role-factored Phrase/Clause/Discourse with reciprocal readout | unseen role swaps and nested trees; full tree reconstruction, not just assembly cardinality | pending |
+| P3 | Memory scaling (P1,P2) | lifelong association, capacity and forgetting curves | paired seeds; retention vs inverted episodic, nearest-neighbor, and refraction/no-refraction arms | R1a/R1l–n synthetic studies recorded; native capacity and baseline budget parity pending |
+| P4 | Typed compositional binding (P1,P3) | role-factored Phrase/Clause/Discourse with reciprocal readout | unseen role swaps and nested trees; full tree reconstruction, not just assembly cardinality | R1o synthetic noncommutative operator benchmark replay-verified; native composition and typed trees pending |
 | P5 | Multimodal grounding (P4) | visual/audio/text encoders to stable assembly identities | held-out entities, paraphrases, transforms, false matches and OOD shift; vision-language transfer better than baseline | pending |
 | P6 | Local plasticity policy (P3,P5) | learn/review/correct plus scoped decay, pruning, refraction | verified corrections do not erase unrelated memories; gate calibrated for false positives | pending |
 | P7 | Hardware scale (P2,P4,P5) | Rust SIMD/Rayon, CUDA, optional AWS F2 HLS | complete end-to-end latency/energy including I/O and WTA; speed claims from hardware measurements | pending |
@@ -54,6 +54,15 @@ A faster associative table does not answer this question. Every scientific claim
 - Primary: full role-labeled tree reconstruction, not membership in k-sparse assembly.
 - Evaluate depths 1..8 with controlled distractors; record collision, readout errors, and invalid binding cases.
 - Include symbolic upper bound, naive concatenation, episodic and label-shuffle controls.
+
+
+### R6: noncommutative operator transfer (R1o)
+
+- Train only atomic role operators on disjoint sparse cues. Evaluate unseen A→B versus B→A, and depth-3/4 chains using separate held-out cues.
+- Require exact reconstruction of the full target code AND correct outcomes for both operator orders on each test cue, not only a favorable top-1 ranking.
+- Strong positive control is explicitly hypothesis-aware affine rule learning; negative controls include order-blind rules, shift-only wrong-family learner, local Hebbian associations, exact-key lookup and copying.
+- The executed 20-seed synthetic benchmark (60 geometry-seed trials, 360 learner evaluations) provides test calibration only. **P4 is not validated** until native Brain learning, read-only state audit and ordered composition are demonstrated at matched costs.
+- Freeze native hyperparameters and test-seed selection before observing native R1o outcomes. Retain counterexamples and measured failures rather than tuning on the hidden test code.
 
 ### R3: sensory stability
 - Fix encoder weights and seeds; test identity under image transformations, paraphrases, audio noise.
