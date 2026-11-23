@@ -49,7 +49,8 @@ def inspect_checkout(root: Path, *, require_clean: bool = True) -> dict:
     branch = _git(root, "branch", "--show-current")
     if branch != EXPECTED_BRANCH:
         raise NativePreflightError(f"wrong branch: {branch!r}")
-    if require_clean and _git(root, "status", "--porcelain", "--", "research/multimodal", "neural_assemblies"):
+    dirty = bool(_git(root, "status", "--porcelain", "--", "research/multimodal", "neural_assemblies"))
+    if require_clean and dirty:
         raise NativePreflightError("research or native package contains uncommitted changes")
     expected = root / "neural_assemblies" / "core" / "brain.py"
     if not expected.is_file():
@@ -67,7 +68,7 @@ def inspect_checkout(root: Path, *, require_clean: bool = True) -> dict:
         raise NativePreflightError("required native Brain APIs absent")
     return {
         "git_head": _git(root, "rev-parse", "HEAD"),
-        "branch": branch, "checkout_root": str(root),
+        "branch": branch, "checkout_root": str(root), "dirty": dirty,
         "brain_source": str(source), "brain_sha256": native_sha,
         "python": sys.version.split()[0], "numpy": np.__version__,
     }
