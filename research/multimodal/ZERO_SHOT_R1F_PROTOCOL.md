@@ -87,3 +87,37 @@ for a task whose target mapping has not been inferable from training.
   claiming a learned zero-shot effect.
 - Benchmark time, memory and write/read consistency against the
   fully indexed exact-key baseline and a capacity-matched linear model.
+
+
+## Amendment 1 — identifiability-positive benchmark arm
+
+The random role permutation is deliberately underdetermined. To establish
+a fairer learnable task, `Config(transform_family="cyclic_shift")` now
+generates a role-specific cyclic shift of neuron IDs. The shift is the
+same for every item assigned a given role and is not supplied to the model.
+`ShiftRoleLearner` uses train-only co-occurrence comparisons to infer
+that shared shift; no held-out targets or oracle map are exposed.
+
+Independent local CPU validation at seeds `[0,1,17,42]`, n=512, k=16,
+12 contents, six training examples per role:
+
+| Method | Train exact | Held-out exact |
+|---|---:|---:|
+| Learned cyclic-shift rule | 100% | 100% |
+| Plain pairwise sparse Hebbian map | 100% | 0% |
+
+The rule learner is explicitly given the correct hypothesis family
+(cyclic shifts), so it is not a general-purpose structural learner.
+This isolates the scientific issue: a shared inductive bias can permit
+generalization where unstructured pair memory cannot.
+
+The locally constructed calibration test suite passed **23 tests**.
+The native Brain engine, Rust extension and entire repository suite
+were not run here. Full research claims must be based on later
+independent native validation.
+
+Next step: test an assembly circuit's ability to DISCOVER the shift
+from demonstrations, rather than hard-coding the shift hypothesis in
+an external symbolic decoder. Test variable n/k, novel seeds, ambiguity,
+partial observations, and cross-role interference. Compare against the
+same train-only rule-learner, not only against weak lookup controls.
