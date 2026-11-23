@@ -203,3 +203,31 @@ then inspect both exact retrieval and assembly distinctness before writing
 a scientific claim. Run R1b and R1c native gates as well.
 
 The same branch remains canonical; no new research branch was created.
+
+## R1d audit + R1e structural calibration (2026-11-23)
+
+R1d has been hardened against two evaluation artifacts:
+1. Familiar retention is now scored against a **fixed original candidate
+   dictionary** both before and after held-out learning. The expanded
+   dictionary score is reported separately, with an explicit
+   `candidate_expansion_penalty`.
+2. Top-1 is now strict: **ties count as failure**, even if the
+   deterministic smallest-ID tie-break chooses the target. The old
+   tie-broken diagnostic remains exposed under `tie_broken_top1`.
+
+Added `zero_shot_baselines.py` and `test_zero_shot_baselines.py`.
+The fixed invertible role-permutation oracle achieves 100% on held-out
+pairs by construction, whereas a pair-only exact-key memorizer has 0%
+held-out coverage. This is a structural control, NOT evidence of native
+neural zero-shot transfer or a learned mechanism. See
+`R1D_EVALUATION_AUDIT.md` for interpretation and commands.
+
+Local standalone structural-calibration + decoder-artifact tests: 9 passed.
+These were not executed from a full GitHub checkout and native R1b/R1c/R1d
+runs remain outstanding. The underlying Rust extension is not compiled.
+
+**Immediate reproducible gate:** run the branch-local pytest suites,
+then run `python -m research.multimodal.role_recombination` on a full
+checkout and inspect candidate-expansion penalty, strict winner margin,
+role distinctness, and any failures. Do not claim one-shot/generalization
+performance from mocked protocol tests.
