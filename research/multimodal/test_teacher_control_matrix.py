@@ -81,3 +81,32 @@ def test_fail_on_incorrect_training_accounting():
 def test_invalid_condition_rejected():
     with pytest.raises(ValueError):
         _teacher_labels(Dataset(Config()), "invalid")
+
+
+def test_fingerprint_detects_mutating_prediction():
+    class Mutating(Memory):
+        def __init__(self, cfg, condition):
+            super().__init__(cfg, condition)
+            self.ledger = 0
+
+        def state_fingerprint(self):
+            return str(self.ledger)
+
+        def predict(self, item, role, cue):
+            self.ledger += 1
+            return super().predict(item, role, cue)
+
+    with pytest.raises(AssertionError, match="read mutated synapses"):
+        run_conditions(Config(contents=4), Mutating)
+
+
+def test_fingerprint_reports_unchanged_state():
+    class Frozen(Memory):
+        def state_fingerprint(self):
+            return str(sorted(
+                (key, tuple(value)) for key, value in self.saved.items()))
+
+    result = run_conditions(Config(contents=4), Frozen)
+    for condition in result["conditions"]:
+        assert condition["weight_audit_available"] is True
+        assert isinstance(condition["weight_digest_after_training"], str)
