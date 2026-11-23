@@ -15,9 +15,9 @@ from typing import Callable
 import numpy as np
 
 try:
-    from .zero_shot_gate import Config, Dataset, _validate_output, _rank
+    from .zero_shot_gate import Config, Dataset, learner_view, _validate_output, _rank
 except ImportError:
-    from zero_shot_gate import Config, Dataset, _validate_output, _rank
+    from zero_shot_gate import Config, Dataset, learner_view, _validate_output, _rank
 
 CONDITIONS = ("correct_teacher", "shuffled_teacher", "no_plasticity")
 
@@ -51,14 +51,16 @@ def _fingerprint(labels: dict) -> str:
 def run_conditions(cfg: Config, model_factory: Callable):
     """Factory(cfg, condition) constructs an independent seed-matched model.
 
-    Evaluation never calls train with a held-out label. A repeated prediction
-    detects non-repeatable outputs but cannot prove synaptic non-mutation.
+    Evaluation never calls train with a held-out label or reveals the
+    dataset-generation seed. A repeated prediction detects non-repeatable
+    outputs but cannot prove synaptic non-mutation.
     """
     cfg.validate()
     dataset = Dataset(cfg)
+    public_spec = learner_view(cfg)
     output = []
     for condition in CONDITIONS:
-        model = model_factory(cfg, condition)
+        model = model_factory(public_spec, condition)
         labels = _teacher_labels(dataset, condition)
         for pair in dataset.train:
             i, role = pair
