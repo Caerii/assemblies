@@ -32,6 +32,8 @@ class Config:
             raise ValueError("data-generation seed must be nonnegative")
         if type(self.model_seed) is not int or self.model_seed < 0:
             raise ValueError("model initialization seed must be nonnegative")
+        if self.seed == self.model_seed:
+            raise ValueError("private data seed and public model seed must differ")
         if self.transform_family not in ("random_permutation", "cyclic_shift"):
             raise ValueError("unknown transform family")
         return self
@@ -129,6 +131,8 @@ def evaluate(cfg: Config, model_factory: Callable, *, expose_labels=False):
     NOT a Python security boundary against reflection or caller collusion.
     """
     d = Dataset(cfg)
+    if expose_labels and model_factory is not KnownPermutationOracle:
+        raise ValueError("privileged Dataset access is restricted to the named oracle")
     model = model_factory(d if expose_labels else learner_view(cfg))
     for i, role in d.train:
         model.train(i, role, d.cues[i].copy(), d.target(i, role))
