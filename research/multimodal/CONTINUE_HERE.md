@@ -304,3 +304,22 @@ Next: execute R1b–R1h tests and numerical runs on the full repo;
 inspect source->target weight changes and read-only invariance, compare
 against the cyclic-shift learner and Hebbian controls, and preserve
 failures on this branch. Do not create a new branch.
+
+## R1i checkpoint — paired teacher controls and fail-closed local validation (2026-11-23)
+
+Committed on this SAME branch:
+- `native_teacher_drive.py`: beta parameter permits a no-plasticity arm at beta=0.
+- `teacher_control_matrix.py` and `test_teacher_control_matrix.py`: matched correct-teacher, within-role shuffled-teacher, no-plasticity conditions; identical test targets and seeds; strict rank-1; duplicated-read consistency.
+- `native_teacher_controls.py`: native CLI connecting R1h to the paired control matrix.
+- `run_local_gates.py` and `test_run_local_gates.py`: local, Actions-free, fail-closed runner for R1b–R1i; exit statuses, logs, elapsed time, SHA-256 hashes, and Git HEAD preserved.
+- `R1I_NATIVE_CONTROLS.md`: complete experimental protocol and interpretation caveats.
+
+LOCAL evidence: 12 tests passed (7 control-matrix contracts and 5 runner contracts) in the standalone Python/NumPy sandbox. A separate dry run correctly marked two selected gates not-executed and all_passed=false. **Neither these tests nor the dry-run validate the native Brain engine.** This environment has no installed neural_assemblies or Rust toolchain and cannot clone via its shell.
+
+Next execution on a full checkout of this branch:
+
+```sh
+python -m research.multimodal.run_local_gates --output /tmp/assemblies-native-gates-20261123
+```
+
+Preserve run.json, per-gate logs and Git HEAD in the next commit, including failures. Follow with R1i paired seed/gain/presentation sweeps, target-clamp fidelity, before/after connectome fingerprints, and same-budget strong learned-rule baselines. NO native accuracy or compiled Rust speedup is currently claimed from R1i.
