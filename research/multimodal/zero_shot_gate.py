@@ -61,7 +61,7 @@ class ModelConfig:
             raise ValueError("invalid learner seed")
         # Reuse shape validation with independent test seed.
         Config(n=self.n, k=self.k, contents=self.contents,
-               seed=0, model_seed=self.seed, roles=self.roles,
+               seed=self.seed + 1, model_seed=self.seed, roles=self.roles,
                transform_family=self.transform_family).validate()
         return self
 
