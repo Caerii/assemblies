@@ -612,3 +612,32 @@ Do not claim native zero-shot compositionality until the native
 teacher-driven path passes stable neuron-ID validation, Hebbian weight
 change/immutability audits, and the held-out AB/BA and deeper ordered
 sequence tests. Subsequent work should remain on this branch.
+
+## R1p checkpoint — per-step native composition integrity (2026-11-23)
+
+Continued work on the exact same branch. Extracted the mounted R1o
+source bundle locally and reworked `native_affine_chain.py` to check
+full explicit-connectome fingerprints after EVERY atomic composition
+projection, validate every intermediate stable k-of-n output, reject
+invalid cues/roles before invoking native code, and use independent
+copies during training. A deliberately mutating fake native model is
+rejected at the first offending step, even when a second projection
+would restore the original hash.
+
+Added `test_native_chain_integrity.py`: seven adversarial tests.
+R1o regression tests + new R1p tests: **44 passed** locally; the
+source also compiled. Exact tested Git blobs:
+
+- `native_affine_chain.py` `69a5bdba7f25571753a7f3c7f692f8106f23be6d`
+- `test_native_chain_integrity.py` `76b4639d44e53cd095a1e9c1bd416bedd8444e9e`
+
+Both hashes were independently verified through the GitHub connector
+against the canonical branch, so the tested source files are saved.
+See `R1P_NATIVE_CHAIN_INTEGRITY.md` for the four native source blob
+hashes inspected and exact reproduction commands.
+
+**Still blocked:** no full native package in this container and
+GitHub clone DNS resolution fails. This is mock-contract validation,
+not native numerical execution. The first next action in a complete
+checkout remains the R1p native chain smoke and full local gate suite.
+Do not report zero-shot/compositional accuracy from this checkpoint.
