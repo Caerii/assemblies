@@ -14,21 +14,24 @@ from research.multimodal.zero_shot_gate import Config, evaluate
 
 class NativeTeacherDriven:
     def __init__(self, cfg: Config, teacher_gain: float = 100.0,
-                 presentations: int = 3):
+                 presentations: int = 3, beta: float = 0.1):
         from neural_assemblies.core.brain import Brain
         if not np.isfinite(teacher_gain) or teacher_gain <= 0:
             raise ValueError("teacher_gain must be positive and finite")
         if type(presentations) is not int or presentations < 1:
             raise ValueError("presentations must be a positive integer")
+        if not np.isfinite(beta) or not 0 <= beta < 1:
+            raise ValueError("beta must be finite and in [0, 1)")
         self.cfg = cfg.validate()
         self.teacher_gain = float(teacher_gain)
         self.presentations = presentations
+        self.beta = float(beta)
         self.brain = Brain(engine="numpy_exact", seed=cfg.seed, p=.1,
                            norm_init=False)
         # External drive requires the native dense explicit engine.
-        self.brain.add_area("LEX", n=cfg.n, k=cfg.k, beta=.1, explicit=True)
+        self.brain.add_area("LEX", n=cfg.n, k=cfg.k, beta=self.beta, explicit=True)
         for role in cfg.roles:
-            self.brain.add_area(role, n=cfg.n, k=cfg.k, beta=.1,
+            self.brain.add_area(role, n=cfg.n, k=cfg.k, beta=self.beta,
                                 explicit=True)
         self.train_pairs = set()
         self.training_calls = 0
