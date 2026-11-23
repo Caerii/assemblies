@@ -551,3 +551,64 @@ held-out shift/change/corruption generator and process-isolated models
 before a publication-level leakage claim; compare memory and inference
 costs; only after native correctness adapt the same streaming regime to
 real synaptic/refraction assembly circuits.
+
+## R1o checkpoint — noncommutative operator composition (2026-11-23)
+
+**Canonical branch remains unchanged:** `research/multimodal-continual-assemblies`.
+
+One atomic Git commit `1c04860ac0d5ebeb37ed19a78b6b16775cc2dc76`
+added 10 first-class files: `noncommutative_composition.py`,
+`noncommutative_sweep.py`, `native_affine_chain.py`, their tests,
+`verify_noncommutative.py`, its tests, `R1O_NONCOMMUTATIVE.md`,
+and the exact compressed evidence file
+`evidence/r1o-20seed.json.xz.base64`. All **10/10 committed file contents**
+were re-fetched from GitHub and matched against the locally tested export.
+
+This new task tests A→B **versus** B→A for two noncommuting affine
+permutations of k-of-n neuron IDs, plus unseen sequences through depth
+four. Only atomic role/cue/target examples are shown in training.
+The private dataset seed is different from the model seed.
+
+**Measured SYNTHETIC control result:** 20 dataset seeds × 3 n/k
+geometries × 6 baseline methods = 360 model-cell evaluations.
+The affine-hypothesis learner reached 100% exact unseen-composition
+recovery in all three geometries and 100% correct AB/BA paired order.
+The order-blind hypothesis control reached 33.3% exact and 0% correct
+both-order readouts. Local coactivation Hebbian and exact-key pair
+memory reached 0% exact unseen-composition recovery. Identity copying
+occasionally succeeded by chance (0.8–2.5%), so do not claim all
+noncompositional controls score zero.
+
+**Validation:** 37 local module tests passed. Full 360-cell JSON
+was replayed byte-for-byte from source; its SHA-256 is
+`868f6a45295ebf703fc8c690063242059a717d3de605a564cf955807bccf725b`.
+This was a **local isolated research subtree**, NOT a complete native
+Brain checkout.
+
+`native_affine_chain.py` connects the benchmark to the existing
+R1h `NativeTeacherDriven` adapter, then performs read-only sequential
+role projections. Mock scheduling and zero-composite-training tests
+passed, but **no native numerical result exists** yet. The native
+package is not installed in the current container and its shell cannot
+resolve GitHub for cloning.
+
+The existing `run_local_gates.py` now includes
+`r1o-evidence` (exact replay) and `r1o-native-composition`
+(native smoke). Its test registry was updated.
+
+### Resume commands, full checkout
+
+```sh
+python -m pytest -q research/multimodal
+python -m research.multimodal.verify_noncommutative --replay
+python -m research.multimodal.native_affine_chain \
+  --n 64 --k 8 --atomic-examples 8 --test-cues 8 \
+  --data-seed 23 --model-seed 8123
+python -m research.multimodal.run_local_gates \
+  --output /tmp/assemblies-r1o-local-gates
+```
+
+Do not claim native zero-shot compositionality until the native
+teacher-driven path passes stable neuron-ID validation, Hebbian weight
+change/immutability audits, and the held-out AB/BA and deeper ordered
+sequence tests. Subsequent work should remain on this branch.
