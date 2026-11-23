@@ -121,3 +121,38 @@ clearing activity in the observation scope truly isolates each cue.
 After R1b: reproduce the native repo's MASKED refraction readout as R1c,
 rather than evaluating refracted memory through an unmasked readout.
 Then compare actual target binding and compositional held-out queries.
+
+## R1c checkpoint — paired refraction readout (2026-11-23)
+
+Added on this SAME branch:
+
+- `refraction_paired.py`: a paired, within-trained-brain masked-vs-net
+  half-cue recall protocol using the native `Brain.set_masked_readout`
+  switch, graded stimulus components, materialized `numpy_sparse`
+  recurrence, deterministic probe indices and `read_only`+`frozen`
+  isolation.
+- `test_refraction_paired.py`: mocked protocol tests for sample pairing,
+  scope usage, invalid configurations and masked flag restoration on errors.
+- `REFRACTION_R1C_PROTOCOL.md`: pre-execution study design, controls,
+  comparator and interpretation limits.
+
+A separate corrective commit (3e7df1e) preserved original native
+winner order for half-cue selection. Do not revert to sorted cues,
+which differs from the older `refraction_memory_numpy.py` protocol.
+
+**Current evidence status:** R1c is source-committed only. Neither its
+tests nor the native study have been run against a complete repository
+checkout in this session. The earlier registered refraction study
+`research/notes/memory/PREREG_refraction_memory.md` is prior
+evidence—not a result newly established by R1c.
+
+**Next executable gates:**
+
+```sh
+uv run python -m pytest -q research/multimodal/test_native_retention.py research/multimodal/test_refraction_paired.py
+uv run python research/multimodal/refraction_paired.py --n 2000 --k 60 --loads 8 16 32 --seeds 42 43 44 --output /tmp/refraction-r1c.json
+```
+
+Compare against the established `research.runner refraction-memory-numpy`
+study, review discrepancies in read-only state management, and add native
+state-invariance tests before treating any R1c values as established.
