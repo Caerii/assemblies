@@ -500,3 +500,54 @@ Native `Brain` validation and Rust acceleration are not established.
    transferring this prequential campaign to actual assembly circuits.
 
 All future changes remain on `research/multimodal-continual-assemblies`.
+
+## R1n checkpoint — unknown drift, multi-change, paired corruption (2026-11-23)
+
+Canonical implementation now committed to THIS SAME branch:
+
+- `unknown_drift.py`: deterministic 48-update streaming task with
+  3 hidden rule-change points (13,27,39), two role areas, isolated or
+  consecutive same-role corrupted training examples, eight fixed
+  train-only baseline policies, disjoint probe and training cues.
+- `test_unknown_drift.py`: geometry guards, private-stream pairing,
+  fixed corruption timing, read-only prediction, adversarial mutation tests.
+- `analyze_unknown_drift.py` and its tests: paired seed-level corruption
+  effects and descriptive bootstrap ranges; reject mismatched streams.
+- `verify_unknown_drift.py` and its tests: fail-closed compressed-evidence
+  validation, SHA-256 verification and exact full campaign replay.
+- `R1N_UNKNOWN_DRIFT.md`: complete exploratory results and limitations.
+- `evidence/r1n-20seed.json.xz.base64`: complete 80-trial result, 3,840
+  sequential environment updates (30,720 model-training calls).
+
+**Provenance:** committed all eight experiment artifacts atomically and
+verified each Git blob SHA-1 matched its independently tested local source.
+Raw JSON SHA-256:
+`ebfc57c6c6c0580d3933707b6445110ebbeacf86c1cc1b364491e685eeafbd06`.
+Full evidence replay passed locally. **66 tests passed** across
+R1l/R1m and new R1n experiment/analysis/evidence modules. This was a local
+research checkout mirror, NOT the full native Brain repository checkout.
+
+**Result:** clean three-change post-change accuracy for last-example
+learner 95.83%, decayed-evidence γ=.5 89.44%, two-confirmation
+quarantine 79.17%, all-history 8.89%; two-confirmation avoids the
+isolated corruption penalty but drops 9.72 percentage points under
+consecutive same-role corruptions. All learners *assume cyclic-shift*
+structure. The exploratory dual-timescale policy did not beat existing
+baselines. Do not claim native composition or acceleration.
+
+**New automated gate:** `r1n-evidence` has been added to
+`run_local_gates.py` for replay verification without GitHub Actions.
+
+Reproduce:
+```sh
+python -m pytest -q research/multimodal
+python -m research.multimodal.verify_unknown_drift --replay
+python -m research.multimodal.run_local_gates \
+  --gates protocol-tests r1n-evidence --output /tmp/assemblies-r1n
+```
+
+Next: run the full Git checkout native R1b–R1j tests; add a genuinely
+held-out shift/change/corruption generator and process-isolated models
+before a publication-level leakage claim; compare memory and inference
+costs; only after native correctness adapt the same streaming regime to
+real synaptic/refraction assembly circuits.
