@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from research.multimodal.zero_shot_gate import (
     Config, Dataset, evaluate, KnownPermutationOracle, ExactPairMemory,
-    CopyBaseline, HebbianRoleMap, _validate_output, _rank,
+    CopyBaseline, HebbianRoleMap, ShiftRoleLearner, _validate_output, _rank,
 )
 
 
@@ -86,3 +86,20 @@ def test_train_never_sees_heldout_labels():
     dataset = Dataset(cfg)
     assert set(seen) == set(dataset.train)
     assert not set(seen) & set(dataset.test)
+
+
+@pytest.mark.parametrize("seed", [0, 1, 17, 42])
+def test_learnable_shift_distinguishes_rule_learning_from_pair_memory(seed):
+    cfg = Config(seed=seed, transform_family="cyclic_shift")
+    learned = evaluate(cfg, ShiftRoleLearner)
+    pair = evaluate(cfg, HebbianRoleMap)
+    assert learned["summary"]["train"]["exact"] == 1.
+    assert learned["summary"]["heldout"]["exact"] == 1.
+    assert learned["summary"]["heldout"]["strict_rank1"] == 1.
+    assert pair["summary"]["train"]["exact"] == 1.
+    assert pair["summary"]["heldout"]["exact"] == 0.
+
+
+def test_rejects_unknown_transform_family():
+    with pytest.raises(ValueError):
+        Config(transform_family="unknown").validate()
