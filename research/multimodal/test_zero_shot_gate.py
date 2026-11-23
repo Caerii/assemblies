@@ -3,7 +3,7 @@ import numpy as np
 import pytest
 from research.multimodal.zero_shot_gate import (
     Config, Dataset, evaluate, KnownPermutationOracle, ExactPairMemory,
-    CopyBaseline, _validate_output, _rank,
+    CopyBaseline, HebbianRoleMap, _validate_output, _rank,
 )
 
 
@@ -33,6 +33,13 @@ def test_oracle_and_exact_memory(seed):
 def test_copy_is_not_trivially_a_role_transform():
     result = evaluate(Config(), CopyBaseline)
     assert result["summary"]["heldout"]["exact"] == 0.
+
+
+@pytest.mark.parametrize("seed", [0, 1, 17, 42])
+def test_hebbian_memorizes_trained_but_not_heldout_random_role_permutation(seed):
+    r = evaluate(Config(seed=seed), HebbianRoleMap)
+    assert r["summary"]["train"]["exact"] == 1.
+    assert r["summary"]["heldout"]["exact"] == 0.
 
 
 def test_determinism_and_label_copy():
