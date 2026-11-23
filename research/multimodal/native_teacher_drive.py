@@ -10,7 +10,7 @@ import argparse
 import json
 import numpy as np
 from research.multimodal.zero_shot_gate import Config, evaluate
-from research.multimodal.learning_audit import (active_synapses, weight_fingerprint, write_diagnostic)
+from research.multimodal.learning_audit import (active_synapses, full_explicit_fingerprint, write_diagnostic)
 
 
 class NativeTeacherDriven:
@@ -39,8 +39,8 @@ class NativeTeacherDriven:
         self.clamp_diagnostics = []
 
     def state_fingerprint(self):
-        """Digest all learned LEX-to-role fibers, including untouched edges."""
-        return weight_fingerprint(self.brain, tuple(self.cfg.roles))
+        """Digest every explicit fiber, including recurrent and reverse paths."""
+        return full_explicit_fingerprint(self.brain, ("LEX",) + tuple(self.cfg.roles))
 
     def train(self, item, role, cue, target):
         from neural_assemblies.assembly_calculus.ops import activate_assembly
