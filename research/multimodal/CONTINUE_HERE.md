@@ -323,3 +323,37 @@ python -m research.multimodal.run_local_gates --output /tmp/assemblies-native-ga
 ```
 
 Preserve run.json, per-gate logs and Git HEAD in the next commit, including failures. Follow with R1i paired seed/gain/presentation sweeps, target-clamp fidelity, before/after connectome fingerprints, and same-budget strong learned-rule baselines. NO native accuracy or compiled Rust speedup is currently claimed from R1i.
+
+## R1j checkpoint — complete explicit synaptic audit (2026-11-23)
+
+On this same canonical research branch we added:
+
+- `learning_audit.py` and `test_learning_audit.py`;
+- active source→target Hebbian edge deltas and teacher-clamp selection
+  diagnostics inside `native_teacher_drive.py`;
+- `full_explicit_fingerprint` of **all** directed area-to-area matrices
+  (including reverse and recurrent edges), checked around every query;
+- fail-closed native R1i evidence requirements and
+  `test_native_teacher_controls.py`;
+- repaired fake Brain ownership to match the shared native explicit engine,
+  with both beta-zero and beta-positive controls;
+- automatic full-subtree discovery in `run_local_gates.py`;
+- the protocol/evidence record `R1J_NATIVE_AUDIT.md`.
+
+Local pure-Python mirror: **24 tests passed**, including mutated-read,
+missing-evidence, beta-zero and wrong-connection tests. This was NOT
+a full GitHub checkout and does NOT constitute native Brain test results.
+
+Next exact command on a complete checkout:
+
+```sh
+python -m research.multimodal.run_local_gates --output /tmp/assemblies-native-gates-r1j
+```
+
+Follow with the fuller R1i native run in `R1J_NATIVE_AUDIT.md`.
+Check whether teacher forced targets actually potentiate eligible
+`LEX -> role` edges, whether read-only preserves the whole explicit
+graph, and whether any held-out generalization survives strong matched
+baselines. Do not claim new speed/capacity/zero-shot native measurements
+until that experiment completes. Keep all subsequent commits on
+`research/multimodal-continual-assemblies`.
