@@ -75,3 +75,31 @@ def test_zero_plasticity_teacher_clamp_does_not_count_as_learning():
     assert stats['teacher_target_overlap'] == 1.
     assert stats['active_edge_changed'] == 0
     assert stats['active_edge_delta_sum'] == 0.
+
+
+def test_full_fingerprint_detects_reverse_and_recurrent_updates():
+    from research.multimodal.learning_audit import full_explicit_fingerprint
+
+    class Complete:
+        def __init__(self):
+            self.owner = SimpleNamespace(_area_conns={
+                src: {dst: SimpleNamespace(weights=np.ones((5, 5), dtype=np.float32))
+                      for dst in ('LEX', 'SUBJ', 'OBJ')}
+                for src in ('LEX', 'SUBJ', 'OBJ')})
+
+        def engine_for(self, area):
+            return self.owner
+
+    brain = Complete()
+    before = full_explicit_fingerprint(brain, ('LEX', 'SUBJ', 'OBJ'))
+    brain.owner._area_conns['OBJ']['LEX'].weights[1, 2] += 1
+    assert full_explicit_fingerprint(brain, ('LEX', 'SUBJ', 'OBJ')) != before
+    with pytest.raises(ValueError):
+        full_explicit_fingerprint(brain, ('OBJ', 'OBJ'))
+
+    class Mixed(Complete):
+        def engine_for(self, area):
+            return self.owner if area == 'LEX' else object()
+
+    with pytest.raises(RuntimeError, match='mixed-engine'):
+        full_explicit_fingerprint(Mixed(), ('LEX', 'SUBJ'))
