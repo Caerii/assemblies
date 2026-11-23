@@ -19,11 +19,10 @@ import time
 def specs(python=sys.executable):
     # Smoke tests API connectivity; their numerical values are NOT publication evidence.
     return {
-        "protocol-tests": [python, "-m", "pytest", "-q",
-                           "research/multimodal/test_teacher_control_matrix.py",
-                           "research/multimodal/test_native_teacher_drive.py",
-                           "research/multimodal/test_native_zero_shot.py",
-                           "research/multimodal/test_zero_shot_gate.py"],
+        # Discover ALL tests in this research subtree, including newly added
+        # audit and provenance regression tests. Enumerating a few files here
+        # silently excluded most of R1b–R1i from the previous gate.
+        "protocol-tests": [python, "-m", "pytest", "-q", "research/multimodal"],
         "r1b-native": [python, "-m", "research.multimodal.native_retention",
                         "--n", "256", "--k", "12", "--loads", "2", "4",
                         "--seeds", "1"],
