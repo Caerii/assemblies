@@ -94,3 +94,30 @@ The p=.6, n=128, k=6, beta=.5, three-presentation, three-seed reproduction
 gave exact recall at loads 8/16/32 = 0.416667/0.229167/0.125000,
 matching the recorded exploratory run. This was NOT a full Git checkout,
 and does not establish the native Brain conformance gate.
+
+## R1b checkpoint — native Brain identity-retention protocol (2026-11-23)
+
+On the canonical branch:
+- `native_retention.py` implements three native Brain arms: recurrent
+  plasticity, feedforward plasticity, and no-plasticity recurrence.
+- `test_native_retention.py` checks configuration, winner IDs, summary
+  accounting, and mock observation scope usage.
+- `NATIVE_R1B_PROTOCOL.md` defines hypotheses, confounds, commands,
+  and reporting rules **before running** the native experiment.
+
+**Important status:** These R1b scripts are committed but have not been
+executed within a complete `Caerii/assemblies` checkout. This environment
+has no mounted native package and cannot resolve the GitHub host via its
+local shell. No native recovery results or speedups are asserted.
+
+Primary next step: run
+`uv run python -m pytest -q research/multimodal/test_native_retention.py`
+and the R1b CLI command in `NATIVE_R1B_PROTOCOL.md`; audit failures and
+push a subsequent commit to this branch. In particular validate that nested
+`brain.read_only()` and `brain.frozen()` produce reproducible observations
+without persistent connectome or recruitment mutation, and check whether
+clearing activity in the observation scope truly isolates each cue.
+
+After R1b: reproduce the native repo's MASKED refraction readout as R1c,
+rather than evaluating refracted memory through an unmasked readout.
+Then compare actual target binding and compositional held-out queries.
