@@ -266,3 +266,22 @@ not an artificially weak memory baseline; report costs and failed seeds.
 
 No new branch created; keep committing to
 `research/multimodal-continual-assemblies`.
+
+## R1g checkpoint — native projection lower bound
+
+Committed `native_zero_shot.py`, `test_native_zero_shot.py`, and
+`NATIVE_R1G_PROTOCOL.md` to the SAME research branch. The adapter
+uses `Brain`, materializes all relevant areas, injects stable lexical
+neuron IDs, and measures held-out role-conditioned outputs using the
+existing R1f independent target evaluator.
+
+**No native experiment was run here.** This adapter deliberately ignores
+target supervision; it is an unsupervised native projection LOWER BOUND,
+not a learned shared role operator. Mock scheduling tests are committed,
+but not a substitute for native runtime execution.
+
+Next: execute the branch-local tests and adapter in a full checkout,
+resolve any native API/shape errors, then implement teacher-guided native
+training using only the observed pairs. Compare to `ShiftRoleLearner`
+and report failure if native assembly calculus does not learn the
+held-out cyclic role transform.
