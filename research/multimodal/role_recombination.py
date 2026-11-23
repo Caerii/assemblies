@@ -86,6 +86,11 @@ def score(probe, references, target, k, n):
     }
 
 
+def distinct_fraction(assemblies, k):
+    codes = [tuple(map(int, _ids(a, k))) for a in assemblies]
+    return float(len(set(codes)) / len(codes)) if codes else 0.0
+
+
 def trial(seed: int, cfg: Protocol):
     Brain, project, bind, read_binding = _native()
     train, heldout = split(cfg.contents, cfg.roles)
@@ -105,6 +110,7 @@ def trial(seed: int, cfg: Protocol):
         lexical[i] = project(brain, f"word_{i}", "LEX",
                              rounds=cfg.lex_rounds, recurrent=True)
 
+    lexical_distinctness = distinct_fraction(list(lexical.values()), cfg.k)
     references = {role: {} for role in cfg.roles}
     for i, role in train:
         brain.clear_activity([role])
@@ -130,6 +136,10 @@ def trial(seed: int, cfg: Protocol):
                       for j, ref in candidates.items())
         pretest.append({"content": i, "role": role, "max_old_overlap": nearest[0] / cfg.k})
 
+    initial_role_distinctness = {
+        role: distinct_fraction(list(references[role].values()), cfg.k)
+        for role in cfg.roles
+    }
     old_before = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
                   for i, role in train}
 
@@ -140,6 +150,10 @@ def trial(seed: int, cfg: Protocol):
             brain, "LEX", role, source_assembly=lexical[i],
             tail_rounds=cfg.tail_rounds)
 
+    final_role_distinctness = {
+        role: distinct_fraction(list(references[role].values()), cfg.k)
+        for role in cfg.roles
+    }
     old_after = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
                  for i, role in train}
     novel = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
@@ -153,6 +167,9 @@ def trial(seed: int, cfg: Protocol):
     # not a parametric compositional-generalization baseline.
     return {
         "seed": seed, "train": train, "heldout": heldout,
+        "lexical_distinctness": lexical_distinctness,
+        "initial_role_distinctness": initial_role_distinctness,
+        "final_role_distinctness": final_role_distinctness,
         "lexicon_digest": hashlib.sha256(b"".join(
             _ids(lexical[i], cfg.k).tobytes()
             for i in range(cfg.contents))).hexdigest(),
@@ -189,6 +206,7 @@ def run(cfg: Protocol):
             "Lexical assemblies are pre-established using native project; no unseen nouns.",
             "Reference snapshots are created during binding; self-retrieval may be easier than external semantic readout.",
             "Same-role top-1 identity does not demonstrate sentence-level compositional semantics.",
+            "Distinctness metrics expose attractor collapse but do not prove meaningful semantic separation.",
             "Exact-key episodic memory is a strong positive control but lacks budget matching.",
             "Native engine execution and results are unverified until run in full checkout.",
         ],
