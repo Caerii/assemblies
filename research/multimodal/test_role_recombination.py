@@ -43,6 +43,19 @@ def test_rank_is_role_local_and_chance_is_real_n():
     assert bad["top1"] == 0
 
 
+def test_candidate_expansion_cannot_masquerade_as_forgetting():
+    # Same probe, same synapses and same old reference; a new tied
+    # candidate with a smaller ID changes top-1 solely through decoding.
+    def a(ids):
+        return SimpleNamespace(neuron_ids=np.array(ids, dtype=np.uint32))
+    probe = a([1, 2, 3])
+    trained = {1: a([1, 2, 3]), 2: a([4, 5, 6])}
+    expanded = {**trained, 0: a([1, 2, 3])}
+    assert R.score(probe, trained, 1, 3, 30)["top1"] == 1
+    assert R.score(probe, expanded, 1, 3, 30)["top1"] == 0
+    assert R.score(probe, trained, 1, 3, 30)["top1"] == 1
+
+
 def test_distinctness_detects_attractor_collapse():
     def a(ids):
         return SimpleNamespace(neuron_ids=np.array(ids, dtype=np.uint32))
@@ -105,6 +118,10 @@ def test_native_api_schedule_is_not_train_on_test_before_one_shot(monkeypatch):
     assert run["familiar_before_top1"] == 1.
     assert run["heldout_after_one_binding_top1"] == 1.
     assert run["familiar_after_top1"] == 1.
+    assert run["familiar_after_expanded_top1"] == 1.
+    assert run["old_retention_delta"] == 0.
+    assert run["candidate_expansion_penalty"] == 0.
+    assert result["summary"]["candidate_expansion_penalty"] == 0.
     for pair in heldout:
         index = events.index(("bind", pair))
         assert any(j < index and event == ("read", pair)
