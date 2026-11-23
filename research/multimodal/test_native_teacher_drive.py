@@ -18,6 +18,7 @@ def test_supervision_only_during_training(monkeypatch, beta):
             self.areas = {}
             self.fibers = {}
             self.area_beta = {}
+            self.engine = SimpleNamespace(_area_conns={})
             self.current_cue = np.array([], dtype=np.uint32)
         def add_area(self, name, **kwargs):
             assert kwargs["explicit"] is True
@@ -26,9 +27,19 @@ def test_supervision_only_during_training(monkeypatch, beta):
             if name != "LEX":
                 self.fibers[name] = SimpleNamespace(
                     weights=np.ones((kwargs["n"], kwargs["n"]), dtype=np.float32))
+            # All explicit areas are owned by ONE engine and every
+            # directed fiber has its own matrix, matching native ownership.
+            for src in self.areas:
+                row = self.engine._area_conns.setdefault(src, {})
+                for dst in self.areas:
+                    if dst not in row:
+                        row[dst] = (self.fibers[dst] if src == "LEX" and
+                                    dst in self.fibers else
+                                    SimpleNamespace(weights=np.ones(
+                                        (kwargs["n"], kwargs["n"]), dtype=np.float32)))
             events.append(("area", name))
         def engine_for(self, role):
-            return SimpleNamespace(_area_conns={"LEX": {role: self.fibers[role]}})
+            return self.engine
         def clear_activity(self, names):
             self.areas[names[0]].winners = np.array([], dtype=np.uint32)
             events.append(("clear", tuple(names)))
