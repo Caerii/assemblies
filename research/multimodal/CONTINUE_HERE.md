@@ -58,3 +58,30 @@ Every future change goes on this same branch unless the user explicitly
 chooses a new branch. Keep this file updated with the latest HEAD SHA,
 last validated commands, failures, and next experiment. Never claim a test
 passed unless executed in the referenced environment.
+
+## Latest checkpoint — 2026-11-23 (R1a)
+
+Committed on this same branch:
+- `retention_stream.py`: deterministic multiplicative-fiber continual learning, exact/Jaccard recall, source-target coverage, early-item retention, stronger exact episodic control, stream digest.
+- `test_retention_stream.py`: deterministic stream, schema/bounds, invalid parameters, dense-positive-control checks.
+- `RETENTION_R1A.md`: negative and positive exploratory results, run commands, SHA-256 hashes of local output files and interpretation boundaries.
+
+Latest checkpoint before this handoff update:
+`0cd7bbba12f884840ed06a5725ba680478c24d86`.
+
+**Validation caveat:** the local validation sandbox ran 11 new tests against
+the v6 companion multiplicative implementation, not a full checkout of this
+GitHub branch. The branch-local `multiplicative_reference.py` has a compatible
+but independently authored API. Native `Brain` and Rust execution remain
+unverified. Regenerate diagnostics on the branch before publication.
+
+**Result:** with n=128, k=6, 3 training presentations and 3 seeds, exact
+recall at 32 learned items was 0% at p=.1, 2.1% at p=.3, 12.5% at p=.6,
+and 80.2% at p=1.0. These are exploratory toy-model measurements, not
+native-runtime results. Consult `RETENTION_R1A.md`.
+
+**Immediate next tasks:** run branch-local test and native probe on a full
+checkout; increase seeds and add p/k/round sweeps with held-out conditions;
+instrument weight saturation and target support; implement a controlled
+native-Brain-versus-explicit-fiber comparison; compile existing Rust
+PyO3 extensions before making performance claims.
