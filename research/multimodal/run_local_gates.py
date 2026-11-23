@@ -42,6 +42,13 @@ def specs(python=sys.executable):
                          "--seed", "42"],
         "r1n-evidence": [python, "-m", "research.multimodal.verify_unknown_drift",
                          "--replay"],
+        "r1o-evidence": [python, "-m", "research.multimodal.verify_noncommutative",
+                         "--replay"],
+        "r1o-native-composition": [python, "-m",
+                                  "research.multimodal.native_affine_chain",
+                                  "--n", "32", "--k", "5",
+                                  "--atomic-examples", "4", "--test-cues", "3",
+                                  "--data-seed", "7", "--model-seed", "8123"],
     }
 
 
