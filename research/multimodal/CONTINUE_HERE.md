@@ -357,3 +357,40 @@ graph, and whether any held-out generalization survives strong matched
 baselines. Do not claim new speed/capacity/zero-shot native measurements
 until that experiment completes. Keep all subsequent commits on
 `research/multimodal-continual-assemblies`.
+
+## R1k checkpoint — hidden-label seed leak fixed (2026-11-23)
+
+**CRITICAL scientific integrity correction:** Previously `evaluate()`
+and `run_conditions()` passed `Config(seed=dataset_seed)` to
+unprivileged models, allowing trivial reconstruction of every
+supposedly hidden target by instantiating `Dataset(cfg)`. The exploit
+was demonstrated on the OLD local interface: 100% held-out exact
+for both random permutation and cyclic-shift families, with ZERO
+training.
+
+**FIXED on this SAME research branch:** distinct `Config.seed`
+(private dataset generation) and `Config.model_seed` (public model
+initialization), immutable `ModelConfig`/ `learner_view`, a shared
+geometry validator, rejection of equal seeds, and oracle-only
+privileged Dataset access. Both single-model and three-condition
+factory calls now receive the restricted public config. Python
+reflection/brute-force attacks remain out of scope; this is
+API-level leakage prevention, not a secure evaluation sandbox.
+
+New code: `baseline_sweep.py` and `test_baseline_sweep.py`.
+Across twelve dataset seeds and four n/k settings, the synthetic
+shared-shift-rule learner achieved 100% exact held-out recovery;
+plain Hebbian pair mapping, exact-key pair memory, and identity
+copy each achieved 0%. See `R1K_SEED_ISOLATION.md` for complete
+metrics, hashes, scientific limitations and reproducibility commands.
+An **independent local mirror passed 48 tests** across the
+seed-isolation and sweep suites, not the full Git checkout.
+
+**Still blocked:** native Brain tests/full checkout, Rust compilation,
+and any honest native zero-shot/composition performance claim.
+
+NEXT: rerun `python -m pytest -q research/multimodal` on a native
+checkout, regenerate R1k's raw JSON and compare the canonical rows hash,
+then run the R1i teacher-control matrix with teacher weight audits.
+Keep committing further work to this branch, update this handoff and
+preserve failed seeds.
