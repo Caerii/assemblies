@@ -18,6 +18,7 @@ class Config:
     contents: int = 12
     seed: int = 42
     roles: tuple[str, str] = ("SUBJ", "OBJ")
+    transform_family: str = "random_permutation"
 
     def validate(self):
         if not isinstance(self.n, int) or not isinstance(self.k, int) or not 0 < self.k < self.n:
@@ -28,6 +29,8 @@ class Config:
             raise ValueError("two distinct roles required")
         if not isinstance(self.seed, int) or self.seed < 0:
             raise ValueError("seed must be nonnegative")
+        if self.transform_family not in ("random_permutation", "cyclic_shift"):
+            raise ValueError("unknown transform family")
         return self
 
 
@@ -37,7 +40,11 @@ class Dataset:
         rng = np.random.default_rng(cfg.seed)
         self.cues = tuple(np.sort(rng.choice(cfg.n, cfg.k, replace=False).astype(np.uint32))
                           for _ in range(cfg.contents))
-        self.maps = {role: rng.permutation(cfg.n) for role in cfg.roles}
+        if cfg.transform_family == "cyclic_shift":
+            self.maps = {role: (np.arange(cfg.n) + int(rng.integers(1, cfg.n))) % cfg.n
+                         for role in cfg.roles}
+        else:
+            self.maps = {role: rng.permutation(cfg.n) for role in cfg.roles}
         self.train = tuple((i, role) for i in range(cfg.contents)
                            for j, role in enumerate(cfg.roles) if (i + j) % 2 == 0)
         self.test = tuple((i, role) for i in range(cfg.contents)
@@ -165,3 +172,26 @@ def demo():
 
 if __name__ == "__main__":
     print(json.dumps(demo(), indent=2))
+
+
+class ShiftRoleLearner:
+    """Learn a shared cyclic role shift from train-only exemplar pairs."""
+    def __init__(self, cfg: Config):
+        self.n = cfg.n
+        self.k = cfg.k
+        self.scores = {role: np.zeros(cfg.n, dtype=np.int64) for role in cfg.roles}
+        self.count = {role: 0 for role in cfg.roles}
+
+    def train(self, item, role, cue, target):
+        # For each candidate shift count role-conditioned target overlaps.
+        target_bits = np.zeros(self.n, dtype=np.int64)
+        target_bits[target] = 1
+        for shift in range(self.n):
+            self.scores[role][shift] += int(np.sum(target_bits[(cue + shift) % self.n]))
+        self.count[role] += 1
+
+    def predict(self, item, role, cue):
+        if not self.count[role]:
+            return None
+        shift = int(np.argmax(self.scores[role]))
+        return np.sort(((cue + shift) % self.n).astype(np.uint32))
