@@ -138,11 +138,29 @@ class KnownPermutationOracle:
         return np.sort(self.maps[role][cue].astype(np.uint32))
 
 
+
+class HebbianRoleMap:
+    """Sparse local coactivation baseline, with no held-out writes."""
+    def __init__(self, cfg: Config):
+        self.n = cfg.n
+        self.k = cfg.k
+        self.weights = {role: np.zeros((cfg.n, cfg.n), dtype=np.float32)
+                        for role in cfg.roles}
+
+    def train(self, item, role, cue, target):
+        self.weights[role][np.ix_(cue, target)] += np.float32(1.)
+
+    def predict(self, item, role, cue):
+        drive = np.sum(self.weights[role][cue], axis=0)
+        order = np.lexsort((np.arange(self.n), -drive))
+        return np.sort(order[:self.k].astype(np.uint32))
+
 def demo():
     cfg = Config()
     return {"oracle": evaluate(cfg, KnownPermutationOracle, expose_labels=True),
             "pair_memory": evaluate(cfg, ExactPairMemory),
-            "copy": evaluate(cfg, CopyBaseline)}
+            "copy": evaluate(cfg, CopyBaseline),
+            "hebbian": evaluate(cfg, HebbianRoleMap)}
 
 
 if __name__ == "__main__":
