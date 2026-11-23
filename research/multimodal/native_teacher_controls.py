@@ -29,6 +29,17 @@ def run(cfg: Config, *, gain=100., presentations=3):
     result = run_conditions(
         cfg, lambda config, condition: factory(
             config, condition, gain=gain, presentations=presentations))
+    for condition in result["conditions"]:
+        # Repeated equal predictions cannot prove synaptic immutability.
+        # Require full explicit-engine fingerprints and per-write diagnostics.
+        if not condition.get("weight_audit_available", False):
+            raise AssertionError("native weight fingerprint audit is unavailable")
+        clamp = condition.get("clamp_diagnostics")
+        if not clamp or len(clamp) != len(result["dataset"]["train"]):
+            raise AssertionError("missing per-training-step synapse measurements")
+        if condition["condition"] == "no_plasticity" and any(
+                row["active_edge_changed"] != 0 for row in clamp):
+            raise AssertionError("beta=0 control changed synaptic weights")
     result["status"] = "native_r1i_teacher_controls_unvalidated"
     result["hyperparameters"] = {"teacher_gain": gain, "presentations": presentations,
                                  "plastic_beta": 0.1, "control_beta": 0.0}
