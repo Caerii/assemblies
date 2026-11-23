@@ -11,6 +11,7 @@ from dataclasses import dataclass, asdict
 import argparse
 import hashlib
 import json
+import math
 from pathlib import Path
 import numpy as np
 
@@ -36,6 +37,8 @@ class Protocol:
                 1 <= self.change_after < self.rounds and
                 self.probes_per_role >= 2 and self.window >= 1):
             raise ValueError('invalid geometry or timeline')
+        if math.comb(self.n, self.k) < self.rounds + len(ROLES) * self.probes_per_role:
+            raise ValueError('insufficient distinct sparse codes for probes and train stream')
         if not self.seeds or len(self.seeds) != len(set(self.seeds)):
             raise ValueError('unique nonempty private seeds required')
         if (type(self.learner_seed) is not int or self.learner_seed < 0
@@ -142,8 +145,16 @@ def trial(seed: int, protocol: Protocol):
         if shifts['new'][role] == shifts['old'][role]:
             shifts['new'][role] = (shifts['old'][role] % (p.n - 1)) + 1
     # Probe inputs are entirely disjoint from training inputs.
-    probes = {role: [_cue(rng, p.n, p.k) for _ in range(p.probes_per_role)]
-              for role in ROLES}
+    reserved = set()
+    probes = {}
+    for role in ROLES:
+        probes[role] = []
+        while len(probes[role]) < p.probes_per_role:
+            candidate = _cue(rng, p.n, p.k)
+            key = tuple(map(int, candidate))
+            if key not in reserved:
+                reserved.add(key)
+                probes[role].append(candidate)
     training_cues = []
     observed_training_targets = []
     models = {
@@ -177,7 +188,12 @@ def trial(seed: int, protocol: Protocol):
         period = 'old' if round_id <= p.change_after else 'new'
         role = ROLES[(round_id - 1) % len(ROLES)]
         before = score_models(period)
-        cue = _cue(rng, p.n, p.k)
+        while True:
+            cue = _cue(rng, p.n, p.k)
+            key = tuple(map(int, cue))
+            if key not in reserved:
+                reserved.add(key)
+                break
         training_cues.append(cue.copy())
         actual = np.sort(((cue + shifts[period][role]) % p.n).astype(np.uint32))
         label = actual.copy()
@@ -194,9 +210,8 @@ def trial(seed: int, protocol: Protocol):
                      'trained_role': role, 'corrupted_label': poisoned,
                      'before': before, 'after': after,
                      'old_recall_after': old_recall})
-    assert all(not np.array_equal(cue, probe)
-               for cue in training_cues for values in probes.values() for probe in values), (
-                   'train-probe input collision: rerun with different seed')
+    assert len(reserved) == p.rounds + len(ROLES) * p.probes_per_role, (
+        'distinct train and withheld probe code invariant failed')
     training_bytes = b''.join(x.tobytes() for x in training_cues + observed_training_targets)
     probe_bytes = b''.join(x.tobytes() for value in probes.values() for x in value)
     return {'seed': seed, 'rows': rows, 'training_sha256': hashlib.sha256(training_bytes).hexdigest(),
