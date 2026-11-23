@@ -110,3 +110,25 @@ def test_fingerprint_reports_unchanged_state():
     for condition in result["conditions"]:
         assert condition["weight_audit_available"] is True
         assert isinstance(condition["weight_digest_after_training"], str)
+
+
+def test_paired_control_factory_receives_only_public_model_seed():
+    from research.multimodal.zero_shot_gate import ModelConfig
+    observed = []
+    class Spy(Memory):
+        def __init__(self, public, condition):
+            assert isinstance(public, ModelConfig)
+            assert public.seed == 901
+            assert not hasattr(public, "model_seed")
+            observed.append((condition, public))
+            super().__init__(public, condition)
+
+    run_conditions(Config(seed=77, model_seed=901, contents=4), Spy)
+    assert [condition for condition, _ in observed] == list(CONDITIONS)
+
+
+def test_model_seed_does_not_change_teacher_training_labels():
+    a = run_conditions(Config(seed=37, model_seed=911, contents=4), Memory)
+    b = run_conditions(Config(seed=37, model_seed=912, contents=4), Memory)
+    assert [x["train_labels_sha256"] for x in a["conditions"]] == [
+        x["train_labels_sha256"] for x in b["conditions"]]
