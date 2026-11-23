@@ -53,12 +53,12 @@ def _native():
 
 
 def _snapshot(eng) -> np.ndarray:
-    return np.sort(np.asarray(eng.get_winners("memory"), dtype=np.int64).copy())
+    return np.asarray(eng.get_winners("memory"), dtype=np.int64).copy()
 
 
 def _recall_one(brain, eng, stored: list[np.ndarray], item: int, masked: bool,
                 rounds: int, seed: int) -> tuple[bool, float]:
-    # The native engine here is fully materialized, so winner indices are
+    # Preserve native winner order for cue selection, matching the reference\n    # experiment rather than sorting and changing the cue distribution.\n    # The native engine here is fully materialized, so winner indices are
     # actual neuron IDs. This assumption is NOT valid for lazy sparse areas.
     cue = np.asarray(stored[item][:len(stored[item]) // 2], dtype=np.int64)
     try:
