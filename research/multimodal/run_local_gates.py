@@ -40,6 +40,8 @@ def specs(python=sys.executable):
         "r1i-controls": [python, "-m", "research.multimodal.native_teacher_controls",
                          "--n", "128", "--k", "8", "--contents", "4",
                          "--seed", "42"],
+        "r1n-evidence": [python, "-m", "research.multimodal.verify_unknown_drift",
+                         "--replay"],
     }
 
 
