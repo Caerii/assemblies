@@ -1,7 +1,7 @@
 import json
 import numpy as np
 import pytest
-from continual_twenty import Protocol, ShiftLearner, HebbianPairs, exact, run, trial
+from research.multimodal.continual_twenty import Protocol, ShiftLearner, HebbianPairs, exact, run, trial
 
 
 def test_twenty_rounds_per_seed_and_no_probe_training_alias():
