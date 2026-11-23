@@ -231,3 +231,38 @@ then run `python -m research.multimodal.role_recombination` on a full
 checkout and inspect candidate-expansion penalty, strict winner margin,
 role distinctness, and any failures. Do not claim one-shot/generalization
 performance from mocked protocol tests.
+
+## R1f checkpoint — leakage-resistant zero-shot target benchmark (2026-11-23)
+
+Committed to THIS branch:
+- `zero_shot_gate.py`: train-only adapter protocol, independent role
+  transforms and held-out target codes; exact/overlap/strict-rank1 scoring;
+  strong privileged oracle, exact pair memory, input-copy, learned sparse
+  Hebbian and train-only shared cyclic-shift baselines.
+- `test_zero_shot_gate.py`: leakage, mutation protection, code-shape,
+  tie policy, deterministic splits, learned transform and negative controls.
+- `ZERO_SHOT_R1F_PROTOCOL.md`: scientific gates, measured synthetic
+  control outcomes, and explicit identifiability limitations.
+
+A local mirror ran **23 tests passing** on Python/NumPy; this is
+NOT a full native repository test run. For the cyclic-shift family,
+the hypothesis-constrained `ShiftRoleLearner` learned the shared role
+operator from six train pairs per role and achieved 100% exact
+held-out target recovery over seeds 0,1,17,42; the sparse coactivation
+pair model got 0% exact held-out recovery. This result is deliberately
+synthetic, and does not demonstrate neural composition.
+
+For random-permutation targets, exact held-out recovery was 0%
+for unprivileged sparse Hebbian, while the fully privileged
+KnownPermutationOracle succeeded by construction. Random mapping
+is not identifiable from a few samples: DO NOT treat its failure as
+a meaningful criticism of neural assembly calculus.
+
+**Next execution gate:** run the committed `test_zero_shot_gate.py`
+and R1b–R1d native tests in a full branch checkout. Then implement
+a native `Brain` adapter for R1f that receives only train examples and
+no hidden role map. Compete against the train-only ShiftRoleLearner,
+not an artificially weak memory baseline; report costs and failed seeds.
+
+No new branch created; keep committing to
+`research/multimodal-continual-assemblies`.
