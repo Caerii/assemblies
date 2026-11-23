@@ -66,11 +66,17 @@ def run_conditions(cfg: Config, model_factory: Callable):
         if hasattr(model, "train_pairs") and set(model.train_pairs) != set(dataset.train):
             raise AssertionError("training pair accounting mismatch")
         observations = []
+        has_state_fingerprint = callable(getattr(model, "state_fingerprint", None))
+        initial_fingerprint = model.state_fingerprint() if has_state_fingerprint else None
         for partition, pairs in (("train", dataset.train), ("heldout", dataset.test)):
             for i, role in pairs:
                 query = dataset.cues[i].copy()
                 pred1 = _validate_output(model.predict(i, role, query.copy()), cfg.n, cfg.k)
+                if has_state_fingerprint and model.state_fingerprint() != initial_fingerprint:
+                    raise AssertionError(f"read mutated synapses: {condition} {partition} {i} {role} first read")
                 pred2 = _validate_output(model.predict(i, role, query.copy()), cfg.n, cfg.k)
+                if has_state_fingerprint and model.state_fingerprint() != initial_fingerprint:
+                    raise AssertionError(f"read mutated synapses: {condition} {partition} {i} {role} second read")
                 stable = (pred1 is None and pred2 is None) or (
                     pred1 is not None and pred2 is not None and np.array_equal(pred1, pred2))
                 target = dataset.target(i, role)
@@ -85,6 +91,8 @@ def run_conditions(cfg: Config, model_factory: Callable):
                                   for metric in ("exact", "overlap", "strict_rank1", "repeatable")}
         output.append({"condition": condition, "train_labels_sha256": _fingerprint(labels),
                        "summary": summary, "observations": observations,
+                       "weight_audit_available": bool(has_state_fingerprint),
+                       "weight_digest_after_training": initial_fingerprint,
                        "training_calls": getattr(model, "training_calls", None),
                        "clamp_diagnostics": getattr(model, "clamp_diagnostics", None)})
     return {"status": "controlled_teacher_comparison_not_native_validation",
