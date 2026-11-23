@@ -10,6 +10,7 @@ import argparse
 import json
 import numpy as np
 from research.multimodal.zero_shot_gate import Config, evaluate
+from research.multimodal.learning_audit import (active_synapses, weight_fingerprint, write_diagnostic)
 
 
 class NativeTeacherDriven:
@@ -35,6 +36,11 @@ class NativeTeacherDriven:
                                 explicit=True)
         self.train_pairs = set()
         self.training_calls = 0
+        self.clamp_diagnostics = []
+
+    def state_fingerprint(self):
+        """Digest all learned LEX-to-role fibers, including untouched edges."""
+        return weight_fingerprint(self.brain, tuple(self.cfg.roles))
 
     def train(self, item, role, cue, target):
         from neural_assemblies.assembly_calculus.ops import activate_assembly
@@ -47,6 +53,7 @@ class NativeTeacherDriven:
                 or len(np.unique(target)) != self.cfg.k
                 or np.any(cue >= self.cfg.n) or np.any(target >= self.cfg.n)):
             raise ValueError("invalid training assembly")
+        before = active_synapses(self.brain, role, cue, target)
         drive = np.zeros(self.cfg.n, dtype=np.float32)
         drive[target] = self.teacher_gain
         for _ in range(self.presentations):
@@ -54,6 +61,14 @@ class NativeTeacherDriven:
             self.brain.clear_activity([role])
             self.brain.project({}, {"LEX": [role]},
                                external_drive={role: drive})
+        after = active_synapses(self.brain, role, cue, target)
+        diagnostic = write_diagnostic(before, after, target,
+                                      self.brain.areas[role].winners)
+        if self.beta == 0 and diagnostic["active_edge_changed"] != 0:
+            raise AssertionError("zero-plasticity control unexpectedly changed its synapses")
+        diagnostic.update({"item": int(item), "role": role,
+                           "beta": self.beta, "presentations": self.presentations})
+        self.clamp_diagnostics.append(diagnostic)
         self.train_pairs.add((item, role))
         self.training_calls += 1
 
