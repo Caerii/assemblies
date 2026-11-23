@@ -72,7 +72,7 @@ def test_detects_late_mutation(monkeypatch):
             return super().predict(index, role, cue)
 
     model = inject(monkeypatch, LateWrite)
-    with pytest.raises(AssertionError, match=r"step 1 \\(B\\)"):
+    with pytest.raises(AssertionError, match=r"step 1 \(B\)"):
         model.predict(("A", "B"), np.arange(8, dtype=np.uint32))
 
 
