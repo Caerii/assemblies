@@ -461,3 +461,42 @@ Next executable work:
    read-only matrix fingerprints, correct/no-plasticity/shuffled controls.
 5. Only after native accuracy and semantics pass, compile and benchmark the
    existing Rust kernel candidates. No GitHub Actions dependency.
+
+## R1m checkpoint — drift resilience under identical 20-round streams (2026-11-23)
+
+Committed under `research/multimodal/`:
+- `robust_shift.py` — train-only, two-confirmation surprise quarantine and decayed evidence learners (gamma=0.5 and gamma=0.8).
+- `test_robust_shift.py` — stream-fingerprint parity against `continual_twenty.py`, read-only state checks, poison/switch behavior and deterministic replay.
+- `R1M_ROBUST_ADAPTATION.md` — comparative measured results, caveats, replication commands.
+- `evidence/r1m-20rounds.json.xz.base64` — entire compressed evidence artifact, reversible to JSON with recorded SHA-256.
+
+**Source parity:** All 20 private training, withheld-probe and hidden-rule digests
+matched the original R1l campaign exactly. The combined R1l/R1m local
+test suites passed **32/32**. The four committed R1m files were
+independently retrieved from GitHub and each exactly matched the tested
+local payload.
+
+**Measured synthetic post-change exact held-out accuracy, 20 seeds,
+rounds 11–20:** quarantine2 0.750, exponential decay 0.5 = 0.810,
+decay 0.8 = 0.545. Existing R1l last-example learner = 0.850,
+recent-three = 0.795, global-history = 0.155, Hebbian pairs = 0.0.
+The quarantine model recovers to 1.0 by round 14 and resists the
+isolated wrong example at round 16; it is slower to adapt overall.
+None of the new policies beats the last-example learner on the
+chosen aggregate metric. Do NOT imply an OOM intelligence gain.
+
+**Evidence:** original raw R1m result JSON SHA-256
+`8018bf2c4bab9671fd05ecb337b52f677009e32fd49facf1acf85f542406ef6a`.
+This result is SYNTHETIC and assumes the cyclic-shift hypothesis family.
+Native `Brain` validation and Rust acceleration are not established.
+
+**Next scientific gates:**
+1. Reproduce R1m's SHA and 32 tests in a full checkout.
+2. Predeclare a multi-regime family (unknown drift time, changing roles,
+   multiple corruption rates, gradual drift), using fresh private seeds.
+3. Make train-only change detection compare fairly to decay/window
+   baselines with equalized state size and compute.
+4. Pass R1b–R1j native Brain correctness/isolation experiments before
+   transferring this prequential campaign to actual assembly circuits.
+
+All future changes remain on `research/multimodal-continual-assemblies`.
