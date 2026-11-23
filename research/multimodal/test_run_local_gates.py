@@ -8,9 +8,11 @@ from research.multimodal.run_local_gates import run, specs
 def test_has_native_smoke_cases_and_protocol_tests():
     cases = specs("python")
     assert {"protocol-tests", "r1b-native", "r1c-refraction", "r1d-bindings",
-            "r1g-unsupervised", "r1h-supervised", "r1i-controls"} == set(cases)
+            "r1g-unsupervised", "r1h-supervised", "r1i-controls",
+            "r1n-evidence"} == set(cases)
     assert all(cmd[0] == "python" for cmd in cases.values())
     assert cases["protocol-tests"] == ["python", "-m", "pytest", "-q", "research/multimodal"]
+    assert cases["r1n-evidence"] == ["python", "-m", "research.multimodal.verify_unknown_drift", "--replay"]
 
 
 def test_dry_run_distinct_and_not_passed(tmp_path):
