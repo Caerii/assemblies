@@ -10,6 +10,7 @@ def test_has_native_smoke_cases_and_protocol_tests():
     assert {"protocol-tests", "r1b-native", "r1c-refraction", "r1d-bindings",
             "r1g-unsupervised", "r1h-supervised", "r1i-controls"} == set(cases)
     assert all(cmd[0] == "python" for cmd in cases.values())
+    assert cases["protocol-tests"] == ["python", "-m", "pytest", "-q", "research/multimodal"]
 
 
 def test_dry_run_distinct_and_not_passed(tmp_path):
