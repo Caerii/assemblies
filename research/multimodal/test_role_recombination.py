@@ -43,6 +43,16 @@ def test_rank_is_role_local_and_chance_is_real_n():
     assert bad["top1"] == 0
 
 
+def test_rank_tie_is_not_a_success():
+    def a(ids):
+        return SimpleNamespace(neuron_ids=np.array(ids, dtype=np.uint32))
+    references = {0: a([1, 2, 3]), 1: a([1, 2, 3])}
+    result = R.score(a([1, 2, 3]), references, 0, 3, 30)
+    assert result["tie_broken_top1"] == 1
+    assert result["top1"] == 0
+    assert result["top1_margin"] == 0
+
+
 def test_candidate_expansion_cannot_masquerade_as_forgetting():
     # Same probe, same synapses and same old reference; a new tied
     # candidate with a smaller ID changes top-1 solely through decoding.
@@ -53,6 +63,7 @@ def test_candidate_expansion_cannot_masquerade_as_forgetting():
     expanded = {**trained, 0: a([1, 2, 3])}
     assert R.score(probe, trained, 1, 3, 30)["top1"] == 1
     assert R.score(probe, expanded, 1, 3, 30)["top1"] == 0
+    assert R.score(probe, expanded, 0, 3, 30)["top1"] == 0
     assert R.score(probe, trained, 1, 3, 30)["top1"] == 1
 
 
