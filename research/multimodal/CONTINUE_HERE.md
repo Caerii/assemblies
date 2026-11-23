@@ -21,10 +21,12 @@ The companion prototype created in ChatGPT during 2026-11-23 is named
 `multiplicative_reference.py`, all corresponding test and benchmark scripts,
 the research milestone validator, the experiment records, and the documentation.
 
-**Important:** Most v6 companion source files are NOT YET committed to this
-branch. This document records their identity rather than falsely claiming
-they are in Git. Future work must migrate them in small verified commits.
-Do not treat ephemeral conversation links as archival Git storage.
+**Archive committed:** The compressed v6 companion **source** snapshot is stored under
+`archive/v6-companion-sources.tar.xz.base64`; recover it with instructions in
+`archive/README.md` and the recorded SHA-256. Most companion modules have not
+yet been integrated as first-class source files; their bytes are preserved in
+Git and must be migrated in small verified commits. The source snapshot excludes
+historical generated JSON diagnostics, retained in the conversation ZIP.
 
 ## Evidence status
 
