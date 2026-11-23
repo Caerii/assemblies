@@ -68,7 +68,7 @@ def _ids(assembly, k: int):
     return x
 
 
-def score(probe, references, target, k):
+def score(probe, references, target, k, n):
     """Rank within one role; never compare winners across different areas."""
     x = _ids(probe, k)
     rankings = sorted(((len(np.intersect1d(x, _ids(ref, k), assume_unique=True)),
@@ -81,7 +81,7 @@ def score(probe, references, target, k):
         "top1_margin": int(target_hits - max(
             [hits for hits, key in rankings if key != target], default=0)),
         "overlap": float(target_hits / k),
-        "chance_overlap": float(k / 600),  # overwritten by caller's actual n
+        "chance_overlap": float(k / n),
         "rankings": rankings[:3],
     }
 
@@ -130,7 +130,7 @@ def trial(seed: int, cfg: Protocol):
                       for j, ref in candidates.items())
         pretest.append({"content": i, "role": role, "max_old_overlap": nearest[0] / cfg.k})
 
-    old_before = {(i, role): score(read(i, role), references[role], i, cfg.k)
+    old_before = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
                   for i, role in train}
 
     # One exposure per held-out combination, with no extra sentence training.
@@ -140,9 +140,9 @@ def trial(seed: int, cfg: Protocol):
             brain, "LEX", role, source_assembly=lexical[i],
             tail_rounds=cfg.tail_rounds)
 
-    old_after = {(i, role): score(read(i, role), references[role], i, cfg.k)
+    old_after = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
                  for i, role in train}
-    novel = {(i, role): score(read(i, role), references[role], i, cfg.k)
+    novel = {(i, role): score(read(i, role), references[role], i, cfg.k, cfg.n)
              for i, role in heldout}
 
     def mean(rows, field):
