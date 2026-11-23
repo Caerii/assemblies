@@ -87,3 +87,62 @@ def test_cli_missing_native_exits_nonzero(monkeypatch):
         P.NativePreflightError('missing exact checkout')))
     monkeypatch.setattr('sys.argv', ['native_execution_preflight'])
     assert P.main() == 2
+
+
+def test_traceable_native_checkout_and_dirty_override(tmp_path, monkeypatch):
+    """A fake matching package proves the provenance/dirty metadata contract."""
+    import hashlib
+    import sys
+    from types import ModuleType
+
+    source = tmp_path / 'neural_assemblies/core/brain.py'
+    source.parent.mkdir(parents=True)
+    source.write_text('class Brain: pass\n')
+
+    package = ModuleType('neural_assemblies')
+    package.__path__ = [str(source.parent.parent)]
+    core = ModuleType('neural_assemblies.core')
+    core.__path__ = [str(source.parent)]
+    brain_module = ModuleType('neural_assemblies.core.brain')
+
+    class Brain:
+        def project(self, external_drive=None): pass
+        def engine_for(self): pass
+        def read_only(self): pass
+        def frozen(self): pass
+        def add_area(self): pass
+        def clear_activity(self): pass
+
+    brain_module.Brain = Brain
+    for name, mod in [('neural_assemblies', package),
+                      ('neural_assemblies.core', core),
+                      ('neural_assemblies.core.brain', brain_module)]:
+        monkeypatch.setitem(sys.modules, name, mod)
+    monkeypatch.setattr(P.inspect, 'getfile', lambda cls: str(source))
+
+    def git(_, *args):
+        if args == ('rev-parse', '--show-toplevel'):
+            return str(tmp_path)
+        if args == ('branch', '--show-current'):
+            return P.EXPECTED_BRANCH
+        if args == ('rev-parse', 'HEAD'):
+            return 'cafefeed'
+        if args[0] == 'status':
+            return ' M research/multimodal/example.py'
+        raise AssertionError(args)
+
+    monkeypatch.setattr(P, '_git', git)
+    with pytest.raises(P.NativePreflightError, match='uncommitted'):
+        P.inspect_checkout(tmp_path)
+    out = P.inspect_checkout(tmp_path, require_clean=False)
+    assert out['dirty'] is True
+    assert out['git_head'] == 'cafefeed'
+    assert out['brain_source'] == str(source)
+    assert out['brain_sha256'] == hashlib.sha256(source.read_bytes()).hexdigest()
+
+    class UnsupportedBrain(Brain):
+        def project(self, projections): pass
+
+    brain_module.Brain = UnsupportedBrain
+    with pytest.raises(P.NativePreflightError, match='teacher-drive'):
+        P.inspect_checkout(tmp_path, require_clean=False)
