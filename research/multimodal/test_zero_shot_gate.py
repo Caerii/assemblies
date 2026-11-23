@@ -152,3 +152,25 @@ def test_independent_learner_seed_does_not_change_ground_truth():
     b = Config(seed=17, model_seed=102)
     assert Dataset(a).manifest()["targets_sha256"] == Dataset(b).manifest()["targets_sha256"]
     assert learner_view(a).seed != learner_view(b).seed
+
+
+def test_identical_public_private_seed_rejected():
+    with pytest.raises(ValueError, match="must differ"):
+        Config(seed=77, model_seed=77).validate()
+
+
+def test_public_zero_seed_still_valid_with_private_seed_isolated():
+    public = learner_view(Config(seed=47, model_seed=0))
+    assert public.seed == 0
+    assert public.validate() == public
+
+
+def test_only_named_oracle_can_receive_private_dataset():
+    class Opportunistic:
+        def __init__(self, dataset):
+            self.dataset = dataset
+        def train(self, *args): pass
+        def predict(self, *args): return None
+
+    with pytest.raises(ValueError, match="restricted"):
+        evaluate(Config(), Opportunistic, expose_labels=True)
