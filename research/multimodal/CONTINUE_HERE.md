@@ -641,3 +641,63 @@ GitHub clone DNS resolution fails. This is mock-contract validation,
 not native numerical execution. The first next action in a complete
 checkout remains the R1p native chain smoke and full local gate suite.
 Do not report zero-shot/compositional accuracy from this checkpoint.
+
+
+## R1q checkpoint — exact native execution preflight (2026-11-23)
+
+**Current milestone:** Native execution is now a first-class, fail-closed
+gate rather than an implicit assumption. All work remains on the same branch.
+
+New files:
+- `native_execution_preflight.py`: checks exact Git checkout/branch,
+  clean source, imported Brain source origin, required native APIs, and
+  runs a small numerical teacher-drive vs beta-zero contrast with
+  synaptic write and read-only fingerprint verification.
+- `test_native_execution_preflight.py`: seven tests including wrong
+  branch, dirty state, stale package, missing native API, and correct
+  provenance handling.
+- `R1Q_NATIVE_EXECUTION_PREFLIGHT.md`: measured local results,
+  execution commands and evidence boundaries.
+
+`run_local_gates.py` now invokes `native-preflight` before native
+R1b–R1o experiments. A failing or omitted preflight causes native
+studies to be reported as **blocked** and not executed. Synthetic
+R1n/R1o replay remains independent and still runs. Runner tests
+cover this dependency.
+
+**Local source/testing evidence:** Exact Git blob hashes for the current
+preflight, its tests, the runner and runner tests were compared with
+the local tested copies. R1o/R1p/R1q research-code suite: **59 passed**,
+including full R1o evidence replay and the new preflight/runner tests.
+
+**Actual blocked execution reproduced:**
+
+```text
+protocol-tests         passed
+native-preflight       failed (no Git checkout / native package)
+r1o-native-composition blocked
+r1o-evidence           passed
+overall exit code      1
+```
+
+This is NOT a native Brain pass, and it provides no new native
+compositionality or performance numbers. The mounted local bundles
+contain the research-code subset, not the exact `neural_assemblies`
+package. This sandbox has no GitHub/PyPI DNS access; substituting the
+old March 2026 PyPI wheel would evaluate a different implementation.
+
+**Next real execution from a clean checkout with network access:**
+
+```sh
+git switch research/multimodal-continual-assemblies
+uv sync --no-group gpu
+uv run python -m research.multimodal.native_execution_preflight \
+  --output /tmp/r1q-native-preflight.json
+uv run python -m research.multimodal.run_local_gates \
+  --output /tmp/assemblies-native-r1q
+```
+
+Read `R1Q_NATIVE_EXECUTION_PREFLIGHT.md`. Preserve the JSON outputs
+and all stderr. If the gate fails in the *real* checkout, fix the
+underlying native backend before attempting R1o accuracy or Rust
+optimization. No GitHub Actions are required. Maintain this branch.
