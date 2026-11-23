@@ -85,3 +85,12 @@ checkout; increase seeds and add p/k/round sweeps with held-out conditions;
 instrument weight saturation and target support; implement a controlled
 native-Brain-versus-explicit-fiber comparison; compile existing Rust
 PyO3 extensions before making performance claims.
+
+## Additional local reproduction (same session)
+
+A local mirror of the branch's standalone multiplicative fiber plus the R1a
+diagnostic passed **11/11** tests using Python 3.13/NumPy 2.3.5/pytest 9.0.2.
+The p=.6, n=128, k=6, beta=.5, three-presentation, three-seed reproduction
+gave exact recall at loads 8/16/32 = 0.416667/0.229167/0.125000,
+matching the recorded exploratory run. This was NOT a full Git checkout,
+and does not establish the native Brain conformance gate.
