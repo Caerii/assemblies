@@ -11,6 +11,7 @@ import json
 import numpy as np
 from research.multimodal.zero_shot_gate import Config, evaluate
 from research.multimodal.learning_audit import (active_synapses, full_explicit_fingerprint, write_diagnostic)
+from research.multimodal.exact_synapse_law import (snapshot_area_fibers, verify_exact_hebbian_write)
 
 
 class NativeTeacherDriven:
@@ -53,21 +54,37 @@ class NativeTeacherDriven:
                 or len(np.unique(target)) != self.cfg.k
                 or np.any(cue >= self.cfg.n) or np.any(target >= self.cfg.n)):
             raise ValueError("invalid training assembly")
+        # Snapshot ALL directed fibers before the write; a correct Hebbian
+        # update may touch only the active LEX->role matrix entries.
+        graph_before = snapshot_area_fibers(
+            self.brain, ("LEX",) + tuple(self.cfg.roles))
         before = active_synapses(self.brain, role, cue, target)
         drive = np.zeros(self.cfg.n, dtype=np.float32)
         drive[target] = self.teacher_gain
+        selected_by_round = []
         for _ in range(self.presentations):
             activate_assembly(self.brain, Assembly("LEX", NeuronIds(cue)))
             self.brain.clear_activity([role])
             self.brain.project({}, {"LEX": [role]},
                                external_drive={role: drive})
+            selected_by_round.append(
+                np.asarray(self.brain.areas[role].winners, dtype=np.uint32).copy())
         after = active_synapses(self.brain, role, cue, target)
+        exact_law = verify_exact_hebbian_write(
+            graph_before,
+            snapshot_area_fibers(self.brain, ("LEX",) + tuple(self.cfg.roles)),
+            source="LEX", target=role, cue=cue, selected_by_round=selected_by_round,
+            beta=self.beta, ceiling=self.brain.w_max)
         diagnostic = write_diagnostic(before, after, target,
                                       self.brain.areas[role].winners)
         if self.beta == 0 and diagnostic["active_edge_changed"] != 0:
             raise AssertionError("zero-plasticity control unexpectedly changed its synapses")
         diagnostic.update({"item": int(item), "role": role,
-                           "beta": self.beta, "presentations": self.presentations})
+                           "beta": self.beta, "presentations": self.presentations,
+                           "exact_synapse_law": exact_law,
+                           "teacher_overlap_by_round": [
+                               len(set(map(int, w)) & set(map(int, target))) / len(target)
+                               for w in selected_by_round]})
         self.clamp_diagnostics.append(diagnostic)
         self.train_pairs.add((item, role))
         self.training_calls += 1
