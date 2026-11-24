@@ -740,3 +740,43 @@ Save every failure and run manifest under the same branch.
 **Environment limitation:** This sandbox cannot resolve GitHub/PyPI,
 does not contain the installed `neural_assemblies` package, and lacks
 a Rust compiler. Do NOT claim native execution occurred here.
+
+## R1s checkpoint — isolated execution of actual native NumPy method
+
+**Real numerical progress, still not a full Brain run.** The ChatGPT
+container has neither a mounted `neural_assemblies` package nor DNS
+access to GitHub/PyPI, so full native execution remains blocked.
+
+The exact method body of
+`NumpyExplicitEngine.project_into` was read from the current GitHub
+source, Git blob SHA `58a2c0929974752fc7e5ae92c69ea67097c02976`.
+Its 4,893-character source text (excluding the following blank separator)
+was checked against a local verbatim fixture with FNV-1a 64-bit fingerprint
+`3368f708de449626`.
+
+**19 component-level numerical tests passed locally**: six seeded binary
+connectomes × three beta conditions (0,.1,.5), each with three
+teacher-guided rounds followed by two no-learning reads, plus one
+clipping contract. Each actual method execution was compared against
+the independent exact float32 Hebbian oracle. Engine neighbors
+(winner selection, input validation, connectome registration) were
+test doubles. This tests actual method arithmetic, not complete
+`Brain` execution or native AB/BA composition.
+
+First-class branch test:
+`research/multimodal/test_native_explicit_component.py`. It uses AST to
+extract the ACTUAL method directly from the local checkout so it won't
+rely on a hand-copied fixture on native machines.
+
+Research details and provenance:
+`research/multimodal/R1S_EXPLICIT_COMPONENT.md`.
+
+**Next blocked native gate:** run the existing
+`native_execution_preflight`, then the R1i matched controls and
+`native_affine_chain` numerical AB/BA experiment inside the complete
+executable repository. No valid native learning or speed claims yet.
+
+A remote-machine execution connector can supply access to the user's
+actual checked-out machine; it requires explicit user installation and
+connection. The regular GitHub integration is source-only and cannot
+run code on that machine.
