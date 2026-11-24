@@ -77,8 +77,10 @@ def inspect_checkout(root: Path, *, require_clean: bool = True) -> dict:
 def numeric_smoke(seed: int = 37, n: int = 64, k: int = 8) -> dict:
     """Two native models, same graph seed: beta>0 versus beta=0.
 
-    Teacher clamp must win target neurons, change eligible synapses only if
-    beta>0, then run repeated no-teacher reads without any matrix mutation.
+    Teacher clamp must win target neurons and match the EXACT float32
+    multiplicative Hebbian update on only the eligible directed fiber
+    (including weight clipping), then run repeated no-teacher reads
+    without any matrix mutation.
     """
     if not (0 < k < n) or type(seed) is not int or seed < 0:
         raise ValueError("invalid native smoke geometry/seed")
@@ -98,6 +100,16 @@ def numeric_smoke(seed: int = 37, n: int = 64, k: int = 8) -> dict:
         model.train(0, "SUBJ", cue.copy(), target.copy())
         after = model.state_fingerprint()
         diag = model.clamp_diagnostics[-1]
+        law = diag.get("exact_synapse_law")
+        if (not isinstance(law, dict)
+                or law.get("oracle") != "native_numpy_explicit_float32_multiplicative"
+                or law.get("rounds") != 3
+                or not isinstance(law.get("changed_edges_full_graph"), int)):
+            raise NativePreflightError("exact full-graph Hebbian write evidence missing")
+        if beta == 0 and law["changed_edges_full_graph"] != 0:
+            raise NativePreflightError("nonplastic write changed graph under exact oracle")
+        if beta > 0 and law["changed_edges_full_graph"] == 0:
+            raise NativePreflightError("plastic write did not change the graph under exact oracle")
         if not diag["teacher_target_overlap"] == 1.:
             raise NativePreflightError("teacher clamp did not select exact target")
         if beta == 0 and before != after:
@@ -116,6 +128,7 @@ def numeric_smoke(seed: int = 37, n: int = 64, k: int = 8) -> dict:
             "teacher_target_overlap": diag["teacher_target_overlap"],
             "changed_edges": diag["active_edge_changed"],
             "synapse_delta": diag["active_edge_delta_sum"],
+            "exact_synapse_law": law,
             "trained_graph_changed": before != after,
             "unprompted_overlap": int(np.intersect1d(read1, target).size) / k,
             "read_repeatable": True,
