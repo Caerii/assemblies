@@ -15,6 +15,7 @@ def test_supervision_only_during_training(monkeypatch, beta):
         def __init__(self, **kwargs):
             self.reading = False
             self.frozen_state = False
+            self.w_max = 20.0
             self.areas = {}
             self.fibers = {}
             self.area_beta = {}
@@ -97,6 +98,11 @@ def test_supervision_only_during_training(monkeypatch, beta):
     assert model.train_pairs == {(0, "SUBJ")}
     assert model.clamp_diagnostics[0]["teacher_target_overlap"] == 1.
     assert model.clamp_diagnostics[0]["active_edge_changed"] == (9 if beta else 0)
+    law = model.clamp_diagnostics[0]["exact_synapse_law"]
+    assert law["rounds"] == 2
+    assert law["changed_edges_full_graph"] == (9 if beta else 0)
+    assert law["oracle"] == "native_numpy_explicit_float32_multiplicative"
+    assert model.clamp_diagnostics[0]["teacher_overlap_by_round"] == [1., 1.]
     before_read_hash = model.state_fingerprint()
     train_projections = [e for e in events if e[0] == "project"]
     assert len(train_projections) == 2
