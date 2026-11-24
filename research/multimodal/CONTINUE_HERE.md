@@ -701,3 +701,42 @@ Read `R1Q_NATIVE_EXECUTION_PREFLIGHT.md`. Preserve the JSON outputs
 and all stderr. If the gate fails in the *real* checkout, fix the
 underlying native backend before attempting R1o accuracy or Rust
 optimization. No GitHub Actions are required. Maintain this branch.
+
+## R1r checkpoint — exact full-graph native Hebbian write oracle (2026-11-23)
+
+Committed on the same canonical branch:
+- `exact_synapse_law.py`: complete snapshot of all directed
+  LEX/SUBJ/OBJ explicit fibers, per-presentation float32 Hebbian and
+  clipping oracle, and exact full-graph comparison.
+- `test_exact_synapse_law.py`: 15 focused tests, including wrong
+  matrix/off-target updates, clipping, beta-zero and bad graph contracts.
+- `native_teacher_drive.py`: records actual winners each write round,
+  invokes the exact oracle after every teacher-guided training item,
+  preserves `exact_synapse_law` and teacher-overlap diagnostics.
+- `native_execution_preflight.py`: fails unless native smoke exposes
+  a valid three-round exact-law certificate for beta-zero and positive
+  arms, including the correct changed-edge category.
+- `test_native_teacher_drive.py` plus
+  `test_r1r_preflight_evidence.py`: fake explicit-engine integration
+  checks and missing/incorrect proof rejection.
+- `R1R_EXACT_SYNAPSE_LAW.md`: design, provenance and acceptance criteria.
+
+**Local executed evidence:** 15 focused new oracle tests passed;
+25 oracle/preflight tests passed; 77 total tests passed in the
+available R1q+R1r local research workspace. That workspace does NOT
+include the full native package or the entire GitHub branch test set.
+Three tested R1r source/test Git blob hashes match their local copies
+(see R1R report). The native engine numerical path remains unexecuted.
+
+**Next real action, not another synthetic benchmark:** on a complete
+checkout of the branch with dependencies, execute
+`uv run python -m pytest -q research/multimodal` and
+`uv run python -m research.multimodal.native_execution_preflight`.
+The first native smoke must match the exact independent synapse oracle
+before claiming a successful teacher-write or any compositional result.
+Then execute R1i matched controls and the R1o AB-versus-BA native gate.
+Save every failure and run manifest under the same branch.
+
+**Environment limitation:** This sandbox cannot resolve GitHub/PyPI,
+does not contain the installed `neural_assemblies` package, and lacks
+a Rust compiler. Do NOT claim native execution occurred here.
